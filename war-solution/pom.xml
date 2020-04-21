@@ -13,7 +13,7 @@
     <parent>
         <groupId>ru.citeck.ecos.community</groupId>
         <artifactId>ecos-community</artifactId>
-        <version>3.16.3</version>
+        <version>3.16.4</version>
     </parent>
 
     <build>

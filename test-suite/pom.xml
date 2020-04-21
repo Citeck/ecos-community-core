@@ -10,10 +10,10 @@
     <parent>
         <groupId>ru.citeck.ecos.community</groupId>
         <artifactId>ecos-community</artifactId>
-        <version>3.16.3</version>
+        <version>3.16.4</version>
     </parent>
 
-    <!-- 
+    <!--
         SDK properties have sensible defaults in the SDK parent,
         but you can override the properties below to use another version.
         For more available properties see the alfresco-sdk-parent POM.
