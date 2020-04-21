@@ -172,6 +172,7 @@ public class WorkflowTaskRecords extends LocalRecordsDAO
             RecordRef documentRef = taskInfo.getDocument();
             if (documentRef != RecordRef.EMPTY) {
                 RecordMeta docMutateMeta = new RecordMeta(documentRef);
+                docMutateMeta.setAttributes(documentProps.getAttributes());
                 RecordsMutation mutation = new RecordsMutation();
                 mutation.setRecords(Collections.singletonList(docMutateMeta));
                 recordsService.mutate(mutation);
