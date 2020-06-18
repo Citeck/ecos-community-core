@@ -56,6 +56,12 @@ public interface OperandExpected {
     OperatorExpected exact(QName field, Serializable value);
 
     /**
+     * Any field has value
+     * @param value value to check
+     */
+    FTSQuery value(Serializable value);
+
+    /**
      * Field has value
      * If value is null then it will be empty() check
      * @param value value to check

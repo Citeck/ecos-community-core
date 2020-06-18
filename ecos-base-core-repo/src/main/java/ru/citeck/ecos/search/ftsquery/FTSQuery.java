@@ -128,6 +128,15 @@ public class FTSQuery implements OperatorExpected, OperandExpected {
         return value(field, value, true);
     }
 
+    public FTSQuery value(Serializable value) {
+        ValueOperator valueOperator = new ValueOperator();
+        valueOperator.field = null;
+        valueOperator.value = value;
+        valueOperator.exact = false;
+        group.addTerm(valueOperator);
+        return this;
+    }
+
     @Override
     public FTSQuery value(QName field, Serializable value) {
         return value(field, value, false);
@@ -637,14 +646,21 @@ public class FTSQuery implements OperatorExpected, OperandExpected {
             QueryConsistency consistency = searchParameters.getQueryConsistency();
             char prefix = exact || consistency.equals(QueryConsistency.TRANSACTIONAL) ? '=' : '@';
 
+            if (field == null) {
+                builder.append(QName.NAMESPACE_BEGIN)
+                    .append(value)
+                    .append(QName.NAMESPACE_END);
+                return;
+            }
+
             String local = field.getLocalName();
 
             builder.append(prefix)
-                    .append(QName.NAMESPACE_BEGIN)
-                    .append(field.getNamespaceURI())
-                    .append(QName.NAMESPACE_END)
-                    .append(local.replace("-", "\\-"))
-                    .append(":");
+                .append(QName.NAMESPACE_BEGIN)
+                .append(field.getNamespaceURI())
+                .append(QName.NAMESPACE_END)
+                .append(local.replace("-", "\\-"))
+                .append(":");
 
             if (value instanceof Boolean || value instanceof Range) {
                 builder.append(value);
