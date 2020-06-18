@@ -444,6 +444,10 @@ public class AlfNodeRecord implements MetaValue {
             metaValue = new AlfNodeRecord(RecordRef.valueOf(value.toString()));
         } else if (value instanceof MLText) {
             metaValue = new MLTextValue((MLText) value);
+        } else if (att != null && value instanceof String && "wfm:documentEcosType".equals(att.name())) {
+            //todo: move this logic to external converter
+            RecordRef recordRef = RecordRef.valueOf((String) value);
+            metaValue = context.getServiceFactory().getMetaValuesConverter().toMetaValue(recordRef);
         } else {
             if (att != null) {
                 metaValue = new AlfNodeAttValue(att, value);
