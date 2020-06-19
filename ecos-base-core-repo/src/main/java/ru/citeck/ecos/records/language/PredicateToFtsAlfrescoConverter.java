@@ -55,6 +55,7 @@ public class PredicateToFtsAlfrescoConverter implements QueryLangConverter<Predi
     private static final String CM_MODIFIED_ATTRIBUTE = "cm:modified";
     private static final String CM_MODIFIER_ATTRIBUTE = "cm:modifier";
     private static final String ACTORS_ATTRIBUTE = "_actors";
+    private static final String ALL_ATTRIBUTE = "ALL";
 
 
     private final DictUtils dictUtils;
@@ -211,9 +212,9 @@ public class PredicateToFtsAlfrescoConverter implements QueryLangConverter<Predi
                     ClassAttributeDefinition attDef = dictUtils.getAttDefinition(attribute);
                     QName field = getQueryField(attDef);
 
-                    if (field == null) {
-                        break;
-                    }
+//                    if (field == null) {
+//                        break;
+//                    }
 
                     // accepting multiple values by comma
                     if (valueStr.contains(COMMA_DELIMITER) &&
@@ -239,6 +240,10 @@ public class PredicateToFtsAlfrescoConverter implements QueryLangConverter<Predi
                             query.value(field, valueStr.replaceAll("%", "*"));
                             break;
                         case CONTAINS:
+
+                            if (ALL_ATTRIBUTE.equals(attribute)) {
+                                query.value(valueStr);
+                            }
 
                             if (valueStr == null || valueStr.isEmpty()) {
                                 return;
