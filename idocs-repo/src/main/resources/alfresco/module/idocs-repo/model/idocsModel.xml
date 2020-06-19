@@ -56,16 +56,16 @@
                     <value>active</value>
                     <value>rescinded</value>
                     <value>notActive</value>
-                    
+
                     <!-- contracts statuses-->
                     <value>draft</value> <!-- Черновик -->
                     <value>forPayment</value> <!-- На оплате -->
-                    
+
                     <value>onFamiliarization</value>
                     <value>familiarized</value>
                     <value>conducted</value>
                     <value>closed</value>
-                    
+
                     <value>purchase-project</value>
                     <value>purchase-on-approval</value>
                     <value>purchase-on-signing</value>
@@ -303,7 +303,7 @@
                 <aspect>idocs:hasLegalForm</aspect>
             </mandatory-aspects>
         </type>
-        
+
         <type name="idocs:contractor">
             <parent>idocs:abstractContractor</parent>
             <properties>
@@ -344,6 +344,39 @@
             </mandatory-aspects>
         </type>
 
+        <type name="idocs:paymentRequisites">
+            <properties>
+                <property name="idocs:checkingAcc">
+                    <title>Контокоррентный счёт</title>
+                    <type>d:text</type>
+                </property>
+                <property name="idocs:bik">
+                    <title>БИК</title>
+                    <type>d:text</type>
+                </property>
+                <property name="idocs:correspondentAcc">
+                    <title>Корреспондентский счёт</title>
+                    <type>d:text</type>
+                </property>
+            </properties>
+            <associations>
+                <association name="idocs:paymentCurrency">
+                    <source>
+                        <mandatory>false</mandatory>
+                        <many>true</many>
+                    </source>
+                    <target>
+                        <class>idocs:currency</class>
+                        <mandatory>false</mandatory>
+                        <many>false</many>
+                    </target>
+                </association>
+            </associations>
+            <mandatory-aspects>
+                <aspect>idocs:publicRegInfo</aspect>
+            </mandatory-aspects>
+        </type>
+
         <type name="idocs:contact">
             <parent>dl:dataListItem</parent>
             <properties>
@@ -358,7 +391,7 @@
                 <aspect>idocs:organizationInfo</aspect>
             </mandatory-aspects>
         </type>
-        
+
         <type name="idocs:filesNomenclature">
             <parent>dl:dataListItem</parent>
             <properties>
@@ -395,7 +428,7 @@
                 </property>
             </properties>
         </type>
-        
+
         <type name="idocs:currency">
         	<title>Валюта</title>
             <parent>dl:dataListItem</parent>
@@ -516,7 +549,7 @@
         <type name="idocs:currencyRatesXML">
             <parent>cm:content</parent>
         </type>
-        
+
         <type name="idocs:bankAccount">
         	<title>Банковский счет</title>
             <parent>dl:dataListItem</parent>
@@ -525,7 +558,7 @@
                 <aspect>idocs:hasBankAccount</aspect>
             </mandatory-aspects>
         </type>
-		
+
         <type name="idocs:entity">
             <title>Entity</title>
             <parent>dl:dataListItem</parent>
@@ -798,7 +831,7 @@
                 </property>
             </properties>
         </aspect>
-        
+
         <aspect name="idocs:hasIndividualEntrepreneurInfo">
             <title>Регистрационная информация индивидуального предпринимателя</title>
             <properties>
@@ -830,7 +863,7 @@
                 </property>
             </properties>
         </aspect>
-        
+
         <aspect name="idocs:publicRegInfo">
             <title>Регистрационная информация юридического лица</title>
             <properties>
@@ -859,6 +892,14 @@
                     <type>d:text</type>
                     <mandatory>false</mandatory>
                 </property>
+                <property name="idocs:okonh">
+                    <title>ОКОНХ</title>
+                    <type>d:text</type>
+                </property>
+                <property name="idocs:okato">
+                    <title>ОКАТО</title>
+                    <type>d:text</type>
+                </property>
             </properties>
         </aspect>
 
@@ -878,7 +919,7 @@
                 </association>
             </associations>
         </aspect>
-        
+
         <!-- DEPRECATED -->
         <aspect name="idocs:hasDocumentType">
             <associations>
@@ -911,7 +952,7 @@
                 </association>
             </associations>
         </aspect>
-        
+
         <aspect name="idocs:pagesInfo">
             <properties>
                 <property name="idocs:pagesNumber">
@@ -1011,7 +1052,7 @@
                 </property>
             </overrides>
         </aspect>
-        
+
         <aspect name="idocs:hasDuration">
             <properties>
                 <property name="idocs:duration">
@@ -1084,7 +1125,7 @@
                 </association>
             </associations>
         </aspect>
-        
+
         <aspect name="idocs:communicationInfo">
             <properties>
                 <property name="idocs:phone">
@@ -1162,7 +1203,7 @@
                 </property>
             </properties>
         </aspect>
-        
+
         <aspect name="idocs:shortName">
             <title>Краткое название</title>
             <properties>
@@ -1274,7 +1315,7 @@
                 </association>
             </associations>
         </aspect>
-        
+
         <aspect name="idocs:hasManager">
             <properties>
                 <property name="idocs:managerGroup">
@@ -1354,7 +1395,7 @@
                 </association>
             </associations>
         </aspect>
-		
+
 		<aspect name="idocs:hasSignedVersion">
 			<associations>
 				<child-association name="idocs:signedVersion">
@@ -1637,7 +1678,7 @@
                 </property>
             </properties>
         </aspect>
-        
+
         <aspect name="idocs:isCreatedFrom">
             <properties>
                 <property name="idocs:createdFrom">
