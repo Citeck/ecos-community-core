@@ -643,8 +643,6 @@ public class FTSQuery implements OperatorExpected, OperandExpected {
 
         @Override
         public void toString(StringBuilder builder) {
-            QueryConsistency consistency = searchParameters.getQueryConsistency();
-            char prefix = exact || consistency.equals(QueryConsistency.TRANSACTIONAL) ? '=' : '@';
 
             if (field == null) {
                 builder.append(QName.NAMESPACE_BEGIN)
@@ -652,6 +650,9 @@ public class FTSQuery implements OperatorExpected, OperandExpected {
                     .append(QName.NAMESPACE_END);
                 return;
             }
+
+            QueryConsistency consistency = searchParameters.getQueryConsistency();
+            char prefix = exact || consistency.equals(QueryConsistency.TRANSACTIONAL) ? '=' : '@';
 
             String local = field.getLocalName();
 
