@@ -212,9 +212,9 @@ public class PredicateToFtsAlfrescoConverter implements QueryLangConverter<Predi
                     ClassAttributeDefinition attDef = dictUtils.getAttDefinition(attribute);
                     QName field = getQueryField(attDef);
 
-//                    if (field == null) {
-//                        break;
-//                    }
+                    if (field == null && !valuePred.getType().equals(CONTAINS)) {
+                        break;
+                    }
 
                     // accepting multiple values by comma
                     if (valueStr.contains(COMMA_DELIMITER) &&
