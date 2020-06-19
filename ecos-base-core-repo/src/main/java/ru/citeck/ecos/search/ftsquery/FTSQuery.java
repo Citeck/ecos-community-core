@@ -33,6 +33,8 @@ public class FTSQuery implements OperatorExpected, OperandExpected {
     private static final String TYPE = "TYPE";
     private static final String PATH = "PATH";
     private static final String ASPECT = "ASPECT";
+    private static final String VALUE_ENVELOP_START = "(";
+    private static final String VALUE_ENVELOP_END = ")";
 
     private static final String RANGE_TEMPLATE = "%s TO %s";
     private static final String QUOTES_TEMPLATE = "\"%s\"";
@@ -111,16 +113,16 @@ public class FTSQuery implements OperatorExpected, OperandExpected {
     @Override
     public FTSQuery empty(QName field) {
         return open().isNull(field).or()
-                     .isUnset(field)
-                     .close();
+            .isUnset(field)
+            .close();
     }
 
     @Override
     public FTSQuery emptyString(QName field) {
         return open().isNull(field).or()
-                     .isUnset(field).or()
-                     .exact(field, "")
-                     .close();
+            .isUnset(field).or()
+            .exact(field, "")
+            .close();
     }
 
     @Override
@@ -253,7 +255,7 @@ public class FTSQuery implements OperatorExpected, OperandExpected {
     public FTSQuery range(QName field, String from, boolean frIncl, String to, boolean toIncl) {
         if (from == null && to == null) {
             throw new IllegalArgumentException("At least one of 'from' or 'to' arguments " +
-                                               "must be specified. Field: " + field);
+                "must be specified. Field: " + field);
         }
 
         if (from == null) {
@@ -384,21 +386,21 @@ public class FTSQuery implements OperatorExpected, OperandExpected {
     @Override
     public Optional<NodeRef> queryOne(SearchService searchService) {
         return query(searchService).stream()
-                                   .findFirst();
+            .findFirst();
     }
 
     @Override
     public Optional<NodeRef> queryOne(SearchService searchService, Predicate<NodeRef> filter) {
         return query(searchService).stream()
-                                   .filter(filter)
-                                   .findFirst();
+            .filter(filter)
+            .findFirst();
     }
 
     @Override
     public List<NodeRef> query(SearchService searchService, Predicate<NodeRef> filter) {
         return query(searchService).stream()
-                                   .filter(filter)
-                                   .collect(Collectors.toList());
+            .filter(filter)
+            .collect(Collectors.toList());
     }
 
     @Override
@@ -439,7 +441,7 @@ public class FTSQuery implements OperatorExpected, OperandExpected {
         FTSQuery query = (FTSQuery) o;
 
         return Objects.equals(searchParameters, query.searchParameters) &&
-               Objects.equals(group, query.group);
+            Objects.equals(group, query.group);
     }
 
     @Override
@@ -472,13 +474,14 @@ public class FTSQuery implements OperatorExpected, OperandExpected {
         @Override
         public String toString() {
             return (frIncl ? '[' : '<')
-                    + String.format(RANGE_TEMPLATE, from, to)
-                    + (toIncl ? ']' : '>');
+                + String.format(RANGE_TEMPLATE, from, to)
+                + (toIncl ? ']' : '>');
         }
     }
 
     private interface Term<T> {
         void toString(StringBuilder builder);
+
         T copy();
     }
 
@@ -569,8 +572,8 @@ public class FTSQuery implements OperatorExpected, OperandExpected {
             BinOperatorTerm operator1 = (BinOperatorTerm) o;
 
             return term0.equals(operator1.term0) &&
-                   term1.equals(operator1.term1) &&
-                   operator.equals(operator1.operator);
+                term1.equals(operator1.term1) &&
+                operator.equals(operator1.operator);
         }
 
         @Override
@@ -615,7 +618,7 @@ public class FTSQuery implements OperatorExpected, OperandExpected {
             SysValueOperator that = (SysValueOperator) o;
 
             return Objects.equals(field, that.field) &&
-                   Objects.equals(value, that.value);
+                Objects.equals(value, that.value);
         }
 
         @Override
@@ -645,9 +648,9 @@ public class FTSQuery implements OperatorExpected, OperandExpected {
         public void toString(StringBuilder builder) {
 
             if (field == null) {
-                builder.append(QName.NAMESPACE_BEGIN)
+                builder.append(VALUE_ENVELOP_START)
                     .append(value)
-                    .append(QName.NAMESPACE_END);
+                    .append(VALUE_ENVELOP_END);
                 return;
             }
 
@@ -683,8 +686,8 @@ public class FTSQuery implements OperatorExpected, OperandExpected {
             ValueOperator operator = (ValueOperator) o;
 
             return exact == operator.exact &&
-                   Objects.equals(field, operator.field) &&
-                   Objects.equals(value, operator.value);
+                Objects.equals(field, operator.field) &&
+                Objects.equals(value, operator.value);
         }
 
         @Override
@@ -711,9 +714,9 @@ public class FTSQuery implements OperatorExpected, OperandExpected {
             boolean termIsEmpty = term == null || term instanceof Group && ((Group) term).isEmpty();
 
             return termIsEmpty
-                    && unOperator == null
-                    && biOperator == null
-                    && group == null;
+                && unOperator == null
+                && biOperator == null
+                && group == null;
         }
 
         void startGroup() {
