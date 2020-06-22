@@ -55,6 +55,7 @@ public class PredicateToFtsAlfrescoConverter implements QueryLangConverter<Predi
     private static final String CM_MODIFIED_ATTRIBUTE = "cm:modified";
     private static final String CM_MODIFIER_ATTRIBUTE = "cm:modifier";
     private static final String ACTORS_ATTRIBUTE = "_actors";
+    private static final String ALL_ATTRIBUTE = "ALL";
 
 
     private final DictUtils dictUtils;
@@ -123,6 +124,11 @@ public class PredicateToFtsAlfrescoConverter implements QueryLangConverter<Predi
             String valueStr = value.toString();
 
             switch (attribute) {
+                case ALL_ATTRIBUTE:
+
+                    query.value(valueStr);
+                    break;
+
                 case "PATH":
 
                     query.path(valueStr);
