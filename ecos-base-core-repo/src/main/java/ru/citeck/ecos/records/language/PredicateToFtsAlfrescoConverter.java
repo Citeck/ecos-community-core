@@ -127,6 +127,9 @@ public class PredicateToFtsAlfrescoConverter implements QueryLangConverter<Predi
                 case ALL_ATTRIBUTE:
 
                     query.value(valueStr);
+                    query.and();
+                    query.type(ContentModel.PROP_CONTENT);
+
                     break;
 
                 case "PATH":
