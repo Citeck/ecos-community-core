@@ -124,6 +124,11 @@ public class PredicateToFtsAlfrescoConverter implements QueryLangConverter<Predi
             String valueStr = value.toString();
 
             switch (attribute) {
+                case ALL_ATTRIBUTE:
+
+                    query.value(valueStr);
+                    break;
+
                 case "PATH":
 
                     query.path(valueStr);
@@ -212,7 +217,7 @@ public class PredicateToFtsAlfrescoConverter implements QueryLangConverter<Predi
                     ClassAttributeDefinition attDef = dictUtils.getAttDefinition(attribute);
                     QName field = getQueryField(attDef);
 
-                    if (field == null && !valuePred.getType().equals(CONTAINS)) {
+                    if (field == null) {
                         break;
                     }
 
@@ -240,10 +245,6 @@ public class PredicateToFtsAlfrescoConverter implements QueryLangConverter<Predi
                             query.value(field, valueStr.replaceAll("%", "*"));
                             break;
                         case CONTAINS:
-
-                            if (ALL_ATTRIBUTE.equals(attribute)) {
-                                query.value(valueStr);
-                            }
 
                             if (valueStr == null || valueStr.isEmpty()) {
                                 return;
