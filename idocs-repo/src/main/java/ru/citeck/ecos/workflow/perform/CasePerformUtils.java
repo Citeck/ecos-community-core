@@ -17,8 +17,18 @@ import org.alfresco.service.cmr.security.AuthorityService;
 import org.alfresco.service.cmr.security.AuthorityType;
 import org.alfresco.service.namespace.NamespaceService;
 import org.alfresco.service.namespace.QName;
+import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.codehaus.jackson.map.ObjectMapper;
+import org.springframework.beans.factory.annotation.Autowired;
+import ru.citeck.ecos.icase.activity.dto.ActivityInstance;
+import ru.citeck.ecos.icase.activity.dto.ActivityRef;
+import ru.citeck.ecos.icase.activity.service.eproc.EProcActivityService;
+import ru.citeck.ecos.icase.activity.service.eproc.EProcUtils;
+import ru.citeck.ecos.icase.activity.service.eproc.importer.parser.CmmnDefinitionConstants;
+import ru.citeck.ecos.model.BpmPackageModel;
 import ru.citeck.ecos.model.CasePerformModel;
+import ru.citeck.ecos.model.EcosProcessModel;
 import ru.citeck.ecos.model.ICaseTaskModel;
 import ru.citeck.ecos.role.CaseRoleService;
 import ru.citeck.ecos.utils.RepoUtils;
@@ -78,17 +88,18 @@ public class CasePerformUtils {
     private DictionaryService dictionaryService;
     private Repository repositoryHelper;
     private CaseRoleService caseRoleService;
+    private EProcActivityService eprocActivityService;
 
     private ObjectMapper objectMapper = new ObjectMapper();
 
     boolean isCommentMandatory(PerformExecution execution, PerformTask task) {
         return isInSplitString(execution, CasePerformModel.PROP_OUTCOMES_WITH_MANDATORY_COMMENT,
-                                  task, CasePerformModel.PROP_PERFORM_OUTCOME);
+                task, CasePerformModel.PROP_PERFORM_OUTCOME);
     }
 
     boolean isAbortOutcomeReceived(PerformExecution execution, PerformTask task) {
         return isInSplitString(execution, CasePerformModel.PROP_ABORT_OUTCOMES,
-                                  task, CasePerformModel.PROP_PERFORM_OUTCOME);
+                task, CasePerformModel.PROP_PERFORM_OUTCOME);
     }
 
     void saveTaskResult(PerformExecution execution, PerformTask task) {
@@ -111,8 +122,8 @@ public class CasePerformUtils {
 
         QName assocQName = QName.createQName(CasePerformModel.NAMESPACE, resultName);
         NodeRef result = nodeService.createNode(bpmPackage, CasePerformModel.ASSOC_PERFORM_RESULTS,
-                                                assocQName, CasePerformModel.TYPE_PERFORM_RESULT,
-                                                properties).getChildRef();
+                assocQName, CasePerformModel.TYPE_PERFORM_RESULT,
+                properties).getChildRef();
 
         nodeService.createAssociation(result, person, CasePerformModel.ASSOC_RESULT_PERSON);
 
@@ -137,7 +148,7 @@ public class CasePerformUtils {
     }
 
     boolean isInSplitString(VariableScope stringScope, QName stringKey,
-                                   VariableScope valueScope, QName valueKey) {
+                            VariableScope valueScope, QName valueKey) {
 
         String[] values = getSplitString(stringScope, stringKey);
         String value = (String) valueScope.getVariableLocal(toString(valueKey));
@@ -202,7 +213,7 @@ public class CasePerformUtils {
     }
 
     String[] getSplitString(VariableScope scope, String key) {
-        String variable = (String)scope.getVariable(key);
+        String variable = (String) scope.getVariable(key);
         if (variable == null) {
             return new String[0];
         }
@@ -329,24 +340,57 @@ public class CasePerformUtils {
 
     List<NodeRef> getTaskRoles(VariableScope execution) {
 
-        List<NodeRef> roles = new ArrayList<>();
-
         ActivitiScriptNode pack = (ActivitiScriptNode) execution.getVariable(toString(WorkflowModel.ASSOC_PACKAGE));
-        NodeRef caseTask = null;
 
-        List<AssociationRef> assocs = nodeService.getSourceAssocs(pack.getNodeRef(), ICaseTaskModel.ASSOC_WORKFLOW_PACKAGE);
-        if (assocs != null && !assocs.isEmpty()) {
-            caseTask = assocs.get(0).getSourceRef();
+        List<NodeRef> cmmnRoles = getRolesFromEprocCmmn(pack);
+        if (CollectionUtils.isNotEmpty(cmmnRoles)) {
+            return cmmnRoles;
         }
 
+        NodeRef caseTask = RepoUtils.getFirstSourceAssoc(pack.getNodeRef(),
+                ICaseTaskModel.ASSOC_WORKFLOW_PACKAGE, nodeService);
         if (caseTask != null) {
+            List<NodeRef> roles = new ArrayList<>();
             List<AssociationRef> roleAssocs = nodeService.getTargetAssocs(caseTask, CasePerformModel.ASSOC_PERFORMERS_ROLES);
             for (AssociationRef roleAssocRef : roleAssocs) {
                 roles.add(roleAssocRef.getTargetRef());
             }
+            return roles;
+        }
+
+        return Collections.emptyList();
+    }
+
+    private List<NodeRef> getRolesFromEprocCmmn(ActivitiScriptNode pack) {
+        String rawActivityRef = (String) nodeService.getProperty(pack.getNodeRef(), EcosProcessModel.PROP_ACTIVITY_REF);
+        if (StringUtils.isBlank(rawActivityRef)) {
+            return Collections.emptyList();
+        }
+
+        ActivityRef activityRef = ActivityRef.of(rawActivityRef);
+        ActivityInstance instance = eprocActivityService.getStateInstance(activityRef);
+        if (instance == null) {
+            return Collections.emptyList();
+        }
+
+        String[] taskRoleVarNames = EProcUtils.getAnyAttribute(instance,
+                CmmnDefinitionConstants.TASK_ROLE_VAR_NAMES_SET_KEY, String[].class);
+        if (taskRoleVarNames == null || taskRoleVarNames.length == 0) {
+            return Collections.emptyList();
+        }
+
+        NodeRef documentRef = getDocumentRef(pack);
+        List<NodeRef> roles = new ArrayList<>(taskRoleVarNames.length);
+        for (String taskRoleVarName : taskRoleVarNames) {
+            NodeRef roleRef = caseRoleService.getRole(documentRef, taskRoleVarName);
+            roles.add(roleRef);
         }
 
         return roles;
+    }
+
+    private NodeRef getDocumentRef(ActivitiScriptNode pack) {
+        return RepoUtils.getFirstChildAssoc(pack.getNodeRef(), BpmPackageModel.ASSOC_PACKAGE_CONTAINS, nodeService);
     }
 
     void fillRolesByPerformers(VariableScope execution) {
@@ -401,7 +445,7 @@ public class CasePerformUtils {
     }
 
     public Map<NodeRef, List<NodeRef>> getRolesPool(VariableScope scope) {
-        Object result =  scope.getVariable(PERFORMERS_ROLES_POOL);
+        Object result = scope.getVariable(PERFORMERS_ROLES_POOL);
         if (result == null) {
             result = new NodeRefToNodeRefsMap();
         }
@@ -432,12 +476,18 @@ public class CasePerformUtils {
         this.caseRoleService = caseRoleService;
     }
 
+    @Autowired
+    public void setEprocActivityService(EProcActivityService eprocActivityService) {
+        this.eprocActivityService = eprocActivityService;
+    }
+
     public ObjectMapper getObjectMapper() {
         return objectMapper;
     }
 
     private static class DummyComparator implements Serializable, Comparator<Object> {
         private static final long serialVersionUID = 2252429774415071539L;
+
         @Override
         public int compare(Object o1, Object o2) {
             if (Objects.equals(o1, o2)) {
