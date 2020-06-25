@@ -56,6 +56,12 @@ public class ProductsAndServicesBehavior implements NodeServicePolicies.OnCreate
         }
 
         onCreateCalculateOrder(pasEntityRef);
+
+        Double price = RepoUtils.getProperty(pasEntityRef, ProductsAndServicesModel.PROP_PRICE_PER_UNIT, nodeService);
+        Double quantity = RepoUtils.getProperty(pasEntityRef, ProductsAndServicesModel.PROP_QUANTITY, nodeService);
+        if (price != null && quantity != null) {
+            calculateAndSetTotalProp(pasEntityRef, price, quantity);
+        }
     }
 
     @Override
@@ -71,11 +77,7 @@ public class ProductsAndServicesBehavior implements NodeServicePolicies.OnCreate
             Double quantityBefore = (Double) before.get(ProductsAndServicesModel.PROP_QUANTITY);
             Double quantityAfter = (Double) after.get(ProductsAndServicesModel.PROP_QUANTITY);
             if (!Objects.equals(priceBefore, priceAfter) || !Objects.equals(quantityBefore, quantityAfter)) {
-                BigDecimal price = new BigDecimal(priceAfter, MathContext.DECIMAL64);
-                BigDecimal quantity = new BigDecimal(quantityAfter, MathContext.DECIMAL64);
-                nodeService.setProperty(nodeRef,
-                        ProductsAndServicesModel.PROP_TOTAL,
-                        price.multiply(quantity).doubleValue());
+                calculateAndSetTotalProp(nodeRef, priceAfter, quantityAfter);
             }
         }
     }
@@ -87,6 +89,14 @@ public class ProductsAndServicesBehavior implements NodeServicePolicies.OnCreate
         }
 
         beforeDeleteCalculateOrder(nodeRef);
+    }
+
+    private void calculateAndSetTotalProp(NodeRef currentPasEntity, Double currentPrice, Double currentQuantity) {
+        BigDecimal price = new BigDecimal(currentPrice, MathContext.DECIMAL64);
+        BigDecimal quantity = new BigDecimal(currentQuantity, MathContext.DECIMAL64);
+        nodeService.setProperty(currentPasEntity,
+            ProductsAndServicesModel.PROP_TOTAL,
+            price.multiply(quantity).doubleValue());
     }
 
     private void onCreateCalculateOrder(NodeRef currentPasEntity) {
