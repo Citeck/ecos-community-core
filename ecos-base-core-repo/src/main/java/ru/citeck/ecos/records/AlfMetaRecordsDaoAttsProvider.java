@@ -9,26 +9,45 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import ru.citeck.ecos.records2.graphql.meta.value.MetaField;
 import ru.citeck.ecos.records2.graphql.meta.value.MetaValue;
-import ru.citeck.ecos.records2.source.dao.local.MetaRecordsDaoAttsProvider;
+import ru.citeck.ecos.records2.source.dao.local.meta.MetaAttributesSupplier;
+import ru.citeck.ecos.records2.source.dao.local.meta.MetaRecordsDaoAttsProvider;
 
+import java.util.Arrays;
+import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
 @Component
-public class AlfMetaRecordsDaoAttsProvider implements MetaRecordsDaoAttsProvider {
+public class AlfMetaRecordsDaoAttsProvider implements MetaAttributesSupplier {
+
+    private static final String ATT_EDITION = "edition";
+    private static final String ATT_MODULES = "alfModules";
 
     private final ModuleService moduleService;
 
     private final LoadingCache<String, Optional<Object>> attsCache;
 
     @Autowired
-    public AlfMetaRecordsDaoAttsProvider(ModuleService moduleService) {
+    public AlfMetaRecordsDaoAttsProvider(ModuleService moduleService,
+                                         MetaRecordsDaoAttsProvider provider) {
         this.moduleService = moduleService;
 
         attsCache = CacheBuilder.newBuilder()
             .expireAfterWrite(10, TimeUnit.SECONDS)
             .maximumSize(100)
             .build(CacheLoader.from(this::getAttributeImpl));
+
+        provider.register(this);
+    }
+
+    @Override
+    public List<String> getAttributesList() {
+        return Arrays.asList(ATT_EDITION, ATT_MODULES);
+    }
+
+    @Override
+    public Object getAttribute(String name, MetaField metaField) {
+        return attsCache.getUnchecked(name).orElse(null);
     }
 
     private Optional<Object> getAttributeImpl(String name) {
@@ -36,10 +55,10 @@ public class AlfMetaRecordsDaoAttsProvider implements MetaRecordsDaoAttsProvider
         Object result = null;
 
         switch (name) {
-            case "edition":
+            case ATT_EDITION:
                 result = getEdition();
                 break;
-            case "alfModules":
+            case ATT_MODULES:
                 result = new AlfModules();
                 break;
         }
@@ -53,19 +72,6 @@ public class AlfMetaRecordsDaoAttsProvider implements MetaRecordsDaoAttsProvider
             return "community";
         } else {
             return "enterprise";
-        }
-    }
-
-    @Override
-    public Object getAttributes() {
-        return new Attributes();
-    }
-
-    public class Attributes implements MetaValue {
-
-        @Override
-        public Object getAttribute(String name, MetaField field) {
-            return attsCache.getUnchecked(name).orElse(null);
         }
     }
 

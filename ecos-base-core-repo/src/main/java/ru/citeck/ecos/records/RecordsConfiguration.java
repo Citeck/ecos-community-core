@@ -34,7 +34,7 @@ import ru.citeck.ecos.records2.request.rest.RestHandler;
 import ru.citeck.ecos.records2.resolver.RecordsResolver;
 import ru.citeck.ecos.records2.resolver.RemoteRecordsResolver;
 import ru.citeck.ecos.records2.rest.*;
-import ru.citeck.ecos.records2.source.dao.local.MetaRecordsDaoAttsProvider;
+import ru.citeck.ecos.records2.source.dao.local.meta.MetaRecordsDaoAttsProvider;
 import ru.citeck.ecos.records2.type.RecordTypeService;
 
 import java.util.function.Supplier;
@@ -56,9 +56,6 @@ public class RecordsConfiguration extends RecordsServiceFactory {
     private RecordsProperties properties;
     @Autowired(required = false)
     private RecordsResolverWrapper resolverWrapper;
-    @Autowired
-    private AlfMetaRecordsDaoAttsProvider metaAttsProvider;
-
     @Autowired(required = false)
     private TypesManager typeInfoProvider;
 
@@ -186,9 +183,10 @@ public class RecordsConfiguration extends RecordsServiceFactory {
         return super.createRecordsMetaGql();
     }
 
+    @Bean
     @Override
     protected MetaRecordsDaoAttsProvider createMetaRecordsDaoAttsProvider() {
-        return metaAttsProvider;
+        return super.createMetaRecordsDaoAttsProvider();
     }
 
     @Bean
