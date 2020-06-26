@@ -129,6 +129,12 @@
 
         <dependency>
             <groupId>${project.groupId}</groupId>
+            <artifactId>ecos-records</artifactId>
+            <version>${ecos.records.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>${project.groupId}</groupId>
             <artifactId>ecos-forms-repo</artifactId>
         </dependency>
 

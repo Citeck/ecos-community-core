@@ -3,15 +3,22 @@ package ru.citeck.ecos.workflow.records;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.alfresco.repo.content.MimetypeMap;
 import org.alfresco.service.cmr.repository.NodeRef;
 import org.alfresco.service.cmr.repository.NodeService;
+import org.alfresco.service.cmr.workflow.WorkflowDefinition;
 import org.alfresco.service.cmr.workflow.WorkflowInstance;
 import org.alfresco.service.cmr.workflow.WorkflowInstanceQuery;
+import org.alfresco.service.namespace.NamespaceService;
+import org.alfresco.service.namespace.QName;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import ru.citeck.ecos.commons.data.DataValue;
+import ru.citeck.ecos.commons.data.ObjectData;
 import ru.citeck.ecos.model.CiteckWorkflowModel;
+import ru.citeck.ecos.records2.RecordConstants;
 import ru.citeck.ecos.records2.RecordMeta;
 import ru.citeck.ecos.records2.RecordRef;
 import ru.citeck.ecos.records2.graphql.meta.value.EmptyValue;
@@ -29,29 +36,34 @@ import ru.citeck.ecos.records2.source.dao.local.v2.LocalRecordsMetaDao;
 import ru.citeck.ecos.records2.source.dao.local.v2.LocalRecordsQueryWithMetaDao;
 import ru.citeck.ecos.workflow.EcosWorkflowService;
 
-import java.util.Collections;
-import java.util.List;
+import java.io.Serializable;
+import java.util.*;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Component
 public class WorkflowRecordsDao extends LocalRecordsDao
-                                implements LocalRecordsQueryWithMetaDao<WorkflowRecordsDao.WorkflowRecord>,
-                                           LocalRecordsMetaDao<MetaValue>,
-                                           MutableRecordsDao {
+    implements LocalRecordsQueryWithMetaDao<WorkflowRecordsDao.WorkflowRecord>,
+    LocalRecordsMetaDao<MetaValue>,
+    MutableRecordsDao {
 
     private static final String ID = "workflow";
+    private static final String DEFINITION_PREFIX = "def_";
     private static final int MIN_RECORDS_SIZE = 0;
     private static final int MAX_RECORDS_SIZE = 10000;
     private final WorkflowRecord EMPTY_RECORD = new WorkflowRecord();
 
     private final EcosWorkflowService ecosWorkflowService;
+    private final NamespaceService namespaceService;
     private final NodeService nodeService;
 
     @Autowired
     public WorkflowRecordsDao(EcosWorkflowService ecosWorkflowService,
+                              NamespaceService namespaceService,
                               NodeService nodeService) {
         setId(ID);
         this.ecosWorkflowService = ecosWorkflowService;
+        this.namespaceService = namespaceService;
         this.nodeService = nodeService;
     }
 
@@ -66,6 +78,16 @@ public class WorkflowRecordsDao extends LocalRecordsDao
             .map(ref -> {
                 if (ref.getId().isEmpty()) {
                     return EMPTY_RECORD;
+                }
+                if (StringUtils.startsWith(ref.getId(), DEFINITION_PREFIX)) {
+                    WorkflowDefinition definition = ecosWorkflowService.getDefinitionByName(ref.getId()
+                        .replaceFirst(DEFINITION_PREFIX, ""));
+                    if (definition != null) {
+                        return new WorkflowDefinitionRecord(ecosWorkflowService.getDefinitionByName(ref.getId()
+                            .replaceFirst(DEFINITION_PREFIX, "")), ref.getId());
+                    } else {
+                        return EmptyValue.INSTANCE;
+                    }
                 }
                 WorkflowInstance instance = ecosWorkflowService.getInstanceById(ref.getId());
                 if (instance != null) {
@@ -115,6 +137,8 @@ public class WorkflowRecordsDao extends LocalRecordsDao
             .map(this::cancelWorkflowIfRequired)
             .collect(Collectors.toList());
 
+        handledMeta.forEach(this::handleDefWorkflow);
+
         result.setRecords(handledMeta);
         return result;
     }
@@ -128,6 +152,59 @@ public class WorkflowRecordsDao extends LocalRecordsDao
             }
         }
         return meta;
+    }
+
+    private void handleDefWorkflow(RecordMeta meta) {
+        RecordRef recordRef = meta.getId();
+        if (recordRef.getId() != null && StringUtils.startsWith(recordRef.getId(), DEFINITION_PREFIX)) {
+            WorkflowDefinition definition = ecosWorkflowService.getDefinitionByName(recordRef.getId()
+                .replaceFirst(DEFINITION_PREFIX, ""));
+            ObjectData attributes = meta.getAttributes();
+            log.warn(attributes.toString());
+            Map<QName, Object> preparedProps = prepareProps(attributes);
+            ecosWorkflowService.startFormWorkflow(definition.getId(), preparedProps);
+        }
+    }
+
+    private Map<QName, Object> prepareProps(ObjectData metaAttributes) {
+        Map<QName, Object> resultProps = new HashMap<>();
+        metaAttributes.forEach((n, v) -> {
+
+            String stringName = n;
+            if (stringName.contains("_")) {
+                stringName = stringName.replaceFirst("_", ":");
+            }
+
+            QName name = QName.resolveToQName(namespaceService, stringName);
+
+            if (v.isTextual()) {
+                String value = v.asText();
+                resultProps.put(name, value);
+            } else if (v.isBoolean()) {
+                resultProps.put(name, v.asBoolean());
+            } else if (v.isDouble()) {
+                resultProps.put(name, v.asDouble());
+            } else if (v.isInt()) {
+                resultProps.put(name, v.asInt());
+            } else if (v.isLong()) {
+                resultProps.put(name, v.asLong());
+            } else if (v.isNull()) {
+                resultProps.put(name, null);
+            } else if (v.isArray()) {
+                //TODO parse arrayList
+                List<NodeRef> nodeRefs = new ArrayList<>();
+                for (DataValue jsonNode : v) {
+                    String stringNode = jsonNode.asText();
+                    if (NodeRef.isNodeRef(stringNode)) {
+                        nodeRefs.add(new NodeRef(stringNode));
+                    }
+                }
+                resultProps.put(name, nodeRefs);
+            }
+
+        });
+
+        return resultProps;
     }
 
     @Override
@@ -175,6 +252,39 @@ public class WorkflowRecordsDao extends LocalRecordsDao
         @Override
         public RecordRef getRecordType() {
             return RecordRef.create("emodel", "type", "workflow");
+        }
+    }
+
+    @AllArgsConstructor
+    @NoArgsConstructor
+    public class WorkflowDefinitionRecord implements MetaValue {
+
+        private static final String WORKFLOW_PREFIX = "workflow_";
+
+        private WorkflowDefinition definition;
+        private String definitionId;
+
+        @Override
+        public String getId() {
+            return definitionId;
+        }
+
+        @Override
+        public Object getAttribute(String name, MetaField field) {
+            switch (name) {
+                case RecordConstants.ATT_FORM_KEY:
+                    return WORKFLOW_PREFIX + definition.getName();
+            }
+            return null;
+        }
+
+        @Override
+        public String getDisplayName() {
+            String dispName = definition.getDescription();
+            if (StringUtils.isBlank(dispName)) {
+                dispName = definition.getTitle();
+            }
+            return dispName;
         }
     }
 
