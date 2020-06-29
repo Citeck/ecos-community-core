@@ -623,13 +623,7 @@ public class WorkflowTaskRecords extends LocalRecordsDAO
                     }
                     return null;
                 case ATT_DOCUMENT:
-                    Object docObject = attributes.get("document");
-                    if (docObject instanceof ScriptNode) {
-                        NodeRef docNodeRef = ((ScriptNode) docObject).getNodeRef();
-                        return RecordRef.valueOf(String.valueOf(docNodeRef));
-                    } else {
-                        return documentRef;
-                    }
+                    return this.getDocumentRef();
                 case ATT_DOC_ECOS_TYPE:
                     if (documentNodeRef != null) {
                         return ecosTypeService.getEcosType(documentNodeRef);
@@ -669,6 +663,14 @@ public class WorkflowTaskRecords extends LocalRecordsDAO
         private RecordRef getDocumentRef() {
             if (documentRef == null) {
                 documentRef = taskInfo.getDocument();
+            }
+            if (StringUtils.isEmpty(documentRef.getId())) {
+                Map<String, Object> attributes = taskInfo.getAttributes();
+                Object docObject = attributes.get("document");
+                if (docObject instanceof ScriptNode) {
+                    NodeRef docNodeRef = ((ScriptNode) docObject).getNodeRef();
+                    return RecordRef.valueOf(String.valueOf(docNodeRef));
+                }
             }
             return documentRef;
         }
