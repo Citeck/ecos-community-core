@@ -19,6 +19,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import ru.citeck.ecos.model.CiteckWorkflowModel;
 
+import javax.xml.soap.Node;
 import java.io.Serializable;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -109,8 +110,9 @@ public class EcosWorkflowService {
         for (Map.Entry<QName, Object> entry : attributes.entrySet()) {
             if (entry.getValue() instanceof Serializable) {
                 if (dictionaryService.getAssociation(entry.getKey()) != null) {
-                    if (isNotEmptyValue(entry.getValue())) {
-                        workflowAttributes.put(entry.getKey(), convertToNode(entry.getValue()));
+                    Serializable convertedValue = convertToNode(entry.getValue());
+                    if (isNotEmptyValue(convertedValue)) {
+                        workflowAttributes.put(entry.getKey(), convertedValue);
                     }
                 } else {
                     workflowAttributes.put(entry.getKey(), (Serializable) entry.getValue());
@@ -147,13 +149,15 @@ public class EcosWorkflowService {
     }
 
     private Serializable convertToNode(Object value) {
-        if (value instanceof String) {
+        if (value instanceof String && NodeRef.isNodeRef((String) value)) {
             return new NodeRef((String) value);
         } else if (value instanceof ArrayList) {
             ArrayList<NodeRef> refList = new ArrayList<>();
-            for (Object nodeString : (ArrayList) value) {
-                if (nodeString instanceof String) {
-                    refList.add(new NodeRef((String) nodeString));
+            for (Object listObject : (ArrayList) value) {
+                if (listObject instanceof String && NodeRef.isNodeRef((String) listObject)) {
+                    refList.add(new NodeRef((String) listObject));
+                } else if (listObject instanceof NodeRef) {
+                    refList.add((NodeRef) listObject);
                 }
             }
             return refList;
@@ -163,8 +167,8 @@ public class EcosWorkflowService {
     }
 
     private boolean isNotEmptyValue(Object value) {
-        if (value instanceof String) {
-            return StringUtils.isNotBlank((String) value);
+        if (value instanceof NodeRef) {
+            return true;
         } else if (value instanceof ArrayList) {
             return ((ArrayList) value).size() > 0;
         }

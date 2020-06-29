@@ -179,7 +179,9 @@ public class WorkflowRecordsDao extends LocalRecordsDao
 
             if (v.isTextual()) {
                 String value = v.asText();
-                resultProps.put(name, value);
+                if (StringUtils.isNotBlank(value)) {
+                    resultProps.put(name, value);
+                }
             } else if (v.isBoolean()) {
                 resultProps.put(name, v.asBoolean());
             } else if (v.isDouble()) {
@@ -191,7 +193,6 @@ public class WorkflowRecordsDao extends LocalRecordsDao
             } else if (v.isNull()) {
                 resultProps.put(name, null);
             } else if (v.isArray()) {
-                //TODO parse arrayList
                 List<NodeRef> nodeRefs = new ArrayList<>();
                 for (DataValue jsonNode : v) {
                     String stringNode = jsonNode.asText();

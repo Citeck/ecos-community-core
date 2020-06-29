@@ -185,7 +185,7 @@
                 "rows": 3,
                 "wysiwyg": false,
                 "editor": "",
-                "id": "egsrypbk"
+                "id": "ewlp7bd"
               },
               {
                 "label": "Columns",
@@ -265,26 +265,26 @@
                             "resources": {
                               "en": {
                                 "translation": {
-                                  "complete": "Сохранение прошло успешно",
-                                  "error": "Пожалуйста, исправьте следующие ошибки перед отправкой:",
-                                  "required": "Поле {{field}} не может быть пустым",
-                                  "pattern": "{{field}} не совпадает с паттерном {{pattern}}",
-                                  "minLength": "{{field}} должен быть длиннее чем {{length}} символов.",
-                                  "maxLength": "{{field}} должен быть короче чем {{length}} символов.",
+                                  "complete": "Submission Complete",
+                                  "error": "Please fix the following errors before submitting.",
+                                  "required": "{{field}} is required",
+                                  "pattern": "{{field}} does not match the pattern {{pattern}}",
+                                  "minLength": "{{field}} must be longer than {{length}} characters.",
+                                  "maxLength": "{{field}} must be shorter than {{length}} characters.",
                                   "minWords": "{{field}} must have more than {{length}} words.",
                                   "maxWords": "{{field}} must have less than {{length}} words.",
-                                  "min": "{{field}} не может быть меньше чем {{min}}.",
-                                  "max": "{{field}} не может быть больше чем {{max}}.",
+                                  "min": "{{field}} cannot be less than {{min}}.",
+                                  "max": "{{field}} cannot be greater than {{max}}.",
                                   "minSelectedCount": "You must select at least {{minCount}} items to continue.",
                                   "maxSelectedCount": "You can only select up to {{maxCount}} items to continue.",
                                   "maxDate": "{{field}} should not contain date after {{- maxDate}}",
                                   "minDate": "{{field}} should not contain date before {{- minDate}}",
-                                  "invalid_email": "{{field}} некорректный email.",
+                                  "invalid_email": "{{field}} must be a valid email.",
                                   "invalid_url": "{{field}} must be a valid url.",
-                                  "invalid_regex": "{{field}} не соответствует паттерну {{regex}}.",
-                                  "invalid_date": "{{field}} некорректная дата.",
+                                  "invalid_regex": "{{field}} does not match the pattern {{regex}}.",
+                                  "invalid_date": "{{field}} is not a valid date.",
                                   "invalid_day": "{{field}} is not a valid day.",
-                                  "mask": "{{field}} не совпадает с маской.",
+                                  "mask": "{{field}} does not match the mask.",
                                   "stripe": "{{stripe}}",
                                   "month": "Month",
                                   "day": "Day",
@@ -301,16 +301,10 @@
                                   "october": "October",
                                   "november": "November",
                                   "december": "December",
-                                  "next": "Далее",
-                                  "previous": "Назад",
+                                  "next": "Next",
+                                  "previous": "Previous",
                                   "cancel": "Cancel",
-                                  "submit": "Submit Form",
-                                  "or": "или",
-                                  "browse": "выбрать",
-                                  "File Name": "Имя файла",
-                                  "Type": "Тип",
-                                  "Drop files to attach, or": "Перетащите файлы для прикрепления, или",
-                                  "Size": "Размер"
+                                  "submit": "Submit Form"
                                 }
                               },
                               "ru": {
@@ -334,38 +328,14 @@
                                   "Type": "Тип",
                                   "required": "Поле {{field}} не может быть пустым",
                                   "Drop files to attach, or": "Перетащите файлы для прикрепления, или",
-                                  "Size": "Размер",
-                                  "contracts:closingDocumentSigner": "Подписант",
-                                  "idocs:legalEntity": "Юридическое лицо",
-                                  "contracts:contractor": "Контрагент",
-                                  "contracts:closingDocumentDate": "Дата документа",
-                                  "contracts:closingDocumentNumber": "Номер документа",
-                                  "Generate": "Генерировать",
-                                  "contracts:closingDocumentCurrency": "Валюта",
-                                  "cm:content": "Содержимое",
-                                  "currencyList": "currencyList",
-                                  "caseStatus": "caseStatus",
-                                  "docTypeList": "docTypeList",
-                                  "closingDocuments": "closingDocuments",
-                                  "DocumentData": "DocumentData",
-                                  "Document-base": "Документ-основание",
-                                  "Invoice": "Счет",
-                                  "Original Location": "Местонахождение оригинала",
-                                  "Document type": "Вид документа",
-                                  "Generate from template": "Сгенерировать из шаблона",
-                                  "Cancel": "Отменить",
-                                  "Save": "Сохранить",
-                                  "Create": "Создать",
-                                  "Name": "Название",
-                                  "Basic": "Основные",
-                                  "Finance": "Финансы",
-                                  "Content": "Содержание"
+                                  "Size": "Размер"
                                 }
                               }
                             }
                           }
                         },
                         "tags": [],
+                        "format": "yyyy-MM-dd",
                         "placeholder": "",
                         "prefix": "",
                         "customClass": "",
@@ -393,7 +363,6 @@
                         "refreshOn": "",
                         "clearOnRefresh": false,
                         "validateOn": "change",
-                        "format": "yyyy-MM-dd",
                         "useLocaleSettings": false,
                         "allowInput": true,
                         "enableDate": true,
@@ -401,7 +370,7 @@
                         "displayInTimezone": "viewer",
                         "timezone": "",
                         "datepickerMode": "day",
-                        "id": "eklp1z"
+                        "id": "efj8jkt"
                       }
                     ],
                     "xs": 0,
@@ -457,7 +426,7 @@
                       "when": null,
                       "eq": ""
                     },
-                    "id": "e0wudnb"
+                    "id": "eiwcmem"
                   },
                   {
                     "xs": 0,
@@ -507,6 +476,7 @@
                         "selectThreshold": 0.3,
                         "defaultValue": "",
                         "refreshOn": [],
+                        "customDefaultValue": "value = \"2\";",
                         "triggerChangeWhenCalculate": false,
                         "encrypted": false,
                         "validate": {
@@ -551,7 +521,6 @@
                         "disabled": false,
                         "autofocus": false,
                         "dbIndex": false,
-                        "customDefaultValue": "",
                         "calculateValue": "",
                         "allowCalculateOverride": false,
                         "widget": null,
@@ -574,7 +543,7 @@
                           "isActive": false,
                           "code": ""
                         },
-                        "id": "ebrxr9q"
+                        "id": "eejk3z"
                       }
                     ],
                     "placeholder": "",
@@ -617,7 +586,7 @@
                       "when": null,
                       "eq": ""
                     },
-                    "id": "ejl2nzs"
+                    "id": "eo37wd"
                   }
                 ],
                 "mask": false,
@@ -675,7 +644,7 @@
                 "inlineColumns": false,
                 "autoAdjust": false,
                 "hideOnChildrenHidden": false,
-                "id": "e150fhb"
+                "id": "edwqlo4"
               }
             ],
             "tags": [],
@@ -712,7 +681,7 @@
             "theme": "default",
             "breadcrumb": "default",
             "lazyLoad": false,
-            "id": "egnfyr"
+            "id": "ej3f3uv"
           },
           {
             "label": "Panel",
@@ -815,7 +784,7 @@
                         "inputType": "checkbox",
                         "value": "",
                         "name": "",
-                        "id": "ebn2fa"
+                        "id": "ediufos"
                       }
                     ],
                     "xs": 0,
@@ -871,7 +840,7 @@
                       "when": null,
                       "eq": ""
                     },
-                    "id": "ex08vke"
+                    "id": "et92yf"
                   }
                 ],
                 "mask": false,
@@ -929,7 +898,7 @@
                 "inlineColumns": false,
                 "autoAdjust": false,
                 "hideOnChildrenHidden": false,
-                "id": "e86ynyc"
+                "id": "eezmbyj"
               },
               {
                 "label": "Columns",
@@ -1007,7 +976,7 @@
                         "excludeAuthoritiesByType": "",
                         "modalTitle": "",
                         "isSelectedValueAsText": false,
-                        "id": "ee27uzc"
+                        "id": "egzm0f"
                       }
                     ],
                     "xs": 0,
@@ -1063,7 +1032,7 @@
                       "when": null,
                       "eq": ""
                     },
-                    "id": "exm9nvr"
+                    "id": "e6oup5a"
                   },
                   {
                     "xs": 0,
@@ -1083,6 +1052,8 @@
                       {
                         "label": "wfperf:controller",
                         "disableInlineEdit": false,
+                        "multiple": true,
+                        "clearOnHide": false,
                         "mask": false,
                         "tableView": true,
                         "alwaysEnabled": false,
@@ -1111,17 +1082,16 @@
                         "type": "selectOrgstruct",
                         "input": true,
                         "tags": [],
+                        "reorder": false,
                         "placeholder": "",
                         "prefix": "",
                         "customClass": "",
                         "suffix": "",
-                        "multiple": false,
                         "defaultValue": null,
                         "protected": false,
                         "unique": false,
                         "persistent": true,
                         "hidden": false,
-                        "clearOnHide": true,
                         "dataGridLabel": false,
                         "labelPosition": "top",
                         "labelWidth": 30,
@@ -1149,7 +1119,7 @@
                         "excludeAuthoritiesByType": "",
                         "modalTitle": "",
                         "isSelectedValueAsText": false,
-                        "id": "envu823"
+                        "id": "e8w8b3"
                       }
                     ],
                     "placeholder": "",
@@ -1192,7 +1162,7 @@
                       "when": null,
                       "eq": ""
                     },
-                    "id": "emrksq"
+                    "id": "e09nfcn"
                   }
                 ],
                 "mask": false,
@@ -1250,7 +1220,7 @@
                 "inlineColumns": false,
                 "autoAdjust": false,
                 "hideOnChildrenHidden": false,
-                "id": "eihzatal"
+                "id": "ekkokz"
               }
             ],
             "tags": [],
@@ -1287,7 +1257,7 @@
             "theme": "default",
             "breadcrumb": "default",
             "lazyLoad": false,
-            "id": "eq3hmyq"
+            "id": "eq6em3h"
           },
           {
             "label": "Panel",
@@ -1323,6 +1293,7 @@
             "components": [
               {
                 "label": "cwf:targetItems",
+                "hideDeleteRowButton": true,
                 "disableInlineEdit": false,
                 "mask": false,
                 "tableView": true,
@@ -1350,9 +1321,9 @@
                 "encrypted": false,
                 "displayColumnsAsyncData": [],
                 "validate": {
-                  "required": true,
                   "customMessage": "",
                   "json": "",
+                  "required": false,
                   "custom": "",
                   "customPrivate": false
                 },
@@ -1401,13 +1372,12 @@
                 "validateOn": "change",
                 "hideCreateButton": false,
                 "hideEditRowButton": false,
-                "hideDeleteRowButton": false,
                 "isFullScreenWidthModal": false,
                 "isSelectedValueAsText": false,
                 "isTableMode": false,
                 "sortAttribute": "sys:node-dbid",
                 "sortAscending": "asc",
-                "id": "egyzyd"
+                "id": "e7ti7y"
               },
               {
                 "label": "bpm:sendEMailNotifications",
@@ -1472,7 +1442,7 @@
                 "inputType": "checkbox",
                 "value": "",
                 "name": "",
-                "id": "ey5ywp"
+                "id": "ejei09"
               }
             ],
             "tags": [],
@@ -1509,7 +1479,7 @@
             "theme": "default",
             "breadcrumb": "default",
             "lazyLoad": false,
-            "id": "e1oa58k"
+            "id": "elo7fpv"
           }
         ],
         "tags": [],
@@ -1547,7 +1517,7 @@
         "theme": "default",
         "breadcrumb": "default",
         "lazyLoad": false,
-        "id": "e9ijxin"
+        "id": "e3ccwk"
       },
       {
         "label": "Columns",
@@ -1608,7 +1578,7 @@
               "when": null,
               "eq": ""
             },
-            "id": "et51ump"
+            "id": "eofednn"
           },
           {
             "xs": 0,
@@ -1696,7 +1666,7 @@
                 "disableOnInvalid": false,
                 "theme": "default",
                 "removeIndents": false,
-                "id": "e7rnfp"
+                "id": "eyivzjn"
               }
             ],
             "placeholder": "",
@@ -1739,7 +1709,7 @@
               "when": null,
               "eq": ""
             },
-            "id": "e3wjwa"
+            "id": "eurzlp"
           },
           {
             "xs": 0,
@@ -1825,7 +1795,7 @@
                 "rightIcon": "",
                 "action": "submit",
                 "removeIndents": false,
-                "id": "e7i75o4"
+                "id": "e12k4pd"
               }
             ],
             "placeholder": "",
@@ -1868,7 +1838,7 @@
               "when": null,
               "eq": ""
             },
-            "id": "elb8d38"
+            "id": "e83xvmp"
           },
           {
             "xs": 0,
@@ -1925,7 +1895,7 @@
               "when": null,
               "eq": ""
             },
-            "id": "erl2fs"
+            "id": "e89gi7"
           }
         ],
         "mask": false,
@@ -1983,7 +1953,7 @@
         "inlineColumns": false,
         "autoAdjust": false,
         "hideOnChildrenHidden": false,
-        "id": "eh3zsru"
+        "id": "eveknbi"
       }
     ]
   },
