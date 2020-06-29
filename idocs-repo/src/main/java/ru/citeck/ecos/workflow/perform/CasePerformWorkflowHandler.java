@@ -234,7 +234,7 @@ public class CasePerformWorkflowHandler implements Serializable {
         utils.shareVariables(execution, task);
 
         Collection<NodeRef> optionalPerformers = utils.getNodeRefsList(execution, CasePerformUtils.OPTIONAL_PERFORMERS);
-        NodeRef performer = (NodeRef) task.getVariable(utils.toString(CasePerformModel.ASSOC_PERFORMER));
+        NodeRef performer = utils.getFirstPerformer(task);
 
         boolean isOptional = optionalPerformers.contains(performer);
 
@@ -253,8 +253,7 @@ public class CasePerformWorkflowHandler implements Serializable {
         Boolean syncEnabled = (Boolean) execution.getVariable(utils.toString(CasePerformModel.PROP_SYNC_WORKFLOW_TO_ROLES));
 
         if (syncEnabled != null && syncEnabled) {
-            String performerKey = utils.toString(CasePerformModel.ASSOC_PERFORMER);
-            NodeRef performerRef = (NodeRef) task.getVariable(performerKey);
+            NodeRef performerRef = utils.getFirstPerformer(task);
             String assignee = task.getAssignee();
 
             if (assignee != null) {

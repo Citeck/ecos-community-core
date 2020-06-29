@@ -32,17 +32,22 @@ public class UpdateCasePerformAssigneesCmd extends NeedsActiveExecutionCmd<Void>
 
     private WorkflowMirrorService mirrorService;
     private TaskEntityManager taskEntityManager;
+    private CasePerformUtils casePerformUtils;
     private NamespaceService namespaceService;
     private NodeService nodeService;
 
     private Set<NodeRef> performersAdd;
     private Set<NodeRef> performersRemove;
 
-    public UpdateCasePerformAssigneesCmd(String workflowId, Set<NodeRef> performersAdd, Set<NodeRef> performersRemove, ServiceRegistry serviceRegistry) {
+    public UpdateCasePerformAssigneesCmd(String workflowId,
+                                         Set<NodeRef> performersAdd,
+                                         Set<NodeRef> performersRemove,
+                                         ServiceRegistry serviceRegistry) {
         super(workflowId.replace(ACTIVITI_PREFIX, ""));
         this.namespaceService = serviceRegistry.getNamespaceService();
         this.performersRemove = performersRemove;
         this.performersAdd = performersAdd;
+        this.casePerformUtils = (CasePerformUtils) serviceRegistry.getService(CiteckServices.CASE_PERFORM_UTILS);
         this.nodeService = serviceRegistry.getNodeService();
         this.mirrorService = (WorkflowMirrorService) serviceRegistry.getService(CiteckServices.WORKFLOW_MIRROR_SERVICE);
     }
@@ -82,15 +87,15 @@ public class UpdateCasePerformAssigneesCmd extends NeedsActiveExecutionCmd<Void>
             TaskEntity task = getTaskFromParallelExecution(entity);
             if (task == null) continue;
 
-            NodeRef performer = (NodeRef) task.getVariable(toString(CasePerformModel.ASSOC_PERFORMER));
+            NodeRef performer = casePerformUtils.getFirstPerformer(task);
             additionalPerformers.remove(performer);
         }
 
         if (!additionalPerformers.isEmpty()) {
             AddParallelExecutionInstanceCmd.addParallelExecution(
-                execution,
-                CasePerformUtils.SUB_PROCESS_NAME,
-                additionalPerformers
+                    execution,
+                    CasePerformUtils.SUB_PROCESS_NAME,
+                    additionalPerformers
             );
         }
     }
@@ -119,7 +124,7 @@ public class UpdateCasePerformAssigneesCmd extends NeedsActiveExecutionCmd<Void>
             TaskEntity task = getTaskFromParallelExecution(entity);
             if (task == null) continue;
 
-            NodeRef performer = (NodeRef) task.getVariable(toString(CasePerformModel.ASSOC_PERFORMER));
+            NodeRef performer = casePerformUtils.getFirstPerformer(task);
             if (performers.contains(performer)) {
 
                 Collection mandatoryTasks = (Collection) execution.getVariable(CasePerformUtils.MANDATORY_TASKS);

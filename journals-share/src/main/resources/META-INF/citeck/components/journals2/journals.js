@@ -2216,7 +2216,7 @@ JournalsWidget
             };
 
             var journalType = this.journal().type();
-            var isUiservJournal = !!journalType.options()["__uiserv__"];
+            var isUiservJournal = !!(journalType.options() || {})["__uiserv__"];
             var datasource = journalType.datasource ? journalType.datasource() || "" : "";
 
             if (isUiservJournal || datasource.indexOf('/') >= 0) {

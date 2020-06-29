@@ -9,6 +9,7 @@ import org.alfresco.repo.security.authentication.AuthenticationUtil;
 import org.alfresco.repo.transaction.TransactionalResourceHelper;
 import org.alfresco.repo.workflow.WorkflowModel;
 import org.alfresco.repo.workflow.activiti.ActivitiScriptNode;
+import org.alfresco.repo.workflow.activiti.ActivitiScriptNodeList;
 import org.alfresco.service.cmr.dictionary.DictionaryService;
 import org.alfresco.service.cmr.repository.AssociationRef;
 import org.alfresco.service.cmr.repository.NodeRef;
@@ -127,7 +128,7 @@ public class CasePerformUtils {
 
         nodeService.createAssociation(result, person, CasePerformModel.ASSOC_RESULT_PERSON);
 
-        NodeRef performer = (NodeRef) task.getVariable(toString(CasePerformModel.ASSOC_PERFORMER));
+        NodeRef performer = getFirstPerformer(task);
         if (performer != null) {
             nodeService.createAssociation(result, performer, CasePerformModel.ASSOC_RESULT_PERFORMER);
         }
@@ -287,10 +288,33 @@ public class CasePerformUtils {
         return null;
     }
 
-    void setPerformer(PerformTask task, final NodeRef performer) {
+    public NodeRef getFirstPerformer(VariableScope variableScope) {
 
         String performerKey = toString(CasePerformModel.ASSOC_PERFORMER);
-        final NodeRef currentPerformer = (NodeRef) task.getVariable(performerKey);
+        Object rawPerformer = variableScope.getVariable(performerKey);
+
+        if (rawPerformer instanceof NodeRef) {
+            return (NodeRef) rawPerformer;
+        }
+        if (rawPerformer instanceof ActivitiScriptNodeList) {
+            ActivitiScriptNodeList list = (ActivitiScriptNodeList) rawPerformer;
+            List<NodeRef> result = list.getNodeReferences();
+            return CollectionUtils.isNotEmpty(result) ? result.get(0) : null;
+        }
+        if (rawPerformer instanceof ActivitiScriptNode) {
+            return ((ActivitiScriptNode) rawPerformer).getNodeRef();
+        }
+        if (rawPerformer instanceof ScriptNode) {
+            return ((ScriptNode) rawPerformer).getNodeRef();
+        }
+
+        throw new IllegalStateException("Receive unsupported instance of performer of class: "
+                + rawPerformer.getClass());
+    }
+
+    void setPerformer(PerformTask task, final NodeRef performer) {
+
+        final NodeRef currentPerformer = getFirstPerformer(task);
         final NodeRef caseRoleRef = (NodeRef) task.getVariable(toString(CasePerformModel.ASSOC_CASE_ROLE));
 
         if (caseRoleRef != null) {
@@ -303,7 +327,7 @@ public class CasePerformUtils {
 
             Set<NodeRef> assignees = caseRoleService.getAssignees(caseRoleRef);
             if (assignees.contains(performer)) {
-                task.setVariableLocal(performerKey, performer);
+                task.setVariableLocal(toString(CasePerformModel.ASSOC_PERFORMER), performer);
                 persistReassign(caseRoleRef, task.getProcessInstanceId(), currentPerformer, performer);
             }
         }

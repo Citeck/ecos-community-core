@@ -74,7 +74,9 @@
     <bean id="ecos.task-mirror-root.split-children" parent="ecos.splitChildrenBehaviour">
         <property name="node" value="workspace://SpacesStore/task-mirror-root" />
         <property name="splitBehaviour">
-            <bean class="ru.citeck.ecos.behavior.common.SplitChildrenBehaviour.DateSplit" />
+            <bean class="ru.citeck.ecos.behavior.common.SplitChildrenBehaviour.UuidSplit">
+                <property name="depth" value="5" />
+            </bean>
         </property>
         <property name="order" value="400" />
     </bean>

@@ -44,6 +44,7 @@ public class CaseDocumentRecordsDAO extends LocalRecordsDAO implements LocalReco
     private static final String DOCUMENT_TYPES_QUERY_LANGUAGE = "document-types";
     private static final String TYPES_DOCUMENTS_QUERY_LANGUAGE = "types-documents";
     private static final String DOCUMENTS_QUERY_LANGUAGE = "documents";
+    private static final String BASE_ECOS_TYPE_ID = "base";
 
     private final NodeService nodeService;
     private final NodeUtils nodeUtils;
@@ -168,8 +169,11 @@ public class CaseDocumentRecordsDAO extends LocalRecordsDAO implements LocalReco
                 long order = docMeta.getCreated() != null ? docMeta.getCreated().getTime() : 0L;
 
                 DocInfo docInfo = new DocInfo(documentRefs.get(i), order);
-                allDocuments.add(docInfo);
-                docsByType.computeIfAbsent(docMeta.getType(), t -> new HashSet<>()).add(docInfo);
+
+                if (!BASE_ECOS_TYPE_ID.equals(docMeta.getType().getId())) {
+                    allDocuments.add(docInfo);
+                    docsByType.computeIfAbsent(docMeta.getType(), t -> new HashSet<>()).add(docInfo);
+                }
             }
         }
 

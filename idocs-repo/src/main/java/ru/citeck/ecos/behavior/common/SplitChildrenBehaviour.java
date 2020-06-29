@@ -340,8 +340,14 @@ public class SplitChildrenBehaviour implements OnCreateChildAssociationPolicy {
             String id = node.getId();
             List<String> result = new ArrayList<>();
 
-            for (int i = 0; i < depth; i++) {
-                result.add(String.valueOf(id.charAt(i)));
+            int idx = 0;
+            int depthCounter = depth;
+            while (depthCounter > 0 && idx < id.length()) {
+                char ch = id.charAt(idx++);
+                if (ch != '-') {
+                    result.add(String.valueOf(ch));
+                    depthCounter--;
+                }
             }
 
             return result;
