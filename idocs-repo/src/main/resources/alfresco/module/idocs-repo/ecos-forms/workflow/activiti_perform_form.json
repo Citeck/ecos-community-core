@@ -185,7 +185,7 @@
                 "rows": 3,
                 "wysiwyg": false,
                 "editor": "",
-                "id": "ewlp7bd"
+                "id": "es5pwfz"
               },
               {
                 "label": "Columns",
@@ -370,7 +370,7 @@
                         "displayInTimezone": "viewer",
                         "timezone": "",
                         "datepickerMode": "day",
-                        "id": "efj8jkt"
+                        "id": "edtukyl"
                       }
                     ],
                     "xs": 0,
@@ -426,7 +426,7 @@
                       "when": null,
                       "eq": ""
                     },
-                    "id": "eiwcmem"
+                    "id": "ep8b546"
                   },
                   {
                     "xs": 0,
@@ -480,9 +480,9 @@
                         "triggerChangeWhenCalculate": false,
                         "encrypted": false,
                         "validate": {
+                          "required": true,
                           "customMessage": "",
                           "json": "",
-                          "required": false,
                           "custom": "",
                           "customPrivate": false
                         },
@@ -543,7 +543,7 @@
                           "isActive": false,
                           "code": ""
                         },
-                        "id": "eejk3z"
+                        "id": "e5dydk"
                       }
                     ],
                     "placeholder": "",
@@ -586,7 +586,7 @@
                       "when": null,
                       "eq": ""
                     },
-                    "id": "eo37wd"
+                    "id": "ehxdv65"
                   }
                 ],
                 "mask": false,
@@ -644,7 +644,7 @@
                 "inlineColumns": false,
                 "autoAdjust": false,
                 "hideOnChildrenHidden": false,
-                "id": "edwqlo4"
+                "id": "et1o6p"
               }
             ],
             "tags": [],
@@ -681,7 +681,7 @@
             "theme": "default",
             "breadcrumb": "default",
             "lazyLoad": false,
-            "id": "ej3f3uv"
+            "id": "e5urfa"
           },
           {
             "label": "Panel",
@@ -784,7 +784,7 @@
                         "inputType": "checkbox",
                         "value": "",
                         "name": "",
-                        "id": "ediufos"
+                        "id": "ezo4zvd"
                       }
                     ],
                     "xs": 0,
@@ -840,7 +840,7 @@
                       "when": null,
                       "eq": ""
                     },
-                    "id": "et92yf"
+                    "id": "e1ok03r"
                   }
                 ],
                 "mask": false,
@@ -898,7 +898,7 @@
                 "inlineColumns": false,
                 "autoAdjust": false,
                 "hideOnChildrenHidden": false,
-                "id": "eezmbyj"
+                "id": "e2urjro"
               },
               {
                 "label": "Columns",
@@ -976,7 +976,7 @@
                         "excludeAuthoritiesByType": "",
                         "modalTitle": "",
                         "isSelectedValueAsText": false,
-                        "id": "egzm0f"
+                        "id": "e6y1t3j"
                       }
                     ],
                     "xs": 0,
@@ -1032,7 +1032,7 @@
                       "when": null,
                       "eq": ""
                     },
-                    "id": "e6oup5a"
+                    "id": "en0w10p"
                   },
                   {
                     "xs": 0,
@@ -1052,7 +1052,6 @@
                       {
                         "label": "wfperf:controller",
                         "disableInlineEdit": false,
-                        "multiple": true,
                         "clearOnHide": false,
                         "mask": false,
                         "tableView": true,
@@ -1082,11 +1081,11 @@
                         "type": "selectOrgstruct",
                         "input": true,
                         "tags": [],
-                        "reorder": false,
                         "placeholder": "",
                         "prefix": "",
                         "customClass": "",
                         "suffix": "",
+                        "multiple": false,
                         "defaultValue": null,
                         "protected": false,
                         "unique": false,
@@ -1119,7 +1118,7 @@
                         "excludeAuthoritiesByType": "",
                         "modalTitle": "",
                         "isSelectedValueAsText": false,
-                        "id": "e8w8b3"
+                        "id": "ej64nt3"
                       }
                     ],
                     "placeholder": "",
@@ -1162,7 +1161,7 @@
                       "when": null,
                       "eq": ""
                     },
-                    "id": "e09nfcn"
+                    "id": "enl9fx"
                   }
                 ],
                 "mask": false,
@@ -1220,7 +1219,7 @@
                 "inlineColumns": false,
                 "autoAdjust": false,
                 "hideOnChildrenHidden": false,
-                "id": "ekkokz"
+                "id": "ev4r1cg"
               }
             ],
             "tags": [],
@@ -1257,7 +1256,7 @@
             "theme": "default",
             "breadcrumb": "default",
             "lazyLoad": false,
-            "id": "eq6em3h"
+            "id": "eih3z51r"
           },
           {
             "label": "Panel",
@@ -1377,7 +1376,7 @@
                 "isTableMode": false,
                 "sortAttribute": "sys:node-dbid",
                 "sortAscending": "asc",
-                "id": "e7ti7y"
+                "id": "e9hvlca7"
               },
               {
                 "label": "bpm:sendEMailNotifications",
@@ -1442,7 +1441,7 @@
                 "inputType": "checkbox",
                 "value": "",
                 "name": "",
-                "id": "ejei09"
+                "id": "eoplk7"
               }
             ],
             "tags": [],
@@ -1479,7 +1478,7 @@
             "theme": "default",
             "breadcrumb": "default",
             "lazyLoad": false,
-            "id": "elo7fpv"
+            "id": "e19rhsa"
           }
         ],
         "tags": [],
@@ -1517,7 +1516,7 @@
         "theme": "default",
         "breadcrumb": "default",
         "lazyLoad": false,
-        "id": "e3ccwk"
+        "id": "e8qktqz"
       },
       {
         "label": "Columns",
@@ -1578,7 +1577,7 @@
               "when": null,
               "eq": ""
             },
-            "id": "eofednn"
+            "id": "elfrgin"
           },
           {
             "xs": 0,
@@ -1666,7 +1665,7 @@
                 "disableOnInvalid": false,
                 "theme": "default",
                 "removeIndents": false,
-                "id": "eyivzjn"
+                "id": "e5xf4zf"
               }
             ],
             "placeholder": "",
@@ -1709,7 +1708,7 @@
               "when": null,
               "eq": ""
             },
-            "id": "eurzlp"
+            "id": "evw63zs"
           },
           {
             "xs": 0,
@@ -1795,7 +1794,7 @@
                 "rightIcon": "",
                 "action": "submit",
                 "removeIndents": false,
-                "id": "e12k4pd"
+                "id": "eq1umi"
               }
             ],
             "placeholder": "",
@@ -1838,7 +1837,7 @@
               "when": null,
               "eq": ""
             },
-            "id": "e83xvmp"
+            "id": "efirj0s"
           },
           {
             "xs": 0,
@@ -1895,7 +1894,7 @@
               "when": null,
               "eq": ""
             },
-            "id": "e89gi7"
+            "id": "exzzk7"
           }
         ],
         "mask": false,
@@ -1953,7 +1952,7 @@
         "inlineColumns": false,
         "autoAdjust": false,
         "hideOnChildrenHidden": false,
-        "id": "eveknbi"
+        "id": "e5l4bza"
       }
     ]
   },

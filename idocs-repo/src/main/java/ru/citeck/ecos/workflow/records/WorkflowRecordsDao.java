@@ -5,6 +5,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.alfresco.repo.content.MimetypeMap;
+import org.alfresco.service.cmr.dictionary.DictionaryService;
 import org.alfresco.service.cmr.repository.NodeRef;
 import org.alfresco.service.cmr.repository.NodeService;
 import org.alfresco.service.cmr.workflow.WorkflowDefinition;
@@ -15,7 +16,6 @@ import org.alfresco.service.namespace.QName;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import ru.citeck.ecos.commons.data.DataValue;
 import ru.citeck.ecos.commons.data.ObjectData;
 import ru.citeck.ecos.model.CiteckWorkflowModel;
 import ru.citeck.ecos.records2.RecordConstants;
@@ -36,7 +36,6 @@ import ru.citeck.ecos.records2.source.dao.local.v2.LocalRecordsMetaDao;
 import ru.citeck.ecos.records2.source.dao.local.v2.LocalRecordsQueryWithMetaDao;
 import ru.citeck.ecos.workflow.EcosWorkflowService;
 
-import java.io.Serializable;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -55,15 +54,18 @@ public class WorkflowRecordsDao extends LocalRecordsDao
 
     private final EcosWorkflowService ecosWorkflowService;
     private final NamespaceService namespaceService;
+    private final DictionaryService dictionaryService;
     private final NodeService nodeService;
 
     @Autowired
     public WorkflowRecordsDao(EcosWorkflowService ecosWorkflowService,
                               NamespaceService namespaceService,
+                              DictionaryService dictionaryService,
                               NodeService nodeService) {
         setId(ID);
         this.ecosWorkflowService = ecosWorkflowService;
         this.namespaceService = namespaceService;
+        this.dictionaryService = dictionaryService;
         this.nodeService = nodeService;
     }
 
@@ -144,11 +146,13 @@ public class WorkflowRecordsDao extends LocalRecordsDao
     }
 
     private RecordMeta cancelWorkflowIfRequired(RecordMeta meta) {
-        if (meta.hasAttribute("cancel")) {
-            boolean cancel = meta.getAttribute("cancel").asBoolean();
-            if (cancel) {
-                WorkflowInstance mutatedInstance = ecosWorkflowService.cancelWorkflowInstance(meta.getId().getId());
-                meta.setId(mutatedInstance.getId());
+        if (meta.getId().getId() != null && !StringUtils.startsWith(meta.getId().getId(), DEFINITION_PREFIX)) {
+            if (meta.hasAttribute("cancel")) {
+                boolean cancel = meta.getAttribute("cancel").asBoolean();
+                if (cancel) {
+                    WorkflowInstance mutatedInstance = ecosWorkflowService.cancelWorkflowInstance(meta.getId().getId());
+                    meta.setId(mutatedInstance.getId());
+                }
             }
         }
         return meta;
@@ -177,32 +181,27 @@ public class WorkflowRecordsDao extends LocalRecordsDao
 
             QName name = QName.resolveToQName(namespaceService, stringName);
 
-            if (v.isTextual()) {
-                String value = v.asText();
-                if (StringUtils.isNotBlank(value)) {
+            Object value = v.asJavaObj();
+
+            if (value instanceof String) {
+                if (StringUtils.isNotBlank((String) value)) {
                     resultProps.put(name, value);
                 }
-            } else if (v.isBoolean()) {
-                resultProps.put(name, v.asBoolean());
-            } else if (v.isDouble()) {
-                resultProps.put(name, v.asDouble());
-            } else if (v.isInt()) {
-                resultProps.put(name, v.asInt());
-            } else if (v.isLong()) {
-                resultProps.put(name, v.asLong());
-            } else if (v.isNull()) {
-                resultProps.put(name, null);
-            } else if (v.isArray()) {
-                List<NodeRef> nodeRefs = new ArrayList<>();
-                for (DataValue jsonNode : v) {
-                    String stringNode = jsonNode.asText();
-                    if (NodeRef.isNodeRef(stringNode)) {
-                        nodeRefs.add(new NodeRef(stringNode));
+            } else if (value instanceof List) {
+                if (dictionaryService.getAssociation(name) != null) {
+                    List<NodeRef> nodeRefs = new ArrayList<>();
+                    for (Object jsonNode : (List) value) {
+                        if (jsonNode instanceof String && NodeRef.isNodeRef((String) jsonNode)) {
+                            nodeRefs.add(new NodeRef((String) jsonNode));
+                        }
                     }
+                    resultProps.put(name, nodeRefs);
+                } else {
+                    resultProps.put(name, value);
                 }
-                resultProps.put(name, nodeRefs);
+            } else {
+                resultProps.put(name, value);
             }
-
         });
 
         return resultProps;
