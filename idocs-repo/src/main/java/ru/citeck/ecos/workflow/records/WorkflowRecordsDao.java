@@ -136,58 +136,53 @@ public class WorkflowRecordsDao extends LocalRecordsDao
         RecordsMutResult result = new RecordsMutResult();
 
         List<RecordMeta> handledMeta = mutation.getRecords().stream()
-            .map(this::cancelWorkflowIfRequired)
+            .map(meta -> {
+                if (StringUtils.startsWith(meta.getId().getId(), DEFINITION_PREFIX)) {
+                    return handleDefWorkflow(meta);
+                } else {
+                    return cancelWorkflowIfRequired(meta);
+                }
+            })
             .collect(Collectors.toList());
-
-        handledMeta.forEach(this::handleDefWorkflow);
 
         result.setRecords(handledMeta);
         return result;
     }
 
     private RecordMeta cancelWorkflowIfRequired(RecordMeta meta) {
-        if (meta.getId().getId() != null && !StringUtils.startsWith(meta.getId().getId(), DEFINITION_PREFIX)) {
-            if (meta.hasAttribute("cancel")) {
-                boolean cancel = meta.getAttribute("cancel").asBoolean();
-                if (cancel) {
-                    WorkflowInstance mutatedInstance = ecosWorkflowService.cancelWorkflowInstance(meta.getId().getId());
-                    meta.setId(mutatedInstance.getId());
-                }
+        if (meta.hasAttribute("cancel")) {
+            boolean cancel = meta.getAttribute("cancel").asBoolean();
+            if (cancel) {
+                WorkflowInstance mutatedInstance = ecosWorkflowService.cancelWorkflowInstance(meta.getId().getId());
+                meta.setId(mutatedInstance.getId());
             }
         }
         return meta;
     }
 
-    private void handleDefWorkflow(RecordMeta meta) {
-        RecordRef recordRef = meta.getId();
-        if (recordRef.getId() != null && StringUtils.startsWith(recordRef.getId(), DEFINITION_PREFIX)) {
-            WorkflowDefinition definition = ecosWorkflowService.getDefinitionByName(recordRef.getId()
-                .replaceFirst(DEFINITION_PREFIX, ""));
-            ObjectData attributes = meta.getAttributes();
-            log.warn(attributes.toString());
-            Map<QName, Object> preparedProps = prepareProps(attributes);
-            ecosWorkflowService.startFormWorkflow(definition.getId(), preparedProps);
-        }
+    private RecordMeta handleDefWorkflow(RecordMeta meta) {
+        WorkflowDefinition definition = ecosWorkflowService.getDefinitionByName(meta.getId().getId()
+            .replaceFirst(DEFINITION_PREFIX, ""));
+        ecosWorkflowService.startFormWorkflow(definition.getId(), prepareProps(meta.getAttributes()));
+        return meta;
     }
 
-    private Map<QName, Object> prepareProps(ObjectData metaAttributes) {
-        Map<QName, Object> resultProps = new HashMap<>();
+    private Map<String, Object> prepareProps(ObjectData metaAttributes) {
+        Map<String, Object> resultProps = new HashMap<>();
         metaAttributes.forEach((n, v) -> {
-
-            String stringName = n;
-            if (stringName.contains("_")) {
-                stringName = stringName.replaceFirst("_", ":");
-            }
-
-            QName name = QName.resolveToQName(namespaceService, stringName);
 
             Object value = v.asJavaObj();
 
             if (value instanceof String) {
                 if (StringUtils.isNotBlank((String) value)) {
-                    resultProps.put(name, value);
+                    resultProps.put(n, value);
                 }
             } else if (value instanceof List) {
+                String stringName = n;
+                if (stringName.contains("_")) {
+                    stringName = stringName.replaceFirst("_", ":");
+                }
+                QName name = QName.resolveToQName(namespaceService, stringName);
                 if (dictionaryService.getAssociation(name) != null) {
                     List<NodeRef> nodeRefs = new ArrayList<>();
                     for (Object jsonNode : (List) value) {
@@ -195,12 +190,12 @@ public class WorkflowRecordsDao extends LocalRecordsDao
                             nodeRefs.add(new NodeRef((String) jsonNode));
                         }
                     }
-                    resultProps.put(name, nodeRefs);
+                    resultProps.put(n, nodeRefs);
                 } else {
-                    resultProps.put(name, value);
+                    resultProps.put(n, value);
                 }
             } else {
-                resultProps.put(name, value);
+                resultProps.put(n, value);
             }
         });
 

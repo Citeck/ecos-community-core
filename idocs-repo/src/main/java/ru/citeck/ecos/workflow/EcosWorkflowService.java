@@ -30,14 +30,17 @@ public class EcosWorkflowService {
 
     private WorkflowService workflowService;
     private DictionaryService dictionaryService;
+    private NamespaceService namespaceService;
     private NodeService nodeService;
 
     @Autowired
     public EcosWorkflowService(@Qualifier("WorkflowService") WorkflowService workflowService,
                                DictionaryService dictionaryService,
+                               NamespaceService namespaceService,
                                NodeService nodeService) {
         this.workflowService = workflowService;
         this.dictionaryService = dictionaryService;
+        this.namespaceService = namespaceService;
         this.nodeService = nodeService;
     }
 
@@ -102,18 +105,23 @@ public class EcosWorkflowService {
         return workflowService.getDefinitionByName(workflowName);
     }
 
-    public void startFormWorkflow(String definitionId, Map<QName, Object> attributes) {
+    public void startFormWorkflow(String definitionId, Map<String, Object> attributes) {
         Map<QName, Serializable> workflowAttributes = new HashMap<>();
 
-        for (Map.Entry<QName, Object> entry : attributes.entrySet()) {
+        for (Map.Entry<String, Object> entry : attributes.entrySet()) {
+            String stringName = entry.getKey();
+            if (stringName.contains("_")) {
+                stringName = stringName.replaceFirst("_", ":");
+            }
+            QName resolvedQname = QName.resolveToQName(namespaceService, stringName);
             if (entry.getValue() instanceof Serializable) {
-                if (dictionaryService.getAssociation(entry.getKey()) != null) {
+                if (dictionaryService.getAssociation(resolvedQname) != null) {
                     Serializable convertedValue = convertToNode(entry.getValue());
                     if (isNotEmptyValue(convertedValue)) {
-                        workflowAttributes.put(entry.getKey(), convertedValue);
+                        workflowAttributes.put(resolvedQname, convertedValue);
                     }
                 } else {
-                    workflowAttributes.put(entry.getKey(), (Serializable) entry.getValue());
+                    workflowAttributes.put(resolvedQname, (Serializable) entry.getValue());
                 }
             }
         }
