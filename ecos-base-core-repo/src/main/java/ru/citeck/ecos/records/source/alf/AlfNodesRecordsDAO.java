@@ -50,7 +50,6 @@ import ru.citeck.ecos.utils.NodeUtils;
 import java.io.Serializable;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
@@ -350,7 +349,7 @@ public class AlfNodesRecordsDAO extends LocalRecordsDAO
         attachmentAssocEformFiles.forEach((qName, jsonNodes) -> contentFileHelper.processAssocFilesContent(
             qName, jsonNodes, finalNodeRef, false));
 
-        updateNodeDipName(resultRecord.getId());
+        updateNodeDispName(resultRecord.getId());
 
         return resultRecord;
     }
@@ -427,7 +426,7 @@ public class AlfNodesRecordsDAO extends LocalRecordsDAO
         }
     }
 
-    public boolean updateNodeDipName(RecordRef recordRef) {
+    public boolean updateNodeDispName(RecordRef recordRef) {
 
         if (RecordRef.isEmpty(recordRef) || !NodeRef.isNodeRef(recordRef.getId())) {
             return false;

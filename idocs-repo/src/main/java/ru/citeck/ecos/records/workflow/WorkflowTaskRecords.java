@@ -1,8 +1,10 @@
 package ru.citeck.ecos.records.workflow;
 
+import com.fasterxml.jackson.databind.node.NullNode;
 import lombok.Data;
 import org.alfresco.repo.jscript.ScriptNode;
 import org.alfresco.repo.security.authentication.AuthenticationUtil;
+import org.alfresco.repo.template.TemplateNode;
 import org.alfresco.service.cmr.dictionary.DataTypeDefinition;
 import org.alfresco.service.cmr.dictionary.DictionaryService;
 import org.alfresco.service.cmr.dictionary.PropertyDefinition;
@@ -455,9 +457,10 @@ public class WorkflowTaskRecords extends LocalRecordsDao
 
     public class Task implements MetaValue {
 
+        private final TaskInfo taskInfo;
+
         private RecordRef documentRef;
         private RecordMeta documentInfo;
-        private TaskInfo taskInfo;
         private AlfGqlContext context;
 
         @Override
@@ -677,7 +680,44 @@ public class WorkflowTaskRecords extends LocalRecordsDao
             if (name.contains(":")) {
                 name = name.replaceFirst(":", "_");
             }
-            return attributes.get(name);
+
+            return convertValueToAttResult(attributes.get(name));
+        }
+
+        private Object convertValueToAttResult(Object value) {
+
+            if (value == null
+                || value instanceof NullNode
+                || value instanceof ecos.com.fasterxml.jackson210.databind.node.NullNode
+                || (value instanceof DataValue && ((DataValue) value).isNull())) {
+
+                return null;
+            }
+
+            if (value instanceof Collection) {
+                List<Object> res = new ArrayList<>();
+                @SuppressWarnings("unchecked")
+                Iterable<Object> iterableObj = (Iterable<Object>) value;
+                for (Object it : iterableObj) {
+                    res.add(convertValueToAttResult(it));
+                }
+                return res;
+            }
+            if (value instanceof ScriptNode) {
+                value = ((ScriptNode) value).getNodeRef();
+            } else if (value instanceof TemplateNode) {
+                value = ((TemplateNode) value).getNodeRef();
+            }
+            if (value instanceof NodeRef) {
+                return RecordRef.valueOf(value.toString());
+            }
+            if (value instanceof String) {
+                String valueStr = (String) value;
+                if (valueStr.charAt(0) == 'w' && NodeRef.isNodeRef(valueStr)) {
+                    return RecordRef.valueOf(valueStr);
+                }
+            }
+            return value;
         }
 
         @Override
