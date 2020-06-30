@@ -293,6 +293,9 @@ public class CasePerformUtils {
         String performerKey = toString(CasePerformModel.ASSOC_PERFORMER);
         Object rawPerformer = variableScope.getVariable(performerKey);
 
+        if (rawPerformer == null) {
+            return null;
+        }
         if (rawPerformer instanceof NodeRef) {
             return (NodeRef) rawPerformer;
         }

@@ -23,6 +23,7 @@ import ru.citeck.ecos.records2.RecordMeta;
 import ru.citeck.ecos.records2.RecordRef;
 import ru.citeck.ecos.records2.evaluator.RecordEvaluator;
 import ru.citeck.ecos.records2.evaluator.RecordEvaluatorService;
+import ru.citeck.ecos.service.AlfrescoServices;
 
 import javax.annotation.PostConstruct;
 import java.util.List;
@@ -53,7 +54,7 @@ public class ScriptEvaluator implements RecordEvaluator<Object, RecordMeta, Scri
         this.searchService = serviceRegistry.getSearchService();
         this.namespaceService = serviceRegistry.getNamespaceService();
         this.sysAdminParams = serviceRegistry.getSysAdminParams();
-        this.scriptService = serviceRegistry.getScriptService();
+        this.scriptService = (ScriptService) serviceRegistry.getService(AlfrescoServices.SCRIPT_SERVICE);
         this.nodeService = serviceRegistry.getNodeService();
         this.recordEvaluatorService = recordEvaluatorService;
         this.companyHomePath = companyHomePath;

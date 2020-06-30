@@ -3,6 +3,7 @@ package ru.citeck.ecos.flowable.scripts;
 import org.alfresco.repo.security.authentication.AuthenticationUtil;
 import org.alfresco.service.ServiceRegistry;
 import org.alfresco.service.cmr.repository.NodeRef;
+import org.alfresco.service.cmr.repository.ScriptService;
 import org.alfresco.service.cmr.security.PersonService;
 import org.alfresco.service.cmr.workflow.WorkflowException;
 import org.flowable.common.engine.api.delegate.Expression;
@@ -11,6 +12,7 @@ import org.flowable.engine.impl.cfg.ProcessEngineConfigurationImpl;
 import org.flowable.engine.impl.context.Context;
 import org.flowable.variable.api.delegate.VariableScope;
 import ru.citeck.ecos.flowable.constants.FlowableConstants;
+import ru.citeck.ecos.service.AlfrescoServices;
 
 import java.util.Map;
 
@@ -105,12 +107,15 @@ public class FlowableScriptBase extends ScriptExecutionListener {
     protected Object executeScript(String theScript, Map<String, Object> model, String scriptProcessorName) {
         Object scriptResult;
         if (scriptProcessorName != null) {
-            scriptResult = getServiceRegistry().getScriptService().executeScriptString(scriptProcessorName, theScript,
-                    model);
+            scriptResult = getScriptService().executeScriptString(scriptProcessorName, theScript, model);
         } else {
-            scriptResult = getServiceRegistry().getScriptService().executeScriptString(theScript, model);
+            scriptResult = getScriptService().executeScriptString(theScript, model);
         }
         return scriptResult;
+    }
+
+    private ScriptService getScriptService() {
+        return (ScriptService) getServiceRegistry().getService(AlfrescoServices.SCRIPT_SERVICE);
     }
 
     /**
