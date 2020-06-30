@@ -2,7 +2,7 @@
   "id": "6665709e-83c9-4e13-be6b-bab030db887e",
   "title": "Sign task form",
   "description": "",
-  "formKey": "alf_wfsgn:signTask",
+  "formKey": "wfsgn:signTask",
   "formMode": null,
   "customModule": null,
   "definition": {
