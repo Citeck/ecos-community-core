@@ -16,4 +16,5 @@ public interface AlfrescoServices {
     QName ACTIVITI_RUNTIME_SERVICE = QName.createQName(ALFRESCO_NAMESPACE, "activitiRuntimeService");
     QName ACTIVITI_TASK_SERVICE = QName.createQName(ALFRESCO_NAMESPACE, "activitiTaskService");
     QName TENANT_SERVICE = QName.createQName(ALFRESCO_NAMESPACE, "tenantService");
+    QName SCRIPT_SERVICE = QName.createQName(ALFRESCO_NAMESPACE, "scriptService");
 }

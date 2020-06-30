@@ -12,6 +12,7 @@ import ru.citeck.ecos.icase.activity.service.eproc.importer.parser.CmmnDefinitio
 import ru.citeck.ecos.model.CaseTimerModel;
 import ru.citeck.ecos.records.RecordsUtils;
 import ru.citeck.ecos.records2.RecordRef;
+import ru.citeck.ecos.service.AlfrescoServices;
 
 import java.util.Date;
 import java.util.HashMap;
@@ -87,6 +88,6 @@ public class ScriptEvaluator extends Evaluator {
     @Override
     public void setServiceRegistry(ServiceRegistry serviceRegistry) {
         super.setServiceRegistry(serviceRegistry);
-        scriptService = serviceRegistry.getScriptService();
+        scriptService = (ScriptService) serviceRegistry.getService(AlfrescoServices.SCRIPT_SERVICE);
     }
 }

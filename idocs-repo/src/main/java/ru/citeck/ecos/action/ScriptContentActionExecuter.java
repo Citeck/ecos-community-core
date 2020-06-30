@@ -31,8 +31,10 @@ import org.alfresco.service.cmr.action.Action;
 import org.alfresco.service.cmr.action.ParameterDefinition;
 import org.alfresco.service.cmr.repository.NodeRef;
 import org.alfresco.service.cmr.repository.NodeService;
+import org.alfresco.service.cmr.repository.ScriptService;
 import org.alfresco.service.cmr.repository.StoreRef;
 import org.alfresco.util.UrlUtil;
+import ru.citeck.ecos.service.AlfrescoServices;
 
 public class ScriptContentActionExecuter extends ActionExecuterAbstractBase
 {
@@ -96,7 +98,7 @@ public class ScriptContentActionExecuter extends ActionExecuterAbstractBase
             
             // the default scripting model provides access to well known objects and searching
             // facilities - it also provides basic create/update/delete/copy/move services
-            Map<String, Object> model = this.serviceRegistry.getScriptService().buildDefaultModel(
+            Map<String, Object> model = getScriptService().buildDefaultModel(
                     personRef,
                     getCompanyHome(),
                     homeSpaceRef,
@@ -109,17 +111,16 @@ public class ScriptContentActionExecuter extends ActionExecuterAbstractBase
             model.put("action", scriptAction);
             model.put("webApplicationContextUrl", UrlUtil.getAlfrescoUrl(sysAdminParams)); 
 
-            Object result = this.serviceRegistry.getScriptService().executeScript(
-                actionedUponNodeRef,
-                ContentModel.PROP_CONTENT,
-                model);
-            
-            // Set the result
+            Object result = getScriptService().executeScript(actionedUponNodeRef, ContentModel.PROP_CONTENT, model);
             if (result != null)
             {
                 action.setParameterValue(PARAM_RESULT, (Serializable)result);
             }
         }
+    }
+
+    private ScriptService getScriptService() {
+        return (ScriptService) serviceRegistry.getService(AlfrescoServices.SCRIPT_SERVICE);
     }
     
     /**

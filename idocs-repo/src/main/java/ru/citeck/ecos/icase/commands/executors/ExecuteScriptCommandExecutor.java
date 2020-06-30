@@ -22,6 +22,7 @@ import ru.citeck.ecos.commands.CommandExecutor;
 import ru.citeck.ecos.commands.CommandsService;
 import ru.citeck.ecos.icase.commands.dto.ExecuteScriptCommand;
 import ru.citeck.ecos.records.RecordsUtils;
+import ru.citeck.ecos.service.AlfrescoServices;
 
 import javax.annotation.PostConstruct;
 import java.util.List;
@@ -53,7 +54,7 @@ public class ExecuteScriptCommandExecutor implements CommandExecutor<ExecuteScri
         this.namespaceService = serviceRegistry.getNamespaceService();
         this.sysAdminParams = serviceRegistry.getSysAdminParams();
         this.personService = serviceRegistry.getPersonService();
-        this.scriptService = serviceRegistry.getScriptService();
+        this.scriptService = (ScriptService) serviceRegistry.getService(AlfrescoServices.SCRIPT_SERVICE);
         this.searchService = serviceRegistry.getSearchService();
         this.nodeService = serviceRegistry.getNodeService();
         this.companyHomePath = companyHomePath;
