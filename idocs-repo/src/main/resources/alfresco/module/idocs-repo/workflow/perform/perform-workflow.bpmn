@@ -4,8 +4,8 @@
     <extensionElements>
       <activiti:executionListener event="start" class="ru.citeck.ecos.workflow.listeners.SystemScriptExecutionListener">
         <activiti:field name="script">
-          <activiti:expression>if (execution.getVariable("wfperf_enableControl") == null)
-    execution.setVariable("wfperf_enableControl", execution.getVariable("wfperf_controller") != null);</activiti:expression>
+          <activiti:expression><![CDATA[if (execution.getVariable("wfperf_enableControl") == null)
+    execution.setVariable("wfperf_enableControl", execution.getVariable("wfperf_controller") != null);]]></activiti:expression>
         </activiti:field>
       </activiti:executionListener>
     </extensionElements>
@@ -15,11 +15,11 @@
       <extensionElements>
         <activiti:executionListener event="take" class="ru.citeck.ecos.workflow.listeners.SystemScriptExecutionListener">
           <activiti:field name="script">
-            <activiti:expression>if(execution.getVariable("wfperf_coperformers") != null &amp;&amp; wfperf_coperformers.size() &gt; 0) {
+            <activiti:expression><![CDATA[if(execution.getVariable("wfperf_coperformers") != null && wfperf_coperformers.size() > 0) {
 	var wfdef = workflow.getDefinitionByName("activiti$familiarization");
 	if (wfdef) {
 		var peopleNodeRefs = [];
-		for (var i = 0; i &lt; wfperf_coperformers.size(); i++) {
+		for (var i = 0; i < wfperf_coperformers.size(); i++) {
 			peopleNodeRefs.push(wfperf_coperformers.get(i).nodeRef);
 		}
 		wfparams = new Array();
@@ -32,7 +32,7 @@
 		wfparams["bpm:workflowDescription"] = bpm_workflowDescription;
 
 		var wfpackage = workflow.createPackage();
-		for (var i = 0; i &lt; bpm_package.children.length; i++)  {
+		for (var i = 0; i < bpm_package.children.length; i++)  {
 			wfpackage.addNode(bpm_package.children[i]);
 		}
 		var wfpath = wfdef.startWorkflow(wfpackage, wfparams);
@@ -42,7 +42,15 @@
 		}
 		execution.setVariable("wfperf_workflowPath", wfpath.getId());
 	}
-}</activiti:expression>
+}]]></activiti:expression>
+          </activiti:field>
+        </activiti:executionListener>
+        <activiti:executionListener event="take" class="ru.citeck.ecos.workflow.listeners.SplitGroupListener">
+          <activiti:field name="varGroup">
+            <activiti:string><![CDATA[wfperf_performers]]></activiti:string>
+          </activiti:field>
+          <activiti:field name="varIsSplit">
+            <activiti:string><![CDATA[wfperf_enableGroupSplit]]></activiti:string>
           </activiti:field>
         </activiti:executionListener>
       </extensionElements>
@@ -54,7 +62,7 @@
         <extensionElements>
           <activiti:taskListener event="create" class="ru.citeck.ecos.workflow.listeners.AssignTaskToAuthority">
             <activiti:field name="authority">
-              <activiti:expression>${wfperf_performer}</activiti:expression>
+              <activiti:expression><![CDATA[${wfperf_performer}]]></activiti:expression>
             </activiti:field>
           </activiti:taskListener>
           <activiti:taskListener event="create" class="ru.citeck.ecos.workflow.listeners.VariablePull">
@@ -87,7 +95,7 @@
         <extensionElements>
           <activiti:taskListener event="create" class="ru.citeck.ecos.workflow.listeners.AssignTaskToAuthority">
             <activiti:field name="authority">
-              <activiti:expression>${wfperf_controller}</activiti:expression>
+              <activiti:expression><![CDATA[${wfperf_controller}]]></activiti:expression>
             </activiti:field>
           </activiti:taskListener>
           <activiti:taskListener event="create" class="ru.citeck.ecos.workflow.listeners.VariablePull">

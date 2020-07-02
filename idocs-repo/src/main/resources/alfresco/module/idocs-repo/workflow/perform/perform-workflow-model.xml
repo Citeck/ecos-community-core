@@ -2,182 +2,186 @@
 
 <model name="wfperf:performworkflow" xmlns="http://www.alfresco.org/model/dictionary/1.0">
 
-	<imports>
-		<import uri="http://www.alfresco.org/model/dictionary/1.0" prefix="d" />
-		<import uri="http://www.alfresco.org/model/bpm/1.0" prefix="bpm" />
-		<import uri="http://www.alfresco.org/model/content/1.0" prefix="cm" />
-		<import uri="http://www.citeck.ru/model/workflow/1.1" prefix="cwf" />
-	</imports>
+    <imports>
+        <import uri="http://www.alfresco.org/model/dictionary/1.0" prefix="d" />
+        <import uri="http://www.alfresco.org/model/bpm/1.0" prefix="bpm" />
+        <import uri="http://www.alfresco.org/model/content/1.0" prefix="cm" />
+        <import uri="http://www.citeck.ru/model/workflow/1.1" prefix="cwf" />
+    </imports>
 
-	<namespaces>
-		<namespace uri="http://www.citeck.ru/model/workflow/perform/1.0" prefix="wfperf" />
-	</namespaces>
+    <namespaces>
+        <namespace uri="http://www.citeck.ru/model/workflow/perform/1.0" prefix="wfperf" />
+    </namespaces>
 
-	<constraints>
-		<constraint name="wfperf:performOutcomeOptions" type="LIST">
-			<parameter name="allowedValues">
-				<list>
-					<value>Performed</value>
-					<value>Question</value>
-				</list>
-			</parameter>
-		</constraint>
-		<constraint name="wfperf:controlOutcomeOptions" type="LIST">
-			<parameter name="allowedValues">
-				<list>
-					<value>PerformAccepted</value>
-					<value>PerformCancelled</value>
-					<value>ReturnToPerform</value>
-				</list>
-			</parameter>
-		</constraint>
-	</constraints>
+    <constraints>
+        <constraint name="wfperf:performOutcomeOptions" type="LIST">
+            <parameter name="allowedValues">
+                <list>
+                    <value>Performed</value>
+                    <value>Question</value>
+                </list>
+            </parameter>
+        </constraint>
+        <constraint name="wfperf:controlOutcomeOptions" type="LIST">
+            <parameter name="allowedValues">
+                <list>
+                    <value>PerformAccepted</value>
+                    <value>PerformCancelled</value>
+                    <value>ReturnToPerform</value>
+                </list>
+            </parameter>
+        </constraint>
+    </constraints>
 
-	<types>
+    <types>
 
-		<type name="wfperf:submitPerformTask">
-			<parent>bpm:startTask</parent>
-			<associations>
-				<association name="wfperf:performers">
-					<source>
-						<mandatory>false</mandatory>
-						<many>true</many>
-					</source>
-					<target>
-						<class>cm:authority</class>
-						<mandatory>true</mandatory>
-						<many>true</many>
-					</target>
-				</association>
-				<association name="wfperf:coperformers">
-					<source>
-						<mandatory>false</mandatory>
-						<many>true</many>
-					</source>
-					<target>
-						<class>cm:authority</class>
-						<mandatory>false</mandatory>
-						<many>true</many>
-					</target>
-				</association>
-				<association name="wfperf:controller">
-					<source>
-						<mandatory>false</mandatory>
-						<many>true</many>
-					</source>
-					<target>
-						<class>cm:authority</class>
-						<mandatory>false</mandatory>
-						<many>false</many>
-					</target>
-				</association>
-			</associations>
-			<overrides>
-				<property name="bpm:workflowDescription">
-					<mandatory>true</mandatory>
-				</property>
-			</overrides>
-			<mandatory-aspects>
-				<aspect>wfperf:options</aspect>
-			</mandatory-aspects>
-		</type>
+        <type name="wfperf:submitPerformTask">
+            <parent>bpm:startTask</parent>
+            <associations>
+                <association name="wfperf:performers">
+                    <source>
+                        <mandatory>false</mandatory>
+                        <many>true</many>
+                    </source>
+                    <target>
+                        <class>cm:authority</class>
+                        <mandatory>true</mandatory>
+                        <many>true</many>
+                    </target>
+                </association>
+                <association name="wfperf:coperformers">
+                    <source>
+                        <mandatory>false</mandatory>
+                        <many>true</many>
+                    </source>
+                    <target>
+                        <class>cm:authority</class>
+                        <mandatory>false</mandatory>
+                        <many>true</many>
+                    </target>
+                </association>
+                <association name="wfperf:controller">
+                    <source>
+                        <mandatory>false</mandatory>
+                        <many>true</many>
+                    </source>
+                    <target>
+                        <class>cm:authority</class>
+                        <mandatory>false</mandatory>
+                        <many>false</many>
+                    </target>
+                </association>
+            </associations>
+            <overrides>
+                <property name="bpm:workflowDescription">
+                    <mandatory>true</mandatory>
+                </property>
+            </overrides>
+            <mandatory-aspects>
+                <aspect>wfperf:options</aspect>
+            </mandatory-aspects>
+        </type>
 
-		<type name="wfperf:performTask">
-			<parent>bpm:activitiOutcomeTask</parent>
-			<properties>
-				<property name="wfperf:performOutcome">
-					<type>d:text</type>
-					<default>Performed</default>
-					<constraints>
-						<constraint ref="wfperf:performOutcomeOptions" />
-					</constraints>
-				</property>
-			</properties>
-			<overrides>
-				<property name="bpm:outcomePropertyName">
-					<default>{http://www.citeck.ru/model/workflow/perform/1.0}performOutcome</default>
-				</property>
-				<property name="bpm:packageActionGroup">
-					<default></default>
-				</property>
-				<property name="bpm:comment">
-					<constraints>
-						<constraint type="ru.citeck.ecos.constraints.common.MandatoryIfConstraint">
-							<parameter name="condition"><value>prop_wfperf_performOutcome == 'Question'</value></parameter>
-						</constraint>
-					</constraints>
-				</property>
-			</overrides>
-			<mandatory-aspects>
-				<aspect>wfperf:options</aspect>
-				<aspect>cwf:sender</aspect>
-				<aspect>cwf:lastcomment</aspect>
-				<aspect>cwf:hasTaskTitle</aspect>
-			</mandatory-aspects>
-		</type>
+        <type name="wfperf:performTask">
+            <parent>bpm:activitiOutcomeTask</parent>
+            <properties>
+                <property name="wfperf:performOutcome">
+                    <type>d:text</type>
+                    <default>Performed</default>
+                    <constraints>
+                        <constraint ref="wfperf:performOutcomeOptions" />
+                    </constraints>
+                </property>
+            </properties>
+            <overrides>
+                <property name="bpm:outcomePropertyName">
+                    <default>{http://www.citeck.ru/model/workflow/perform/1.0}performOutcome</default>
+                </property>
+                <property name="bpm:packageActionGroup">
+                    <default></default>
+                </property>
+                <property name="bpm:comment">
+                    <constraints>
+                        <constraint type="ru.citeck.ecos.constraints.common.MandatoryIfConstraint">
+                            <parameter name="condition"><value>prop_wfperf_performOutcome == 'Question'</value></parameter>
+                        </constraint>
+                    </constraints>
+                </property>
+            </overrides>
+            <mandatory-aspects>
+                <aspect>wfperf:options</aspect>
+                <aspect>cwf:sender</aspect>
+                <aspect>cwf:lastcomment</aspect>
+                <aspect>cwf:hasTaskTitle</aspect>
+            </mandatory-aspects>
+        </type>
 
-		<type name="wfperf:controlTask">
-			<parent>bpm:activitiOutcomeTask</parent>
-			<properties>
-				<property name="wfperf:controlOutcome">
-					<type>d:text</type>
-					<default>ReturnToPerform</default>
-					<constraints>
-						<constraint ref="wfperf:controlOutcomeOptions" />
-					</constraints>
-				</property>
-				
-				<property name="wfperf:taskDescription">
-					<type>d:text</type>
-				</property>
-				<property name="wfperf:taskDueDate">
-					<type>d:date</type>
-				</property>
-				<property name="wfperf:taskPriority">
-					<type>d:int</type>
-				</property>
-			</properties>
-			<overrides>
-				<property name="bpm:outcomePropertyName">
-					<default>{http://www.citeck.ru/model/workflow/perform/1.0}controlOutcome</default>
-				</property>
-				<property name="bpm:comment">
-					<constraints>
-						<constraint type="ru.citeck.ecos.constraints.common.MandatoryIfConstraint">
-							<parameter name="condition"><value>prop_wfperf_controlOutcome != 'PerformAccepted'</value></parameter>
-						</constraint>
-					</constraints>
-				</property>
-			</overrides>
-			<mandatory-aspects>
-				<aspect>wfperf:options</aspect>
-				<aspect>cwf:sender</aspect>
-				<aspect>cwf:lastcomment</aspect>
-			</mandatory-aspects>
-		</type>
+        <type name="wfperf:controlTask">
+            <parent>bpm:activitiOutcomeTask</parent>
+            <properties>
+                <property name="wfperf:controlOutcome">
+                    <type>d:text</type>
+                    <default>ReturnToPerform</default>
+                    <constraints>
+                        <constraint ref="wfperf:controlOutcomeOptions" />
+                    </constraints>
+                </property>
 
-	</types>
-	<aspects>
-	
-		<aspect name="wfperf:options">
-			<properties>
-				<property name="wfperf:enableControl">
-					<type>d:boolean</type>
-					<default>false</default>
-				</property>
-				<property name="wfperf:performerPermission">
-					<type>d:text</type>
-					<default>Contributor</default>
-				</property>
-				<property name="wfperf:controllerPermission">
-					<type>d:text</type>
-					<default>Collaborator</default>
-				</property>
-				<property name="wfperf:performNumber">
-					<type>d:text</type>
-				</property>
-			</properties>
-		</aspect>
-		
-	</aspects>
+                <property name="wfperf:taskDescription">
+                    <type>d:text</type>
+                </property>
+                <property name="wfperf:taskDueDate">
+                    <type>d:date</type>
+                </property>
+                <property name="wfperf:taskPriority">
+                    <type>d:int</type>
+                </property>
+            </properties>
+            <overrides>
+                <property name="bpm:outcomePropertyName">
+                    <default>{http://www.citeck.ru/model/workflow/perform/1.0}controlOutcome</default>
+                </property>
+                <property name="bpm:comment">
+                    <constraints>
+                        <constraint type="ru.citeck.ecos.constraints.common.MandatoryIfConstraint">
+                            <parameter name="condition"><value>prop_wfperf_controlOutcome != 'PerformAccepted'</value></parameter>
+                        </constraint>
+                    </constraints>
+                </property>
+            </overrides>
+            <mandatory-aspects>
+                <aspect>wfperf:options</aspect>
+                <aspect>cwf:sender</aspect>
+                <aspect>cwf:lastcomment</aspect>
+            </mandatory-aspects>
+        </type>
+
+    </types>
+    <aspects>
+
+        <aspect name="wfperf:options">
+            <properties>
+                <property name="wfperf:enableControl">
+                    <type>d:boolean</type>
+                    <default>false</default>
+                </property>
+                <property name="wfperf:performerPermission">
+                    <type>d:text</type>
+                    <default>Contributor</default>
+                </property>
+                <property name="wfperf:controllerPermission">
+                    <type>d:text</type>
+                    <default>Collaborator</default>
+                </property>
+                <property name="wfperf:performNumber">
+                    <type>d:text</type>
+                </property>
+                <property name="wfperf:enableGroupSplit">
+                    <type>d:boolean</type>
+                    <default>false</default>
+                </property>
+            </properties>
+        </aspect>
+
+    </aspects>
 </model>
