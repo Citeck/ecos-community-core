@@ -1,6 +1,7 @@
 package ru.citeck.ecos.flowable.services.impl;
 
 import lombok.extern.log4j.Log4j;
+import org.alfresco.model.ContentModel;
 import org.alfresco.repo.workflow.WorkflowModel;
 import org.alfresco.service.cmr.repository.NodeRef;
 import org.alfresco.service.cmr.repository.NodeService;
@@ -42,6 +43,7 @@ public class FlowableTaskServiceImpl implements FlowableTaskService, EngineTaskS
 
     private static final String VAR_PACKAGE = "bpm_package";
     private static final String OUTCOME_FIELD = "outcome";
+    private static final String INITIATOR_PLACEHOLDER = "$INITIATOR";
 
     public static final String VAR_ORIGINAL_TASK_FORM_KEY = "originalTaskFormKey";
 
@@ -196,7 +198,12 @@ public class FlowableTaskServiceImpl implements FlowableTaskService, EngineTaskS
     }
 
     public String getAssignee(String taskId) {
-        return getIdentityLinkAuthority(IdentityLinkType.ASSIGNEE, taskId);
+        String assigneeName = getIdentityLinkAuthority(IdentityLinkType.ASSIGNEE, taskId);
+        if (INITIATOR_PLACEHOLDER.equals(assigneeName)) {
+            WorkflowTask task = workflowService.getTaskById(FlowableConstants.ENGINE_PREFIX + taskId);
+            assigneeName = (String) task.getProperties().get(ContentModel.PROP_OWNER);
+        }
+        return assigneeName;
     }
 
     private String getIdentityLinkAuthority(String type, String taskId) {
