@@ -7,12 +7,10 @@ import org.alfresco.repo.workflow.WorkflowModel;
 import org.alfresco.service.cmr.dictionary.DictionaryService;
 import org.alfresco.service.cmr.repository.NodeRef;
 import org.alfresco.service.cmr.repository.NodeService;
-import org.alfresco.service.cmr.workflow.WorkflowDefinition;
-import org.alfresco.service.cmr.workflow.WorkflowInstance;
-import org.alfresco.service.cmr.workflow.WorkflowInstanceQuery;
-import org.alfresco.service.cmr.workflow.WorkflowService;
+import org.alfresco.service.cmr.workflow.*;
 import org.alfresco.service.namespace.NamespaceService;
 import org.alfresco.service.namespace.QName;
+import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
@@ -105,7 +103,8 @@ public class EcosWorkflowService {
         return workflowService.getDefinitionByName(workflowName);
     }
 
-    public void startFormWorkflow(String definitionId, Map<String, Object> attributes) {
+    @Nullable
+    public String startFormWorkflow(String definitionId, Map<String, Object> attributes) {
         Map<QName, Serializable> workflowAttributes = new HashMap<>();
 
         for (Map.Entry<String, Object> entry : attributes.entrySet()) {
@@ -151,7 +150,12 @@ public class EcosWorkflowService {
         }
 
         workflowAttributes.put(WorkflowModel.ASSOC_PACKAGE, wfPackage);
-        workflowService.startWorkflow(definitionId, workflowAttributes);
+        WorkflowPath path = workflowService.startWorkflow(definitionId, workflowAttributes);
+
+        if (path != null && path.getInstance() != null) {
+            return path.getInstance().getId();
+        }
+        return null;
     }
 
     private Serializable convertToNode(Object value) {

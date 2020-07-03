@@ -8,9 +8,7 @@ import org.alfresco.repo.content.MimetypeMap;
 import org.alfresco.service.cmr.dictionary.DictionaryService;
 import org.alfresco.service.cmr.repository.NodeRef;
 import org.alfresco.service.cmr.repository.NodeService;
-import org.alfresco.service.cmr.workflow.WorkflowDefinition;
-import org.alfresco.service.cmr.workflow.WorkflowInstance;
-import org.alfresco.service.cmr.workflow.WorkflowInstanceQuery;
+import org.alfresco.service.cmr.workflow.*;
 import org.alfresco.service.namespace.NamespaceService;
 import org.alfresco.service.namespace.QName;
 import org.apache.commons.lang.StringUtils;
@@ -34,6 +32,7 @@ import ru.citeck.ecos.records2.source.dao.MutableRecordsDao;
 import ru.citeck.ecos.records2.source.dao.local.LocalRecordsDao;
 import ru.citeck.ecos.records2.source.dao.local.v2.LocalRecordsMetaDao;
 import ru.citeck.ecos.records2.source.dao.local.v2.LocalRecordsQueryWithMetaDao;
+import ru.citeck.ecos.utils.WorkflowUtils;
 import ru.citeck.ecos.workflow.EcosWorkflowService;
 
 import java.util.*;
@@ -56,18 +55,21 @@ public class WorkflowRecordsDao extends LocalRecordsDao
     private final EcosWorkflowService ecosWorkflowService;
     private final NamespaceService namespaceService;
     private final DictionaryService dictionaryService;
+    private final WorkflowUtils workflowUtils;
     private final NodeService nodeService;
 
     @Autowired
     public WorkflowRecordsDao(EcosWorkflowService ecosWorkflowService,
                               NamespaceService namespaceService,
                               DictionaryService dictionaryService,
+                              WorkflowUtils workflowUtils,
                               NodeService nodeService) {
         setId(ID);
         this.ecosWorkflowService = ecosWorkflowService;
         this.namespaceService = namespaceService;
         this.dictionaryService = dictionaryService;
         this.nodeService = nodeService;
+        this.workflowUtils = workflowUtils;
     }
 
     @Override
@@ -164,8 +166,8 @@ public class WorkflowRecordsDao extends LocalRecordsDao
     private RecordMeta handleDefWorkflow(RecordMeta meta) {
         WorkflowDefinition definition = ecosWorkflowService.getDefinitionByName(meta.getId().getId()
             .replaceFirst(DEFINITION_PREFIX, ""));
-        ecosWorkflowService.startFormWorkflow(definition.getId(), prepareProps(meta.getAttributes()));
-        return meta;
+        String id = ecosWorkflowService.startFormWorkflow(definition.getId(), prepareProps(meta.getAttributes()));
+        return StringUtils.isNotBlank(id) ? new RecordMeta(ID + "@" + id) : new RecordMeta(meta.getId());
     }
 
     private Map<String, Object> prepareProps(ObjectData metaAttributes) {
@@ -223,6 +225,9 @@ public class WorkflowRecordsDao extends LocalRecordsDao
         public Object getAttribute(String name, MetaField field) {
             switch (name) {
                 case "previewInfo":
+                    if (!instance.isActive()) {
+                        return null;
+                    }
                     WorkflowContentInfo contentInfo = new WorkflowContentInfo();
                     String url = "alfresco/api/workflow-instances/" + instance.getId() + "/diagram";
                     contentInfo.setUrl(url);
@@ -232,6 +237,14 @@ public class WorkflowRecordsDao extends LocalRecordsDao
                 case "document":
                     NodeRef wfPackageNodeRef = instance.getWorkflowPackage();
                     return nodeService.getProperty(wfPackageNodeRef, CiteckWorkflowModel.PROP_ATTACHED_DOCUMENT);
+                case "preview-hash":
+                    List<WorkflowTask> tasks = workflowUtils.getWorkflowTasks(instance.getId(), true);
+                    return Objects.hash(
+                        instance.isActive(),
+                        tasks.stream()
+                            .map(WorkflowTask::getId)
+                            .collect(Collectors.toList())
+                    );
             }
             return null;
         }
