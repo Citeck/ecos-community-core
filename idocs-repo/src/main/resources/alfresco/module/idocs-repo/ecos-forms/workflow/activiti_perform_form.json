@@ -24,7 +24,7 @@
       "Middle_priority": "Средний",
       "Low_priority": "Низкий",
       "Cancel": "Отмена",
-      "Submit": "Создание задание",
+      "Submit": "Создать задание",
       "wfperf:enableGroupSplit": "Назначать задачи на отдельных пользователей"
     },
     "en": {
