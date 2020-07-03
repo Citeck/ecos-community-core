@@ -9,6 +9,7 @@ import org.alfresco.service.cmr.search.ResultSet;
 import org.alfresco.service.cmr.search.SearchParameters;
 import org.alfresco.service.cmr.search.SearchService;
 import org.alfresco.service.namespace.NamespaceService;
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -91,6 +92,10 @@ public class SearchServiceAlfNodesSearch {
 
         } else {
             searchParameters.setSkipCount(recordsQuery.getSkipCount());
+        }
+
+        if ("()".equals(query) || StringUtils.isBlank(query))  {
+            return new RecordsQueryResult<>();
         }
 
         searchParameters.setQuery(query);

@@ -58,7 +58,7 @@ public class BarcodeService {
         }
 
         if (StringUtils.isEmpty(barcodePropertyValue)) {
-            log.warn("Property for barcode is empty. NodeRef: " + nodeRef + " prop: " + propertyQName);
+            log.debug("Property for barcode is empty. NodeRef: " + nodeRef + " prop: " + propertyQName);
             return "";
         }
 
