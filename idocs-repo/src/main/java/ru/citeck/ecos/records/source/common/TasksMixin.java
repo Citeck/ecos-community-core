@@ -75,9 +75,10 @@ public class TasksMixin implements AttributesMixin<Class<RecordRef>, RecordRef> 
 
             List<WorkflowTask> tasks = null;
 
-            if (recordRef.getSourceId().equals(AlfNodesRecordsDAO.ID)) {
+            String id = recordRef.getId();
 
-                String id = recordRef.getId();
+            if (id.startsWith("workspace")) {
+
                 if (!NodeRef.isNodeRef(id)) {
                     return Collections.emptyList();
                 }
@@ -88,9 +89,9 @@ public class TasksMixin implements AttributesMixin<Class<RecordRef>, RecordRef> 
 
                 tasks = workflowUtils.getDocumentTasks(nodeRef, true);
 
-            } else if (recordRef.getSourceId().equals(WorkflowRecordsDao.ID)) {
+            } else if (id.contains("$")) {
 
-                tasks = workflowUtils.getWorkflowTasks(recordRef.getId(), true);
+                tasks = workflowUtils.getWorkflowTasks(id, true);
             }
 
             if (tasks == null) {
