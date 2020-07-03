@@ -24,7 +24,8 @@
       "Middle_priority": "Средний",
       "Low_priority": "Низкий",
       "Cancel": "Отмена",
-      "Submit": "Создание задание"
+      "Submit": "Создание задание",
+      "wfperf:enableGroupSplit": "Назначать задачи на отдельных пользователей"
     },
     "en": {
       "bpm:workflowDescription": "Description",
@@ -39,7 +40,8 @@
       "Middle_priority": "Middle",
       "Low_priority": "Low",
       "Cancel": "Cancel",
-      "Submit": "Create assignment"
+      "Submit": "Create assignment",
+      "wfperf:enableGroupSplit": "Enable group split"
     }
   },
   "definition": {
@@ -185,7 +187,7 @@
                 "rows": 3,
                 "wysiwyg": false,
                 "editor": "",
-                "id": "es5pwfz"
+                "id": "e4924uk"
               },
               {
                 "label": "Columns",
@@ -370,7 +372,7 @@
                         "displayInTimezone": "viewer",
                         "timezone": "",
                         "datepickerMode": "day",
-                        "id": "edtukyl"
+                        "id": "espkzz8"
                       }
                     ],
                     "xs": 0,
@@ -426,7 +428,7 @@
                       "when": null,
                       "eq": ""
                     },
-                    "id": "ep8b546"
+                    "id": "e1rrb6o"
                   },
                   {
                     "xs": 0,
@@ -543,7 +545,7 @@
                           "isActive": false,
                           "code": ""
                         },
-                        "id": "e5dydk"
+                        "id": "eg2qacgh"
                       }
                     ],
                     "placeholder": "",
@@ -586,7 +588,7 @@
                       "when": null,
                       "eq": ""
                     },
-                    "id": "ehxdv65"
+                    "id": "eh7dw1"
                   }
                 ],
                 "mask": false,
@@ -644,7 +646,7 @@
                 "inlineColumns": false,
                 "autoAdjust": false,
                 "hideOnChildrenHidden": false,
-                "id": "et1o6p"
+                "id": "ecrjzx"
               }
             ],
             "tags": [],
@@ -681,7 +683,7 @@
             "theme": "default",
             "breadcrumb": "default",
             "lazyLoad": false,
-            "id": "e5urfa"
+            "id": "eq6xqbu"
           },
           {
             "label": "Panel",
@@ -720,6 +722,142 @@
                 "disableInlineEdit": false,
                 "columns": [
                   {
+                    "components": [
+                      {
+                        "label": "wfperf:enableGroupSplit",
+                        "labelPosition": "left-left",
+                        "disableInlineEdit": false,
+                        "shortcut": "",
+                        "mask": false,
+                        "tableView": true,
+                        "alwaysEnabled": false,
+                        "defaultValue": false,
+                        "encrypted": false,
+                        "triggerChangeWhenCalculate": false,
+                        "validate": {
+                          "customMessage": "",
+                          "json": "",
+                          "required": false,
+                          "custom": "",
+                          "customPrivate": false
+                        },
+                        "key": "wfperf_enableGroupSplit",
+                        "properties": {},
+                        "conditional": {
+                          "show": "",
+                          "when": "",
+                          "json": "",
+                          "eq": ""
+                        },
+                        "customConditional": "",
+                        "logic": [],
+                        "attributes": {},
+                        "type": "checkbox",
+                        "input": true,
+                        "tags": [],
+                        "placeholder": "",
+                        "prefix": "",
+                        "customClass": "",
+                        "suffix": "",
+                        "multiple": false,
+                        "protected": false,
+                        "unique": false,
+                        "persistent": true,
+                        "hidden": false,
+                        "clearOnHide": true,
+                        "dataGridLabel": true,
+                        "labelWidth": 30,
+                        "labelMargin": 3,
+                        "description": "",
+                        "errorLabel": "",
+                        "tooltip": "",
+                        "hideLabel": false,
+                        "tabindex": "",
+                        "disabled": false,
+                        "autofocus": false,
+                        "dbIndex": false,
+                        "customDefaultValue": "",
+                        "calculateValue": "",
+                        "allowCalculateOverride": false,
+                        "widget": null,
+                        "refreshOn": "",
+                        "clearOnRefresh": false,
+                        "validateOn": "change",
+                        "inputType": "checkbox",
+                        "value": "",
+                        "name": "",
+                        "id": "e3v87wp"
+                      }
+                    ],
+                    "xs": 0,
+                    "sm": 12,
+                    "md": 6,
+                    "lg": 0,
+                    "xl": 0,
+                    "classes": "",
+                    "type": "column",
+                    "input": false,
+                    "hideOnChildrenHidden": false,
+                    "key": "column",
+                    "tableView": true,
+                    "label": "Column",
+                    "index": 0,
+                    "placeholder": "",
+                    "prefix": "",
+                    "customClass": "",
+                    "suffix": "",
+                    "multiple": false,
+                    "defaultValue": null,
+                    "protected": false,
+                    "unique": false,
+                    "persistent": true,
+                    "hidden": false,
+                    "clearOnHide": true,
+                    "dataGridLabel": false,
+                    "labelPosition": "top",
+                    "labelWidth": 30,
+                    "labelMargin": 3,
+                    "description": "",
+                    "errorLabel": "",
+                    "tooltip": "",
+                    "hideLabel": false,
+                    "tabindex": "",
+                    "disabled": false,
+                    "autofocus": false,
+                    "dbIndex": false,
+                    "customDefaultValue": "",
+                    "calculateValue": "",
+                    "allowCalculateOverride": false,
+                    "widget": null,
+                    "refreshOn": "",
+                    "clearOnRefresh": false,
+                    "validateOn": "change",
+                    "validate": {
+                      "required": false,
+                      "custom": "",
+                      "customPrivate": false
+                    },
+                    "conditional": {
+                      "show": null,
+                      "when": null,
+                      "eq": ""
+                    },
+                    "id": "epvki6c"
+                  },
+                  {
+                    "xs": 0,
+                    "sm": 12,
+                    "md": 6,
+                    "lg": 0,
+                    "xl": 0,
+                    "classes": "",
+                    "index": 1,
+                    "type": "column",
+                    "input": false,
+                    "hideOnChildrenHidden": false,
+                    "key": "column",
+                    "tableView": true,
+                    "label": "Column",
                     "components": [
                       {
                         "label": "wfperf:enableControl",
@@ -784,22 +922,9 @@
                         "inputType": "checkbox",
                         "value": "",
                         "name": "",
-                        "id": "ezo4zvd"
+                        "id": "eqyir28"
                       }
                     ],
-                    "xs": 0,
-                    "sm": 12,
-                    "md": 6,
-                    "lg": 0,
-                    "xl": 0,
-                    "classes": "",
-                    "type": "column",
-                    "input": false,
-                    "hideOnChildrenHidden": false,
-                    "key": "column",
-                    "tableView": true,
-                    "label": "Column",
-                    "index": 0,
                     "placeholder": "",
                     "prefix": "",
                     "customClass": "",
@@ -840,7 +965,7 @@
                       "when": null,
                       "eq": ""
                     },
-                    "id": "e1ok03r"
+                    "id": "ec8c94t"
                   }
                 ],
                 "mask": false,
@@ -849,9 +974,9 @@
                 "key": "columns3",
                 "properties": {},
                 "conditional": {
-                  "json": "",
                   "show": "",
                   "when": "",
+                  "json": "",
                   "eq": ""
                 },
                 "customConditional": "",
@@ -898,7 +1023,7 @@
                 "inlineColumns": false,
                 "autoAdjust": false,
                 "hideOnChildrenHidden": false,
-                "id": "e2urjro"
+                "id": "eco1m1"
               },
               {
                 "label": "Columns",
@@ -976,7 +1101,7 @@
                         "excludeAuthoritiesByType": "",
                         "modalTitle": "",
                         "isSelectedValueAsText": false,
-                        "id": "e6y1t3j"
+                        "id": "elkckm"
                       }
                     ],
                     "xs": 0,
@@ -1032,7 +1157,7 @@
                       "when": null,
                       "eq": ""
                     },
-                    "id": "en0w10p"
+                    "id": "e5p3gv"
                   },
                   {
                     "xs": 0,
@@ -1118,7 +1243,7 @@
                         "excludeAuthoritiesByType": "",
                         "modalTitle": "",
                         "isSelectedValueAsText": false,
-                        "id": "ej64nt3"
+                        "id": "egd2hmf"
                       }
                     ],
                     "placeholder": "",
@@ -1161,7 +1286,7 @@
                       "when": null,
                       "eq": ""
                     },
-                    "id": "enl9fx"
+                    "id": "e1u7l9"
                   }
                 ],
                 "mask": false,
@@ -1219,7 +1344,7 @@
                 "inlineColumns": false,
                 "autoAdjust": false,
                 "hideOnChildrenHidden": false,
-                "id": "ev4r1cg"
+                "id": "es2mg9p"
               }
             ],
             "tags": [],
@@ -1256,7 +1381,7 @@
             "theme": "default",
             "breadcrumb": "default",
             "lazyLoad": false,
-            "id": "eih3z51r"
+            "id": "e66f32"
           },
           {
             "label": "Panel",
@@ -1376,7 +1501,7 @@
                 "isTableMode": false,
                 "sortAttribute": "sys:node-dbid",
                 "sortAscending": "asc",
-                "id": "e9hvlca7"
+                "id": "etw7ybh"
               },
               {
                 "label": "bpm:sendEMailNotifications",
@@ -1441,7 +1566,7 @@
                 "inputType": "checkbox",
                 "value": "",
                 "name": "",
-                "id": "eoplk7"
+                "id": "eai8cz"
               }
             ],
             "tags": [],
@@ -1478,7 +1603,7 @@
             "theme": "default",
             "breadcrumb": "default",
             "lazyLoad": false,
-            "id": "e19rhsa"
+            "id": "e804iju"
           }
         ],
         "tags": [],
@@ -1516,7 +1641,7 @@
         "theme": "default",
         "breadcrumb": "default",
         "lazyLoad": false,
-        "id": "e8qktqz"
+        "id": "eqyt8j8"
       },
       {
         "label": "Columns",
@@ -1577,7 +1702,7 @@
               "when": null,
               "eq": ""
             },
-            "id": "elfrgin"
+            "id": "eqea0wd"
           },
           {
             "xs": 0,
@@ -1665,7 +1790,7 @@
                 "disableOnInvalid": false,
                 "theme": "default",
                 "removeIndents": false,
-                "id": "e5xf4zf"
+                "id": "ercokti"
               }
             ],
             "placeholder": "",
@@ -1708,7 +1833,7 @@
               "when": null,
               "eq": ""
             },
-            "id": "evw63zs"
+            "id": "ey9b5jjc"
           },
           {
             "xs": 0,
@@ -1794,7 +1919,7 @@
                 "rightIcon": "",
                 "action": "submit",
                 "removeIndents": false,
-                "id": "eq1umi"
+                "id": "e3h84ej"
               }
             ],
             "placeholder": "",
@@ -1837,7 +1962,7 @@
               "when": null,
               "eq": ""
             },
-            "id": "efirj0s"
+            "id": "eyn6l7s"
           },
           {
             "xs": 0,
@@ -1894,7 +2019,7 @@
               "when": null,
               "eq": ""
             },
-            "id": "exzzk7"
+            "id": "ee2n22o"
           }
         ],
         "mask": false,
@@ -1952,7 +2077,7 @@
         "inlineColumns": false,
         "autoAdjust": false,
         "hideOnChildrenHidden": false,
-        "id": "e5l4bza"
+        "id": "ekp263s"
       }
     ]
   },

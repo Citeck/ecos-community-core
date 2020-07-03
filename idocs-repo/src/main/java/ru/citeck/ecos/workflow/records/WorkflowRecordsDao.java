@@ -46,7 +46,8 @@ public class WorkflowRecordsDao extends LocalRecordsDao
     LocalRecordsMetaDao<MetaValue>,
     MutableRecordsDao {
 
-    private static final String ID = "workflow";
+    public static final String ID = "workflow";
+
     private static final String DEFINITION_PREFIX = "def_";
     private static final int MIN_RECORDS_SIZE = 0;
     private static final int MAX_RECORDS_SIZE = 10000;
