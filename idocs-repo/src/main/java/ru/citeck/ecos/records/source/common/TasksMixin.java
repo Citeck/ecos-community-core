@@ -1,6 +1,7 @@
 package ru.citeck.ecos.records.source.common;
 
 import lombok.AllArgsConstructor;
+import org.alfresco.service.ServiceRegistry;
 import org.alfresco.service.cmr.repository.NodeRef;
 import org.alfresco.service.cmr.repository.NodeService;
 import org.alfresco.service.cmr.workflow.WorkflowTask;
@@ -12,6 +13,7 @@ import ru.citeck.ecos.records2.graphql.meta.value.MetaField;
 import ru.citeck.ecos.records2.graphql.meta.value.MetaValue;
 import ru.citeck.ecos.records2.source.common.AttributesMixin;
 import ru.citeck.ecos.utils.WorkflowUtils;
+import ru.citeck.ecos.workflow.records.WorkflowRecordsDao;
 
 import javax.annotation.PostConstruct;
 import java.util.Collections;
@@ -25,22 +27,27 @@ public class TasksMixin implements AttributesMixin<Class<RecordRef>, RecordRef> 
     public static final String ATTRIBUTE_NAME = "tasks";
 
     private final AlfNodesRecordsDAO alfNodesRecordsDAO;
+    private final WorkflowRecordsDao workflowRecordsDao;
+
     private final WorkflowUtils workflowUtils;
     private final NodeService nodeService;
 
     @Autowired
-    public TasksMixin(NodeService nodeService,
-                      AlfNodesRecordsDAO alfNodesRecordsDAO,
+    public TasksMixin(AlfNodesRecordsDAO alfNodesRecordsDAO,
+                      WorkflowRecordsDao workflowRecordsDao,
+                      ServiceRegistry serviceRegistry,
                       WorkflowUtils workflowUtils) {
 
-        this.nodeService = nodeService;
         this.workflowUtils = workflowUtils;
         this.alfNodesRecordsDAO = alfNodesRecordsDAO;
+        this.workflowRecordsDao = workflowRecordsDao;
+        this.nodeService = serviceRegistry.getNodeService();
     }
 
     @PostConstruct
     public void setup() {
         alfNodesRecordsDAO.addAttributesMixin(this);
+        workflowRecordsDao.addAttributesMixin(this);
     }
 
     @Override
@@ -50,15 +57,7 @@ public class TasksMixin implements AttributesMixin<Class<RecordRef>, RecordRef> 
 
     @Override
     public Object getAttribute(String s, RecordRef recordRef, MetaField metaField) {
-        String id = recordRef.getId();
-        if (!NodeRef.isNodeRef(id)) {
-            return null;
-        }
-        NodeRef nodeRef = new NodeRef(id);
-        if (!nodeService.exists(nodeRef)) {
-            return null;
-        }
-        return new TasksValue(nodeRef);
+        return new TasksValue(recordRef);
     }
 
     @Override
@@ -70,13 +69,41 @@ public class TasksMixin implements AttributesMixin<Class<RecordRef>, RecordRef> 
     private class TasksValue implements MetaValue {
 
         private static final String ACTIVE_HASH = "active-hash";
-        private final NodeRef nodeRef;
+        private final RecordRef recordRef;
+
+        private List<WorkflowTask> getActiveTasks() {
+
+            List<WorkflowTask> tasks = null;
+
+            if (recordRef.getSourceId().equals(AlfNodesRecordsDAO.ID)) {
+
+                String id = recordRef.getId();
+                if (!NodeRef.isNodeRef(id)) {
+                    return Collections.emptyList();
+                }
+                NodeRef nodeRef = new NodeRef(id);
+                if (!nodeService.exists(nodeRef)) {
+                    return Collections.emptyList();
+                }
+
+                tasks = workflowUtils.getDocumentTasks(nodeRef, true);
+
+            } else if (recordRef.getSourceId().equals(WorkflowRecordsDao.ID)) {
+
+                tasks = workflowUtils.getWorkflowTasks(recordRef.getId(), true);
+            }
+
+            if (tasks == null) {
+                tasks = Collections.emptyList();
+            }
+            return tasks;
+        }
 
         @Override
         public Object getAttribute(String name, MetaField field) {
 
             if (ACTIVE_HASH.equals(name)) {
-                List<WorkflowTask> tasks = workflowUtils.getDocumentTasks(nodeRef, true);
+                List<WorkflowTask> tasks = getActiveTasks();
                 return tasks.stream()
                     .map(t -> Objects.hash(t.getId(), t.getProperties()))
                     .collect(Collectors.toList())
