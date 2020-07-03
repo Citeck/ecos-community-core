@@ -345,6 +345,7 @@
         </type>
 
         <type name="idocs:paymentRequisites">
+            <parent>dl:dataListItem</parent>
             <properties>
                 <property name="idocs:checkingAcc">
                     <title>Контокоррентный счёт</title>
