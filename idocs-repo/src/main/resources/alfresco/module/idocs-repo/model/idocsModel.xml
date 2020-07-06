@@ -359,6 +359,10 @@
                     <title>Корреспондентский счёт</title>
                     <type>d:text</type>
                 </property>
+                <property name="idocs:bankName">
+                    <title>Банк</title>
+                    <type>d:text</type>
+                </property>
             </properties>
             <associations>
                 <association name="idocs:paymentCurrency">
