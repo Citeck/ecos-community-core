@@ -684,6 +684,11 @@ public class WorkflowTaskRecords extends LocalRecordsDao
             return convertValueToAttResult(attributes.get(name));
         }
 
+        @Override
+        public RecordRef getRecordType() {
+            return RecordRef.create("emodel", "type", "workflow-task");
+        }
+
         private Object convertValueToAttResult(Object value) {
 
             if (value == null
