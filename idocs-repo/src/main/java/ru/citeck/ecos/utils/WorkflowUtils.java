@@ -299,7 +299,6 @@ public class WorkflowUtils {
             return null;
         }
 
-        NodeRef documentRef = null;
         NodeRef packageRef = null;
 
         if (bpmPackage instanceof NodeRef) {
@@ -311,16 +310,17 @@ public class WorkflowUtils {
             }
         }
 
+        NodeRef documentRef = null;
         if (packageRef != null) {
 
-            List<ChildAssociationRef> packageContent;
+            List<ChildAssociationRef> packageContent = nodeService.getChildAssocs(packageRef,
+                WorkflowModel.ASSOC_PACKAGE_CONTAINS, RegexQNamePattern.MATCH_ALL);
 
-            packageContent = nodeService.getChildAssocs(packageRef,
-                WorkflowModel.ASSOC_PACKAGE_CONTAINS,
-                RegexQNamePattern.MATCH_ALL);
-
+            if (packageContent.isEmpty()) {
+                packageContent = nodeService.getChildAssocs(packageRef, ContentModel.ASSOC_CONTAINS,
+                    RegexQNamePattern.MATCH_ALL);
+            }
             if (packageContent != null && !packageContent.isEmpty()) {
-
                 documentRef = packageContent.get(0).getChildRef();
             }
         }

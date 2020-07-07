@@ -8,10 +8,12 @@ class WorkflowTaskRecordsConstants {
     static final String SPACES_STORE_PREFIX = "workspace://SpacesStore/";
 
     static final String ATT_DOC_SUM = "docSum";
-    static final String ATT_DOC_STATUS = "docStatus";
+    static final String ATT_DOC_STATUS_DISP = "documentStatusDisp";
+    static final String ATT_DOC_STATUS_STR = "documentStatusStr";
+    static final String ATT_DOC_CASE_STATUS = "docStatus";
     static final String ATT_DOCUMENT = "document";
     static final String ATT_DOC_DISP_NAME = "docDisplayName";
-    static final String ATT_DOC_STATUS_TITLE = "docStatusTitle";
+    static final String ATT_DOC_CASE_STATUS_TITLE = "docStatusTitle";
     static final String ATT_DOC_TYPE = "docType";
     static final String ATT_DOC_ECOS_TYPE = "docEcosType";
     static final String ATT_COUNTERPARTY = "counterparty";
@@ -30,6 +32,7 @@ class WorkflowTaskRecordsConstants {
     static final String ATT_CLAIMABLE = "claimable";
     static final String ATT_ACTIVE = "active";
     static final String ATT_ASSIGNABLE = "assignable";
+    static final String ATT_WORKFLOW = "workflow";
     static final String ATT_ETYPE = "_etype";
     static final String ATT_PERMISSIONS = "permissions";
 
