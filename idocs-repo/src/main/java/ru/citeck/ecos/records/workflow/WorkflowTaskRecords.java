@@ -481,17 +481,17 @@ public class WorkflowTaskRecords extends LocalRecordsDao
                         documentAttributes.put(ATT_DOC_DISP_NAME, "cm:title");
                         customAttributes.add(ATT_DOC_DISP_NAME);
                         break;
-                    case ATT_DOC_CASE_STATUS_TITLE:
-                        documentAttributes.put(ATT_DOC_CASE_STATUS_TITLE, "icase:caseStatusAssoc.cm:title");
-                        customAttributes.add(ATT_DOC_CASE_STATUS_TITLE);
-                        documentAttributes.put(ATT_DOC_STATUS_DISP, "idocs:documentStatus?disp");
-                        customAttributes.add(ATT_DOC_STATUS_DISP);
+                    case ATT_DOC_STATUS_TITLE:
+                        documentAttributes.put(ATT_DOC_STATUS_TITLE, "icase:caseStatusAssoc.cm:title");
+                        customAttributes.add(ATT_DOC_STATUS_TITLE);
+                        documentAttributes.put(ATT_DOC_STATUS_DISP_PROP, "idocs:documentStatus?disp");
+                        customAttributes.add(ATT_DOC_STATUS_DISP_PROP);
                         break;
-                    case ATT_DOC_CASE_STATUS:
-                        documentAttributes.put(ATT_DOC_CASE_STATUS, "icase:caseStatusAssoc.cm:name");
-                        customAttributes.add(ATT_DOC_CASE_STATUS);
-                        documentAttributes.put(ATT_DOC_STATUS_STR, "idocs:documentStatus?str");
-                        customAttributes.add(ATT_DOC_STATUS_STR);
+                    case ATT_DOC_STATUS:
+                        documentAttributes.put(ATT_DOC_STATUS, "icase:caseStatusAssoc.cm:name");
+                        customAttributes.add(ATT_DOC_STATUS);
+                        documentAttributes.put(ATT_DOC_STATUS_STR_PROP, "idocs:documentStatus?str");
+                        customAttributes.add(ATT_DOC_STATUS_STR_PROP);
                         break;
                     case ATT_DOC_TYPE:
                         documentAttributes.put(ATT_DOC_TYPE, "type");
@@ -562,10 +562,10 @@ public class WorkflowTaskRecords extends LocalRecordsDao
 
                 // in case when document hasn't 'caseStatusAssoc'
                 if (node.isNull()) {
-                    if (ATT_DOC_CASE_STATUS.equals(name)) {
-                        return Collections.singletonList(new InnerMetaValue(documentInfo.get(ATT_DOC_STATUS_STR)));
-                    } else if (ATT_DOC_CASE_STATUS_TITLE.equals(name)) {
-                        return Collections.singletonList(new InnerMetaValue(documentInfo.get(ATT_DOC_STATUS_DISP)));
+                    if (ATT_DOC_STATUS.equals(name)) {
+                        return Collections.singletonList(new InnerMetaValue(documentInfo.get(ATT_DOC_STATUS_STR_PROP)));
+                    } else if (ATT_DOC_STATUS_TITLE.equals(name)) {
+                        return Collections.singletonList(new InnerMetaValue(documentInfo.get(ATT_DOC_STATUS_DISP_PROP)));
                     }
                 }
                 return new InnerMetaValue(node);
