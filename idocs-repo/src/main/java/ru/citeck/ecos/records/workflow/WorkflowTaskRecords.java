@@ -484,10 +484,14 @@ public class WorkflowTaskRecords extends LocalRecordsDao
                     case ATT_DOC_STATUS_TITLE:
                         documentAttributes.put(ATT_DOC_STATUS_TITLE, "icase:caseStatusAssoc.cm:title");
                         customAttributes.add(ATT_DOC_STATUS_TITLE);
+                        documentAttributes.put(ATT_DOC_STATUS_DISP_PROP, "idocs:documentStatus?disp");
+                        customAttributes.add(ATT_DOC_STATUS_DISP_PROP);
                         break;
                     case ATT_DOC_STATUS:
                         documentAttributes.put(ATT_DOC_STATUS, "icase:caseStatusAssoc.cm:name");
                         customAttributes.add(ATT_DOC_STATUS);
+                        documentAttributes.put(ATT_DOC_STATUS_STR_PROP, "idocs:documentStatus?str");
+                        customAttributes.add(ATT_DOC_STATUS_STR_PROP);
                         break;
                     case ATT_DOC_TYPE:
                         documentAttributes.put(ATT_DOC_TYPE, "type");
@@ -554,6 +558,15 @@ public class WorkflowTaskRecords extends LocalRecordsDao
                     List<InnerMetaValue> result = new ArrayList<>();
                     node.forEach(jsonNode -> result.add(new InnerMetaValue(jsonNode)));
                     return result;
+                }
+
+                // in case when document hasn't 'caseStatusAssoc'
+                if (node.isNull()) {
+                    if (ATT_DOC_STATUS.equals(name)) {
+                        return Collections.singletonList(new InnerMetaValue(documentInfo.get(ATT_DOC_STATUS_STR_PROP)));
+                    } else if (ATT_DOC_STATUS_TITLE.equals(name)) {
+                        return Collections.singletonList(new InnerMetaValue(documentInfo.get(ATT_DOC_STATUS_DISP_PROP)));
+                    }
                 }
                 return new InnerMetaValue(node);
             }

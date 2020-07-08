@@ -8,6 +8,8 @@ class WorkflowTaskRecordsConstants {
     static final String SPACES_STORE_PREFIX = "workspace://SpacesStore/";
 
     static final String ATT_DOC_SUM = "docSum";
+    static final String ATT_DOC_STATUS_DISP_PROP = "documentStatusDisp";
+    static final String ATT_DOC_STATUS_STR_PROP = "documentStatusStr";
     static final String ATT_DOC_STATUS = "docStatus";
     static final String ATT_DOCUMENT = "document";
     static final String ATT_DOC_DISP_NAME = "docDisplayName";
@@ -39,7 +41,6 @@ class WorkflowTaskRecordsConstants {
     static final String ATT_OWNER = "owner";
 
     static final String CURRENT_USER = "$CURRENT";
-
 
 
 }
