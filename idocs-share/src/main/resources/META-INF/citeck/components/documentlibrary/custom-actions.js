@@ -852,33 +852,40 @@ require([
             var actionType = props.actionType;
 
             if (props.title == "Register" || props.title == "Зарегистрировать") {
-                Citeck.forms.dialog(asset.node.nodeRef, "register", {
-                    scope: this,
-                    fn: function() {
-                        Alfresco.util.Ajax.jsonPost({
-                            url: Alfresco.constants.PROXY_URI + "api/lifecycle/do-transition?nodeRef=" + asset.nodeRef,
-                            successCallback: {
-                                scope: this,
-                                fn: function() {
-                                    PopupManager.displayMessage({
-                                        text: this.msg("message.transitionSuccess")
-                                    });
-                                    _.delay(function() {
-                                        window.location.reload();
-                                    }, 3000);
-                                }
-                            },
-                            failureCallback: {
-                                scope: this,
-                                fn: function() {
-                                    PopupManager.displayMessage({
-                                        text: this.msg("message.transitionError")
-                                    });
-                                }
+                require([
+                    'components/form/form',
+                    'components/form/date-picker',
+                    'citeck/components/form/controls/auto-number'
+                ], function () {
+                    Citeck.forms.dialog(asset.node.nodeRef, "register", {
+                            scope: this,
+                            fn: function() {
+                                Alfresco.util.Ajax.jsonPost({
+                                    url: Alfresco.constants.PROXY_URI + "api/lifecycle/do-transition?nodeRef=" + asset.nodeRef,
+                                    successCallback: {
+                                        scope: this,
+                                        fn: function() {
+                                            Alfresco.util.PopupManager.displayMessage({
+                                                text: Alfresco.util.message("message.transitionSuccess")
+                                            });
+                                            _.delay(function() {
+                                                window.location.reload();
+                                            }, 3000);
+                                        }
+                                    },
+                                    failureCallback: {
+                                        scope: this,
+                                        fn: function() {
+                                            Alfresco.util.PopupManager.displayMessage({
+                                                text: Alfresco.util.message("message.transitionError")
+                                            });
+                                        }
+                                    }
+                                });
                             }
-                        });
-                    }
-                }, {title: props.title});
+                        },
+                        { title: props.title, forceOldDialog: true });
+                })
             } else if (actionType === "REQUEST") {
                 var makeRequest = function() {
                     Alfresco.util.Ajax.request({
