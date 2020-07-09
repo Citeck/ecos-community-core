@@ -44,6 +44,11 @@
             </exclusions>
             <scope>provided</scope>
         </dependency>
+
+        <dependency>
+            <groupId>${project.groupId}</groupId>
+            <artifactId>ecos-base-core-repo</artifactId>
+        </dependency>
     </dependencies>
 
     <build>

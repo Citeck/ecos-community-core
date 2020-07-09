@@ -23,6 +23,7 @@ import org.flowable.engine.impl.cfg.ProcessEngineConfigurationImpl;
 import org.flowable.engine.impl.util.CommandContextUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import ru.citeck.ecos.providers.ApplicationContextProvider;
 
 import javax.activation.DataSource;
 import javax.naming.NamingException;
@@ -63,7 +64,6 @@ public class MailActivityBehavior extends AbstractBpmnActivityBehavior {
     @Override
     public void execute(DelegateExecution execution) {
 
-        boolean doIgnoreException = Boolean.parseBoolean(getStringFromField(ignoreException, execution));
         String exceptionVariable = getStringFromField(exceptionVariableName, execution);
         Email email = null;
         try {
@@ -98,13 +98,29 @@ public class MailActivityBehavior extends AbstractBpmnActivityBehavior {
             email.send();
 
         } catch (FlowableException e) {
-            handleException(execution, e.getMessage(), e, doIgnoreException, exceptionVariable);
+            handleException(execution, e.getMessage(), e, isIgnoreException(execution), exceptionVariable);
         } catch (EmailException e) {
             handleException(execution, "Could not send e-mail in execution " + execution.getId(),
-                    e, doIgnoreException, exceptionVariable);
+                    e, isIgnoreException(execution), exceptionVariable);
         }
 
         leave(execution);
+    }
+
+    private boolean isIgnoreException(DelegateExecution execution) {
+        boolean doIgnoreException = Boolean.parseBoolean(getStringFromField(ignoreException, execution));
+        if (doIgnoreException) {
+            return true;
+        }
+
+        try {
+            Properties globalProperties = ApplicationContextProvider.getBean("global-properties", Properties.class);
+            String rawIgnoreException = globalProperties.getProperty("ecos.flowable.mail.ignore-exception.default", "false");
+            return Boolean.parseBoolean(rawIgnoreException);
+        } catch (Exception e) {
+            LOGGER.warn("Exception while receiving default ignore-exception property", e);
+            return false;
+        }
     }
 
     protected void addHeader(Email email, String headersStr) {
