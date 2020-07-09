@@ -13,21 +13,7 @@
 
 package org.flowable.engine.impl.bpmn.behavior;
 
-import java.io.File;
-import java.util.Collections;
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-
-import javax.activation.DataSource;
-import javax.naming.NamingException;
-
-import org.apache.commons.mail.Email;
-import org.apache.commons.mail.EmailException;
-import org.apache.commons.mail.HtmlEmail;
-import org.apache.commons.mail.MultiPartEmail;
-import org.apache.commons.mail.SimpleEmail;
+import org.apache.commons.mail.*;
 import org.flowable.common.engine.api.FlowableException;
 import org.flowable.common.engine.api.FlowableIllegalArgumentException;
 import org.flowable.common.engine.api.delegate.Expression;
@@ -37,6 +23,11 @@ import org.flowable.engine.impl.cfg.ProcessEngineConfigurationImpl;
 import org.flowable.engine.impl.util.CommandContextUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import javax.activation.DataSource;
+import javax.naming.NamingException;
+import java.io.File;
+import java.util.*;
 
 /**
  * @author Joram Barrez
@@ -50,7 +41,8 @@ public class MailActivityBehavior extends AbstractBpmnActivityBehavior {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(MailActivityBehavior.class);
 
-    private static final Class<?>[] ALLOWED_ATT_TYPES = new Class<?>[] { File.class, File[].class, String.class, String[].class, DataSource.class, DataSource[].class };
+    private static final Class<?>[] ALLOWED_ATT_TYPES = new Class<?>[]{
+            File.class, File[].class, String.class, String[].class, DataSource.class, DataSource[].class};
     private static final String NEWLINE_REGEX = "\\r?\\n";
 
     protected Expression to;
@@ -81,8 +73,12 @@ public class MailActivityBehavior extends AbstractBpmnActivityBehavior {
             String ccStr = getStringFromField(cc, execution);
             String bccStr = getStringFromField(bcc, execution);
             String subjectStr = getStringFromField(subject, execution);
-            String textStr = textVar == null ? getStringFromField(text, execution) : getStringFromField(getExpression(execution, textVar), execution);
-            String htmlStr = htmlVar == null ? getStringFromField(html, execution) : getStringFromField(getExpression(execution, htmlVar), execution);
+            String textStr = textVar == null
+                    ? getStringFromField(text, execution)
+                    : getStringFromField(getExpression(execution, textVar), execution);
+            String htmlStr = htmlVar == null
+                    ? getStringFromField(html, execution)
+                    : getStringFromField(getExpression(execution, htmlVar), execution);
             String charSetStr = getStringFromField(charset, execution);
             List<File> files = new LinkedList<>();
             List<DataSource> dataSources = new LinkedList<>();
@@ -104,7 +100,8 @@ public class MailActivityBehavior extends AbstractBpmnActivityBehavior {
         } catch (FlowableException e) {
             handleException(execution, e.getMessage(), e, doIgnoreException, exceptionVariable);
         } catch (EmailException e) {
-            handleException(execution, "Could not send e-mail in execution " + execution.getId(), e, doIgnoreException, exceptionVariable);
+            handleException(execution, "Could not send e-mail in execution " + execution.getId(),
+                    e, doIgnoreException, exceptionVariable);
         }
 
         leave(execution);
@@ -117,7 +114,9 @@ public class MailActivityBehavior extends AbstractBpmnActivityBehavior {
         for (String headerEntry : headersStr.split(NEWLINE_REGEX)) {
             String[] split = headerEntry.split(":");
             if (split.length != 2) {
-                throw new FlowableIllegalArgumentException("When using email headers name and value must be defined colon separated. (e.g. X-Attribute: value");
+                throw new FlowableIllegalArgumentException(
+                        "When using email headers name and value must be defined colon separated. " +
+                                "(e.g. X-Attribute: value");
             }
             String name = split[0].trim();
             String value = split[1].trim();
@@ -139,7 +138,8 @@ public class MailActivityBehavior extends AbstractBpmnActivityBehavior {
                 return createMultiPartEmail(text);
             }
         } else {
-            throw new FlowableIllegalArgumentException("'html' or 'text' is required to be defined when using the mail activity");
+            throw new FlowableIllegalArgumentException(
+                    "'html' or 'text' is required to be defined when using the mail activity");
         }
     }
 
@@ -206,7 +206,8 @@ public class MailActivityBehavior extends AbstractBpmnActivityBehavior {
             fromAddress = from;
         } else { // use default configured from address in process engine config
             if (tenantId != null && tenantId.length() > 0) {
-                Map<String, MailServerInfo> mailServers = CommandContextUtil.getProcessEngineConfiguration().getMailServers();
+                Map<String, MailServerInfo> mailServers =
+                        CommandContextUtil.getProcessEngineConfiguration().getMailServers();
                 if (mailServers != null && mailServers.containsKey(tenantId)) {
                     MailServerInfo mailServerInfo = mailServers.get(tenantId);
                     fromAddress = mailServerInfo.getMailServerDefaultFrom();
@@ -298,7 +299,8 @@ public class MailActivityBehavior extends AbstractBpmnActivityBehavior {
                 MailServerInfo mailServerInfo = processEngineConfiguration.getMailServer(tenantId);
                 String host = mailServerInfo.getMailServerHost();
                 if (host == null) {
-                    throw new FlowableException("Could not send email: no SMTP host is configured for tenantId " + tenantId);
+                    throw new FlowableException(
+                            "Could not send email: no SMTP host is configured for tenantId " + tenantId);
                 }
                 email.setHostName(host);
 
@@ -379,7 +381,8 @@ public class MailActivityBehavior extends AbstractBpmnActivityBehavior {
         return null;
     }
 
-    private void getFilesFromFields(Expression expression, DelegateExecution execution, List<File> files, List<DataSource> dataSources) {
+    private void getFilesFromFields(Expression expression, DelegateExecution execution,
+                                    List<File> files, List<DataSource> dataSources) {
         Object value = checkAllowedTypes(expression, execution);
         if (value != null) {
             if (value instanceof File) {
@@ -403,7 +406,7 @@ public class MailActivityBehavior extends AbstractBpmnActivityBehavior {
                 }
             }
         }
-        for (Iterator<File> it = files.iterator(); it.hasNext();) {
+        for (Iterator<File> it = files.iterator(); it.hasNext(); ) {
             File file = it.next();
             if (!fileExists(file)) {
                 it.remove();
@@ -436,7 +439,8 @@ public class MailActivityBehavior extends AbstractBpmnActivityBehavior {
         return CommandContextUtil.getProcessEngineConfiguration().getExpressionManager().createExpression(variable);
     }
 
-    protected void handleException(DelegateExecution execution, String msg, Exception e, boolean doIgnoreException, String exceptionVariable) {
+    protected void handleException(DelegateExecution execution, String msg, Exception e,
+                                   boolean doIgnoreException, String exceptionVariable) {
         if (doIgnoreException) {
             LOGGER.info("Ignoring email send error: {}", msg, e);
             if (exceptionVariable != null && exceptionVariable.length() > 0) {
