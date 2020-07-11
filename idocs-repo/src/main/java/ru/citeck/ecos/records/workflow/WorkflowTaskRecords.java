@@ -17,6 +17,7 @@ import org.alfresco.service.namespace.NamespaceService;
 import org.alfresco.service.namespace.QName;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import ru.citeck.ecos.commons.data.DataValue;
@@ -32,10 +33,7 @@ import ru.citeck.ecos.records2.QueryContext;
 import ru.citeck.ecos.records2.RecordMeta;
 import ru.citeck.ecos.records2.RecordRef;
 import ru.citeck.ecos.records2.graphql.meta.annotation.MetaAtt;
-import ru.citeck.ecos.records2.graphql.meta.value.InnerMetaValue;
-import ru.citeck.ecos.records2.graphql.meta.value.MetaEdge;
-import ru.citeck.ecos.records2.graphql.meta.value.MetaField;
-import ru.citeck.ecos.records2.graphql.meta.value.MetaValue;
+import ru.citeck.ecos.records2.graphql.meta.value.*;
 import ru.citeck.ecos.records2.predicate.model.ComposedPredicate;
 import ru.citeck.ecos.records2.request.delete.RecordsDelResult;
 import ru.citeck.ecos.records2.request.delete.RecordsDeletion;
@@ -452,6 +450,11 @@ public class WorkflowTaskRecords extends LocalRecordsDao
         @Override
         public String getId() {
             return id;
+        }
+
+        @Override
+        public Object getAttribute(@NotNull String name, @NotNull MetaField field) {
+            return EmptyValue.INSTANCE.getAttribute(name, field);
         }
     }
 
