@@ -50,10 +50,10 @@ public class HistoryUtils {
             eventProperties.put(HistoryModel.PROP_PROPERTY_VALUE, propertyValue);
         }
         eventProperties.put(HistoryModel.PROP_TASK_COMMENT, taskComment);
-        if (propertyValue != null) {
+        if (propTargetNodeType != null) {
             eventProperties.put(HistoryModel.PROP_TARGET_NODE_TYPE, propTargetNodeType);
         }
-        if (propertyValue != null) {
+        if (propTargetNodeKind != null) {
             eventProperties.put(HistoryModel.PROP_TARGET_NODE_KIND, propTargetNodeKind);
         }
         return eventProperties;
@@ -61,12 +61,17 @@ public class HistoryUtils {
 
 
     public static String getKeyValue(QName qName, DictionaryService dictionaryService) {
-        String modelName = dictionaryService.getProperty(qName).getModel().getName().getPrefixString().replace(":", "_");
-        String propName = dictionaryService.getProperty(qName).getName().getPrefixString().replace(":", "_");
+        PropertyDefinition property = dictionaryService.getProperty(qName);
+        if (property == null) {
+            return StringUtils.EMPTY;
+        }
+        String modelName = property.getModel().getName().getPrefixString().replace(":", "_");
+        String propName = property.getName().getPrefixString().replace(":", "_");
         return I18NUtil.getMessage(modelName + ".property." + propName + ".title");
     }
 
-    public static Object getKeyValue(QName qName, Object constraint, DictionaryService dictionaryService, NodeService nodeService) {
+    public static Object getKeyValue(QName qName, Object constraint, DictionaryService dictionaryService,
+                                     NodeService nodeService) {
         if (DataTypeDefinition.BOOLEAN.equals(dictionaryService.getProperty(qName).getDataType().getName())) {
             if (constraint == null || constraint.equals(false)) {
                 return I18NUtil.getMessage("label.no");
@@ -130,10 +135,12 @@ public class HistoryUtils {
     }
 
     private static String getCustomChangeValue(NodeRef nodeRef, NodeService nodeService) {
-        if (!nodeService.exists(nodeRef)) { return ""; }
+        if (!nodeService.exists(nodeRef)) {
+            return "";
+        }
         if (ContentModel.TYPE_PERSON.equals(nodeService.getType(nodeRef))) {
             return nodeService.getProperty(nodeRef, ContentModel.PROP_LASTNAME)
-                    + " " + nodeService.getProperty(nodeRef, ContentModel.PROP_FIRSTNAME);
+                + " " + nodeService.getProperty(nodeRef, ContentModel.PROP_FIRSTNAME);
         } else {
             /* Single title */
             QName titleQName = getHistoryEventTitleMapperService().getTitleQName(nodeService.getType(nodeRef));
@@ -146,14 +153,17 @@ public class HistoryUtils {
             if (CollectionUtils.isNotEmpty(titlesQName)) {
                 List<String> paramValues = new ArrayList<>(titlesQName.size());
                 for (QName qName : titlesQName) {
-                    paramValues.add(getValueByQName(nodeRef, qName, nodeService));
+                    String valueByQName = getValueByQName(nodeRef, qName, nodeService);
+                    if (StringUtils.isNotBlank(valueByQName)) {
+                        paramValues.add(valueByQName);
+                    }
                 }
                 return String.join("; ", paramValues);
             }
             /* Default title */
             return String.valueOf(nodeService.getProperty(nodeRef, ContentModel.PROP_TITLE) != null
-                    ? nodeService.getProperty(nodeRef, ContentModel.PROP_TITLE)
-                    : nodeService.getProperty(nodeRef, ContentModel.PROP_NAME));
+                ? nodeService.getProperty(nodeRef, ContentModel.PROP_TITLE)
+                : nodeService.getProperty(nodeRef, ContentModel.PROP_NAME));
         }
     }
 
@@ -161,7 +171,7 @@ public class HistoryUtils {
         /* Property */
         Serializable value = nodeService.getProperty(nodeRef, title);
         if (value != null) {
-            return transformValueToString(value, nodeService);
+            return getKeyValue(title, getDictionaryService()) + ": " + transformValueToString(value, nodeService);
         }
         /* Target association */
         AssociationRef associationRef = getTargetAssociation(nodeRef, title, nodeService);
@@ -169,13 +179,9 @@ public class HistoryUtils {
             NodeRef targetNodeRef = associationRef.getTargetRef();
             if (targetNodeRef != null) {
                 return (String) nodeService.getProperty(targetNodeRef, ContentModel.PROP_TITLE);
-            } else {
-                return "null";
             }
-        } else {
-            return "null";
         }
-
+        return null;
     }
 
     private static AssociationRef getTargetAssociation(NodeRef nodeRef, QName title, NodeService nodeService) {
@@ -201,16 +207,25 @@ public class HistoryUtils {
         }
     }
 
-    private static String getAssocKeyValue(QName qName, DictionaryService dictionaryService) {
-        String modelName = dictionaryService.getAssociation(qName).getModel().getName().getPrefixString().replace(":", "_");
-        String propName = dictionaryService.getAssociation(qName).getName().getPrefixString().replace(":", "_");
+    public static String getAssocKeyValue(QName qName, DictionaryService dictionaryService) {
+        AssociationDefinition association = dictionaryService.getAssociation(qName);
+        if (association == null) {
+            return StringUtils.EMPTY;
+        }
+        String modelName = association.getModel().getName().getPrefixString().replace(":", "_");
+        String propName = association.getName().getPrefixString().replace(":", "_");
         return I18NUtil.getMessage(modelName + ".association." + propName + ".title");
     }
 
-    private static String getAssocKeyValueForSourceAndTarget(QName qName, boolean forSourceNode, DictionaryService dictionaryService) {
+    private static String getAssocKeyValueForSourceAndTarget(QName qName, boolean forSourceNode,
+                                                             DictionaryService dictionaryService) {
         String assocPeerPrefix = forSourceNode ? "source" : "target";
-        String modelName = dictionaryService.getAssociation(qName).getModel().getName().getPrefixString().replace(":", "_");
-        String propName = dictionaryService.getAssociation(qName).getName().getPrefixString().replace(":", "_");
+        AssociationDefinition association = dictionaryService.getAssociation(qName);
+        if (association == null) {
+            return StringUtils.EMPTY;
+        }
+        String modelName = association.getModel().getName().getPrefixString().replace(":", "_");
+        String propName = association.getName().getPrefixString().replace(":", "_");
         return I18NUtil.getMessage(modelName + ".association." + propName + "." + assocPeerPrefix + ".title");
     }
 
@@ -224,7 +239,11 @@ public class HistoryUtils {
         AlfrescoTransactionSupport.bindResource(resourceKey, listAssocRef);
     }
 
-    public static void addUpdateResourseToTransaction(final Serializable resourceKey, final HistoryService historyService, final DictionaryService dictionaryService, final NodeService nodeService) {
+    public static void addUpdateResourseToTransaction(final Serializable resourceKey,
+                                                      final HistoryService historyService,
+                                                      final DictionaryService dictionaryService,
+                                                      final NodeService nodeService) {
+
         TransactionUtils.doBeforeCommit("HistoryUtils.addUpdateResourseToTransaction", () -> {
             List<AssociationRef> added = new ArrayList<>();
             List<AssociationRef> removed = new ArrayList<>();
@@ -245,16 +264,16 @@ public class HistoryUtils {
                         if (associationRefAdded.getTypeQName().equals(associationRefRemoved.getTypeQName())
                                 && !isEqualsAssocs(associationRefAdded, associationRefRemoved, nodeService)) {
                             historyService.persistEvent(
-                                    HistoryModel.TYPE_BASIC_EVENT,
-                                    HistoryUtils.eventProperties(
-                                            ASSOC_UPDATED,
-                                            associationRefAdded.getSourceRef(),
-                                            associationRefAdded.getTypeQName(),
-                                            associationRefAdded.getTargetRef().toString(),
-                                            getAssocComment(associationRefAdded, associationRefRemoved, dictionaryService, nodeService),
-                                            null,
-                                            null
-                                    )
+                                HistoryModel.TYPE_BASIC_EVENT,
+                                eventProperties(
+                                    ASSOC_UPDATED,
+                                    associationRefAdded.getSourceRef(),
+                                    associationRefAdded.getTypeQName(),
+                                    associationRefAdded.getTargetRef().toString(),
+                                    getAssocComment(associationRefAdded, associationRefRemoved, dictionaryService,
+                                        nodeService),
+                                    null,
+                                    null)
                             );
                             iterAdded.remove();
                             iterRemoved.remove();
@@ -270,16 +289,16 @@ public class HistoryUtils {
                     while (iter.hasNext()) {
                         AssociationRef associationRefAdded = iter.next();
                         historyService.persistEvent(
-                                HistoryModel.TYPE_BASIC_EVENT,
-                                HistoryUtils.eventProperties(
-                                        ASSOC_UPDATED,
-                                        associationRefAdded.getSourceRef(),
-                                        associationRefAdded.getTypeQName(),
-                                        associationRefAdded.getTargetRef().toString(),
-                                        getAssocComment(associationRefAdded, null, dictionaryService, nodeService),
-                                        null,
-                                        null
-                                )
+                            HistoryModel.TYPE_BASIC_EVENT,
+                            eventProperties(
+                                ASSOC_UPDATED,
+                                associationRefAdded.getSourceRef(),
+                                associationRefAdded.getTypeQName(),
+                                associationRefAdded.getTargetRef().toString(),
+                                getAssocComment(associationRefAdded, null, dictionaryService, nodeService),
+                                null,
+                                null
+                            )
                         );
                         iter.remove();
                     }
@@ -289,16 +308,16 @@ public class HistoryUtils {
                     while (iter.hasNext()) {
                         AssociationRef associationRefRemoved = iter.next();
                         historyService.persistEvent(
-                                HistoryModel.TYPE_BASIC_EVENT,
-                                HistoryUtils.eventProperties(
-                                        ASSOC_UPDATED,
-                                        associationRefRemoved.getSourceRef(),
-                                        associationRefRemoved.getTypeQName(),
-                                        null,
-                                        getAssocComment(null, associationRefRemoved, dictionaryService, nodeService),
-                                        null,
-                                        null
-                                )
+                            HistoryModel.TYPE_BASIC_EVENT,
+                            eventProperties(
+                                ASSOC_UPDATED,
+                                associationRefRemoved.getSourceRef(),
+                                associationRefRemoved.getTypeQName(),
+                                null,
+                                getAssocComment(null, associationRefRemoved, dictionaryService, nodeService),
+                                null,
+                                null
+                            )
                         );
                         iter.remove();
                     }
@@ -308,7 +327,12 @@ public class HistoryUtils {
         });
     }
 
-    public static void addUpdateChildAsscosResourseToTransaction(final Serializable resourceKey, final HistoryService historyService, final DictionaryService dictionaryService, final NodeService nodeService, final String nodeRefName) {
+    public static void addUpdateChildAsscosResourseToTransaction(final Serializable resourceKey,
+                                                                 final HistoryService historyService,
+                                                                 final DictionaryService dictionaryService,
+                                                                 final NodeService nodeService,
+                                                                 final String nodeRefName) {
+
         TransactionUtils.doBeforeCommit("HistoryUtils.addUpdateChildAsscosResourseToTransaction", () -> {
 
             List<ChildAssociationRef> added = new ArrayList<>();
@@ -328,18 +352,22 @@ public class HistoryUtils {
                     while (iterRemoved.hasNext()) {
                         ChildAssociationRef childAssociationRefRemoved = iterRemoved.next();
                         if (childAssociationRefAdded.getTypeQName().equals(childAssociationRefRemoved.getTypeQName())
-                                && !isEqualsChildAssocs(childAssociationRefAdded, childAssociationRefRemoved, nodeService)) {
+                                && !isEqualsChildAssocs(childAssociationRefAdded, childAssociationRefRemoved,
+                            nodeService)) {
                             historyService.persistEvent(
-                                    HistoryModel.TYPE_BASIC_EVENT,
-                                    HistoryUtils.eventProperties(
-                                            ASSOC_UPDATED,
-                                            childAssociationRefAdded.getParentRef(),
-                                            childAssociationRefAdded.getTypeQName(),
-                                            childAssociationRefAdded.getChildRef().toString(),
-                                            getChildAssocComment(childAssociationRefAdded, childAssociationRefRemoved, dictionaryService, nodeService, ""),
-                                            nodeService.getProperty(childAssociationRefAdded.getChildRef(), ClassificationModel.PROP_DOCUMENT_TYPE),
-                                            nodeService.getProperty(childAssociationRefAdded.getChildRef(), ClassificationModel.PROP_DOCUMENT_KIND)
-                                    )
+                                HistoryModel.TYPE_BASIC_EVENT,
+                                eventProperties(
+                                    ASSOC_UPDATED,
+                                    childAssociationRefAdded.getParentRef(),
+                                    childAssociationRefAdded.getTypeQName(),
+                                    childAssociationRefAdded.getChildRef().toString(),
+                                    getChildAssocComment(childAssociationRefAdded, childAssociationRefRemoved,
+                                        dictionaryService, nodeService, ""),
+                                    nodeService.getProperty(childAssociationRefAdded.getChildRef(),
+                                        ClassificationModel.PROP_DOCUMENT_TYPE),
+                                    nodeService.getProperty(childAssociationRefAdded.getChildRef(),
+                                        ClassificationModel.PROP_DOCUMENT_KIND)
+                                )
                             );
                             iterAdded.remove();
                             iterRemoved.remove();break;
@@ -354,16 +382,19 @@ public class HistoryUtils {
                     while (iter.hasNext()) {
                         ChildAssociationRef childAssociationRefAdded = iter.next();
                         historyService.persistEvent(
-                                HistoryModel.TYPE_BASIC_EVENT,
-                                HistoryUtils.eventProperties(
-                                        ASSOC_UPDATED,
-                                        childAssociationRefAdded.getParentRef(),
-                                        childAssociationRefAdded.getTypeQName(),
-                                        childAssociationRefAdded.getChildRef().toString(),
-                                        getChildAssocComment(childAssociationRefAdded, null, dictionaryService, nodeService, ""),
-                                        nodeService.getProperty(childAssociationRefAdded.getChildRef(), ClassificationModel.PROP_DOCUMENT_TYPE),
-                                        nodeService.getProperty(childAssociationRefAdded.getChildRef(), ClassificationModel.PROP_DOCUMENT_KIND)
-                                )
+                            HistoryModel.TYPE_BASIC_EVENT,
+                            eventProperties(
+                                ASSOC_UPDATED,
+                                childAssociationRefAdded.getParentRef(),
+                                childAssociationRefAdded.getTypeQName(),
+                                childAssociationRefAdded.getChildRef().toString(),
+                                getChildAssocComment(childAssociationRefAdded, null, dictionaryService,
+                                    nodeService, ""),
+                                nodeService.getProperty(childAssociationRefAdded.getChildRef(),
+                                    ClassificationModel.PROP_DOCUMENT_TYPE),
+                                nodeService.getProperty(childAssociationRefAdded.getChildRef(),
+                                    ClassificationModel.PROP_DOCUMENT_KIND)
+                            )
                         );
                         iter.remove();
                     }
@@ -376,16 +407,19 @@ public class HistoryUtils {
                             continue;
                         }
                         historyService.persistEvent(
-                                HistoryModel.TYPE_BASIC_EVENT,
-                                HistoryUtils.eventProperties(
-                                        ASSOC_UPDATED,
-                                        childAssociationRefRemoved.getParentRef(),
-                                        childAssociationRefRemoved.getTypeQName(),
-                                        null,
-                                        getChildAssocComment(null, childAssociationRefRemoved, dictionaryService, nodeService, nodeRefName),
-                                        nodeService.getProperty(childAssociationRefRemoved.getParentRef(), ClassificationModel.PROP_DOCUMENT_TYPE),
-                                        nodeService.getProperty(childAssociationRefRemoved.getParentRef(), ClassificationModel.PROP_DOCUMENT_KIND)
-                                )
+                            HistoryModel.TYPE_BASIC_EVENT,
+                            eventProperties(
+                                ASSOC_UPDATED,
+                                childAssociationRefRemoved.getParentRef(),
+                                childAssociationRefRemoved.getTypeQName(),
+                                null,
+                                getChildAssocComment(null, childAssociationRefRemoved, dictionaryService,
+                                    nodeService, nodeRefName),
+                                nodeService.getProperty(childAssociationRefRemoved.getParentRef(),
+                                    ClassificationModel.PROP_DOCUMENT_TYPE),
+                                nodeService.getProperty(childAssociationRefRemoved.getParentRef(),
+                                    ClassificationModel.PROP_DOCUMENT_KIND)
+                            )
                         );
                         iter.remove();
                     }
@@ -395,22 +429,23 @@ public class HistoryUtils {
         });
     }
 
-    public static String getAssocComment(AssociationRef added, AssociationRef removed, DictionaryService dictionaryService, NodeService nodeService) {
+    public static String getAssocComment(AssociationRef added, AssociationRef removed,
+                                         DictionaryService dictionaryService, NodeService nodeService) {
         if (added != null && removed != null) {
-            return HistoryUtils.getAssocKeyValue(added.getTypeQName(), dictionaryService)
-                    + ": "
-                    + HistoryUtils.getCustomChangeValue(removed.getTargetRef(), nodeService)
-                    + " -> "
-                    + HistoryUtils.getCustomChangeValue(added.getTargetRef(), nodeService);
+            return getAssocKeyValue(added.getTypeQName(), dictionaryService)
+                + ": "
+                + getCustomChangeValue(removed.getTargetRef(), nodeService)
+                + " -> "
+                + getCustomChangeValue(added.getTargetRef(), nodeService);
         } else if (added != null) {
-            return HistoryUtils.getAssocKeyValue(added.getTypeQName(), dictionaryService)
-                    + ": — -> "
-                    + HistoryUtils.getCustomChangeValue(added.getTargetRef(), nodeService);
+            return getAssocKeyValue(added.getTypeQName(), dictionaryService)
+                + ": — -> "
+                + getCustomChangeValue(added.getTargetRef(), nodeService);
         } else if (removed != null) {
-            return HistoryUtils.getAssocKeyValue(removed.getTypeQName(), dictionaryService)
-                    + ": "
-                    + HistoryUtils.getCustomChangeValue(removed.getTargetRef(), nodeService)
-                    + " -> —";
+            return getAssocKeyValue(removed.getTypeQName(), dictionaryService)
+                + ": "
+                + getCustomChangeValue(removed.getTargetRef(), nodeService)
+                + " -> —";
         } else {
             return "Something went wrong... Contact the administrator.";
         }
@@ -422,61 +457,73 @@ public class HistoryUtils {
                                                             DictionaryService dictionaryService,
                                                             NodeService nodeService) {
         if (added != null && removed != null) {
-            return HistoryUtils.getAssocKeyValueForSourceAndTarget(added.getTypeQName(), forSourceNode, dictionaryService)
+            return getAssocKeyValueForSourceAndTarget(added.getTypeQName(), forSourceNode, dictionaryService)
                     + ": "
-                    + HistoryUtils.getCustomChangeValue(forSourceNode ? removed.getTargetRef() : removed.getSourceRef(),
-                    nodeService)
+                    + getCustomChangeValue(forSourceNode ? removed.getTargetRef() : removed.getSourceRef(), nodeService)
                     + " -> "
-                    + HistoryUtils.getCustomChangeValue(forSourceNode ? added.getTargetRef() : added.getSourceRef(),
-                    nodeService);
+                    + getCustomChangeValue(forSourceNode ? added.getTargetRef() : added.getSourceRef(), nodeService);
         } else if (added != null) {
-            return HistoryUtils.getAssocKeyValueForSourceAndTarget(added.getTypeQName(), forSourceNode, dictionaryService)
+            return getAssocKeyValueForSourceAndTarget(added.getTypeQName(), forSourceNode, dictionaryService)
                     + ": — -> "
-                    + HistoryUtils.getCustomChangeValue(forSourceNode ? added.getTargetRef() : added.getSourceRef(),
-                    nodeService);
+                    + getCustomChangeValue(forSourceNode ? added.getTargetRef() : added.getSourceRef(), nodeService);
         } else if (removed != null) {
-            return HistoryUtils.getAssocKeyValueForSourceAndTarget(removed.getTypeQName(), forSourceNode, dictionaryService)
+            return getAssocKeyValueForSourceAndTarget(removed.getTypeQName(), forSourceNode, dictionaryService)
                     + ": "
-                    + HistoryUtils.getCustomChangeValue(forSourceNode ? removed.getTargetRef() : removed.getSourceRef(),
-                    nodeService)
+                    + getCustomChangeValue(forSourceNode ? removed.getTargetRef() : removed.getSourceRef(), nodeService)
                     + " -> —";
         } else {
             return "Something went wrong... Contact the administrator.";
         }
     }
 
-    public static String getChildAssocComment(ChildAssociationRef added, ChildAssociationRef removed, DictionaryService dictionaryService, NodeService nodeService, String nodeRefName) {
+    public static String getChildAssocComment(ChildAssociationRef added, ChildAssociationRef removed,
+                                              DictionaryService dictionaryService, NodeService nodeService,
+                                              String nodeRefName) {
+
         if (added != null && removed != null) {
-            return HistoryUtils.getAssocKeyValue(added.getTypeQName(), dictionaryService)
+            return getAssocKeyValue(added.getTypeQName(), dictionaryService)
                     + ": "
-                    + HistoryUtils.getCustomChangeValue(removed.getChildRef(), nodeService)
+                    + getCustomChangeValue(removed.getChildRef(), nodeService)
                     + " -> "
-                    + HistoryUtils.getCustomChangeValue(added.getChildRef(), nodeService);
+                    + getCustomChangeValue(added.getChildRef(), nodeService);
         } else if (added != null) {
-            return HistoryUtils.getAssocKeyValue(added.getTypeQName(), dictionaryService)
+            return getAssocKeyValue(added.getTypeQName(), dictionaryService)
                     + ": — -> "
-                    + HistoryUtils.getCustomChangeValue(added.getChildRef(), nodeService);
+                    + getCustomChangeValue(added.getChildRef(), nodeService);
         } else if (removed != null) {
-            String deletedName = nodeRefName.isEmpty() ? HistoryUtils.getCustomChangeValue(removed.getChildRef(), nodeService) : nodeRefName;
-            return HistoryUtils.getAssocKeyValue(removed.getTypeQName(), dictionaryService)
+            if (nodeRefName.isEmpty()) {
+                return getAssocKeyValue(removed.getTypeQName(), dictionaryService)
                     + ": "
-                    + deletedName
+                    + getCustomChangeValue(removed.getChildRef(), nodeService)
                     + " -> —";
-        } else {
-            return "Something went wrong... Contact the administrator.";
+            }
+            return nodeRefName;
         }
+        return "Something went wrong... Contact the administrator.";
     }
 
     private static boolean isEqualsAssocs(AssociationRef added, AssociationRef removed, NodeService nodeService) {
-        return HistoryUtils.getCustomChangeValue(removed.getTargetRef(), nodeService).equals(HistoryUtils.getCustomChangeValue(added.getTargetRef(), nodeService));
+        return Objects.equals(
+            getCustomChangeValue(removed.getTargetRef(), nodeService),
+            getCustomChangeValue(added.getTargetRef(), nodeService)
+        );
     }
 
-    private static boolean isEqualsChildAssocs(ChildAssociationRef added, ChildAssociationRef removed, NodeService nodeService) {
-        return HistoryUtils.getCustomChangeValue(removed.getChildRef(), nodeService).equals(HistoryUtils.getCustomChangeValue(added.getChildRef(), nodeService));
+    private static boolean isEqualsChildAssocs(ChildAssociationRef added, ChildAssociationRef removed,
+                                               NodeService nodeService) {
+
+        return Objects.equals(
+            getCustomChangeValue(removed.getChildRef(), nodeService),
+            getCustomChangeValue(added.getChildRef(), nodeService)
+        );
     }
 
     private static HistoryEventTitleMapperService getHistoryEventTitleMapperService() {
         return ApplicationContextProvider.getBean(HistoryEventTitleMapperService.class);
+    }
+
+    private static DictionaryService getDictionaryService() {
+        return ApplicationContextProvider.getBean(DictionaryService.class);
     }
 
 }
