@@ -343,6 +343,10 @@ public class PredicateToFtsAlfrescoConverter implements QueryLangConverter<Predi
 
     private void handleETypeAttribute(FTSQuery query, String value) {
 
+        if (StringUtils.isBlank(value)) {
+            return;
+        }
+
         RecordRef typeRef = RecordRef.valueOf(value);
         String typeRecId = typeRef.getId();
 

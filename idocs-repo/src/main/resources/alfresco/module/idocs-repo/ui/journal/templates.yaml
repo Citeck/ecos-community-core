@@ -13,9 +13,10 @@ actions:
 typeRef: emodel/type@document-template
 
 predicate:
-    t: eq
-    att: type
-    val: '{http://www.citeck.ru/model/content/dms/1.0}template'
+    t: and
+    val:
+      - { t: eq, att: type, val: '{http://www.citeck.ru/model/content/dms/1.0}template' }
+      - { t: eq, att: _type, val: '' }
 
 columns:
 
