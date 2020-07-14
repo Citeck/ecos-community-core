@@ -390,7 +390,7 @@ public class HistoricalPropertiesBehaviour implements
                     historyService,
                     dictionaryService,
                     nodeService,
-                    String.valueOf(nodeService.getProperty(nodeTarget, ContentModel.PROP_NAME))
+                    HistoryUtils.getChildAssocComment(null, childAssociationRef, dictionaryService, nodeService, "")
                 );
 			}
 		}
