@@ -31,6 +31,7 @@ import ru.citeck.ecos.utils.RepoUtils;
 import javax.annotation.PostConstruct;
 import java.io.Serializable;
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
 
 /**
@@ -130,11 +131,11 @@ public class AddConfirmerHistoryBehaviour implements
         } else {
             confirmer = (String) nodeService.getProperty(confirmerRef, ContentModel.PROP_AUTHORITY_DISPLAY_NAME);
         }
-        String result = I18NUtil.getMessage(HISTORY_EVENT_MESSAGE, confirmer);
+        String result = I18NUtil.getMessage(HISTORY_EVENT_MESSAGE, Locale.getDefault(), confirmer);
 
         String comment = (String) nodeService.getProperty(additionalDataRef, EventModel.PROP_COMMENT);
         if (StringUtils.isNotBlank(comment)) {
-            result = result + " " + I18NUtil.getMessage(HISTORY_EVENT_COMMENT, comment);
+            result = result + " " + I18NUtil.getMessage(HISTORY_EVENT_COMMENT, Locale.getDefault(), comment);
         }
         return result;
     }
