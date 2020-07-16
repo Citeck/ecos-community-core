@@ -8,6 +8,7 @@ import org.alfresco.service.cmr.repository.NodeService;
 import org.alfresco.service.namespace.QName;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.extensions.surf.util.I18NUtil;
 import org.springframework.stereotype.Component;
 import ru.citeck.ecos.action.ActionConditionUtils;
 import ru.citeck.ecos.behavior.ChainingJavaBehaviour;
@@ -30,6 +31,7 @@ import ru.citeck.ecos.utils.RepoUtils;
 import javax.annotation.PostConstruct;
 import java.io.Serializable;
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
 
 /**
@@ -39,8 +41,8 @@ import java.util.Map;
 public class AddConfirmerHistoryBehaviour implements
         EventPolicies.BeforeEventPolicy, BeforeEventListener {
 
-    private static final String HISTORY_EVENT_MESSAGE = "Добавлен согласующий - %s";
-    private static final String HISTORY_EVENT_COMMENT = " с комментарием: \"%s\"";
+    private static final String HISTORY_EVENT_MESSAGE = "history.add.confirmer.message";
+    private static final String HISTORY_EVENT_COMMENT = "history.comment.confirmer.message";
     private static final String USER_EVENT_HISTORY_TYPE = "user.action";
 
     private EProcActivityService eprocActivityService;
@@ -129,10 +131,11 @@ public class AddConfirmerHistoryBehaviour implements
         } else {
             confirmer = (String) nodeService.getProperty(confirmerRef, ContentModel.PROP_AUTHORITY_DISPLAY_NAME);
         }
-        String result = String.format(HISTORY_EVENT_MESSAGE, confirmer);
+        String result = I18NUtil.getMessage(HISTORY_EVENT_MESSAGE, Locale.getDefault(), confirmer);
+
         String comment = (String) nodeService.getProperty(additionalDataRef, EventModel.PROP_COMMENT);
         if (StringUtils.isNotBlank(comment)) {
-            result = result + String.format(HISTORY_EVENT_COMMENT, comment);
+            result = result + " " + I18NUtil.getMessage(HISTORY_EVENT_COMMENT, Locale.getDefault(), comment);
         }
         return result;
     }
