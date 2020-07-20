@@ -1,5 +1,6 @@
 package ru.citeck.ecos.records.notification.command;
 
+import org.apache.commons.lang3.LocaleUtils;
 import ru.citeck.ecos.records2.RecordRef;
 import ru.citeck.ecos.utils.AlfrescoScopableProcessorExtension;
 
@@ -9,8 +10,9 @@ public class NotificationCommandServiceJS extends AlfrescoScopableProcessorExten
 
     private NotificationCommandService notificationCommandService;
 
-    public void send(String templateRef, String type, List<String> recipients) {
-        notificationCommandService.send(RecordRef.valueOf(templateRef), NotificationType.valueOf(type), recipients);
+    public void send(String record, String templateRef, String type, List<String> recipients, String lang) {
+        notificationCommandService.send(RecordRef.valueOf(record), RecordRef.valueOf(templateRef),
+            NotificationType.valueOf(type), recipients, LocaleUtils.toLocale(lang));
     }
 
     public void setNotificationCommandService(ru.citeck.ecos.records.notification.command.NotificationCommandService
