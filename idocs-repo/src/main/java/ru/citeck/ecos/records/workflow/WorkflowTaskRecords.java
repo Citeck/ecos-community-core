@@ -187,6 +187,10 @@ public class WorkflowTaskRecords extends LocalRecordsDao
             throw new IllegalStateException(OUTCOME_PREFIX + "* field is mandatory for task completion");
         }
 
+        if (StringUtils.isBlank(taskInfo.getAssignee())) {
+            ownerService.changeOwner(taskId, OwnerAction.CLAIM, AuthenticationUtil.getRunAsUser());
+        }
+
         if (documentProps.getAttributes().size() > 0) {
             RecordRef documentRef = taskInfo.getDocument();
             if (documentRef != RecordRef.EMPTY) {
