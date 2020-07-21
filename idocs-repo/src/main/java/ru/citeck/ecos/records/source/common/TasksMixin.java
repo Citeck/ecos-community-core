@@ -26,27 +26,27 @@ public class TasksMixin implements AttributesMixin<Class<RecordRef>, RecordRef> 
 
     public static final String ATTRIBUTE_NAME = "tasks";
 
-    private final AlfNodesRecordsDAO alfNodesRecordsDAO;
+    private final AlfNodesRecordsDAO alfNodesRecordsDao;
     private final WorkflowRecordsDao workflowRecordsDao;
 
     private final WorkflowUtils workflowUtils;
     private final NodeService nodeService;
 
     @Autowired
-    public TasksMixin(AlfNodesRecordsDAO alfNodesRecordsDAO,
+    public TasksMixin(AlfNodesRecordsDAO alfNodesRecordsDao,
                       WorkflowRecordsDao workflowRecordsDao,
                       ServiceRegistry serviceRegistry,
                       WorkflowUtils workflowUtils) {
 
         this.workflowUtils = workflowUtils;
-        this.alfNodesRecordsDAO = alfNodesRecordsDAO;
+        this.alfNodesRecordsDao = alfNodesRecordsDao;
         this.workflowRecordsDao = workflowRecordsDao;
         this.nodeService = serviceRegistry.getNodeService();
     }
 
     @PostConstruct
     public void setup() {
-        alfNodesRecordsDAO.addAttributesMixin(this);
+        alfNodesRecordsDao.addAttributesMixin(this);
         workflowRecordsDao.addAttributesMixin(this);
     }
 

@@ -8,36 +8,37 @@ import ru.citeck.ecos.records.source.alf.meta.AlfNodeRecord;
 import ru.citeck.ecos.records.source.alf.meta.DictRecord;
 import ru.citeck.ecos.records2.RecordMeta;
 import ru.citeck.ecos.records2.RecordRef;
+import ru.citeck.ecos.records2.graphql.meta.value.MetaField;
 import ru.citeck.ecos.records2.graphql.meta.value.MetaValue;
 import ru.citeck.ecos.records2.request.delete.RecordsDelResult;
 import ru.citeck.ecos.records2.request.delete.RecordsDeletion;
 import ru.citeck.ecos.records2.request.mutation.RecordsMutResult;
 import ru.citeck.ecos.records2.request.mutation.RecordsMutation;
-import ru.citeck.ecos.records2.source.dao.MutableRecordsDAO;
-import ru.citeck.ecos.records2.source.dao.local.LocalRecordsDAO;
-import ru.citeck.ecos.records2.source.dao.local.RecordsMetaLocalDAO;
+import ru.citeck.ecos.records2.source.dao.MutableRecordsDao;
+import ru.citeck.ecos.records2.source.dao.local.LocalRecordsDao;
+import ru.citeck.ecos.records2.source.dao.local.v2.LocalRecordsMetaDao;
 
 import java.util.List;
 import java.util.stream.Collectors;
 
 @Component
-public class AlfDictionaryRecords extends LocalRecordsDAO
-                                  implements RecordsMetaLocalDAO<MetaValue>,
-                                             MutableRecordsDAO {
+public class AlfDictionaryRecords extends LocalRecordsDao
+                                  implements LocalRecordsMetaDao<MetaValue>,
+                                             MutableRecordsDao {
 
     public static final String ID = "dict";
 
-    private final AlfNodesRecordsDAO alfNodesRecordsDAO;
+    private final AlfNodesRecordsDAO alfNodesRecordsDao;
     private NamespaceService namespaceService;
 
     @Autowired
-    public AlfDictionaryRecords(AlfNodesRecordsDAO alfNodesRecordsDAO) {
+    public AlfDictionaryRecords(AlfNodesRecordsDAO alfNodesRecordsDao) {
         setId(ID);
-        this.alfNodesRecordsDAO = alfNodesRecordsDAO;
+        this.alfNodesRecordsDao = alfNodesRecordsDao;
     }
 
     @Override
-    public List<MetaValue> getMetaValues(List<RecordRef> records) {
+    public List<MetaValue> getLocalRecordsMeta(List<RecordRef> records, MetaField metaField) {
 
         return records.stream().map(r -> {
             QName typeName = QName.resolveToQName(namespaceService, r.getId());
@@ -54,7 +55,7 @@ public class AlfDictionaryRecords extends LocalRecordsDAO
             alfNodeMeta.setAttribute(AlfNodeRecord.ATTR_TYPE, m.getId().getId());
             return alfNodeMeta;
         });
-        return alfNodesRecordsDAO.mutate(alfNodesMut);
+        return alfNodesRecordsDao.mutate(alfNodesMut);
     }
 
     @Override

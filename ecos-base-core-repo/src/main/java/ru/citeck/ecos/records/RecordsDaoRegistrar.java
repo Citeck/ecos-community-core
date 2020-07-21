@@ -9,13 +9,13 @@ import javax.annotation.PostConstruct;
 import java.util.List;
 
 @Component
-public class RecordsDAORegistrar {
+public class RecordsDaoRegistrar {
 
     private final RecordsService recordsService;
     private final List<RecordsDao> sources;
 
     @Autowired
-    public RecordsDAORegistrar(RecordsService recordsService, List<RecordsDao> sources) {
+    public RecordsDaoRegistrar(RecordsService recordsService, List<RecordsDao> sources) {
         this.recordsService = recordsService;
         this.sources = sources;
     }

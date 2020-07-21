@@ -7,6 +7,8 @@ import org.alfresco.service.cmr.repository.NodeRef;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import ru.citeck.ecos.model.IdocsModel;
+import ru.citeck.ecos.records2.graphql.meta.value.MetaField;
+import ru.citeck.ecos.records2.graphql.meta.value.field.EmptyMetaField;
 import ru.citeck.ecos.records2.predicate.PredicateService;
 import ru.citeck.ecos.records2.predicate.model.AndPredicate;
 import ru.citeck.ecos.records2.predicate.model.Predicates;
@@ -19,10 +21,10 @@ import ru.citeck.ecos.records2.request.mutation.RecordsMutResult;
 import ru.citeck.ecos.records2.request.mutation.RecordsMutation;
 import ru.citeck.ecos.records2.request.query.RecordsQuery;
 import ru.citeck.ecos.records2.request.query.RecordsQueryResult;
-import ru.citeck.ecos.records2.source.dao.local.LocalRecordsDAO;
-import ru.citeck.ecos.records2.source.dao.local.MutableRecordsLocalDAO;
-import ru.citeck.ecos.records2.source.dao.local.RecordsMetaLocalDAO;
-import ru.citeck.ecos.records2.source.dao.local.RecordsQueryWithMetaLocalDAO;
+import ru.citeck.ecos.records2.source.dao.local.LocalRecordsDao;
+import ru.citeck.ecos.records2.source.dao.local.MutableRecordsLocalDao;
+import ru.citeck.ecos.records2.source.dao.local.v2.LocalRecordsMetaDao;
+import ru.citeck.ecos.records2.source.dao.local.v2.LocalRecordsQueryWithMetaDao;
 
 import java.util.Date;
 import java.util.List;
@@ -30,27 +32,27 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Component
-public class CurrencyRateRecordsDAO extends LocalRecordsDAO implements
-        RecordsQueryWithMetaLocalDAO<CurrencyRateRecordsDAO.CurrencyRateRecord>,
-        RecordsMetaLocalDAO<CurrencyRateRecordsDAO.CurrencyRateRecord>,
-        MutableRecordsLocalDAO<CurrencyRateRecordsDAO.CurrencyRateRecord> {
+public class CurrencyRateRecordsDao extends LocalRecordsDao implements
+        LocalRecordsQueryWithMetaDao<CurrencyRateRecordsDao.CurrencyRateRecord>,
+        LocalRecordsMetaDao<CurrencyRateRecordsDao.CurrencyRateRecord>,
+        MutableRecordsLocalDao<CurrencyRateRecordsDao.CurrencyRateRecord> {
 
     private static final String ID = "currency-rate";
 
-    private AlfNodesRecordsDAO alfNodesRecordsDAO;
-    private CurrencyService currencyService;
+    private final AlfNodesRecordsDAO alfNodesRecordsDao;
+    private final CurrencyService currencyService;
 
     @Autowired
-    public CurrencyRateRecordsDAO(AlfNodesRecordsDAO alfNodesRecordsDAO,
+    public CurrencyRateRecordsDao(AlfNodesRecordsDAO alfNodesRecordsDao,
                                   CurrencyService currencyService) {
-        this.alfNodesRecordsDAO = alfNodesRecordsDAO;
+        this.alfNodesRecordsDao = alfNodesRecordsDao;
         this.currencyService = currencyService;
 
         setId(ID);
     }
 
     @Override
-    public List<CurrencyRateRecord> getMetaValues(List<RecordRef> list) {
+    public List<CurrencyRateRecord> getLocalRecordsMeta(List<RecordRef> list, MetaField metaField) {
         return list.stream()
                 .map(recordRef -> RecordRef.create(AlfNodesRecordsDAO.ID, recordRef.getId()))
                 .map(recordRef -> recordsService.getMeta(recordRef, CurrencyRateRecord.class))
@@ -58,14 +60,14 @@ public class CurrencyRateRecordsDAO extends LocalRecordsDAO implements
     }
 
     @Override
-    public RecordsQueryResult<CurrencyRateRecord> getMetaValues(RecordsQuery recordsQuery) {
+    public RecordsQueryResult<CurrencyRateRecord> queryLocalRecords(RecordsQuery recordsQuery, MetaField metaField) {
         RecordsQueryResult<RecordRef> records = queryRecords(recordsQuery);
 
         RecordsQueryResult<CurrencyRateRecord> result = new RecordsQueryResult<>();
         result.merge(records);
         result.setHasMore(records.getHasMore());
         result.setTotalCount(records.getTotalCount());
-        result.setRecords(getMetaValues(records.getRecords()));
+        result.setRecords(getLocalRecordsMeta(records.getRecords(), metaField));
 
         if (recordsQuery.isDebug()) {
             result.setDebugInfo(getClass(), "query", recordsQuery.getQuery());
@@ -77,7 +79,7 @@ public class CurrencyRateRecordsDAO extends LocalRecordsDAO implements
 
     @Override
     public List<CurrencyRateRecord> getValuesToMutate(List<RecordRef> list) {
-        return getMetaValues(list);
+        return getLocalRecordsMeta(list, EmptyMetaField.INSTANCE);
     }
 
     @Override
@@ -104,7 +106,7 @@ public class CurrencyRateRecordsDAO extends LocalRecordsDAO implements
             }
         });
 
-        return alfNodesRecordsDAO.mutate(recordsMutation);
+        return alfNodesRecordsDao.mutate(recordsMutation);
     }
 
     private RecordMeta composeCurrencyRecordMeta(String id, CurrencyRateRecord currencyRate) {
@@ -133,7 +135,7 @@ public class CurrencyRateRecordsDAO extends LocalRecordsDAO implements
 
     @Override
     public RecordsDelResult delete(RecordsDeletion recordsDeletion) {
-        return alfNodesRecordsDAO.delete(recordsDeletion);
+        return alfNodesRecordsDao.delete(recordsDeletion);
     }
 
     @Data

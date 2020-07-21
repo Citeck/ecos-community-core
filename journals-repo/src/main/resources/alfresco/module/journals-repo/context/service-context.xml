@@ -21,7 +21,7 @@
         </property>
     </bean>-->
 
-    <bean id="journals.recordsDAO" class="ru.citeck.ecos.journals.records.JournalRecordsDAO">
+    <bean id="journals.recordsDao" class="ru.citeck.ecos.journals.records.JournalRecordsDao">
         <property name="gqlQueryGenerator" ref="journals.gqlQueryGenerator" />
     </bean>
 

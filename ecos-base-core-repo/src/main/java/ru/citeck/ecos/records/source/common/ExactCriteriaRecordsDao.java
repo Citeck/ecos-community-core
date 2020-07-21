@@ -2,10 +2,8 @@ package ru.citeck.ecos.records.source.common;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.StringUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import ru.citeck.ecos.commons.data.DataValue;
 import ru.citeck.ecos.commons.data.ObjectData;
@@ -27,18 +25,17 @@ import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-public class ExactCriteriaRecordsDAO extends FilteredRecordsDAO implements ServiceFactoryAware {
-
-    private static final Log logger = LogFactory.getLog(ExactCriteriaRecordsDAO.class);
+@Slf4j
+public class ExactCriteriaRecordsDao extends FilteredRecordsDao implements ServiceFactoryAware {
 
     private SearchCriteriaParser criteriaParser;
     private RecordsService recordsService;
     private PredicateService predicateService;
 
     private List<String> filteredFields = Collections.emptyList();
-    private Map<String, PredicateFilter> filters = new HashMap<>();
+    private final Map<String, PredicateFilter> filters = new HashMap<>();
 
-    public ExactCriteriaRecordsDAO() {
+    public ExactCriteriaRecordsDao() {
 
         PredicateFilter exactStrFilter = new PredicateFilter("str", (value, array) -> {
             String arrayValue = "";
@@ -100,7 +97,7 @@ public class ExactCriteriaRecordsDAO extends FilteredRecordsDAO implements Servi
                 PredicateFilter filter = filters.get(t.getPredicate());
                 if (filter == null) {
 
-                    logger.warn("Predicate filter for '" + t.getPredicate() +
+                    log.warn("Predicate filter for '" + t.getPredicate() +
                                 "' not found. This field will be ignored");
                 } else {
 

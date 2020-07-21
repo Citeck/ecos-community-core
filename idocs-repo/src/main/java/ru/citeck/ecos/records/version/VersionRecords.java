@@ -19,13 +19,14 @@ import org.springframework.stereotype.Component;
 import ru.citeck.ecos.commons.data.DataValue;
 import ru.citeck.ecos.records2.RecordMeta;
 import ru.citeck.ecos.records2.RecordRef;
+import ru.citeck.ecos.records2.graphql.meta.value.MetaField;
 import ru.citeck.ecos.records2.request.delete.RecordsDelResult;
 import ru.citeck.ecos.records2.request.delete.RecordsDeletion;
 import ru.citeck.ecos.records2.request.mutation.RecordsMutResult;
 import ru.citeck.ecos.records2.request.mutation.RecordsMutation;
 import ru.citeck.ecos.records2.request.query.RecordsQuery;
 import ru.citeck.ecos.records2.request.query.RecordsQueryResult;
-import ru.citeck.ecos.records2.source.dao.local.CrudRecordsDAO;
+import ru.citeck.ecos.records2.source.dao.local.v2.LocalRecordsCrudDao;
 
 import java.io.Serializable;
 import java.util.*;
@@ -37,7 +38,7 @@ import static ru.citeck.ecos.records.version.VersionRecordsConstants.*;
  * @author Roman Makarskiy
  */
 @Component
-public class VersionRecords extends CrudRecordsDAO<VersionDTO> {
+public class VersionRecords extends LocalRecordsCrudDao<VersionDTO> {
 
     private final VersionService versionService;
     private final NodeService nodeService;
@@ -67,7 +68,7 @@ public class VersionRecords extends CrudRecordsDAO<VersionDTO> {
     }
 
     @Override
-    public List<VersionDTO> getMetaValues(List<RecordRef> list) {
+    public List<VersionDTO> getLocalRecordsMeta(List<RecordRef> list, MetaField metaField) {
         return getValues(list);
     }
 
@@ -175,7 +176,7 @@ public class VersionRecords extends CrudRecordsDAO<VersionDTO> {
     }
 
     @Override
-    public RecordsQueryResult<VersionDTO> getMetaValues(RecordsQuery recordsQuery) {
+    public RecordsQueryResult<VersionDTO> queryLocalRecords(RecordsQuery recordsQuery, MetaField metaField) {
         VersionQuery query = recordsQuery.getQuery(VersionQuery.class);
         RecordRef recordRef = query.getRecord();
 

@@ -4,14 +4,15 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 import ru.citeck.ecos.records2.RecordRef;
-import ru.citeck.ecos.records2.source.dao.local.LocalRecordsDAO;
-import ru.citeck.ecos.records2.source.dao.local.RecordsMetaLocalDAO;
+import ru.citeck.ecos.records2.graphql.meta.value.MetaField;
+import ru.citeck.ecos.records2.source.dao.local.LocalRecordsDao;
+import ru.citeck.ecos.records2.source.dao.local.v2.LocalRecordsMetaDao;
 
 import java.util.ArrayList;
 import java.util.List;
 
 @Component
-public class EcosConfigRecords extends LocalRecordsDAO implements RecordsMetaLocalDAO<String> {
+public class EcosConfigRecords extends LocalRecordsDao implements LocalRecordsMetaDao<String> {
 
     public static final String ID = "ecos-config";
 
@@ -22,7 +23,7 @@ public class EcosConfigRecords extends LocalRecordsDAO implements RecordsMetaLoc
     }
 
     @Override
-    public List<String> getMetaValues(List<RecordRef> records) {
+    public List<String> getLocalRecordsMeta(List<RecordRef> records, MetaField metaField) {
 
         List<String> result = new ArrayList<>();
         for (RecordRef ref : records) {

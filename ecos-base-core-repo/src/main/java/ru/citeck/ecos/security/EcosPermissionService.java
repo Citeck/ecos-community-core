@@ -3,6 +3,7 @@ package ru.citeck.ecos.security;
 import org.alfresco.service.cmr.repository.NodeRef;
 import org.alfresco.service.namespace.NamespaceService;
 import org.alfresco.service.namespace.QName;
+import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -18,7 +19,7 @@ public class EcosPermissionService {
 
     public boolean isAttributeProtected(NodeRef nodeRef, String attributeName) {
 
-        if (attsPermService == null || nodeRef == null || attributeName == null) {
+        if (attsPermService == null || nodeRef == null || StringUtils.isBlank(attributeName)) {
             return false;
         }
 

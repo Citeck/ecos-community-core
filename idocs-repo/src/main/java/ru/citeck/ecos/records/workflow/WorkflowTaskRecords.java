@@ -43,8 +43,8 @@ import ru.citeck.ecos.records2.request.query.RecordsQuery;
 import ru.citeck.ecos.records2.request.query.RecordsQueryResult;
 import ru.citeck.ecos.records2.source.dao.MutableRecordsDao;
 import ru.citeck.ecos.records2.source.dao.local.LocalRecordsDao;
-import ru.citeck.ecos.records2.source.dao.local.RecordsMetaLocalDAO;
-import ru.citeck.ecos.records2.source.dao.local.RecordsQueryLocalDAO;
+import ru.citeck.ecos.records2.source.dao.local.v2.LocalRecordsMetaDao;
+import ru.citeck.ecos.records2.source.dao.local.v2.LocalRecordsQueryDao;
 import ru.citeck.ecos.utils.AuthorityUtils;
 import ru.citeck.ecos.utils.WorkflowUtils;
 import ru.citeck.ecos.workflow.owner.OwnerAction;
@@ -59,9 +59,9 @@ import static ru.citeck.ecos.records.workflow.WorkflowTaskRecordsConstants.*;
 
 @Component
 public class WorkflowTaskRecords extends LocalRecordsDao
-    implements RecordsMetaLocalDAO<MetaValue>,
+    implements LocalRecordsMetaDao<MetaValue>,
     MutableRecordsDao,
-    RecordsQueryLocalDAO {
+    LocalRecordsQueryDao {
 
     private static final String DOCUMENT_FIELD_PREFIX = "_ECM_";
     private static final String OUTCOME_PREFIX = "outcome_";
@@ -326,7 +326,7 @@ public class WorkflowTaskRecords extends LocalRecordsDao
     }
 
     @Override
-    public RecordsQueryResult<RecordRef> getLocalRecords(RecordsQuery query) {
+    public RecordsQueryResult<RecordRef> queryLocalRecords(RecordsQuery query) {
 
         WorkflowTaskRecords.TasksQuery tasksQuery = query.getQuery(WorkflowTaskRecords.TasksQuery.class);
         if (tasksQuery.document != null) {
@@ -363,7 +363,7 @@ public class WorkflowTaskRecords extends LocalRecordsDao
     }
 
     @Override
-    public List<MetaValue> getMetaValues(List<RecordRef> records) {
+    public List<MetaValue> getLocalRecordsMeta(List<RecordRef> records, MetaField metaField) {
         return records.stream().map(r -> {
             Optional<TaskInfo> info = ecosTaskService.getTaskInfo(r.getId());
             return info.isPresent() ? new Task(info.get()) : new EmptyTask(r.getId());

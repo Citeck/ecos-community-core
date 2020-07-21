@@ -15,8 +15,8 @@ import ru.citeck.ecos.records2.meta.RecordsMetaService;
 import ru.citeck.ecos.records2.request.query.RecordsQuery;
 import ru.citeck.ecos.records2.request.query.RecordsQueryResult;
 import ru.citeck.ecos.records2.request.query.SortBy;
-import ru.citeck.ecos.records2.source.dao.AbstractRecordsDAO;
-import ru.citeck.ecos.records2.source.dao.RecordsQueryWithMetaDAO;
+import ru.citeck.ecos.records2.source.dao.AbstractRecordsDao;
+import ru.citeck.ecos.records2.source.dao.RecordsQueryWithMetaDao;
 import ru.citeck.ecos.search.SortOrder;
 
 import javax.annotation.PostConstruct;
@@ -26,9 +26,9 @@ import java.util.List;
 /**
  * This records DAO required for backward compatibility. Don't use it for new data sources
  *
- * @deprecated implement RecordsDAO instead
+ * @deprecated implement RecordsDao instead
  */
-public class JournalDatasourceRecordsDAO extends AbstractRecordsDAO implements RecordsQueryWithMetaDAO {
+public class JournalDatasourceRecordsDAO extends AbstractRecordsDao implements RecordsQueryWithMetaDao {
 
     private ServiceRegistry serviceRegistry;
     private JournalDataSource dataSource;

@@ -4,11 +4,12 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import ru.citeck.ecos.records2.RecordRef;
+import ru.citeck.ecos.records2.graphql.meta.value.MetaField;
 import ru.citeck.ecos.records2.request.query.RecordsQuery;
 import ru.citeck.ecos.records2.request.query.RecordsQueryResult;
-import ru.citeck.ecos.records2.source.dao.local.LocalRecordsDAO;
-import ru.citeck.ecos.records2.source.dao.local.RecordsMetaLocalDAO;
-import ru.citeck.ecos.records2.source.dao.local.RecordsQueryWithMetaLocalDAO;
+import ru.citeck.ecos.records2.source.dao.local.LocalRecordsDao;
+import ru.citeck.ecos.records2.source.dao.local.v2.LocalRecordsMetaDao;
+import ru.citeck.ecos.records2.source.dao.local.v2.LocalRecordsQueryWithMetaDao;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -17,8 +18,8 @@ import java.util.List;
  * @author Roman Makarskiy
  */
 @Component
-public class StatusRecords  extends LocalRecordsDAO implements RecordsMetaLocalDAO<StatusRecord>,
-        RecordsQueryWithMetaLocalDAO<StatusRecord> {
+public class StatusRecords extends LocalRecordsDao implements LocalRecordsMetaDao<StatusRecord>,
+        LocalRecordsQueryWithMetaDao<StatusRecord> {
 
     private static final String ID = "status";
 
@@ -34,7 +35,7 @@ public class StatusRecords  extends LocalRecordsDAO implements RecordsMetaLocalD
     }
 
     @Override
-    public List<StatusRecord> getMetaValues(List<RecordRef> records) {
+    public List<StatusRecord> getLocalRecordsMeta(List<RecordRef> records, MetaField metaField) {
         List<StatusRecord> result = new ArrayList<>();
 
         for (RecordRef recordRef : records) {
@@ -52,7 +53,7 @@ public class StatusRecords  extends LocalRecordsDAO implements RecordsMetaLocalD
     }
 
     @Override
-    public RecordsQueryResult<StatusRecord> getMetaValues(RecordsQuery recordsQuery) {
+    public RecordsQueryResult<StatusRecord> queryLocalRecords(RecordsQuery recordsQuery, MetaField metaField) {
         StatusQuery query = recordsQuery.getQuery(StatusQuery.class);
 
         if (StringUtils.isNotBlank(query.getAllExisting())) {
@@ -65,5 +66,4 @@ public class StatusRecords  extends LocalRecordsDAO implements RecordsMetaLocalD
 
         return statusRecordsUtils.getStatusByRecord(query.getRecord());
     }
-
 }

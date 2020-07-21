@@ -7,7 +7,7 @@ import java.util.List;
 
 public class CaseAssocTypeRegistrar {
 
-    private CaseDocumentRecordsDAO caseDocumentRecordsDao;
+    private CaseDocumentRecordsDao caseDocumentRecordsDao;
 
     private List<CaseAssocToEcosType> assocs;
     private CaseAssocToEcosType assoc;
@@ -31,7 +31,7 @@ public class CaseAssocTypeRegistrar {
     }
 
     @Autowired
-    public void setCaseDocumentRecordsDao(CaseDocumentRecordsDAO caseDocumentRecordsDao) {
+    public void setCaseDocumentRecordsDao(CaseDocumentRecordsDao caseDocumentRecordsDao) {
         this.caseDocumentRecordsDao = caseDocumentRecordsDao;
     }
 }

@@ -9,18 +9,18 @@ import ru.citeck.ecos.records2.graphql.meta.value.MetaField;
 import ru.citeck.ecos.records2.graphql.meta.value.MetaValue;
 import ru.citeck.ecos.records2.request.query.RecordsQuery;
 import ru.citeck.ecos.records2.request.query.RecordsQueryResult;
-import ru.citeck.ecos.records2.source.dao.local.LocalRecordsDAO;
-import ru.citeck.ecos.records2.source.dao.local.RecordsMetaLocalDAO;
-import ru.citeck.ecos.records2.source.dao.local.RecordsQueryWithMetaLocalDAO;
+import ru.citeck.ecos.records2.source.dao.local.LocalRecordsDao;
+import ru.citeck.ecos.records2.source.dao.local.v2.LocalRecordsMetaDao;
+import ru.citeck.ecos.records2.source.dao.local.v2.LocalRecordsQueryWithMetaDao;
 import ru.citeck.ecos.utils.NewUIUtils;
 
 import java.util.List;
 import java.util.stream.Collectors;
 
 @Component
-public class SiteRecordsDAO extends LocalRecordsDAO
-                            implements RecordsQueryWithMetaLocalDAO<SiteRecordsDAO.SiteRecord>,
-                                       RecordsMetaLocalDAO<SiteRecordsDAO.SiteRecord> {
+public class SiteRecordsDao extends LocalRecordsDao
+                            implements LocalRecordsQueryWithMetaDao<SiteRecordsDao.SiteRecord>,
+                                       LocalRecordsMetaDao<SiteRecordsDao.SiteRecord> {
 
     public static final String ID = "site";
 
@@ -28,19 +28,19 @@ public class SiteRecordsDAO extends LocalRecordsDAO
     private final NewUIUtils newUIUtils;
 
     @Autowired
-    public SiteRecordsDAO(SiteService siteService, NewUIUtils newUIUtils) {
+    public SiteRecordsDao(SiteService siteService, NewUIUtils newUIUtils) {
         this.siteService = siteService;
         this.newUIUtils = newUIUtils;
         setId(ID);
     }
 
     @Override
-    public List<SiteRecord> getMetaValues(List<RecordRef> records) {
+    public List<SiteRecord> getLocalRecordsMeta(List<RecordRef> records, MetaField metaField) {
         return records.stream().map(r -> new SiteRecord(r.getId())).collect(Collectors.toList());
     }
 
     @Override
-    public RecordsQueryResult<SiteRecord> getMetaValues(RecordsQuery query) {
+    public RecordsQueryResult<SiteRecord> queryLocalRecords(RecordsQuery query, MetaField metaField) {
 
         List<SiteRecord> sites = siteService.listSites(AuthenticationUtil.getRunAsUser())
                                             .stream()

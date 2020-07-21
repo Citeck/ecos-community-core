@@ -43,7 +43,7 @@ import ru.citeck.ecos.graphql.journal.JGqlPageInfoInput;
 import ru.citeck.ecos.invariants.Feature;
 import ru.citeck.ecos.invariants.InvariantDefinition;
 import ru.citeck.ecos.journals.invariants.CriterionInvariantsProvider;
-import ru.citeck.ecos.journals.records.JournalRecordsDAO;
+import ru.citeck.ecos.journals.records.JournalRecordsDao;
 import ru.citeck.ecos.journals.xml.Journal;
 import ru.citeck.ecos.journals.xml.Journals;
 import ru.citeck.ecos.journals.xml.Journals.Imports.Import;
@@ -71,7 +71,7 @@ class JournalServiceImpl implements JournalService {
     private NodeService nodeService;
     private ServiceRegistry serviceRegistry;
     private SearchCriteriaSettingsRegistry searchCriteriaSettingsRegistry;
-    private JournalRecordsDAO recordsDAO;
+    private JournalRecordsDao recordsDao;
     private NamespaceService namespaceService;
     private NodeUtils nodeUtils;
     private NewUIUtils newUIUtils;
@@ -244,7 +244,7 @@ class JournalServiceImpl implements JournalService {
         for (CriterionInvariantsProvider provider : criterionInvariantsProviders) {
             provider.clearCache();
         }
-        recordsDAO.clearCache();
+        recordsDao.clearCache();
         journalTypeByJournalIdOrRef.invalidateAll();
     }
 
@@ -298,7 +298,7 @@ class JournalServiceImpl implements JournalService {
             pageInfo = JGqlPageInfoInput.DEFAULT;
         }
         JournalType journalType = needJournalType(journalId);
-        return recordsDAO.getRecords(journalType, query, language, pageInfo, debug);
+        return recordsDao.getRecords(journalType, query, language, pageInfo, debug);
     }
 
     @Override
@@ -312,7 +312,7 @@ class JournalServiceImpl implements JournalService {
         }
         JournalType journalType = needJournalType(journalId);
         return new RecordsQueryResult<>(
-            recordsDAO.getRecordsWithData(journalType, query, language, pageInfo, debug),
+            recordsDao.getRecordsWithData(journalType, query, language, pageInfo, debug),
             meta -> {
                 ObjectData attributes = meta.getAttributes();
                 attributes.set("id", meta.getId().toString());
@@ -323,7 +323,7 @@ class JournalServiceImpl implements JournalService {
 
     @Override
     public String getJournalGqlSchema(String journalId) {
-        return recordsDAO.getJournalGqlSchema(needJournalType(journalId));
+        return recordsDao.getJournalGqlSchema(needJournalType(journalId));
     }
 
     @Override
@@ -430,8 +430,8 @@ class JournalServiceImpl implements JournalService {
         return serviceRegistry;
     }
 
-    public void setRecordsDAO(JournalRecordsDAO recordsDAO) {
-        this.recordsDAO = recordsDAO;
+    public void setRecordsDao(JournalRecordsDao recordsDao) {
+        this.recordsDao = recordsDao;
     }
 
     public void setSearchCriteriaSettingsRegistry(SearchCriteriaSettingsRegistry searchCriteriaSettingsRegistry) {

@@ -27,20 +27,20 @@ public class CaseRolesMixin implements AttributesMixin<Class<RecordRef>, RecordR
 
     private AuthorityUtils authorityUtils;
     private CaseRoleService caseRoleService;
-    private AlfNodesRecordsDAO alfNodesRecordsDAO;
+    private AlfNodesRecordsDAO alfNodesRecordsDao;
 
     @Autowired
     public CaseRolesMixin(AuthorityUtils authorityUtils,
                           CaseRoleService caseRoleService,
-                          AlfNodesRecordsDAO alfNodesRecordsDAO) {
+                          AlfNodesRecordsDAO alfNodesRecordsDao) {
         this.authorityUtils = authorityUtils;
         this.caseRoleService = caseRoleService;
-        this.alfNodesRecordsDAO = alfNodesRecordsDAO;
+        this.alfNodesRecordsDao = alfNodesRecordsDao;
     }
 
     @PostConstruct
     public void setup() {
-        alfNodesRecordsDAO.addAttributesMixin(this);
+        alfNodesRecordsDao.addAttributesMixin(this);
     }
 
     @Override
@@ -92,7 +92,7 @@ public class CaseRolesMixin implements AttributesMixin<Class<RecordRef>, RecordR
             if (authorityRef == null) {
                 return false;
             }
-            
+
             return caseRoleService.isRoleMember(document, roleId, authorityRef);
         }
     }

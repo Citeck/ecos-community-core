@@ -25,8 +25,8 @@ import ru.citeck.ecos.records2.graphql.meta.value.MetaValue;
 import ru.citeck.ecos.records2.request.query.RecordsQuery;
 import ru.citeck.ecos.records2.request.query.RecordsQueryResult;
 import ru.citeck.ecos.records2.request.result.RecordsResult;
-import ru.citeck.ecos.records2.source.dao.local.LocalRecordsDAO;
-import ru.citeck.ecos.records2.source.dao.local.v2.LocalRecordsQueryWithMetaDAO;
+import ru.citeck.ecos.records2.source.dao.local.LocalRecordsDao;
+import ru.citeck.ecos.records2.source.dao.local.v2.LocalRecordsQueryWithMetaDao;
 import ru.citeck.ecos.search.ftsquery.FTSQuery;
 import ru.citeck.ecos.utils.DictUtils;
 import ru.citeck.ecos.utils.NodeUtils;
@@ -38,7 +38,7 @@ import java.util.stream.Collectors;
 
 @Component
 @Slf4j
-public class CaseDocumentRecordsDAO extends LocalRecordsDAO implements LocalRecordsQueryWithMetaDAO {
+public class CaseDocumentRecordsDao extends LocalRecordsDao implements LocalRecordsQueryWithMetaDao {
 
     public final static String ID = "documents";
     private static final String DOCUMENT_TYPES_QUERY_LANGUAGE = "document-types";
@@ -57,7 +57,7 @@ public class CaseDocumentRecordsDAO extends LocalRecordsDAO implements LocalReco
     private final LoadingCache<QName, Map<RecordRef, QName>> assocTypesByCaseAlfTypeCache;
 
     @Autowired
-    public CaseDocumentRecordsDAO(@Qualifier("caseCompletenessService")
+    public CaseDocumentRecordsDao(@Qualifier("caseCompletenessService")
                                       CaseCompletenessService caseCompletenessService,
                                   EcosTypeService ecosTypeService,
                                   SearchService searchService,
