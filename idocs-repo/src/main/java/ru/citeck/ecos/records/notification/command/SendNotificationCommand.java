@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import ru.citeck.ecos.commands.annotation.CommandType;
+import ru.citeck.ecos.notifications.lib.NotificationType;
 import ru.citeck.ecos.records2.RecordRef;
 
 import java.util.List;
