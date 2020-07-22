@@ -109,11 +109,11 @@
 	</bean>
 
     <bean id="notificationCommandServiceJS" name="NotificationCommandServiceJS"
-          class="ru.citeck.ecos.records.notification.command.NotificationCommandServiceJS"
+          class="ru.citeck.ecos.records.notification.NotificationCommandServiceJS"
           parent="baseJavaScriptExtension">
-        <property name="extensionName" value="notificationCommand" />
+        <property name="extensionName" value="notificationService" />
         <property name="serviceRegistry" ref="ServiceRegistry" />
-        <property name="notificationCommandService" ref="notificationCommandService"/>
+        <property name="notificationService" ref="ecosNotificationService"/>
     </bean>
 
 </beans>
