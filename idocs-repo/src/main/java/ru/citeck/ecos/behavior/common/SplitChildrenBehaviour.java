@@ -151,6 +151,14 @@ public class SplitChildrenBehaviour implements OnCreateChildAssociationPolicy {
         NodeRef folderRef = parent;
         for (String name : path) {
             NodeRef child = getContainerByName(folderRef, name);
+
+            logger.debug(String.format(
+                "Check path container {folderRef: '%s', child: '%s', name: '%s'}",
+                folderRef == null ? "null" : folderRef.toString(),
+                child == null ? "null" : child.toString(),
+                name
+            ));
+
             if (child == null) {
                 if (createIfNotExist) {
                     Map<QName, Serializable> props = new HashMap<>();
