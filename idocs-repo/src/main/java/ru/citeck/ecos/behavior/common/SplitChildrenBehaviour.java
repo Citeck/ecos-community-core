@@ -152,12 +152,8 @@ public class SplitChildrenBehaviour implements OnCreateChildAssociationPolicy {
         for (String name : path) {
             NodeRef child = getContainerByName(folderRef, name);
 
-            logger.debug(String.format(
-                "Check path container {folderRef: '%s', child: '%s', name: '%s'}",
-                folderRef == null ? "null" : folderRef.toString(),
-                child == null ? "null" : child.toString(),
-                name
-            ));
+            logger.debug(String.format("Check path container {folderRef: '%s', child: '%s', name: '%s'}",
+                folderRef, child, name));
 
             if (child == null) {
                 if (createIfNotExist) {
