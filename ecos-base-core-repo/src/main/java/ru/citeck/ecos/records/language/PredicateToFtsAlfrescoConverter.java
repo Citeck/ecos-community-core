@@ -83,261 +83,268 @@ public class PredicateToFtsAlfrescoConverter implements QueryLangConverter<Predi
         this.namespaceService = serviceRegistry.getNamespaceService();
         this.associationIndexPropertyRegistry = associationIndexPropertyRegistry;
 
-        queryLangService.register(this,
-            PredicateService.LANGUAGE_PREDICATE,
-            SearchService.LANGUAGE_FTS_ALFRESCO);
+        queryLangService.register(this, PredicateService.LANGUAGE_PREDICATE, SearchService.LANGUAGE_FTS_ALFRESCO);
     }
 
     private void processPredicate(Predicate predicate, FTSQuery query) {
-
         if (predicate instanceof ComposedPredicate) {
-
-            query.open();
-
-            List<Predicate> predicates = ((ComposedPredicate) predicate).getPredicates();
-            boolean isJoinByAnd = predicate instanceof AndPredicate;
-
-            for (int i = 0; i < predicates.size(); i++) {
-                if (i > 0) {
-                    if (isJoinByAnd) {
-                        query.and();
-                    } else {
-                        query.or();
-                    }
-                }
-
-                processPredicate(predicates.get(i), query);
-            }
-
-            query.close();
-
-        } else if (predicate instanceof NotPredicate) {
-
+            processComposedPredicate(predicate, query);
+            return;
+        }
+        if (predicate instanceof NotPredicate) {
             query.not();
             processPredicate(((NotPredicate) predicate).getPredicate(), query);
-
-        } else if (predicate instanceof ValuePredicate) {
-
-            ValuePredicate valuePred = (ValuePredicate) predicate;
-            String attribute = valuePred.getAttribute();
-            Object value = valuePred.getValue();
-            String valueStr = value.toString();
-
-            switch (attribute) {
-                case ALL_ATTRIBUTE:
-
-                    query.value(valueStr);
-                    query.and();
-                    query.type(ContentModel.PROP_CONTENT);
-
-                    break;
-
-                case "PATH":
-
-                    query.path(valueStr);
-
-                    break;
-                case "PARENT":
-                case "_parent":
-
-                    query.parent(new NodeRef(toValidNodeRef(valueStr)));
-
-                    break;
-                case "TYPE":
-                case "type":
-
-                    consumeQName(valueStr, query::type);
-
-                    break;
-                case "_type":
-                case "_etype":
-
-                    handleETypeAttribute(query, valueStr);
-
-                    break;
-                case "ASPECT":
-                case "aspect":
-
-                    consumeQName(valueStr, query::aspect);
-
-                    break;
-                case "ISNULL":
-
-                    consumeQName(valueStr, query::isNull);
-
-                    break;
-                case "ISNOTNULL":
-
-                    consumeQueryField(valueStr, query::isNotNull);
-
-                    break;
-                case "ISUNSET":
-
-                    consumeQueryField(valueStr, query::isUnset);
-
-                    break;
-
-                case RecordConstants.ATT_MODIFIER:
-                    ValuePredicate predCopyForModifierAttr = valuePred.copy();
-                    predCopyForModifierAttr.setAttribute(CM_MODIFIER_ATTRIBUTE);
-                    processPredicate(predCopyForModifierAttr, query);
-                    break;
-
-                case RecordConstants.ATT_MODIFIED:
-                    ValuePredicate predCopyForModifiedAttr = valuePred.copy();
-                    predCopyForModifiedAttr.setAttribute(CM_MODIFIED_ATTRIBUTE);
-                    processPredicate(predCopyForModifiedAttr, query);
-                    break;
-
-                case ACTORS_ATTRIBUTE:
-                    String actor = valueStr;
-
-                    if (CURRENT_USER.equals(actor)) {
-                        actor = AuthenticationUtil.getFullyAuthenticatedUser();
-                    } else if (NodeRef.isNodeRef(actor)) {
-                        actor = authorityUtils.getAuthorityName(new NodeRef(actor));
-                    }
-
-                    Set<String> actorRefs = Stream.concat(
-                        authorityUtils.getContainingAuthoritiesRefs(actor).stream(),
-                        Stream.of(authorityUtils.getNodeRef(actor)))
-                        .map(NodeRef::toString).collect(Collectors.toSet());
-
-                    OrPredicate orPred = new OrPredicate();
-                    actorRefs.forEach(a -> {
-                        ValuePredicate valuePredicate = new ValuePredicate();
-                        valuePredicate.setType(ValuePredicate.Type.CONTAINS);
-                        valuePredicate.setAttribute("wfm:actors");
-                        valuePredicate.setValue(a);
-                        orPred.addPredicate(valuePredicate);
-                    });
-
-                    processPredicate(orPred, query);
-                    break;
-
-                default:
-
-                    ClassAttributeDefinition attDef = dictUtils.getAttDefinition(attribute);
-                    QName field = getQueryField(attDef);
-
-                    if (field == null) {
-                        break;
-                    }
-
-                    // accepting multiple values by comma
-                    if (valueStr.contains(COMMA_DELIMITER) &&
-                        (valuePred.getType().equals(EQ) || valuePred.getType().equals(CONTAINS))) {
-                        String[] values = valueStr.split(COMMA_DELIMITER);
-                        ComposedPredicate orPredicate = new OrPredicate();
-                        for (String s : values) {
-                            orPredicate.addPredicate(new ValuePredicate(valuePred.getAttribute(), valuePred.getType(), s));
-                        }
-                        processPredicate(orPredicate, query);
-                        break;
-                    }
-
-                    if (isNodeRefAtt(attDef)) {
-                        valueStr = toValidNodeRef(valueStr);
-                    }
-
-                    switch (valuePred.getType()) {
-                        case EQ:
-                            query.exact(field, valueStr);
-                            break;
-                        case LIKE:
-                            query.value(field, valueStr.replaceAll("%", "*"));
-                            break;
-                        case CONTAINS:
-
-                            if (valueStr == null || valueStr.isEmpty()) {
-                                return;
-                            }
-
-                            if (attDef instanceof PropertyDefinition) {
-
-                                PropertyDefinition propertyDefinition = (PropertyDefinition) attDef;
-                                DataTypeDefinition dataType = propertyDefinition.getDataType();
-                                QName typeName = dataType != null ? dataType.getName() : null;
-
-                                if (DataTypeDefinition.TEXT.equals(typeName)) {
-                                    QName container = propertyDefinition.getContainerClass().getName();
-
-                                    List<String> values = this.getPropertyValuesByConstraintsFromField(container,
-                                        field, valueStr);
-                                    if (values.size() != 0) {
-                                        query.any(field, new ArrayList<>(values));
-                                    } else {
-                                        query.value(field, "*" + valueStr + "*");
-                                    }
-                                } else if (DataTypeDefinition.MLTEXT.equals(typeName)) {
-
-                                    query.value(field, "*" + valueStr + "*");
-                                } else if (DataTypeDefinition.CATEGORY.equals(typeName)) {
-                                    addNodeRefSearchTerms(query, field, DataTypeDefinition.CATEGORY, valueStr);
-                                } else if (DataTypeDefinition.NODE_REF.equals(typeName)) {
-                                    addNodeRefSearchTerms(query, field, null, valueStr);
-                                } else {
-                                    query.value(field, valueStr);
-                                }
-
-                            } else if (attDef instanceof AssociationDefinition) {
-
-                                if (NodeRef.isNodeRef(valueStr)) {
-                                    query.value(field, valueStr);
-                                } else {
-                                    ClassDefinition targetType = ((AssociationDefinition) attDef).getTargetClass();
-                                    addNodeRefSearchTerms(query, field, targetType.getName(), valueStr);
-                                }
-                            }
-                            break;
-                        case GE:
-                        case GT:
-                        case LE:
-                        case LT:
-
-                            String predValue = null;
-                            if (value instanceof String) {
-                                if (attDef instanceof PropertyDefinition) {
-                                    DataTypeDefinition type = ((PropertyDefinition) attDef).getDataType();
-                                    if (DataTypeDefinition.DATETIME.equals(type.getName())) {
-                                        predValue = convertTime(valueStr);
-                                    }
-                                }
-                                predValue = "\"" + (predValue != null ? predValue : valueStr) + "\"";
-                            } else {
-                                predValue = valueStr;
-                            }
-
-                            switch (valuePred.getType()) {
-
-                                case GE:
-                                    query.range(field, predValue, true, null, false);
-                                    break;
-                                case GT:
-                                    query.range(field, predValue, false, null, false);
-                                    break;
-                                case LE:
-                                    query.range(field, null, false, predValue, true);
-                                    break;
-                                case LT:
-                                    query.range(field, null, false, predValue, false);
-                                    break;
-                            }
-
-                            break;
-                        default:
-                            throw new RuntimeException("Unknown value predicate type: " + valuePred.getType());
-                    }
-            }
-        } else if (predicate instanceof EmptyPredicate) {
-
+            return;
+        }
+        if (predicate instanceof ValuePredicate) {
+            processValuePredicate(predicate, query);
+            return;
+        }
+        if (predicate instanceof EmptyPredicate) {
             String attribute = ((EmptyPredicate) predicate).getAttribute();
             consumeQueryField(attribute, query::empty);
-
-        } else if (predicate instanceof VoidPredicate) {
+            return;
+        }
+        if (predicate instanceof VoidPredicate) {
             //do nothing
-        } else {
-            throw new RuntimeException("Unknown predicate type: " + predicate);
+            return;
+        }
+
+        throw new RuntimeException("Unknown predicate type: " + predicate);
+    }
+
+    private void processComposedPredicate(Predicate predicate, FTSQuery query) {
+        query.open();
+
+        List<Predicate> predicates = ((ComposedPredicate) predicate).getPredicates();
+        boolean isJoinByAnd = predicate instanceof AndPredicate;
+
+        for (int i = 0; i < predicates.size(); i++) {
+            if (i > 0) {
+                if (isJoinByAnd) {
+                    query.and();
+                } else {
+                    query.or();
+                }
+            }
+
+            processPredicate(predicates.get(i), query);
+        }
+
+        query.close();
+    }
+
+    private void processValuePredicate(Predicate predicate, FTSQuery query) {
+        ValuePredicate valuePred = (ValuePredicate) predicate;
+        String attribute = valuePred.getAttribute();
+        Object value = valuePred.getValue();
+        String valueStr = value.toString();
+
+        switch (attribute) {
+            case ALL_ATTRIBUTE:
+
+                query.value(valueStr);
+                query.and();
+                query.type(ContentModel.PROP_CONTENT);
+
+                break;
+
+            case "PATH":
+
+                query.path(valueStr);
+
+                break;
+            case "PARENT":
+            case "_parent":
+
+                query.parent(new NodeRef(toValidNodeRef(valueStr)));
+
+                break;
+            case "TYPE":
+            case "type":
+
+                consumeQName(valueStr, query::type);
+
+                break;
+            case "_type":
+            case "_etype":
+
+                handleETypeAttribute(query, valueStr);
+
+                break;
+            case "ASPECT":
+            case "aspect":
+
+                consumeQName(valueStr, query::aspect);
+
+                break;
+            case "ISNULL":
+
+                consumeQName(valueStr, query::isNull);
+
+                break;
+            case "ISNOTNULL":
+
+                consumeQueryField(valueStr, query::isNotNull);
+
+                break;
+            case "ISUNSET":
+
+                consumeQueryField(valueStr, query::isUnset);
+
+                break;
+
+            case RecordConstants.ATT_MODIFIER:
+                ValuePredicate predCopyForModifierAttr = valuePred.copy();
+                predCopyForModifierAttr.setAttribute(CM_MODIFIER_ATTRIBUTE);
+                processPredicate(predCopyForModifierAttr, query);
+                break;
+
+            case RecordConstants.ATT_MODIFIED:
+                ValuePredicate predCopyForModifiedAttr = valuePred.copy();
+                predCopyForModifiedAttr.setAttribute(CM_MODIFIED_ATTRIBUTE);
+                processPredicate(predCopyForModifiedAttr, query);
+                break;
+
+            case ACTORS_ATTRIBUTE:
+                String actor = valueStr;
+
+                if (CURRENT_USER.equals(actor)) {
+                    actor = AuthenticationUtil.getFullyAuthenticatedUser();
+                } else if (NodeRef.isNodeRef(actor)) {
+                    actor = authorityUtils.getAuthorityName(new NodeRef(actor));
+                }
+
+                Set<String> actorRefs = Stream.concat(
+                    authorityUtils.getContainingAuthoritiesRefs(actor).stream(),
+                    Stream.of(authorityUtils.getNodeRef(actor)))
+                    .map(NodeRef::toString).collect(Collectors.toSet());
+
+                OrPredicate orPred = new OrPredicate();
+                actorRefs.forEach(a -> {
+                    ValuePredicate valuePredicate = new ValuePredicate();
+                    valuePredicate.setType(ValuePredicate.Type.CONTAINS);
+                    valuePredicate.setAttribute("wfm:actors");
+                    valuePredicate.setValue(a);
+                    orPred.addPredicate(valuePredicate);
+                });
+
+                processPredicate(orPred, query);
+                break;
+
+            default:
+
+                ClassAttributeDefinition attDef = dictUtils.getAttDefinition(attribute);
+                QName field = getQueryField(attDef);
+
+                if (field == null) {
+                    break;
+                }
+
+                // accepting multiple values by comma
+                if (valueStr.contains(COMMA_DELIMITER) &&
+                    (valuePred.getType().equals(EQ) || valuePred.getType().equals(CONTAINS))) {
+                    String[] values = valueStr.split(COMMA_DELIMITER);
+                    ComposedPredicate orPredicate = new OrPredicate();
+                    for (String s : values) {
+                        orPredicate.addPredicate(new ValuePredicate(valuePred.getAttribute(), valuePred.getType(), s));
+                    }
+                    processPredicate(orPredicate, query);
+                    break;
+                }
+
+                if (isNodeRefAtt(attDef)) {
+                    valueStr = toValidNodeRef(valueStr);
+                }
+
+                switch (valuePred.getType()) {
+                    case EQ:
+                        query.exact(field, valueStr);
+                        break;
+                    case LIKE:
+                        query.value(field, valueStr.replaceAll("%", "*"));
+                        break;
+                    case CONTAINS:
+
+                        if (valueStr == null || valueStr.isEmpty()) {
+                            return;
+                        }
+
+                        if (attDef instanceof PropertyDefinition) {
+
+                            PropertyDefinition propertyDefinition = (PropertyDefinition) attDef;
+                            DataTypeDefinition dataType = propertyDefinition.getDataType();
+                            QName typeName = dataType != null ? dataType.getName() : null;
+
+                            if (DataTypeDefinition.TEXT.equals(typeName)) {
+                                QName container = propertyDefinition.getContainerClass().getName();
+
+                                List<String> values = this.getPropertyValuesByConstraintsFromField(container,
+                                    field, valueStr);
+                                if (values.size() != 0) {
+                                    query.any(field, new ArrayList<>(values));
+                                } else {
+                                    query.value(field, "*" + valueStr + "*");
+                                }
+                            } else if (DataTypeDefinition.MLTEXT.equals(typeName)) {
+
+                                query.value(field, "*" + valueStr + "*");
+                            } else if (DataTypeDefinition.CATEGORY.equals(typeName)) {
+                                addNodeRefSearchTerms(query, field, DataTypeDefinition.CATEGORY, valueStr);
+                            } else if (DataTypeDefinition.NODE_REF.equals(typeName)) {
+                                addNodeRefSearchTerms(query, field, null, valueStr);
+                            } else {
+                                query.value(field, valueStr);
+                            }
+
+                        } else if (attDef instanceof AssociationDefinition) {
+
+                            if (NodeRef.isNodeRef(valueStr)) {
+                                query.value(field, valueStr);
+                            } else {
+                                ClassDefinition targetType = ((AssociationDefinition) attDef).getTargetClass();
+                                addNodeRefSearchTerms(query, field, targetType.getName(), valueStr);
+                            }
+                        }
+                        break;
+                    case GE:
+                    case GT:
+                    case LE:
+                    case LT:
+
+                        String predValue = null;
+                        if (value instanceof String) {
+                            if (attDef instanceof PropertyDefinition) {
+                                DataTypeDefinition type = ((PropertyDefinition) attDef).getDataType();
+                                if (DataTypeDefinition.DATETIME.equals(type.getName())) {
+                                    predValue = convertTime(valueStr);
+                                }
+                            }
+                            predValue = "\"" + (predValue != null ? predValue : valueStr) + "\"";
+                        } else {
+                            predValue = valueStr;
+                        }
+
+                        switch (valuePred.getType()) {
+
+                            case GE:
+                                query.range(field, predValue, true, null, false);
+                                break;
+                            case GT:
+                                query.range(field, predValue, false, null, false);
+                                break;
+                            case LE:
+                                query.range(field, null, false, predValue, true);
+                                break;
+                            case LT:
+                                query.range(field, null, false, predValue, false);
+                                break;
+                        }
+
+                        break;
+                    default:
+                        throw new RuntimeException("Unknown value predicate type: " + valuePred.getType());
+                }
         }
     }
 
