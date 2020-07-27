@@ -38,6 +38,7 @@ import java.util.stream.Stream;
 
 import static ru.citeck.ecos.model.ClassificationModel.PROP_DOCUMENT_KIND;
 import static ru.citeck.ecos.model.ClassificationModel.PROP_DOCUMENT_TYPE;
+import static ru.citeck.ecos.records.language.AttributeConstants.*;
 import static ru.citeck.ecos.records2.predicate.model.ValuePredicate.Type.CONTAINS;
 import static ru.citeck.ecos.records2.predicate.model.ValuePredicate.Type.EQ;
 
@@ -53,28 +54,11 @@ public class PredicateToFtsAlfrescoConverter implements QueryLangConverter<Predi
 
     private static final String UNKNOWN_PREDICATE_TYPE = "Unknown predicate type: %s";
     private static final String UNKNOWN_VALUE_PREDICATE_TYPE = "Unknown value predicate type: %s";
+    private static final String CANNOT_PARSE_TIME = "Cannot parse time";
 
     private static final String CM_MODIFIED_ATTRIBUTE = "cm:modified";
     private static final String CM_MODIFIER_ATTRIBUTE = "cm:modifier";
     private static final String WFM_ACTORS_ATTRIBUTE = "wfm:actors";
-
-    private static final String MODIFIED = "_modified";
-    private static final String MODIFIER = "_modifier";
-    private static final String ACTORS = "_actors";
-    private static final String ALL = "ALL";
-    private static final String PATH = "PATH";
-    private static final String PARENT = "PARENT";
-    private static final String _PARENT = "_parent";
-    private static final String TYPE = "TYPE";
-    private static final String S_TYPE = "type";
-    private static final String _TYPE = "_type";
-    private static final String _ETYPE = "_etype";
-    private static final String ASPECT = "ASPECT";
-    private static final String S_ASPECT = "aspect";
-    private static final String IS_NULL = "ISNULL";
-    private static final String IS_NOT_NULL = "ISNOTNULL";
-    private static final String IS_UNSET = "ISUNSET";
-
 
     private final DictUtils dictUtils;
     private final NodeService nodeService;
@@ -104,18 +88,18 @@ public class PredicateToFtsAlfrescoConverter implements QueryLangConverter<Predi
         queryLangService.register(this, PredicateService.LANGUAGE_PREDICATE, SearchService.LANGUAGE_FTS_ALFRESCO);
     }
 
-    private void processPredicate(Predicate predicate, FTSQuery query) {
+    private void convertPredicate(Predicate predicate, FTSQuery query) {
         if (predicate instanceof ComposedPredicate) {
-            processComposedPredicate(predicate, query);
+            convertComposedPredicate(predicate, query);
             return;
         }
         if (predicate instanceof NotPredicate) {
             query.not();
-            processPredicate(((NotPredicate) predicate).getPredicate(), query);
+            convertPredicate(((NotPredicate) predicate).getPredicate(), query);
             return;
         }
         if (predicate instanceof ValuePredicate) {
-            processValuePredicate(predicate, query);
+            convertValuePredicate(predicate, query);
             return;
         }
         if (predicate instanceof EmptyPredicate) {
@@ -131,7 +115,7 @@ public class PredicateToFtsAlfrescoConverter implements QueryLangConverter<Predi
         throw new RuntimeException(String.format(UNKNOWN_PREDICATE_TYPE, predicate));
     }
 
-    private void processComposedPredicate(Predicate predicate, FTSQuery query) {
+    private void convertComposedPredicate(Predicate predicate, FTSQuery query) {
         query.open();
 
         List<Predicate> predicates = ((ComposedPredicate) predicate).getPredicates();
@@ -146,13 +130,13 @@ public class PredicateToFtsAlfrescoConverter implements QueryLangConverter<Predi
                 }
             }
 
-            processPredicate(predicates.get(i), query);
+            convertPredicate(predicates.get(i), query);
         }
 
         query.close();
     }
 
-    private void processValuePredicate(Predicate predicate, FTSQuery query) {
+    private void convertValuePredicate(Predicate predicate, FTSQuery query) {
         ValuePredicate valuePred = (ValuePredicate) predicate;
         String attribute = valuePred.getAttribute();
 
@@ -161,9 +145,7 @@ public class PredicateToFtsAlfrescoConverter implements QueryLangConverter<Predi
 
         switch (attribute) {
             case ALL: {
-                query.value(valueStr);
-                query.and();
-                query.type(ContentModel.PROP_CONTENT);
+                query.value(valueStr).and().type(ContentModel.PROP_CONTENT);
                 break;
             }
             case PATH: {
@@ -203,61 +185,37 @@ public class PredicateToFtsAlfrescoConverter implements QueryLangConverter<Predi
                 break;
             }
             case MODIFIER: {
-                ValuePredicate predCopyForModifierAttr = valuePred.copy();
-                predCopyForModifierAttr.setAttribute(CM_MODIFIER_ATTRIBUTE);
-                processPredicate(predCopyForModifierAttr, query);
+                convertValuePredicateCopyForAttr(valuePred, CM_MODIFIER_ATTRIBUTE, query);
                 break;
             }
             case MODIFIED: {
-                ValuePredicate predCopyForModifiedAttr = valuePred.copy();
-                predCopyForModifiedAttr.setAttribute(CM_MODIFIED_ATTRIBUTE);
-                processPredicate(predCopyForModifiedAttr, query);
+                convertValuePredicateCopyForAttr(valuePred, CM_MODIFIED_ATTRIBUTE, query);
                 break;
             }
             case ACTORS: {
-                String actor = valueStr;
-
-                if (CURRENT_USER.equals(actor)) {
-                    actor = AuthenticationUtil.getFullyAuthenticatedUser();
-                } else if (NodeRef.isNodeRef(actor)) {
-                    actor = authorityUtils.getAuthorityName(new NodeRef(actor));
-                }
-
-                Set<String> actorRefs = Stream.concat(
-                    authorityUtils.getContainingAuthoritiesRefs(actor).stream(),
-                    Stream.of(authorityUtils.getNodeRef(actor)))
-                    .map(NodeRef::toString).collect(Collectors.toSet());
-
-                OrPredicate orPred = new OrPredicate();
-                actorRefs.forEach(a -> {
-                    ValuePredicate valuePredicate = new ValuePredicate();
-                    valuePredicate.setType(ValuePredicate.Type.CONTAINS);
-                    valuePredicate.setAttribute(WFM_ACTORS_ATTRIBUTE);
-                    valuePredicate.setValue(a);
-                    orPred.addPredicate(valuePredicate);
-                });
-
-                processPredicate(orPred, query);
+                String actor = getActorByValue(valueStr);
+                convertPredicate(getOrPredicateForActors(actor), query);
                 break;
             }
             default: {
                 ClassAttributeDefinition attDef = dictUtils.getAttDefinition(attribute);
                 QName field = getQueryField(attDef);
-
                 if (field == null) {
                     break;
                 }
+
                 ValuePredicate.Type valuePredType = valuePred.getType();
 
-                // accepting multiple values by comma
-                if (valueStr.contains(COMMA_DELIMITER) &&
-                    (EQ.equals(valuePredType) || CONTAINS.equals(valuePredType))) {
+                boolean valueContainsComma = valueStr.contains(COMMA_DELIMITER);
+                boolean valueEqualEqOrContainsPredType = EQ.equals(valuePredType) || CONTAINS.equals(valuePredType);
+
+                if (valueContainsComma && valueEqualEqOrContainsPredType) {
                     String[] values = valueStr.split(COMMA_DELIMITER);
                     ComposedPredicate orPredicate = new OrPredicate();
                     for (String s : values) {
                         orPredicate.addPredicate(new ValuePredicate(valuePred.getAttribute(), valuePredType, s));
                     }
-                    processPredicate(orPredicate, query);
+                    convertPredicate(orPredicate, query);
                     break;
                 }
 
@@ -265,15 +223,17 @@ public class PredicateToFtsAlfrescoConverter implements QueryLangConverter<Predi
                     valueStr = toValidNodeRef(valueStr);
                 }
 
+                String predValue = getPredicateValue(value, valueStr, attDef);
                 switch (valuePredType) {
-                    case EQ:
+                    case EQ: {
                         query.exact(field, valueStr);
-                        break;
-                    case LIKE:
+                        return;
+                    }
+                    case LIKE: {
                         query.value(field, valueStr.replaceAll("%", "*"));
-                        break;
-                    case CONTAINS:
-
+                        return;
+                    }
+                    case CONTAINS: {
                         if (StringUtils.isEmpty(valueStr)) {
                             return;
                         }
@@ -284,79 +244,121 @@ public class PredicateToFtsAlfrescoConverter implements QueryLangConverter<Predi
                             QName typeName = dataType != null ? dataType.getName() : null;
 
                             if (DataTypeDefinition.TEXT.equals(typeName)) {
-                                QName container = propertyDefinition.getContainerClass().getName();
-
-                                List<String> values = this.getPropertyValuesByConstraintsFromField(container,
-                                    field, valueStr);
-                                if (values.size() != 0) {
-                                    query.any(field, new ArrayList<>(values));
-                                } else {
-                                    query.value(field, "*" + valueStr + "*");
-                                }
-                            } else if (DataTypeDefinition.MLTEXT.equals(typeName)) {
+                                convertContainsTextPredicate(propertyDefinition, query, field, valueStr);
+                                return;
+                            }
+                            if (DataTypeDefinition.MLTEXT.equals(typeName)) {
                                 query.value(field, "*" + valueStr + "*");
-                            } else if (DataTypeDefinition.CATEGORY.equals(typeName)) {
+                                return;
+                            }
+                            if (DataTypeDefinition.CATEGORY.equals(typeName)) {
                                 addNodeRefSearchTerms(query, field, DataTypeDefinition.CATEGORY, valueStr);
-                            } else if (DataTypeDefinition.NODE_REF.equals(typeName)) {
+                                return;
+                            }
+                            if (DataTypeDefinition.NODE_REF.equals(typeName)) {
                                 addNodeRefSearchTerms(query, field, null, valueStr);
-                            } else {
-                                query.value(field, valueStr);
+                                return;
                             }
 
-                        } else if (attDef instanceof AssociationDefinition) {
-
+                            query.value(field, valueStr);
+                            return;
+                        }
+                        if (attDef instanceof AssociationDefinition) {
                             if (NodeRef.isNodeRef(valueStr)) {
                                 query.value(field, valueStr);
-                            } else {
-                                ClassDefinition targetType = ((AssociationDefinition) attDef).getTargetClass();
-                                addNodeRefSearchTerms(query, field, targetType.getName(), valueStr);
+                                return;
                             }
+
+                            ClassDefinition targetType = ((AssociationDefinition) attDef).getTargetClass();
+                            addNodeRefSearchTerms(query, field, targetType.getName(), valueStr);
                         }
-                        break;
-                    case GE:
-                    case GT:
-                    case LE:
-                    case LT:
-
-                        String predValue = null;
-                        if (value instanceof String) {
-                            if (attDef instanceof PropertyDefinition) {
-                                DataTypeDefinition type = ((PropertyDefinition) attDef).getDataType();
-                                if (DataTypeDefinition.DATETIME.equals(type.getName())) {
-                                    predValue = convertTime(valueStr);
-                                }
-                            }
-                            predValue = "\"" + (predValue != null ? predValue : valueStr) + "\"";
-                        } else {
-                            predValue = valueStr;
-                        }
-
-                        switch (valuePredType) {
-
-                            case GE:
-                                query.range(field, predValue, true, null, false);
-                                break;
-                            case GT:
-                                query.range(field, predValue, false, null, false);
-                                break;
-                            case LE:
-                                query.range(field, null, false, predValue, true);
-                                break;
-                            case LT:
-                                query.range(field, null, false, predValue, false);
-                                break;
-                        }
-
-                        break;
-                    default:
-                        throw new RuntimeException(String.format(UNKNOWN_VALUE_PREDICATE_TYPE, valuePredType));
+                        return;
+                    }
+                    case GE: {
+                        query.range(field, predValue, true, null, false);
+                        return;
+                    }
+                    case GT: {
+                        query.range(field, predValue, false, null, false);
+                        return;
+                    }
+                    case LE: {
+                        query.range(field, null, false, predValue, true);
+                        return;
+                    }
+                    case LT: {
+                        query.range(field, null, false, predValue, false);
+                        return;
+                    }
                 }
+                throw new RuntimeException(String.format(UNKNOWN_VALUE_PREDICATE_TYPE, valuePredType));
             }
         }
     }
 
-    private void handleETypeAttribute(FTSQuery query, String value) {
+    private void convertContainsTextPredicate(PropertyDefinition propertyDefinition, FTSQuery query, QName field, String value) {
+        QName container = propertyDefinition.getContainerClass().getName();
 
+        List<Serializable> values = getPropertyValuesByConstraintsFromField(container, field, value);
+        if (values.isEmpty()) {
+            query.value(field, "*" + value + "*");
+            return;
+        }
+
+        query.any(field, values);
+    }
+
+    private String getPredicateValue(Object value, String valueStr, ClassAttributeDefinition attDef) {
+        String predValue = null;
+        if (value instanceof String) {
+            if (attDef instanceof PropertyDefinition) {
+                DataTypeDefinition type = ((PropertyDefinition) attDef).getDataType();
+                if (DataTypeDefinition.DATETIME.equals(type.getName())) {
+                    predValue = convertTime(valueStr);
+                }
+            }
+            return "\"" + (predValue != null ? predValue : valueStr) + "\"";
+        }
+
+        return valueStr;
+    }
+
+    private OrPredicate getOrPredicateForActors(String actor) {
+        Set<String> actorRefs = Stream.concat(
+            authorityUtils.getContainingAuthoritiesRefs(actor).stream(),
+            Stream.of(authorityUtils.getNodeRef(actor)))
+            .map(NodeRef::toString).collect(Collectors.toSet());
+
+        OrPredicate orPredicate = new OrPredicate();
+        actorRefs.forEach(a -> {
+            ValuePredicate valuePredicate = new ValuePredicate();
+            valuePredicate.setType(ValuePredicate.Type.CONTAINS);
+            valuePredicate.setAttribute(WFM_ACTORS_ATTRIBUTE);
+            valuePredicate.setValue(a);
+            orPredicate.addPredicate(valuePredicate);
+        });
+
+        return orPredicate;
+    }
+
+    private void convertValuePredicateCopyForAttr(ValuePredicate valuePredicate, String attribute, FTSQuery query) {
+        ValuePredicate predCopyForAttr = valuePredicate.copy();
+        predCopyForAttr.setAttribute(attribute);
+        convertPredicate(predCopyForAttr, query);
+    }
+
+    private String getActorByValue(String value) {
+        if (CURRENT_USER.equals(value)) {
+            return AuthenticationUtil.getFullyAuthenticatedUser();
+        }
+        if (NodeRef.isNodeRef(value)) {
+            return authorityUtils.getAuthorityName(new NodeRef(value));
+        }
+
+        return value;
+    }
+
+    private void handleETypeAttribute(FTSQuery query, String value) {
         if (StringUtils.isBlank(value)) {
             return;
         }
@@ -364,27 +366,20 @@ public class PredicateToFtsAlfrescoConverter implements QueryLangConverter<Predi
         RecordRef typeRef = RecordRef.valueOf(value);
         String typeRecId = typeRef.getId();
 
-        String documentTypeValue;
+        String[] typeKindArray = typeRecId.split(SLASH_DELIMITER);
+        String documentTypeValue = WORKSPACE_PREFIX + typeKindArray[0];
+
         String documentKindValue = null;
-
-        int slashIndex = typeRecId.indexOf(SLASH_DELIMITER);
-        if (slashIndex != -1) {
-            String firstPartOfRecordId = typeRecId.substring(0, slashIndex);
-            documentTypeValue = WORKSPACE_PREFIX + firstPartOfRecordId;
-
-            String secondPartOfRecordId = typeRecId.substring(slashIndex + 1);
-            documentKindValue = WORKSPACE_PREFIX + secondPartOfRecordId;
-        } else {
-            documentTypeValue = WORKSPACE_PREFIX + typeRecId;
+        if (typeKindArray.length > 1) {
+            documentKindValue = WORKSPACE_PREFIX + typeKindArray[1];
         }
 
         query.open();
         if (nodeService.exists(new NodeRef(documentTypeValue))) {
             query.value(PROP_DOCUMENT_TYPE, documentTypeValue);
-            if (StringUtils.isNotEmpty(documentKindValue) && nodeService.exists(new NodeRef(documentKindValue))) {
-                query.and();
-                query.value(PROP_DOCUMENT_KIND, documentKindValue);
-            }
+        }
+        if (StringUtils.isNotEmpty(documentKindValue) && nodeService.exists(new NodeRef(documentKindValue))) {
+            query.and().value(PROP_DOCUMENT_KIND, documentKindValue);
         }
 
         query.or().value(EcosTypeModel.PROP_TYPE, typeRecId);
@@ -396,12 +391,12 @@ public class PredicateToFtsAlfrescoConverter implements QueryLangConverter<Predi
         query.close();
     }
 
-    private List<String> getPropertyValuesByConstraintsFromField(QName container, QName field, String inputValue) {
+    private List<Serializable> getPropertyValuesByConstraintsFromField(QName container, QName field, String inputValue) {
 
         Map<String, String> mapping = dictUtils.getPropertyDisplayNameMappingWithChildren(container, field);
 
         return mapping.entrySet().stream()
-            .filter(e -> this.checkValueEqualsToKeyOrValue(e, inputValue))
+            .filter(e -> checkValueEqualsToKeyOrValue(e, inputValue))
             .map(Map.Entry::getKey)
             .collect(Collectors.toList());
     }
@@ -462,10 +457,10 @@ public class PredicateToFtsAlfrescoConverter implements QueryLangConverter<Predi
         List<NodeRef> assocs = innerQuery.query(searchService);
         if (assocs.size() > 0) {
             query.any(field, new ArrayList<>(assocs));
-        } else {
-            query.value(field, value);
+            return;
         }
 
+        query.value(field, value);
     }
 
     private Map<QName, Serializable> getTargetTypeAttributes(TypeDefinition targetType, String assocVal) {
@@ -486,10 +481,10 @@ public class PredicateToFtsAlfrescoConverter implements QueryLangConverter<Predi
 
     private boolean isTextOrMLText(PropertyDefinition def) {
         QName dataType = def.getDataType().getName();
-        String ns = def.getName().getNamespaceURI();
+        String namespaceURI = def.getName().getNamespaceURI();
         return (DataTypeDefinition.TEXT.equals(dataType) || DataTypeDefinition.MLTEXT.equals(dataType)) &&
-            !ns.equals(NamespaceService.SYSTEM_MODEL_1_0_URI) &&
-            !ns.equals(NamespaceService.CONTENT_MODEL_1_0_URI);
+            !NamespaceService.SYSTEM_MODEL_1_0_URI.equals(namespaceURI) &&
+            !NamespaceService.CONTENT_MODEL_1_0_URI.equals(namespaceURI);
     }
 
     private boolean isNodeRefAtt(ClassAttributeDefinition attDef) {
@@ -500,18 +495,17 @@ public class PredicateToFtsAlfrescoConverter implements QueryLangConverter<Predi
         if (attDef instanceof PropertyDefinition) {
             PropertyDefinition propDef = (PropertyDefinition) attDef;
             DataTypeDefinition dataType = propDef.getDataType();
-            if (dataType != null) {
-                return DataTypeDefinition.NODE_REF.equals(dataType.getName());
-            } else {
+            if (dataType == null) {
                 return false;
             }
-        } else {
-            return attDef instanceof AssociationDefinition;
+
+            return DataTypeDefinition.NODE_REF.equals(dataType.getName());
         }
+
+        return attDef instanceof AssociationDefinition;
     }
 
     private String toValidNodeRef(String value) {
-
         int idx = value.lastIndexOf("@workspace://");
         if (idx > -1 && idx < value.length() - 1) {
             value = value.substring(idx + 1);
@@ -520,13 +514,8 @@ public class PredicateToFtsAlfrescoConverter implements QueryLangConverter<Predi
     }
 
     private String convertTime(String time) {
-
-        if (time == null || time.charAt(time.length() - 1) != 'Z') {
-            return time;
-        }
-
         ZoneOffset offset = OffsetDateTime.now().getOffset();
-        if (offset.getTotalSeconds() == 0) {
+        if (!StringUtils.contains(time, 'Z') || offset.getTotalSeconds() == 0) {
             return time;
         }
 
@@ -534,7 +523,7 @@ public class PredicateToFtsAlfrescoConverter implements QueryLangConverter<Predi
             Instant timeInstant = Instant.parse(time);
             return DateTimeFormatter.ISO_ZONED_DATE_TIME.format(timeInstant.atZone(offset));
         } catch (Exception e) {
-            log.error("Cannot parse time", e);
+            log.error(CANNOT_PARSE_TIME, e);
             return time;
         }
     }
@@ -557,6 +546,7 @@ public class PredicateToFtsAlfrescoConverter implements QueryLangConverter<Predi
         if (def == null) {
             return null;
         }
+
         if (def instanceof AssociationDefinition) {
             return associationIndexPropertyRegistry.getAssociationIndexProperty(def.getName());
         }
@@ -570,8 +560,27 @@ public class PredicateToFtsAlfrescoConverter implements QueryLangConverter<Predi
         }
 
         FTSQuery query = FTSQuery.createRaw();
-        processPredicate(predicate, query);
+        convertPredicate(predicate, query);
 
         return query.getQuery();
     }
+}
+
+class AttributeConstants {
+    public static final String MODIFIED = "_modified";
+    public static final String MODIFIER = "_modifier";
+    public static final String ACTORS = "_actors";
+    public static final String ALL = "ALL";
+    public static final String PATH = "PATH";
+    public static final String PARENT = "PARENT";
+    public static final String _PARENT = "_parent";
+    public static final String TYPE = "TYPE";
+    public static final String S_TYPE = "type";
+    public static final String _TYPE = "_type";
+    public static final String _ETYPE = "_etype";
+    public static final String ASPECT = "ASPECT";
+    public static final String S_ASPECT = "aspect";
+    public static final String IS_NULL = "ISNULL";
+    public static final String IS_NOT_NULL = "ISNOTNULL";
+    public static final String IS_UNSET = "ISUNSET";
 }
