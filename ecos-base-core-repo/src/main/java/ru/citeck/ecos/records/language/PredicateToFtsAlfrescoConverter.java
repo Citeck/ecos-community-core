@@ -464,27 +464,32 @@ public class PredicateToFtsAlfrescoConverter implements QueryLangConverter<Predi
     }
 
     private Map<QName, Serializable> getTargetTypeAttributes(TypeDefinition targetType, String assocVal) {
+        List<PropertyDefinition> propertyDefinitions = getPropertyDefinitions(targetType);
 
-        Map<QName, PropertyDefinition> props = new HashMap<>(targetType.getProperties());
-        List<AspectDefinition> definitions = targetType.getDefaultAspects(true);
-        definitions.forEach(a -> props.putAll(a.getProperties()));
-
-        return props.values().stream()
+        return propertyDefinitions.stream()
             .filter(this::isTextOrMLText)
-            .flatMap(def -> {
-                Map<QName, Serializable> attributes = new HashMap<>();
-                attributes.put(def.getName(), assocVal);
-                return attributes.entrySet().stream();
-            })
+            .flatMap(def -> Collections.singletonMap(def.getName(), assocVal).entrySet().stream())
             .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+    }
+
+    private List<PropertyDefinition> getPropertyDefinitions(TypeDefinition targetType) {
+        List<PropertyDefinition> propertyDefinitions = new ArrayList<>(targetType.getProperties().values());
+
+        List<AspectDefinition> definitions = targetType.getDefaultAspects(true);
+        definitions.forEach(a -> propertyDefinitions.addAll(a.getProperties().values()));
+
+        return propertyDefinitions;
     }
 
     private boolean isTextOrMLText(PropertyDefinition def) {
         QName dataType = def.getDataType().getName();
         String namespaceURI = def.getName().getNamespaceURI();
-        return (DataTypeDefinition.TEXT.equals(dataType) || DataTypeDefinition.MLTEXT.equals(dataType)) &&
-            !NamespaceService.SYSTEM_MODEL_1_0_URI.equals(namespaceURI) &&
-            !NamespaceService.CONTENT_MODEL_1_0_URI.equals(namespaceURI);
+
+        boolean isTextOrMLText = DataTypeDefinition.TEXT.equals(dataType) || DataTypeDefinition.MLTEXT.equals(dataType);
+        boolean isSystemProperty = NamespaceService.SYSTEM_MODEL_1_0_URI.equals(namespaceURI);
+        boolean isContentProperty = NamespaceService.CONTENT_MODEL_1_0_URI.equals(namespaceURI);
+
+        return isTextOrMLText && !isSystemProperty && !isContentProperty;
     }
 
     private boolean isNodeRefAtt(ClassAttributeDefinition attDef) {
@@ -492,17 +497,21 @@ public class PredicateToFtsAlfrescoConverter implements QueryLangConverter<Predi
             return false;
         }
 
-        if (attDef instanceof PropertyDefinition) {
-            PropertyDefinition propDef = (PropertyDefinition) attDef;
-            DataTypeDefinition dataType = propDef.getDataType();
-            if (dataType == null) {
-                return false;
-            }
-
-            return DataTypeDefinition.NODE_REF.equals(dataType.getName());
+        if (attDef instanceof AssociationDefinition) {
+            return true;
         }
 
-        return attDef instanceof AssociationDefinition;
+        if (!(attDef instanceof PropertyDefinition)) {
+            return false;
+        }
+
+        PropertyDefinition propDef = (PropertyDefinition) attDef;
+        DataTypeDefinition dataType = propDef.getDataType();
+        if (dataType == null) {
+            return false;
+        }
+
+        return DataTypeDefinition.NODE_REF.equals(dataType.getName());
     }
 
     private String toValidNodeRef(String value) {
