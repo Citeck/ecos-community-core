@@ -71,6 +71,7 @@ function main() {
             autoVersion = uploadConfig.autoVersion.toString() == "" ? null : uploadConfig.autoVersion.toString() == "true",
             autoVersionProps = uploadConfig.autoVersionProps.toString() == "" ? null : uploadConfig.autoVersionProps.toString() == "true";
 
+        //MNT-7213 When alf_data runs out of disk space, Share uploads result in a success message, but the files do not appear
         if (formdata.fields.length == 0) {
             exitUpload(404, " No disk space available");
             return;
