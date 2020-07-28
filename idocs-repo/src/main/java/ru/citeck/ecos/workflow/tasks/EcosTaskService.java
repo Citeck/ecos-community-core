@@ -5,6 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.alfresco.error.AlfrescoRuntimeException;
 import org.alfresco.repo.security.authentication.AuthenticationUtil;
 import org.alfresco.util.ParameterCheck;
+import org.apache.commons.lang.StringUtils;
 import org.mozilla.javascript.JavaScriptException;
 import org.mozilla.javascript.NativeJavaObject;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,6 +13,8 @@ import org.springframework.extensions.surf.util.I18NUtil;
 import org.springframework.stereotype.Service;
 import ru.citeck.ecos.locks.LockUtils;
 import ru.citeck.ecos.props.EcosPropertiesService;
+import ru.citeck.ecos.workflow.owner.OwnerAction;
+import ru.citeck.ecos.workflow.owner.OwnerService;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -31,6 +34,9 @@ public class EcosTaskService {
     private Map<String, EngineTaskService> taskServices = new ConcurrentHashMap<>();
 
     private LockUtils lockUtils;
+
+    @Autowired
+    private OwnerService ownerService;
 
     @Autowired
     private EcosPropertiesService ecosProperties;
@@ -75,6 +81,10 @@ public class EcosTaskService {
             if (!user.equals(assignee)) {
                 throw new IllegalStateException(I18NUtil.getMessage(ASSIGNEE_NOT_MATCH_ERR_MSG_KEY));
             }
+        }
+
+        if (StringUtils.isBlank(assignee)) {
+            ownerService.changeOwner(taskId, OwnerAction.CLAIM, user);
         }
 
         Map<String, Object> finalVariables = new HashMap<>(variables);
