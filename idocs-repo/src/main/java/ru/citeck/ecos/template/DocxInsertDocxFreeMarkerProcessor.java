@@ -11,11 +11,12 @@ import java.util.List;
 /**
  * Extended DOCX template processor with support of FreeMarker tags.
  * To insert whole docx document into template.
- *
- * Supported placeholder - [[ecosInsertDocxContentNode("nodeRef")]], at the beginning of a paragraph.
+ * <p>
+ * Supported placeholder - <b>[[ecosInsertDocxContentNode("nodeRef")]]</b>, at the beginning of a paragraph.
+ * <pre>
  * 1. process: insert placeholders
  * 2. postProcess: insert content instead of placeholders
- *
+ * </pre>
  */
 @Slf4j
 public class DocxInsertDocxFreeMarkerProcessor extends DocxFreeMarkerProcessor {
@@ -23,7 +24,7 @@ public class DocxInsertDocxFreeMarkerProcessor extends DocxFreeMarkerProcessor {
 
     protected void postProcess(WordprocessingMLPackage wpMLPackage) {
         List<Object> objectList = new ArrayList<>(wpMLPackage.getMainDocumentPart().getContent());
-        for(Object o : objectList) {
+        for (Object o : objectList) {
             if (o instanceof P) {
                 String pStr = o.toString();
                 if (pStr.startsWith(placeholder)) {
