@@ -1,5 +1,6 @@
 package ru.citeck.ecos.template;
 
+import lombok.extern.slf4j.Slf4j;
 import org.alfresco.service.cmr.repository.NodeRef;
 import org.docx4j.openpackaging.packages.WordprocessingMLPackage;
 import org.docx4j.wml.P;
@@ -16,9 +17,9 @@ import java.util.List;
  * 2. postProcess: insert content instead of placeholders
  *
  */
+@Slf4j
 public class DocxInsertDocxFreeMarkerProcessor extends DocxFreeMarkerProcessor {
     private static final String placeholder = "[[ecosInsertDocxContentNode(\"";
-
 
     protected void postProcess(WordprocessingMLPackage wpMLPackage) {
         List<Object> objectList = new ArrayList<>(wpMLPackage.getMainDocumentPart().getContent());
@@ -38,7 +39,7 @@ public class DocxInsertDocxFreeMarkerProcessor extends DocxFreeMarkerProcessor {
                             i++;
                         }
                     } catch (Exception e) {
-                        logger.warn(e.getLocalizedMessage(), e);
+                        log.warn(e.getLocalizedMessage(), e);
                     }
                 }
             }
