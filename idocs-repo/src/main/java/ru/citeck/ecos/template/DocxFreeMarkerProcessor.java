@@ -75,28 +75,28 @@ import org.docx4j.wml.Text;
  */
 public class DocxFreeMarkerProcessor extends BaseProcessor implements TemplateProcessor {
 
-    private static final Log logger = LogFactory.getLog(DocxFreeMarkerProcessor.class);
+    protected static final Log logger = LogFactory.getLog(DocxFreeMarkerProcessor.class);
 
     private FreeMarkerProcessor processor;
     private String newLineRegexp = "\\r?\\n";
     Pattern newLinePattern = Pattern.compile(newLineRegexp, Pattern.DOTALL);
 
-    private synchronized WordprocessingMLPackage getWordTemplate(NodeRef templateNode) {
+    protected synchronized WordprocessingMLPackage getWordTemplate(NodeRef templateNode) {
         ContentReader reader = this.services.getContentService()
                 .getReader(templateNode, ContentModel.PROP_CONTENT);
-        InputStream reportStream = null;
-        try {
-            reportStream = reader.getContentInputStream();
+        String extension = null;
+        String mimetype = reader.getMimetype();
+        if (mimetype != null) {
+            extension = services.getMimetypeService().getExtension(mimetype);
+        }
+        if (!"docx".equals(extension)) {
+            throw new IllegalStateException("Could not read docx from node: " + templateNode);
+        }
+        try (InputStream reportStream = reader.getContentInputStream()) {
             WordprocessingMLPackage wordMLPackage = WordprocessingMLPackage.load(reportStream);
             return (WordprocessingMLPackage) wordMLPackage.clone();
-        } catch (Docx4JException e) {
+        } catch (Docx4JException | IOException e) {
             throw new IllegalStateException("Could not read docx from node", e);
-        } finally {
-            try {
-                reportStream.close();
-            } catch (IOException e) {
-                logger.error(e.getLocalizedMessage(), e);
-            }
         }
     }
 
@@ -150,6 +150,8 @@ public class DocxFreeMarkerProcessor extends BaseProcessor implements TemplatePr
             }
         }
 
+        postProcess(wpMLPackage);
+
         // save processed Wordprocessing ML package
         Save saver = new Save(wpMLPackage);
         try {
@@ -157,6 +159,9 @@ public class DocxFreeMarkerProcessor extends BaseProcessor implements TemplatePr
         } catch (Docx4JException e) {
             logger.error(e.getLocalizedMessage(), e);
         }
+    }
+
+    protected void postProcess(WordprocessingMLPackage wpMLPackage) {
     }
 
     @Override
