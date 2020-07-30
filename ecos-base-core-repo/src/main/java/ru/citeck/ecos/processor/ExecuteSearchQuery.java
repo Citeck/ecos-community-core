@@ -20,10 +20,18 @@ package ru.citeck.ecos.processor;
 
 import org.alfresco.service.cmr.repository.NodeRef;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import ru.citeck.ecos.records2.RecordRef;
+import ru.citeck.ecos.records2.RecordsService;
+import ru.citeck.ecos.records2.request.query.QueryConsistency;
+import ru.citeck.ecos.records2.request.query.RecordsQuery;
+import ru.citeck.ecos.records2.request.query.RecordsQueryResult;
 import ru.citeck.ecos.search.CriteriaSearchResults;
 import ru.citeck.ecos.search.CriteriaSearchService;
 import ru.citeck.ecos.search.SearchCriteria;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -33,30 +41,81 @@ import java.util.Map;
  */
 public class ExecuteSearchQuery extends AbstractDataBundleLine {
 
+    private static final String PREDICATE = "predicate";
+    private static final String SEARCH_CRITERIA = "searchCriteria";
+
+    private static final String LANGUAGE = "language";
+    private static final String HAS_MORE = "hasMore";
+    private static final String TOTAL_COUNT = "totalCount";
+    private static final String NODES = "nodes";
+
     private String language;
 
     private CriteriaSearchService searchService;
 
+    private RecordsService recordsService;
+
     @Override
     public DataBundle process(DataBundle input) {
         Map<String, Object> model = input.needModel();
-        SearchCriteria searchCriteria = (SearchCriteria) model.get("searchCriteria");
+
+        if (PREDICATE.equals(language) && model.get(PREDICATE) != null) {
+            return helper.getDataBundle(helper.getContentReader(input), getModelForPredicate(model));
+        }
+
+        return helper.getDataBundle(helper.getContentReader(input), getModelForSearchCriteria(model));
+    }
+
+    private HashMap<String, Object> getModelForSearchCriteria(Map<String, Object> oldModel) {
+        SearchCriteria searchCriteria = (SearchCriteria) oldModel.get(SEARCH_CRITERIA);
         CriteriaSearchResults results = searchService.query(searchCriteria, language);
         List<NodeRef> nodeRefs = results.getResults();
 
-        HashMap<String, Object> newModel = new HashMap<>();
-        newModel.putAll(model);
-        newModel.put("language", language);
-        newModel.put("hasMore", results.hasMore());
-        newModel.put("totalCount", results.getTotalCount());
-        newModel.put("nodes", nodeRefs);
-        return helper.getDataBundle(helper.getContentReader(input), newModel);
+        return getNewModel(oldModel, results.hasMore(), results.getTotalCount(), nodeRefs);
+    }
+
+    private HashMap<String, Object> getModelForPredicate(Map<String, Object> oldModel) {
+        RecordsQuery query = new RecordsQuery();
+        query.setQuery(oldModel.get(PREDICATE));
+        query.setConsistency(QueryConsistency.EVENTUAL);
+        query.setLanguage(PREDICATE);
+
+        RecordsQueryResult<RecordRef> result = recordsService.queryRecords(query);
+        List<RecordRef> recordRefs = result.getRecords();
+
+        List<NodeRef> nodeRefs = new ArrayList<>();
+        for (RecordRef recordRef : recordRefs) {
+            nodeRefs.add(new NodeRef(recordRef.getId()));
+        }
+
+        return getNewModel(oldModel, result.getHasMore(), result.getTotalCount(), nodeRefs);
+    }
+
+    private HashMap<String, Object> getNewModel(Map<String, Object> oldModel,
+                                                Boolean hasMore,
+                                                Long totalCounts,
+                                                List<NodeRef> refs) {
+
+        HashMap<String, Object> newModel = new HashMap<>(oldModel);
+        newModel.put(HAS_MORE, hasMore);
+        newModel.put(LANGUAGE, language);
+        newModel.put(TOTAL_COUNT, totalCounts);
+        newModel.put(NODES, refs);
+
+        return newModel;
     }
 
     public void setLanguage(String language) {
         this.language = language;
     }
 
+    @Autowired
+    public void setRecordsService(RecordsService recordsService) {
+        this.recordsService = recordsService;
+    }
+
+    @Autowired
+    @Qualifier("criteriaSearchService")
     public void setSearchService(CriteriaSearchService searchService) {
         this.searchService = searchService;
     }

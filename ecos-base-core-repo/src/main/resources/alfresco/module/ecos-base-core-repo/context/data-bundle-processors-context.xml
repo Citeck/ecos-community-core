@@ -502,10 +502,11 @@
         <property name="parser" ref="criteriaParser"/>
     </bean>
 
+    <bean id="ConstructPredicate" class="ru.citeck.ecos.processor.ConstructPredicate"
+          name="dbp.predicate.construct" parent="AbstractDataBundleLine" abstract="true"/>
+
     <bean id="ExecuteSearchQuery" class="ru.citeck.ecos.processor.ExecuteSearchQuery"
-          name="dbp.query.execute" parent="AbstractDataBundleLine" abstract="true">
-        <property name="searchService" ref="criteriaSearchService"/>
-    </bean>
+          name="dbp.query.execute" parent="AbstractDataBundleLine" abstract="true"/>
 
     <!-- Reports Proocessors -->
 
@@ -530,7 +531,7 @@
 
     <bean id="ReportOutputExcel" class="ru.citeck.ecos.processor.report.ReportOutputExcel"
           name="dbp.report.template.xlsx" parent="AbstractDataBundleLine" abstract="true" />
-    
+
     <bean id="ReportOutputCSV" class="ru.citeck.ecos.processor.report.ReportOutputCSV"
           name="dbp.report.template.csv" parent="AbstractDataBundleLine" abstract="true" />
 

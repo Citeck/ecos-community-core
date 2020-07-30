@@ -192,6 +192,59 @@
         </property>
     </bean>
 
+    <bean id="webscript.ru.citeck.report.predicate-report.post" parent="dbp.webscript.view">
+        <property name="processors">
+            <list>
+                <bean parent="dbp.filter.formtojson" />
+                <bean parent="dbp.report.filter" />
+                <bean parent="dbp.query.construct">
+                    <property name="builder" ref="ftsQueryBuilder"/>
+                </bean>
+                <bean parent="dbp.predicate.construct"/>
+                <bean parent="dbp.query.execute">
+                    <property name="language" value="predicate"/>
+                </bean>
+                <bean parent="dbp.report.producer" />
+                <bean class="ru.citeck.ecos.processor.DataBundleExpanderProcessor"/>
+                <bean parent="dbp.switch">
+                    <property name="expression" value="${reportType!'html'}" />
+                    <property name="cases">
+                        <map>
+                            <entry key="xlsx">
+                                <bean parent="dbp.report.template.xlsx">
+                                    <property name="template" value="alfresco/templates/reports/ru/citeck/default.xlsx"/>
+                                </bean>
+                            </entry>
+                        </map>
+                    </property>
+                    <property name="default">
+                        <bean parent="dbp.report.template.html">
+                            <property name="template" value="alfresco/templates/reports/ru/citeck/default.html.ftl"/>
+                        </bean>
+                    </property>
+                </bean>
+                <bean parent="dbp.switch">
+                    <property name="expression" value="${reportType!'html'}" />
+                    <property name="cases">
+                        <map>
+                            <entry key="csv">
+                                <bean parent="dbp.report.template.csv"/>
+                            </entry>
+                        </map>
+                    </property>
+                </bean>
+                <bean parent="dbp.switch">
+                    <property name="expression" value="${reportType!'html'}" />
+                    <property name="cases">
+                        <map>
+                            <entry key="pdf" value-ref="dbp.transform.pdf" />
+                        </map>
+                    </property>
+                </bean>
+            </list>
+        </property>
+    </bean>
+
     <bean id="webscript.ru.citeck.repository.dictionary.classesWithFullQname.get"
           class="org.alfresco.repo.web.scripts.dictionary.ClassesGet"
           parent="webscript">
