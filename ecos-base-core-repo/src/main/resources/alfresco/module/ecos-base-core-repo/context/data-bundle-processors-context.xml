@@ -10,19 +10,19 @@
     <!--==============================================================-->
 
     <bean id="DataBundleProcessorHelper" class="ru.citeck.ecos.processor.ProcessorHelper">
-        <property name="serviceRegistry" ref="ServiceRegistry" />
+        <property name="serviceRegistry" ref="ServiceRegistry"/>
     </bean>
 
     <bean id="TemplateExpressionEvaluator" class="ru.citeck.ecos.processor.TemplateExpressionEvaluator">
-        <property name="templateService" ref="TemplateService" />
-        <property name="repositoryHelper" ref="repositoryHelper" />
-        <property name="engine" value="freemarker" />
+        <property name="templateService" ref="TemplateService"/>
+        <property name="repositoryHelper" ref="repositoryHelper"/>
+        <property name="engine" value="freemarker"/>
     </bean>
 
     <bean id="AbstractDataBundleProcessor" abstract="true" init-method="init">
-        <property name="serviceRegistry" ref="ServiceRegistry" />
-        <property name="helper" ref="DataBundleProcessorHelper" />
-        <property name="evaluator" ref="TemplateExpressionEvaluator" />
+        <property name="serviceRegistry" ref="ServiceRegistry"/>
+        <property name="helper" ref="DataBundleProcessorHelper"/>
+        <property name="evaluator" ref="TemplateExpressionEvaluator"/>
     </bean>
 
     <bean parent="AbstractDataBundleProcessor" abstract="true" id="AbstractDataBundleLine"></bean>
@@ -30,30 +30,32 @@
     <bean parent="AbstractDataBundleProcessor" abstract="true" id="AbstractDataBundleSplit"></bean>
 
     <bean parent="AbstractDataBundleProcessor" abstract="true" id="SequentialDataBundleProcessor" name="dbp.sequential"
-          class="ru.citeck.ecos.processor.SequentialDataBundleProcessor" />
+          class="ru.citeck.ecos.processor.SequentialDataBundleProcessor"/>
     <bean parent="AbstractDataBundleProcessor" abstract="true" id="ParallelDataBundleProcessor" name="dbp.parallel"
-          class="ru.citeck.ecos.processor.ParallelDataBundleProcessor" />
+          class="ru.citeck.ecos.processor.ParallelDataBundleProcessor"/>
 
     <!-- output contents of the document -->
-    <bean id="OutputContentLine" name="dbp.content" class="ru.citeck.ecos.processor.OutputContent" parent="AbstractDataBundleLine">
+    <bean id="OutputContentLine" name="dbp.content" class="ru.citeck.ecos.processor.OutputContent"
+          parent="AbstractDataBundleLine">
     </bean>
 
     <!-- process template and output result -->
-    <bean id="OutputTemplateLine" name="dbp.template" class="ru.citeck.ecos.processor.OutputTemplate" parent="AbstractDataBundleLine" abstract="true">
+    <bean id="OutputTemplateLine" name="dbp.template" class="ru.citeck.ecos.processor.OutputTemplate"
+          parent="AbstractDataBundleLine" abstract="true">
     </bean>
 
     <!-- html template: default values -->
     <bean id="OutputTemplateLine.html" name="dbp.template.html" parent="OutputTemplateLine" abstract="true">
-        <property name="engine" value="freemarker" />
-        <property name="encoding" value="UTF-8" />
-        <property name="mimetype" value="text/html" />
+        <property name="engine" value="freemarker"/>
+        <property name="encoding" value="UTF-8"/>
+        <property name="mimetype" value="text/html"/>
     </bean>
 
     <!-- process template and output result -->
     <bean id="OutputTemplateLine.docx" name="dbp.template.docx" parent="OutputTemplateLine" abstract="true">
-        <property name="engine" value="wordDocument" />
-        <property name="encoding" value="ISO-8859-1" />
-        <property name="mimetype" value="text/html" />
+        <property name="engine" value="wordDocument"/>
+        <property name="encoding" value="ISO-8859-1"/>
+        <property name="mimetype" value="text/html"/>
     </bean>
 
     <!-- json template: default values -->
@@ -63,11 +65,14 @@
         <property name="mimetype" value="application/json"/>
     </bean>
 
-    <bean id="SelectChildNodes" name="dbp.select-child-nodes" parent="AbstractDataBundleLine" class="ru.citeck.ecos.processor.SelectChildNodes" abstract="true"/>
-    <bean id="SelectAssocNodes" name="dbp.select-assoc-nodes" parent="AbstractDataBundleLine" class="ru.citeck.ecos.processor.SelectAssocNodes" abstract="true"/>
+    <bean id="SelectChildNodes" name="dbp.select-child-nodes" parent="AbstractDataBundleLine"
+          class="ru.citeck.ecos.processor.SelectChildNodes" abstract="true"/>
+    <bean id="SelectAssocNodes" name="dbp.select-assoc-nodes" parent="AbstractDataBundleLine"
+          class="ru.citeck.ecos.processor.SelectAssocNodes" abstract="true"/>
 
     <!-- transform contents into specified format (mimetype/encoding) -->
-    <bean id="TransformContentLine" name="dbp.transform" class="ru.citeck.ecos.processor.TransformContent" parent="AbstractDataBundleLine" abstract="true">
+    <bean id="TransformContentLine" name="dbp.transform" class="ru.citeck.ecos.processor.TransformContent"
+          parent="AbstractDataBundleLine" abstract="true">
     </bean>
 
     <bean id="transformer.worker.RuntimeTransformerWorker"
@@ -119,8 +124,8 @@
           parent="AbstractDataBundleLine">
 
         <property name="worker" ref="transformer.worker.RuntimeTransformerWorker"/>
-        <property name="outputMimetype" value="application/pdf" />
-        <property name="outputEncoding" value="UTF-8" />
+        <property name="outputMimetype" value="application/pdf"/>
+        <property name="outputEncoding" value="UTF-8"/>
     </bean>
 
     <bean id="dbp.runtime.transform-album"
@@ -152,137 +157,150 @@
                 </property>
             </bean>
         </property>
-        <property name="outputMimetype" value="application/pdf" />
-        <property name="outputEncoding" value="UTF-8" />
+        <property name="outputMimetype" value="application/pdf"/>
+        <property name="outputEncoding" value="UTF-8"/>
     </bean>
 
     <!-- update model -->
-    <bean id="UpdateModelLine" name="dbp.model" class="ru.citeck.ecos.processor.UpdateModel" parent="AbstractDataBundleLine" abstract="true">
+    <bean id="UpdateModelLine" name="dbp.model" class="ru.citeck.ecos.processor.UpdateModel"
+          parent="AbstractDataBundleLine" abstract="true">
     </bean>
 
     <!-- build workflow model -->
     <!-- user should specify workflowId expression - it is evaluated to workflow id -->
     <!-- user can specify workflowModelKey, tasksModelKey, pathsModelKey, propsModelKey - whatever is needed -->
-    <bean id="BuildWorkflowModel" name="dbp.model.workflow" class="ru.citeck.ecos.processor.BuildWorkflowModel" parent="AbstractDataBundleLine" abstract="true">
+    <bean id="BuildWorkflowModel" name="dbp.model.workflow" class="ru.citeck.ecos.processor.BuildWorkflowModel"
+          parent="AbstractDataBundleLine" abstract="true">
     </bean>
 
     <!-- build default template model -->
-    <bean id="BuildDefaultModel" name="dbp.model.default" class="ru.citeck.ecos.processor.BuildDefaultModel" parent="AbstractDataBundleLine">
-        <property name="repositoryHelper" ref="repositoryHelper" />
+    <bean id="BuildDefaultModel" name="dbp.model.default" class="ru.citeck.ecos.processor.BuildDefaultModel"
+          parent="AbstractDataBundleLine">
+        <property name="repositoryHelper" ref="repositoryHelper"/>
     </bean>
 
     <!-- conditional processing -->
-    <bean id="SwitchDataBundleLine" name="dbp.switch" class="ru.citeck.ecos.processor.SwitchDataBundleLine" parent="AbstractDataBundleLine" abstract="true">
+    <bean id="SwitchDataBundleLine" name="dbp.switch" class="ru.citeck.ecos.processor.SwitchDataBundleLine"
+          parent="AbstractDataBundleLine" abstract="true">
     </bean>
 
     <!-- input stream parsers -->
 
     <!-- user can override 'modelKey' parameter -->
-    <bean id="ParseJSONLine" name="dbp.parse.json" class="ru.citeck.ecos.processor.ParseJSON" parent="AbstractDataBundleLine">
-        <property name="modelKey" value="json" />
+    <bean id="ParseJSONLine" name="dbp.parse.json" class="ru.citeck.ecos.processor.ParseJSON"
+          parent="AbstractDataBundleLine">
+        <property name="modelKey" value="json"/>
     </bean>
 
     <!-- merge models -->
-    <bean id="ModelMerge" name="dbp.merge.model" class="ru.citeck.ecos.processor.ModelMerge" parent="AbstractDataBundleMerge">
+    <bean id="ModelMerge" name="dbp.merge.model" class="ru.citeck.ecos.processor.ModelMerge"
+          parent="AbstractDataBundleMerge">
     </bean>
 
     <!-- splits -->
-    <bean id="TargetAssociationSplit" name="dbp.split.target-assoc" class="ru.citeck.ecos.processor.AssociationSplit" parent="AbstractDataBundleSplit" abstract="true">
-        <property name="source" value="false" />
+    <bean id="TargetAssociationSplit" name="dbp.split.target-assoc" class="ru.citeck.ecos.processor.AssociationSplit"
+          parent="AbstractDataBundleSplit" abstract="true">
+        <property name="source" value="false"/>
     </bean>
 
-    <bean id="SourceAssociationSplit" name="dbp.split.source-assoc" class="ru.citeck.ecos.processor.AssociationSplit" parent="AbstractDataBundleSplit" abstract="true">
-        <property name="source" value="true" />
+    <bean id="SourceAssociationSplit" name="dbp.split.source-assoc" class="ru.citeck.ecos.processor.AssociationSplit"
+          parent="AbstractDataBundleSplit" abstract="true">
+        <property name="source" value="true"/>
     </bean>
 
-    <bean id="ChildAssociationSplit" name="dbp.split.child-assoc" class="ru.citeck.ecos.processor.ChildAssociationSplit" parent="AbstractDataBundleSplit" abstract="true">
-        <property name="parent" value="false" />
+    <bean id="ChildAssociationSplit" name="dbp.split.child-assoc" class="ru.citeck.ecos.processor.ChildAssociationSplit"
+          parent="AbstractDataBundleSplit" abstract="true">
+        <property name="parent" value="false"/>
     </bean>
 
-    <bean id="ParentAssociationSplit" name="dbp.split.parent-assoc" class="ru.citeck.ecos.processor.ChildAssociationSplit" parent="AbstractDataBundleSplit" abstract="true">
-        <property name="parent" value="true" />
+    <bean id="ParentAssociationSplit" name="dbp.split.parent-assoc"
+          class="ru.citeck.ecos.processor.ChildAssociationSplit" parent="AbstractDataBundleSplit" abstract="true">
+        <property name="parent" value="true"/>
     </bean>
 
     <!-- transform contents into pdf -->
     <bean id="TransformContentLine.PDF" name="dbp.transform.pdf" parent="TransformContentLine">
-        <property name="outputMimetype" value="application/pdf" />
-        <property name="outputEncoding" value="UTF-8" />
+        <property name="outputMimetype" value="application/pdf"/>
+        <property name="outputEncoding" value="UTF-8"/>
     </bean>
 
     <!--<bean id="TransformContentLine.PDF2" name="dbp.transform.pdf2" parent="TransformContentLine">-->
-        <!--<property name="outputMimetype" value="application/pdf" />-->
-        <!--<property name="outputEncoding" value="UTF-8" />-->
-        <!--<property name="options">-->
-            <!--<map>-->
-                <!--<entry key="orientation" value="${args.orientation}"/>-->
-            <!--</map>-->
-        <!--</property>-->
+    <!--<property name="outputMimetype" value="application/pdf" />-->
+    <!--<property name="outputEncoding" value="UTF-8" />-->
+    <!--<property name="options">-->
+    <!--<map>-->
+    <!--<entry key="orientation" value="${args.orientation}"/>-->
+    <!--</map>-->
+    <!--</property>-->
     <!--</bean>-->
 
     <!-- transform contents into doc -->
     <bean id="TransformContentLine.DOC" name="dbp.transform.doc" parent="TransformContentLine">
-        <property name="outputMimetype" value="application/msword" />
-        <property name="outputEncoding" value="ISO-8859-1" />
+        <property name="outputMimetype" value="application/msword"/>
+        <property name="outputEncoding" value="ISO-8859-1"/>
     </bean>
 
     <!-- transform contents into docx -->
     <bean id="TransformContentLine.DOCX" name="dbp.transform.docx" parent="TransformContentLine">
-        <property name="outputMimetype" value="application/vnd.openxmlformats-officedocument.wordprocessingml.document" />
-        <property name="outputEncoding" value="ISO-8859-1" />
+        <property name="outputMimetype"
+                  value="application/vnd.openxmlformats-officedocument.wordprocessingml.document"/>
+        <property name="outputEncoding" value="ISO-8859-1"/>
     </bean>
 
     <!-- transform contents into html -->
     <bean id="TransformContentLine.HTML" name="dbp.transform.html" parent="TransformContentLine">
-        <property name="outputMimetype" value="text/html" />
-        <property name="outputEncoding" value="UTF-8" />
+        <property name="outputMimetype" value="text/html"/>
+        <property name="outputEncoding" value="UTF-8"/>
     </bean>
 
     <!-- transform contents into png -->
     <bean id="TransformContentLine.PNG" name="dbp.transform.png" parent="TransformContentLine">
-        <property name="outputMimetype" value="image/png" />
-        <property name="outputEncoding" value="UTF-8" />
+        <property name="outputMimetype" value="image/png"/>
+        <property name="outputEncoding" value="UTF-8"/>
     </bean>
 
     <!-- transform contents into jpg -->
     <bean id="TransformContentLine.JPG" name="dbp.transform.jpg" parent="TransformContentLine">
-        <property name="outputMimetype" value="image/jpeg" />
-        <property name="outputEncoding" value="UTF-8" />
+        <property name="outputMimetype" value="image/jpeg"/>
+        <property name="outputEncoding" value="UTF-8"/>
     </bean>
 
     <!-- pdf processors -->
 
     <!-- merge multiple pdf files into one -->
-    <bean id="PDFMerge" name="dbp.merge.pdf" class="ru.citeck.ecos.processor.pdf.PDFMerge" parent="AbstractDataBundleMerge">
-        <property name="modelMerge" ref="ModelMerge" />
+    <bean id="PDFMerge" name="dbp.merge.pdf" class="ru.citeck.ecos.processor.pdf.PDFMerge"
+          parent="AbstractDataBundleMerge">
+        <property name="modelMerge" ref="ModelMerge"/>
     </bean>
 
     <!-- put specified stamp on each page of pdf -->
     <!-- stamp is calculated via processor(s) -->
     <!-- descendants should specify stampProcessor or stampProcessors -->
     <bean id="PDFStamp" class="ru.citeck.ecos.processor.pdf.PDFStamp" parent="AbstractDataBundleLine" abstract="true">
-        <property name="transformCalculator" ref="dbp.transform.none" />
+        <property name="transformCalculator" ref="dbp.transform.none"/>
         <property name="stampProcessor">
-            <bean parent="dbp.sequential" />
+            <bean parent="dbp.sequential"/>
         </property>
     </bean>
 
-    <bean id="PDFSignature" class="ru.citeck.ecos.processor.pdf.PDFSignature" parent="AbstractDataBundleLine" abstract="true">
-        <property name="transformCalculator" ref="dbp.transform.none" />
+    <bean id="PDFSignature" class="ru.citeck.ecos.processor.pdf.PDFSignature" parent="AbstractDataBundleLine"
+          abstract="true">
+        <property name="transformCalculator" ref="dbp.transform.none"/>
         <property name="stampProcessor">
-            <bean parent="dbp.sequential" />
+            <bean parent="dbp.sequential"/>
         </property>
     </bean>
 
     <bean id="dbp.pdf.signature.under" parent="PDFSignature">
-        <property name="foreground" value="true" />
+        <property name="foreground" value="true"/>
     </bean>
 
     <bean id="dbp.pdf.watermark.signature" parent="dbp.pdf.signature.under">
-        <property name="transformCalculator" ref="dbp.transform.diagonal" />
+        <property name="transformCalculator" ref="dbp.transform.diagonal"/>
         <property name="stampProcessors">
             <list>
                 <bean parent="dbp.content">
-                    <property name="nodeRef" value="workspace://SpacesStore/idocs-watermark-signature" />
+                    <property name="nodeRef" value="workspace://SpacesStore/idocs-watermark-signature"/>
                 </bean>
             </list>
         </property>
@@ -290,43 +308,43 @@
 
     <!-- shortcut to place stamp under the page -->
     <bean id="dbp.pdf.stamp.under" parent="PDFStamp">
-        <property name="foreground" value="false" />
+        <property name="foreground" value="false"/>
     </bean>
 
     <!-- shortcut to place stamp above the page -->
     <bean id="dbp.pdf.stamp.above" parent="PDFStamp">
-        <property name="foreground" value="true" />
+        <property name="foreground" value="true"/>
     </bean>
 
     <bean id="DocStamp" class="ru.citeck.ecos.processor.pdf.DocStamp" parent="AbstractDataBundleLine" abstract="true">
-        <property name="transformCalculator" ref="dbp.transform.none" />
+        <property name="transformCalculator" ref="dbp.transform.none"/>
         <property name="stampProcessor">
-            <bean parent="dbp.sequential" />
+            <bean parent="dbp.sequential"/>
         </property>
     </bean>
     <!-- shortcut to place stamp above the page -->
     <bean id="dbp.doc.stamp.above" parent="DocStamp">
-        <property name="foreground" value="true" />
+        <property name="foreground" value="true"/>
     </bean>
 
     <!-- draft and final watermarks -->
     <bean id="dbp.pdf.watermark.draft" parent="dbp.pdf.stamp.above">
-        <property name="transformCalculator" ref="dbp.transform.diagonal" />
+        <property name="transformCalculator" ref="dbp.transform.diagonal"/>
         <property name="stampProcessors">
             <list>
                 <bean parent="dbp.content">
-                    <property name="nodeRef" value="workspace://SpacesStore/idocs-watermark-draft" />
+                    <property name="nodeRef" value="workspace://SpacesStore/idocs-watermark-draft"/>
                 </bean>
             </list>
         </property>
     </bean>
 
     <bean id="dbp.pdf.watermark.final" parent="dbp.pdf.stamp.above">
-        <property name="transformCalculator" ref="dbp.transform.diagonal" />
+        <property name="transformCalculator" ref="dbp.transform.diagonal"/>
         <property name="stampProcessors">
             <list>
                 <bean parent="dbp.content">
-                    <property name="nodeRef" value="workspace://SpacesStore/idocs-watermark-final" />
+                    <property name="nodeRef" value="workspace://SpacesStore/idocs-watermark-final"/>
                 </bean>
             </list>
         </property>
@@ -334,49 +352,54 @@
 
     <!-- this can be used to embed javascript to pdf page, or to generate empty pdf with javascript (may be useful for stamps) -->
     <!-- user should specify 'javascript' property -->
-    <bean id="PDFJavascript" name="dbp.pdf.javascript" class="ru.citeck.ecos.processor.pdf.PDFJavascript" parent="AbstractDataBundleLine" abstract="true">
+    <bean id="PDFJavascript" name="dbp.pdf.javascript" class="ru.citeck.ecos.processor.pdf.PDFJavascript"
+          parent="AbstractDataBundleLine" abstract="true">
     </bean>
 
     <bean name="dbp.pdf.print.auto" parent="PDFJavascript">
-        <property name="javascript" value="this.print({bUI: false, bSilent: true, bShrinkToFit: true});" />
+        <property name="javascript" value="this.print({bUI: false, bSilent: true, bShrinkToFit: true});"/>
     </bean>
 
     <bean name="dbp.pdf.printdialog" parent="PDFJavascript">
-        <property name="javascript" value="this.print({bUI: true, bSilent: false, bShrinkToFit: true});" />
+        <property name="javascript" value="this.print({bUI: true, bSilent: false, bShrinkToFit: true});"/>
     </bean>
 
     <!-- generate barcode from the model -->
     <!-- barcode is taken from spring prototype: specify barcodeName -->
     <!-- barcode input is calculated via template processor: specify barcodeInputTemplate -->
-    <bean id="PDFBarcode" name="dbp.pdf.barcode" parent="AbstractDataBundleLine" class="ru.citeck.ecos.processor.pdf.PDFBarcode" abstract="true">
+    <bean id="PDFBarcode" name="dbp.pdf.barcode" parent="AbstractDataBundleLine"
+          class="ru.citeck.ecos.processor.pdf.PDFBarcode" abstract="true">
     </bean>
 
     <bean id="NodePDFBarcode" name="dbp.pdf.barcode.webscript" parent="dbp.switch">
-        <property name="expression" value="${args.barcodeType!'code-128'}" />
+        <property name="expression" value="${args.barcodeType!'code-128'}"/>
         <property name="cases">
             <map>
                 <entry key="code-128">
                     <bean parent="dbp.pdf.barcode">
-                        <property name="barcodeName" value="Barcode.code128" />
-                        <property name="barcodeInput" value="${companyhome.nodeByReference[args.nodeRef].properties[args.property]}" />
-                        <property name="scaleFactor" value="${args.scale!'1.0'}" />
-                        <property name="margins" value="${args.margins!'10,10,10,10'}" />
+                        <property name="barcodeName" value="Barcode.code128"/>
+                        <property name="barcodeInput"
+                                  value="${companyhome.nodeByReference[args.nodeRef].properties[args.property]}"/>
+                        <property name="scaleFactor" value="${args.scale!'1.0'}"/>
+                        <property name="margins" value="${args.margins!'10,10,10,10'}"/>
                     </bean>
                 </entry>
                 <entry key="code-39">
                     <bean parent="dbp.pdf.barcode">
-                        <property name="barcodeName" value="Barcode.code39" />
-                        <property name="barcodeInput" value="${companyhome.nodeByReference[args.nodeRef].properties[args.property]?c}" />
-                        <property name="scaleFactor" value="${args.scale!'1.0'}" />
-                        <property name="margins" value="${args.margins!'10,10,10,10'}" />
+                        <property name="barcodeName" value="Barcode.code39"/>
+                        <property name="barcodeInput"
+                                  value="${companyhome.nodeByReference[args.nodeRef].properties[args.property]?c}"/>
+                        <property name="scaleFactor" value="${args.scale!'1.0'}"/>
+                        <property name="margins" value="${args.margins!'10,10,10,10'}"/>
                     </bean>
                 </entry>
                 <entry key="ean-13">
                     <bean parent="dbp.pdf.barcode">
-                        <property name="barcodeName" value="Barcode.ean13" />
-                        <property name="barcodeInput" value="${companyhome.nodeByReference[args.nodeRef].properties[args.property]?c}" />
-                        <property name="scaleFactor" value="${args.scale!'1.0'}" />
-                        <property name="margins" value="${args.margins!'10,10,10,10'}" />
+                        <property name="barcodeName" value="Barcode.ean13"/>
+                        <property name="barcodeInput"
+                                  value="${companyhome.nodeByReference[args.nodeRef].properties[args.property]?c}"/>
+                        <property name="scaleFactor" value="${args.scale!'1.0'}"/>
+                        <property name="margins" value="${args.margins!'10,10,10,10'}"/>
                     </bean>
                 </entry>
             </map>
@@ -385,53 +408,60 @@
 
     <!-- barcode code-128 prototype -->
     <!-- note that code is not set, that is why we need prototype -->
-    <bean id="Barcode.code128" class="com.itextpdf.text.pdf.Barcode128" scope="prototype" />
+    <bean id="Barcode.code128" class="com.itextpdf.text.pdf.Barcode128" scope="prototype"/>
 
     <!-- barcode code-39 prototype -->
     <!-- note that code is not set, that is why we need prototype -->
-    <bean id="Barcode.code39" class="com.itextpdf.text.pdf.Barcode39" scope="prototype" />
+    <bean id="Barcode.code39" class="com.itextpdf.text.pdf.Barcode39" scope="prototype"/>
 
     <!-- barcode ean-13 prototype -->
     <!-- note that code is not set, that is why we need prototype -->
-    <bean id="Barcode.ean13" class="com.itextpdf.text.pdf.BarcodeEAN" scope="prototype" />
+    <bean id="Barcode.ean13" class="com.itextpdf.text.pdf.BarcodeEAN" scope="prototype"/>
 
     <!-- affine transforms -->
 
     <!-- affine transform to place object diagonally on the page -->
-    <bean id="DiagonalCalculator" name="dbp.transform.diagonal" class="ru.citeck.ecos.processor.transform.DiagonalCalculator" />
+    <bean id="DiagonalCalculator" name="dbp.transform.diagonal"
+          class="ru.citeck.ecos.processor.transform.DiagonalCalculator"/>
 
     <!-- simple transform calculator -->
-    <bean id="SimpleTransformCalculator" name="dbp.transform.none" class="ru.citeck.ecos.processor.transform.SimpleTransformCalculator">
+    <bean id="SimpleTransformCalculator" name="dbp.transform.none"
+          class="ru.citeck.ecos.processor.transform.SimpleTransformCalculator">
         <property name="transforms">
             <list></list>
         </property>
     </bean>
 
     <!-- simple transforms -->
-    <bean id="SimpleTransform.Scale" name="dbp.transform.scale" class="ru.citeck.ecos.processor.transform.ScaleTransform" />
-    <bean id="SimpleTransform.Shear" name="dbp.transform.shear" class="ru.citeck.ecos.processor.transform.ShearTransform" />
-    <bean id="SimpleTransform.Rotate" name="dbp.transform.rotate" class="ru.citeck.ecos.processor.transform.RotateTransform" />
-    <bean id="SimpleTransform.Translate" name="dbp.transform.translate" class="ru.citeck.ecos.processor.transform.TranslateTransform" />
+    <bean id="SimpleTransform.Scale" name="dbp.transform.scale"
+          class="ru.citeck.ecos.processor.transform.ScaleTransform"/>
+    <bean id="SimpleTransform.Shear" name="dbp.transform.shear"
+          class="ru.citeck.ecos.processor.transform.ShearTransform"/>
+    <bean id="SimpleTransform.Rotate" name="dbp.transform.rotate"
+          class="ru.citeck.ecos.processor.transform.RotateTransform"/>
+    <bean id="SimpleTransform.Translate" name="dbp.transform.translate"
+          class="ru.citeck.ecos.processor.transform.TranslateTransform"/>
 
     <!-- affine transform to place object in the upper left corner of the page -->
     <bean id="SimpleTransformCalculator.UpperLeft" name="dbp.transform.upper.left" parent="SimpleTransformCalculator">
         <property name="transforms">
             <list>
                 <bean parent="dbp.transform.translate">
-                    <property name="x" value="0 0  0 0 0" />
-                    <property name="y" value="0 0 -1 0 1" />
+                    <property name="x" value="0 0  0 0 0"/>
+                    <property name="y" value="0 0 -1 0 1"/>
                 </bean>
             </list>
         </property>
     </bean>
 
     <!-- affine transform to place object in the upper center of the page -->
-    <bean id="SimpleTransformCalculator.UpperCenter" name="dbp.transform.upper.center" parent="SimpleTransformCalculator">
+    <bean id="SimpleTransformCalculator.UpperCenter" name="dbp.transform.upper.center"
+          parent="SimpleTransformCalculator">
         <property name="transforms">
             <list>
                 <bean parent="dbp.transform.translate">
-                    <property name="x" value="0 -0.5 0 0.5 0" />
-                    <property name="y" value="-10 0 -1 0 1" />
+                    <property name="x" value="0 -0.5 0 0.5 0"/>
+                    <property name="y" value="-10 0 -1 0 1"/>
                 </bean>
             </list>
         </property>
@@ -442,8 +472,8 @@
         <property name="transforms">
             <list>
                 <bean parent="dbp.transform.translate">
-                    <property name="x" value="0 -1  0 1 0" />
-                    <property name="y" value="0  0 -1 0 1" />
+                    <property name="x" value="0 -1  0 1 0"/>
+                    <property name="y" value="0  0 -1 0 1"/>
                 </bean>
             </list>
         </property>
@@ -454,8 +484,8 @@
         <property name="transforms">
             <list>
                 <bean parent="dbp.transform.translate">
-                    <property name="x" value="0 -0.5 0 0.5 0" />
-                    <property name="y" value="0 0 -0.5 0 0.5" />
+                    <property name="x" value="0 -0.5 0 0.5 0"/>
+                    <property name="y" value="0 0 -0.5 0 0.5"/>
                 </bean>
             </list>
         </property>
@@ -466,20 +496,21 @@
         <property name="transforms">
             <list>
                 <bean parent="dbp.transform.translate">
-                    <property name="x" value="0 0  0 0 0" />
-                    <property name="y" value="0  0 0 0 0" />
+                    <property name="x" value="0 0  0 0 0"/>
+                    <property name="y" value="0  0 0 0 0"/>
                 </bean>
             </list>
         </property>
     </bean>
 
     <!-- affine transform to place object in the lower center of the page -->
-    <bean id="SimpleTransformCalculator.LowerCenter" name="dbp.transform.lower.center" parent="SimpleTransformCalculator">
+    <bean id="SimpleTransformCalculator.LowerCenter" name="dbp.transform.lower.center"
+          parent="SimpleTransformCalculator">
         <property name="transforms">
             <list>
                 <bean parent="dbp.transform.translate">
-                    <property name="x" value="0 -0.5 0 0.5 0" />
-                    <property name="y" value="10 0 0 0 0" />
+                    <property name="x" value="0 -0.5 0 0.5 0"/>
+                    <property name="y" value="10 0 0 0 0"/>
                 </bean>
             </list>
         </property>
@@ -490,8 +521,8 @@
         <property name="transforms">
             <list>
                 <bean parent="dbp.transform.translate">
-                    <property name="x" value="0 -1 0 1 0" />
-                    <property name="y" value="0  0 0 0 0" />
+                    <property name="x" value="0 -1 0 1 0"/>
+                    <property name="y" value="0  0 0 0 0"/>
                 </bean>
             </list>
         </property>
@@ -520,19 +551,19 @@
 
     <bean id="ReportProducer" class="ru.citeck.ecos.processor.report.ReportProducer"
           name="dbp.report.producer" parent="AbstractDataBundleLine" abstract="true">
-        <property name="serviceRegistry" ref="ServiceRegistry" />
-        <property name="templateNodeService" ref="TemplateNodeService" />
-        <property name="personFirstName"  value="${reportProducer.personFirstName}" />
-        <property name="personLastName"   value="${reportProducer.personLastName}" />
-        <property name="personMiddleName" value="${reportProducer.personMiddleName}" />
+        <property name="serviceRegistry" ref="ServiceRegistry"/>
+        <property name="templateNodeService" ref="TemplateNodeService"/>
+        <property name="personFirstName" value="${reportProducer.personFirstName}"/>
+        <property name="personLastName" value="${reportProducer.personLastName}"/>
+        <property name="personMiddleName" value="${reportProducer.personMiddleName}"/>
     </bean>
 
-    <bean id="ReportOutputHTML" name="dbp.report.template.html" parent="OutputTemplateLine.html" abstract="true" />
+    <bean id="ReportOutputHTML" name="dbp.report.template.html" parent="OutputTemplateLine.html" abstract="true"/>
 
     <bean id="ReportOutputExcel" class="ru.citeck.ecos.processor.report.ReportOutputExcel"
-          name="dbp.report.template.xlsx" parent="AbstractDataBundleLine" abstract="true" />
+          name="dbp.report.template.xlsx" parent="AbstractDataBundleLine" abstract="true"/>
 
     <bean id="ReportOutputCSV" class="ru.citeck.ecos.processor.report.ReportOutputCSV"
-          name="dbp.report.template.csv" parent="AbstractDataBundleLine" abstract="true" />
+          name="dbp.report.template.csv" parent="AbstractDataBundleLine" abstract="true"/>
 
 </beans>

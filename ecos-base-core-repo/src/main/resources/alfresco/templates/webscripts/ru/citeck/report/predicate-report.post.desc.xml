@@ -5,15 +5,15 @@
     <format default="html"/>
     <authentication>user</authentication>
     <transaction allow="readonly">required</transaction>
-	<responses>
-		<response>
-			<format>html</format>
-			<type>HTML</type>
-		</response>
-		<response>
-			<format>pdf</format>
-			<type>PDF</type>
-		</response>
+    <responses>
+        <response>
+            <format>html</format>
+            <type>HTML</type>
+        </response>
+        <response>
+            <format>pdf</format>
+            <type>PDF</type>
+        </response>
         <response>
             <format>docx</format>
             <type>DOCX</type>
@@ -22,5 +22,5 @@
             <format>xlsx</format>
             <type>XLSX</type>
         </response>
-	</responses>
+    </responses>
 </webscript>

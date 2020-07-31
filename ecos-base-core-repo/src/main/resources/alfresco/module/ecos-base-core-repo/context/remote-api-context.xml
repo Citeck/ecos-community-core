@@ -9,30 +9,32 @@
     <bean id="DataBundleProcessorWebscript" class="ru.citeck.ecos.webscripts.processor.DataBundleProcessorWebscript"
           name="dbp.webscript" abstract="true" init-method="init" parent="webscript">
         <property name="processor">
-            <bean parent="dbp.sequential" />
+            <bean parent="dbp.sequential"/>
         </property>
-        <property name="evaluator" ref="TemplateExpressionEvaluator" />
-        <property name="mimetypeService" ref="mimetypeService" />
+        <property name="evaluator" ref="TemplateExpressionEvaluator"/>
+        <property name="mimetypeService" ref="mimetypeService"/>
     </bean>
 
-    <bean id="DataBundleProcessorWebScript.download" name="dbp.webscript.download" parent="DataBundleProcessorWebscript">
-        <property name="download" value="${args.download!'true'}" />
+    <bean id="DataBundleProcessorWebScript.download" name="dbp.webscript.download"
+          parent="DataBundleProcessorWebscript">
+        <property name="download" value="${args.download!'true'}"/>
     </bean>
 
     <bean id="DataBundleProcessorWebScript.view" name="dbp.webscript.view" parent="DataBundleProcessorWebscript">
-        <property name="download" value="${args.download!'false'}" />
+        <property name="download" value="${args.download!'false'}"/>
     </bean>
 
     <bean id="webscript.ru.citeck.print.content.get" parent="dbp.webscript.download">
         <property name="processors">
             <list>
                 <bean parent="dbp.content">
-                    <property name="nodeRef" value="${args.nodeRef}" />
+                    <property name="nodeRef" value="${args.nodeRef}"/>
                 </bean>
                 <bean parent="dbp.model">
                     <property name="model">
                         <map>
-                            <entry key="filename" value="#{'$'}{companyhome.nodeByReference[args.nodeRef].properties['cm:name']}" />
+                            <entry key="filename"
+                                   value="#{'$'}{companyhome.nodeByReference[args.nodeRef].properties['cm:name']}"/>
                         </map>
                     </property>
                 </bean>
@@ -43,23 +45,23 @@
     <bean id="webscript.ru.citeck.print.barcode.get" parent="dbp.webscript.view">
         <property name="processors">
             <list>
-                <ref bean="dbp.pdf.barcode.webscript" />
+                <ref bean="dbp.pdf.barcode.webscript"/>
                 <bean parent="dbp.switch">
-                    <property name="expression" value="${args.output!'pdf'}" />
+                    <property name="expression" value="${args.output!'pdf'}"/>
                     <property name="cases">
                         <map>
                             <entry key="pdf">
                                 <bean parent="dbp.switch">
-                                    <property name="expression" value="${args.print!'false'}" />
+                                    <property name="expression" value="${args.print!'false'}"/>
                                     <property name="cases">
                                         <map>
-                                            <entry key="true" value-ref="dbp.pdf.printdialog" />
+                                            <entry key="true" value-ref="dbp.pdf.printdialog"/>
                                         </map>
                                     </property>
                                 </bean>
                             </entry>
-                            <entry key="png" value-ref="dbp.transform.png" />
-                            <entry key="jpg" value-ref="dbp.transform.jpg" />
+                            <entry key="png" value-ref="dbp.transform.png"/>
+                            <entry key="jpg" value-ref="dbp.transform.jpg"/>
                         </map>
                     </property>
                 </bean>
@@ -71,14 +73,14 @@
         <property name="processors">
             <list>
                 <bean parent="dbp.content">
-                    <property name="nodeRef" value="${args.nodeRef}" />
+                    <property name="nodeRef" value="${args.nodeRef}"/>
                 </bean>
-                <bean parent="dbp.transform.pdf" />
+                <bean parent="dbp.transform.pdf"/>
                 <bean parent="dbp.switch">
-                    <property name="expression" value="${args.print!'false'}" />
+                    <property name="expression" value="${args.print!'false'}"/>
                     <property name="cases">
                         <map>
-                            <entry key="true" value-ref="dbp.pdf.printdialog" />
+                            <entry key="true" value-ref="dbp.pdf.printdialog"/>
                         </map>
                     </property>
                 </bean>
@@ -90,14 +92,14 @@
         <property name="processors">
             <list>
                 <bean parent="dbp.content">
-                    <property name="nodeRef" value="${args.nodeRef}" />
+                    <property name="nodeRef" value="${args.nodeRef}"/>
                 </bean>
-                <bean parent="dbp.transform.pdf" />
+                <bean parent="dbp.transform.pdf"/>
                 <bean parent="dbp.pdf.stamp.above">
-                    <property name="transformCalculator" ref="dbp.transform.upper.right" />
+                    <property name="transformCalculator" ref="dbp.transform.upper.right"/>
                     <property name="stampProcessors">
                         <list>
-                            <ref bean="dbp.pdf.barcode.webscript" />
+                            <ref bean="dbp.pdf.barcode.webscript"/>
                         </list>
                     </property>
                 </bean>
@@ -109,15 +111,15 @@
         <property name="processors">
             <list>
                 <bean parent="dbp.content">
-                    <property name="nodeRef" value="${args.nodeRef}" />
+                    <property name="nodeRef" value="${args.nodeRef}"/>
                 </bean>
-                <bean parent="dbp.transform.pdf" />
+                <bean parent="dbp.transform.pdf"/>
                 <bean parent="dbp.pdf.stamp.above">
-                    <property name="transformCalculator" ref="dbp.transform.diagonal" />
+                    <property name="transformCalculator" ref="dbp.transform.diagonal"/>
                     <property name="stampProcessors">
                         <list>
                             <bean parent="dbp.content">
-                                <property name="nodeRef" value="workspace://SpacesStore/idocs-watermark-final" />
+                                <property name="nodeRef" value="workspace://SpacesStore/idocs-watermark-final"/>
                             </bean>
                         </list>
                     </property>
@@ -130,12 +132,13 @@
         <property name="processors">
             <list>
                 <bean parent="dbp.model.workflow">
-                    <property name="workflowId" value="${args.workflowId}" />
+                    <property name="workflowId" value="${args.workflowId}"/>
                 </bean>
                 <bean parent="dbp.template.html">
-                    <property name="template" value="alfresco/templates/webscripts/ru/citeck/print/workflow-details.get.html.ftl" />
+                    <property name="template"
+                              value="alfresco/templates/webscripts/ru/citeck/print/workflow-details.get.html.ftl"/>
                 </bean>
-                <bean parent="dbp.transform.pdf" />
+                <bean parent="dbp.transform.pdf"/>
             </list>
         </property>
     </bean>
@@ -143,23 +146,24 @@
     <bean id="webscript.ru.citeck.report.criteria-report.post" parent="dbp.webscript.view">
         <property name="processors">
             <list>
-                <bean parent="dbp.filter.formtojson" />
-                <bean parent="dbp.report.filter" />
+                <bean parent="dbp.filter.formtojson"/>
+                <bean parent="dbp.report.filter"/>
                 <bean parent="dbp.query.construct">
                     <property name="builder" ref="ftsQueryBuilder"/>
                 </bean>
                 <bean parent="dbp.query.execute">
                     <property name="language" value="fts-alfresco"/>
                 </bean>
-                <bean parent="dbp.report.producer" />
+                <bean parent="dbp.report.producer"/>
                 <bean class="ru.citeck.ecos.processor.DataBundleExpanderProcessor"/>
                 <bean parent="dbp.switch">
-                    <property name="expression" value="${reportType!'html'}" />
+                    <property name="expression" value="${reportType!'html'}"/>
                     <property name="cases">
                         <map>
                             <entry key="xlsx">
                                 <bean parent="dbp.report.template.xlsx">
-                                    <property name="template" value="alfresco/templates/reports/ru/citeck/default.xlsx"/>
+                                    <property name="template"
+                                              value="alfresco/templates/reports/ru/citeck/default.xlsx"/>
                                 </bean>
                             </entry>
                         </map>
@@ -171,7 +175,7 @@
                     </property>
                 </bean>
                 <bean parent="dbp.switch">
-                    <property name="expression" value="${reportType!'html'}" />
+                    <property name="expression" value="${reportType!'html'}"/>
                     <property name="cases">
                         <map>
                             <entry key="csv">
@@ -181,10 +185,10 @@
                     </property>
                 </bean>
                 <bean parent="dbp.switch">
-                    <property name="expression" value="${reportType!'html'}" />
+                    <property name="expression" value="${reportType!'html'}"/>
                     <property name="cases">
                         <map>
-                            <entry key="pdf" value-ref="dbp.transform.pdf" />
+                            <entry key="pdf" value-ref="dbp.transform.pdf"/>
                         </map>
                     </property>
                 </bean>
@@ -195,8 +199,8 @@
     <bean id="webscript.ru.citeck.report.predicate-report.post" parent="dbp.webscript.view">
         <property name="processors">
             <list>
-                <bean parent="dbp.filter.formtojson" />
-                <bean parent="dbp.report.filter" />
+                <bean parent="dbp.filter.formtojson"/>
+                <bean parent="dbp.report.filter"/>
                 <bean parent="dbp.query.construct">
                     <property name="builder" ref="ftsQueryBuilder"/>
                 </bean>
@@ -204,15 +208,16 @@
                 <bean parent="dbp.query.execute">
                     <property name="language" value="predicate"/>
                 </bean>
-                <bean parent="dbp.report.producer" />
+                <bean parent="dbp.report.producer"/>
                 <bean class="ru.citeck.ecos.processor.DataBundleExpanderProcessor"/>
                 <bean parent="dbp.switch">
-                    <property name="expression" value="${reportType!'html'}" />
+                    <property name="expression" value="${reportType!'html'}"/>
                     <property name="cases">
                         <map>
                             <entry key="xlsx">
                                 <bean parent="dbp.report.template.xlsx">
-                                    <property name="template" value="alfresco/templates/reports/ru/citeck/default.xlsx"/>
+                                    <property name="template"
+                                              value="alfresco/templates/reports/ru/citeck/default.xlsx"/>
                                 </bean>
                             </entry>
                         </map>
@@ -224,7 +229,7 @@
                     </property>
                 </bean>
                 <bean parent="dbp.switch">
-                    <property name="expression" value="${reportType!'html'}" />
+                    <property name="expression" value="${reportType!'html'}"/>
                     <property name="cases">
                         <map>
                             <entry key="csv">
@@ -234,10 +239,10 @@
                     </property>
                 </bean>
                 <bean parent="dbp.switch">
-                    <property name="expression" value="${reportType!'html'}" />
+                    <property name="expression" value="${reportType!'html'}"/>
                     <property name="cases">
                         <map>
-                            <entry key="pdf" value-ref="dbp.transform.pdf" />
+                            <entry key="pdf" value-ref="dbp.transform.pdf"/>
                         </map>
                     </property>
                 </bean>
@@ -273,10 +278,10 @@
           parent="webscript">
         <property name="searchObject">
             <bean class="ru.citeck.ecos.search.SearchQuery">
-                <property name="searchService" ref="searchService" />
-                <property name="nodeService" ref="nodeService" />
-                <property name="attributeService" ref="nodeAttributeService" />
-                <property name="namespaceService" ref="namespaceService" />
+                <property name="searchService" ref="searchService"/>
+                <property name="nodeService" ref="nodeService"/>
+                <property name="attributeService" ref="nodeAttributeService"/>
+                <property name="namespaceService" ref="namespaceService"/>
             </bean>
         </property>
     </bean>
@@ -286,10 +291,10 @@
           parent="webscript">
         <property name="searchObject">
             <bean class="ru.citeck.ecos.search.SearchQuery">
-                <property name="searchService" ref="searchService" />
-                <property name="nodeService" ref="nodeService" />
-                <property name="attributeService" ref="nodeAttributeService" />
-                <property name="namespaceService" ref="namespaceService" />
+                <property name="searchService" ref="searchService"/>
+                <property name="nodeService" ref="nodeService"/>
+                <property name="attributeService" ref="nodeAttributeService"/>
+                <property name="namespaceService" ref="namespaceService"/>
             </bean>
         </property>
     </bean>
