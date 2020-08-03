@@ -1,5 +1,6 @@
 package ru.citeck.ecos.flowable.listeners.global.impl.variables;
 
+import org.alfresco.service.ServiceRegistry;
 import org.alfresco.service.cmr.repository.NodeRef;
 import org.alfresco.service.cmr.repository.NodeService;
 import org.apache.commons.lang.StringUtils;
@@ -29,8 +30,12 @@ public abstract class AbstractFlowableSaveToExecutionListener implements GlobalS
 
     @Autowired
     protected NodeService nodeService;
+
     @Autowired
     private RuntimeService runtimeService;
+
+    @Autowired
+    protected ServiceRegistry serviceRegistry;
 
     @Override
     public void notify(DelegateExecution execution) {

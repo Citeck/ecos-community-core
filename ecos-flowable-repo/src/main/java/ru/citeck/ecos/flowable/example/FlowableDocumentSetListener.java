@@ -10,7 +10,10 @@ import ru.citeck.ecos.flowable.variable.FlowableScriptNode;
  * @author Roman Makarskiy
  * <p>
  * Document set listener
+ * @deprecated Now document set by default^
+ * {@link ru.citeck.ecos.flowable.listeners.global.impl.variables.FlowableBaseVariablesSetListener }
  */
+@Deprecated
 public class FlowableDocumentSetListener extends AbstractExecutionListener {
 
     private static final String VAR_DOCUMENT = "document";
