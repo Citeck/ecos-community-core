@@ -19,6 +19,9 @@ public class NotificationServiceConfig {
     @Value("${notifications.default.locale}")
     private String defaultAppNotificationLocale;
 
+    @Value("${notifications.default.from}")
+    private String defaultAppNotificationFrom;
+
     @Bean
     public NotificationService ecosNotificationService(CommandsService commandsService,
                                                        RecordsService recordsService,
@@ -27,6 +30,7 @@ public class NotificationServiceConfig {
         NotificationService service = new NotificationService(commandsService, recordsService, recordsMetaService,
             notificationTemplateService);
         service.setDefaultLocale(LocaleUtils.toLocale(defaultAppNotificationLocale));
+        service.setDefaultFrom(defaultAppNotificationFrom);
         return service;
     }
 
