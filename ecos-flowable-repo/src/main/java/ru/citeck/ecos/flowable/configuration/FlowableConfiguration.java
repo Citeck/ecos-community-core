@@ -39,6 +39,7 @@ import ru.citeck.ecos.flowable.variable.FlowableScriptNodeListVariableType;
 import ru.citeck.ecos.flowable.variable.FlowableScriptNodeVariableType;
 import ru.citeck.ecos.icase.CaseStatusServiceJS;
 import ru.citeck.ecos.icase.completeness.CaseCompletenessServiceJS;
+import ru.citeck.ecos.notifications.lib.service.NotificationService;
 import ru.citeck.ecos.workflow.variable.handler.EcosPojoTypeHandler;
 
 import javax.sql.DataSource;
@@ -78,6 +79,7 @@ public class FlowableConfiguration {
 
 
     private static final String BEAN_KEY_COMPLETENESS_SERVICE_JS = "caseCompletenessServiceJS";
+    private static final String BEAN_KEY_NOTIFICATION_SERVICE = "ecosNotificationService";
     private static final String BEAN_KEY_CASE_STATUS_SERVICE_JS = "caseStatusServiceJS";
 
     /**
@@ -220,10 +222,15 @@ public class FlowableConfiguration {
                 CaseCompletenessServiceJS.class);
         CaseStatusServiceJS caseStatusServiceJS = applicationContext.getBean(BEAN_KEY_CASE_STATUS_SERVICE_JS,
                 CaseStatusServiceJS.class);
+        Properties properties = applicationContext.getBean("global-properties", Properties.class);
+        NotificationService notificationService = applicationContext.getBean(BEAN_KEY_NOTIFICATION_SERVICE,
+            NotificationService.class);
 
         beans.put(FlowableConstants.SERVICE_REGISTRY_BEAN_KEY, descriptorRegistry);
         beans.put(FlowableConstants.COMPLETENESS_SERVICE_JS_KEY, caseCompletenessServiceJS);
         beans.put(FlowableConstants.CASE_STATUS_SERVICE_JS_KEY, caseStatusServiceJS);
+        beans.put(FlowableConstants.GLOBAL_PROPERTIES_BEAN_KEY, properties);
+        beans.put(FlowableConstants.NOTIFICATION_SERVICE_BEAN_KEY, notificationService);
 
         Map<String, FlowableEngineProcessService> engineProcessServices = applicationContext.getBeansOfType(
                 FlowableEngineProcessService.class);
