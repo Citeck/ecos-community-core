@@ -21,9 +21,9 @@
 
     <dependencies>
         <dependency>
-            <groupId>org.flowable</groupId>
+            <groupId>ru.citeck.ecos.flowable</groupId>
             <artifactId>flowable-engine</artifactId>
-            <version>${flowable.version}</version>
+            <version>${ecos.flowable.version}</version>
             <exclusions>
                 <exclusion>
                     <groupId>org.springframework</groupId>
