@@ -1,25 +1,28 @@
-package ru.citeck.ecos.records.language;
+package ru.citeck.ecos.records.language.predicate.converters.impl;
 
 import lombok.extern.slf4j.Slf4j;
 import org.alfresco.model.ContentModel;
 import org.alfresco.repo.security.authentication.AuthenticationUtil;
-import org.alfresco.service.ServiceRegistry;
 import org.alfresco.service.cmr.dictionary.*;
 import org.alfresco.service.cmr.repository.NodeRef;
 import org.alfresco.service.cmr.repository.NodeService;
+import org.alfresco.service.cmr.search.QueryConsistency;
 import org.alfresco.service.cmr.search.SearchService;
 import org.alfresco.service.namespace.NamespaceService;
 import org.alfresco.service.namespace.QName;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import ru.citeck.ecos.config.EcosConfigService;
 import ru.citeck.ecos.model.EcosTypeModel;
 import ru.citeck.ecos.node.EcosTypeService;
-import ru.citeck.ecos.records2.predicate.PredicateService;
-import ru.citeck.ecos.records2.predicate.model.*;
-import ru.citeck.ecos.records2.querylang.QueryLangConverter;
-import ru.citeck.ecos.records2.querylang.QueryLangService;
+import ru.citeck.ecos.records.language.predicate.converters.PredicateToFtsConverter;
+import ru.citeck.ecos.records.language.predicate.converters.delegators.ConvertersDelegator;
 import ru.citeck.ecos.records2.RecordRef;
+import ru.citeck.ecos.records2.predicate.model.ComposedPredicate;
+import ru.citeck.ecos.records2.predicate.model.OrPredicate;
+import ru.citeck.ecos.records2.predicate.model.Predicate;
+import ru.citeck.ecos.records2.predicate.model.ValuePredicate;
 import ru.citeck.ecos.search.AssociationIndexPropertyRegistry;
 import ru.citeck.ecos.search.ftsquery.BinOperator;
 import ru.citeck.ecos.search.ftsquery.FTSQuery;
@@ -38,163 +41,87 @@ import java.util.stream.Stream;
 
 import static ru.citeck.ecos.model.ClassificationModel.PROP_DOCUMENT_KIND;
 import static ru.citeck.ecos.model.ClassificationModel.PROP_DOCUMENT_TYPE;
-import static ru.citeck.ecos.records.language.AttributeConstants.*;
+import static ru.citeck.ecos.records.language.predicate.converters.impl.constants.ValuePredicateToFtsAlfrescoConstants.*;
 import static ru.citeck.ecos.records2.predicate.model.ValuePredicate.Type.CONTAINS;
 import static ru.citeck.ecos.records2.predicate.model.ValuePredicate.Type.EQ;
 
 @Component
 @Slf4j
-public class PredicateToFtsAlfrescoConverter implements QueryLangConverter<Predicate, String> {
+public class ValuePredicateToFtsConverter implements PredicateToFtsConverter {
 
-    private static final String COMMA_DELIMITER = ",";
-    private static final String SLASH_DELIMITER = "/";
-    private static final String WORKSPACE_PREFIX = "workspace://SpacesStore/";
-    private static final String CURRENT_USER = "$CURRENT";
-    private static final int INNER_QUERY_MAX_ITEMS = 20;
+    private ConvertersDelegator delegator;
 
-    private static final String UNKNOWN_PREDICATE_TYPE = "Unknown predicate type: %s";
-    private static final String UNKNOWN_VALUE_PREDICATE_TYPE = "Unknown value predicate type: %s";
-    private static final String CANNOT_PARSE_TIME = "Cannot parse time";
+    private NodeService nodeService;
+    private SearchService searchService;
+    private EcosTypeService ecosTypeService;
+    private NamespaceService namespaceService;
+    private EcosConfigService ecosConfigService;
+    private AssociationIndexPropertyRegistry associationIndexPropertyRegistry;
 
-    private static final String CM_MODIFIED_ATTRIBUTE = "cm:modified";
-    private static final String CM_MODIFIER_ATTRIBUTE = "cm:modifier";
-    private static final String WFM_ACTORS_ATTRIBUTE = "wfm:actors";
 
-    private final DictUtils dictUtils;
-    private final NodeService nodeService;
-    private final SearchService searchService;
-    private final AuthorityUtils authorityUtils;
-    private final EcosTypeService ecosTypeService;
-    private final NamespaceService namespaceService;
-    private final AssociationIndexPropertyRegistry associationIndexPropertyRegistry;
+    private DictUtils dictUtils;
+    private AuthorityUtils authorityUtils;
 
-    @Autowired
-    public PredicateToFtsAlfrescoConverter(DictUtils dictUtils,
-                                           SearchService searchService,
-                                           QueryLangService queryLangService,
-                                           AuthorityUtils authorityUtils, ServiceRegistry serviceRegistry,
-                                           AssociationIndexPropertyRegistry associationIndexPropertyRegistry,
-                                           NodeService nodeService,
-                                           EcosTypeService ecosTypeService) {
+    @Override
+    public void convert(Predicate predicate, FTSQuery query) {
+        ValuePredicate valuePredicate = (ValuePredicate) predicate;
+        String attribute = valuePredicate.getAttribute();
 
-        this.dictUtils = dictUtils;
-        this.nodeService = nodeService;
-        this.searchService = searchService;
-        this.authorityUtils = authorityUtils;
-        this.ecosTypeService = ecosTypeService;
-        this.namespaceService = serviceRegistry.getNamespaceService();
-        this.associationIndexPropertyRegistry = associationIndexPropertyRegistry;
-
-        queryLangService.register(this, PredicateService.LANGUAGE_PREDICATE, SearchService.LANGUAGE_FTS_ALFRESCO);
-    }
-
-    private void convertPredicate(Predicate predicate, FTSQuery query) {
-        if (predicate instanceof ComposedPredicate) {
-            convertComposedPredicate(predicate, query);
-            return;
-        }
-        if (predicate instanceof NotPredicate) {
-            query.not();
-            convertPredicate(((NotPredicate) predicate).getPredicate(), query);
-            return;
-        }
-        if (predicate instanceof ValuePredicate) {
-            convertValuePredicate(predicate, query);
-            return;
-        }
-        if (predicate instanceof EmptyPredicate) {
-            String attribute = ((EmptyPredicate) predicate).getAttribute();
-            consumeQueryField(attribute, query::empty);
-            return;
-        }
-        if (predicate instanceof VoidPredicate) {
-            //do nothing
-            return;
-        }
-
-        throw new RuntimeException(String.format(UNKNOWN_PREDICATE_TYPE, predicate));
-    }
-
-    private void convertComposedPredicate(Predicate predicate, FTSQuery query) {
-        query.open();
-
-        List<Predicate> predicates = ((ComposedPredicate) predicate).getPredicates();
-        boolean isJoinByAnd = predicate instanceof AndPredicate;
-
-        for (int i = 0; i < predicates.size(); i++) {
-            if (i > 0) {
-                if (isJoinByAnd) {
-                    query.and();
-                } else {
-                    query.or();
-                }
-            }
-
-            convertPredicate(predicates.get(i), query);
-        }
-
-        query.close();
-    }
-
-    private void convertValuePredicate(Predicate predicate, FTSQuery query) {
-        ValuePredicate valuePred = (ValuePredicate) predicate;
-        String attribute = valuePred.getAttribute();
-
-        Object value = valuePred.getValue();
-        String valueStr = value.toString();
+        Object objectPredicateValue = valuePredicate.getValue();
+        String predicateValue = objectPredicateValue.toString();
 
         switch (attribute) {
             case ALL: {
-                query.value(valueStr).and().type(ContentModel.PROP_CONTENT);
+                createQueryForAttributeAll(query, predicateValue);
                 break;
             }
             case PATH: {
-                query.path(valueStr);
+                query.path(predicateValue);
                 break;
             }
             case PARENT:
             case _PARENT: {
-                query.parent(new NodeRef(toValidNodeRef(valueStr)));
+                query.parent(new NodeRef(toValidNodeRef(predicateValue)));
                 break;
             }
             case TYPE:
             case S_TYPE: {
-                consumeQName(valueStr, query::type);
+                consumeQName(predicateValue, query::type);
                 break;
             }
             case _TYPE:
             case _ETYPE: {
-                handleETypeAttribute(query, valueStr);
+                handleETypeAttribute(query, predicateValue);
                 break;
             }
             case ASPECT:
             case S_ASPECT: {
-                consumeQName(valueStr, query::aspect);
+                consumeQName(predicateValue, query::aspect);
                 break;
             }
             case IS_NULL: {
-                consumeQName(valueStr, query::isNull);
+                consumeQName(predicateValue, query::isNull);
                 break;
             }
             case IS_NOT_NULL: {
-                consumeQueryField(valueStr, query::isNotNull);
+                consumeQueryField(predicateValue, query::isNotNull);
                 break;
             }
             case IS_UNSET: {
-                consumeQueryField(valueStr, query::isUnset);
+                consumeQueryField(predicateValue, query::isUnset);
                 break;
             }
             case MODIFIER: {
-                convertValuePredicateCopyForAttr(valuePred, CM_MODIFIER_ATTRIBUTE, query);
+                convertValuePredicateCopyForAttr(valuePredicate, CM_MODIFIER_ATTRIBUTE, query);
                 break;
             }
             case MODIFIED: {
-                convertValuePredicateCopyForAttr(valuePred, CM_MODIFIED_ATTRIBUTE, query);
+                convertValuePredicateCopyForAttr(valuePredicate, CM_MODIFIED_ATTRIBUTE, query);
                 break;
             }
             case ACTORS: {
-                String actor = getActorByValue(valueStr);
-                convertPredicate(getOrPredicateForActors(actor), query);
+                String actor = getActorByValue(predicateValue);
+                delegator.delegate(getOrPredicateForActors(actor), query);
                 break;
             }
             default: {
@@ -204,37 +131,38 @@ public class PredicateToFtsAlfrescoConverter implements QueryLangConverter<Predi
                     break;
                 }
 
-                ValuePredicate.Type valuePredType = valuePred.getType();
+                ValuePredicate.Type valuePredType = valuePredicate.getType();
 
-                boolean valueContainsComma = valueStr.contains(COMMA_DELIMITER);
+                boolean valueContainsComma = predicateValue.contains(COMMA_DELIMITER);
                 boolean valueEqualEqOrContainsPredType = EQ.equals(valuePredType) || CONTAINS.equals(valuePredType);
 
                 if (valueContainsComma && valueEqualEqOrContainsPredType) {
-                    String[] values = valueStr.split(COMMA_DELIMITER);
+                    List<String> values = Arrays.asList(predicateValue.split(COMMA_DELIMITER));
                     ComposedPredicate orPredicate = new OrPredicate();
+
                     for (String s : values) {
-                        orPredicate.addPredicate(new ValuePredicate(valuePred.getAttribute(), valuePredType, s));
+                        orPredicate.addPredicate(new ValuePredicate(valuePredicate.getAttribute(), valuePredType, s));
                     }
-                    convertPredicate(orPredicate, query);
+                    delegator.delegate(orPredicate, query);
                     break;
                 }
 
                 if (isNodeRefAtt(attDef)) {
-                    valueStr = toValidNodeRef(valueStr);
+                    predicateValue = toValidNodeRef(predicateValue);
                 }
 
-                String predValue = getPredicateValue(value, valueStr, attDef);
+                String predValue = getPredicateValue(objectPredicateValue, predicateValue, attDef);
                 switch (valuePredType) {
                     case EQ: {
-                        query.exact(field, valueStr);
+                        query.exact(field, predicateValue);
                         return;
                     }
                     case LIKE: {
-                        query.value(field, valueStr.replaceAll("%", "*"));
+                        query.value(field, predicateValue.replaceAll("%", "*"));
                         return;
                     }
                     case CONTAINS: {
-                        if (StringUtils.isEmpty(valueStr)) {
+                        if (StringUtils.isEmpty(predicateValue)) {
                             return;
                         }
 
@@ -244,33 +172,33 @@ public class PredicateToFtsAlfrescoConverter implements QueryLangConverter<Predi
                             QName typeName = dataType != null ? dataType.getName() : null;
 
                             if (DataTypeDefinition.TEXT.equals(typeName)) {
-                                convertContainsTextPredicate(propertyDefinition, query, field, valueStr);
+                                convertContainsTextPredicate(propertyDefinition, query, field, predicateValue);
                                 return;
                             }
                             if (DataTypeDefinition.MLTEXT.equals(typeName)) {
-                                query.value(field, "*" + valueStr + "*");
+                                query.value(field, "*" + predicateValue + "*");
                                 return;
                             }
                             if (DataTypeDefinition.CATEGORY.equals(typeName)) {
-                                addNodeRefSearchTerms(query, field, DataTypeDefinition.CATEGORY, valueStr);
+                                addNodeRefSearchTerms(query, field, DataTypeDefinition.CATEGORY, predicateValue);
                                 return;
                             }
                             if (DataTypeDefinition.NODE_REF.equals(typeName)) {
-                                addNodeRefSearchTerms(query, field, null, valueStr);
+                                addNodeRefSearchTerms(query, field, null, predicateValue);
                                 return;
                             }
 
-                            query.value(field, valueStr);
+                            query.value(field, predicateValue);
                             return;
                         }
                         if (attDef instanceof AssociationDefinition) {
-                            if (NodeRef.isNodeRef(valueStr)) {
-                                query.value(field, valueStr);
+                            if (NodeRef.isNodeRef(predicateValue)) {
+                                query.value(field, predicateValue);
                                 return;
                             }
 
                             ClassDefinition targetType = ((AssociationDefinition) attDef).getTargetClass();
-                            addNodeRefSearchTerms(query, field, targetType.getName(), valueStr);
+                            addNodeRefSearchTerms(query, field, targetType.getName(), predicateValue);
                         }
                         return;
                     }
@@ -294,6 +222,35 @@ public class PredicateToFtsAlfrescoConverter implements QueryLangConverter<Predi
                 throw new RuntimeException(String.format(UNKNOWN_VALUE_PREDICATE_TYPE, valuePredType));
             }
         }
+    }
+
+    private void createQueryForAttributeAll(FTSQuery query, String value) {
+        query.type(ContentModel.TYPE_CONTENT)
+            .and().not().value(ContentModel.PROP_CREATOR, SYSTEM)
+            .consistency(QueryConsistency.EVENTUAL);
+
+        addSearchingPropsToQuery(query, value);
+        excludeTypesFromQuery(query);
+        excludeAspectsFromQuery(query);
+    }
+
+    private void addSearchingPropsToQuery(FTSQuery query, String value) {
+        query.and().open();
+
+        List<QName> propsForSearch = getQNameConfigValueDelimitedByComma(SEARCH_PROPS);
+        propsForSearch.forEach(prop -> query.containsValue(prop, value).or());
+
+        query.close();
+    }
+
+    private void excludeTypesFromQuery(FTSQuery query) {
+        List<QName> excludedTypes = getQNameConfigValueDelimitedByComma(SEARCH_EXCLUDED_TYPES);
+        excludedTypes.forEach(type -> query.and().not().type(type));
+    }
+
+    private void excludeAspectsFromQuery(FTSQuery query) {
+        List<QName> excludedAspects = getQNameConfigValueDelimitedByComma(SEARCH_EXCLUDED_ASPECTS);
+        excludedAspects.forEach(aspect -> query.and().not().aspect(aspect));
     }
 
     private void convertContainsTextPredicate(PropertyDefinition propertyDefinition, FTSQuery query, QName field, String value) {
@@ -344,7 +301,7 @@ public class PredicateToFtsAlfrescoConverter implements QueryLangConverter<Predi
     private void convertValuePredicateCopyForAttr(ValuePredicate valuePredicate, String attribute, FTSQuery query) {
         ValuePredicate predCopyForAttr = valuePredicate.copy();
         predCopyForAttr.setAttribute(attribute);
-        convertPredicate(predCopyForAttr, query);
+        delegator.delegate(predCopyForAttr, query);
     }
 
     private String getActorByValue(String value) {
@@ -562,34 +519,69 @@ public class PredicateToFtsAlfrescoConverter implements QueryLangConverter<Predi
         return def.getName();
     }
 
-    @Override
-    public String convert(Predicate predicate) {
-        if (predicate instanceof VoidPredicate) {
-            return "";
+    private List<QName> getQNameConfigValueDelimitedByComma(String key) {
+        String searchPropsNames = (String) ecosConfigService.getParamValue(key);
+        if (StringUtils.isEmpty(searchPropsNames)) {
+            return Collections.emptyList();
         }
 
-        FTSQuery query = FTSQuery.createRaw();
-        convertPredicate(predicate, query);
+        List<String> splitSearchPropsNames = Arrays.asList(searchPropsNames.split(COMMA_DELIMITER));
 
-        return query.getQuery();
+        return splitSearchPropsNames.stream().distinct()
+            .map(this::resolveQName).filter(Objects::nonNull).collect(Collectors.toList());
     }
-}
 
-class AttributeConstants {
-    public static final String MODIFIED = "_modified";
-    public static final String MODIFIER = "_modifier";
-    public static final String ACTORS = "_actors";
-    public static final String ALL = "ALL";
-    public static final String PATH = "PATH";
-    public static final String PARENT = "PARENT";
-    public static final String _PARENT = "_parent";
-    public static final String TYPE = "TYPE";
-    public static final String S_TYPE = "type";
-    public static final String _TYPE = "_type";
-    public static final String _ETYPE = "_etype";
-    public static final String ASPECT = "ASPECT";
-    public static final String S_ASPECT = "aspect";
-    public static final String IS_NULL = "ISNULL";
-    public static final String IS_NOT_NULL = "ISNOTNULL";
-    public static final String IS_UNSET = "ISUNSET";
+    private QName resolveQName(String propQName) {
+        try {
+            return QName.resolveToQName(namespaceService, propQName);
+        } catch (Exception e) {
+            log.warn("propName: " + propQName + " didn't parse. ", e);
+        }
+        return null;
+    }
+
+    @Autowired
+    public void setDelegator(ConvertersDelegator delegator) {
+        this.delegator = delegator;
+    }
+
+    @Autowired
+    public void setNodeService(NodeService nodeService) {
+        this.nodeService = nodeService;
+    }
+
+    @Autowired
+    public void setSearchService(SearchService searchService) {
+        this.searchService = searchService;
+    }
+
+    @Autowired
+    public void setEcosTypeService(EcosTypeService ecosTypeService) {
+        this.ecosTypeService = ecosTypeService;
+    }
+
+    @Autowired
+    public void setNamespaceService(NamespaceService namespaceService) {
+        this.namespaceService = namespaceService;
+    }
+
+    @Autowired
+    public void setEcosConfigService(EcosConfigService ecosConfigService) {
+        this.ecosConfigService = ecosConfigService;
+    }
+
+    @Autowired
+    public void setAssociationIndexPropertyRegistry(AssociationIndexPropertyRegistry associationIndexPropertyRegistry) {
+        this.associationIndexPropertyRegistry = associationIndexPropertyRegistry;
+    }
+
+    @Autowired
+    public void setDictUtils(DictUtils dictUtils) {
+        this.dictUtils = dictUtils;
+    }
+
+    @Autowired
+    public void setAuthorityUtils(AuthorityUtils authorityUtils) {
+        this.authorityUtils = authorityUtils;
+    }
 }
