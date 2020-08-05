@@ -6,7 +6,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import ru.citeck.ecos.commands.CommandsService;
-import ru.citeck.ecos.notifications.lib.dto.TemplateModelDto;
+import ru.citeck.ecos.notifications.lib.dto.TemplateMultiModelAttributesDto;
 import ru.citeck.ecos.notifications.lib.service.NotificationService;
 import ru.citeck.ecos.notifications.lib.service.NotificationTemplateService;
 import ru.citeck.ecos.records2.RecordsService;
@@ -36,14 +36,14 @@ public class NotificationServiceConfig {
 
     @Bean
     public NotificationTemplateService notificationTemplateService(
-        @Qualifier("remoteSyncTemplateModelRecordsDao") RemoteSyncRecordsDao<TemplateModelDto> syncRecordsDao
+        @Qualifier("remoteSyncTemplateModelRecordsDao") RemoteSyncRecordsDao<TemplateMultiModelAttributesDto> syncRecordsDao
     ) {
         return new NotificationTemplateService(syncRecordsDao);
     }
 
     @Bean()
-    public RemoteSyncRecordsDao<TemplateModelDto> remoteSyncTemplateModelRecordsDao() {
-        return new RemoteSyncRecordsDao<>("notifications/template", TemplateModelDto.class);
+    public RemoteSyncRecordsDao<TemplateMultiModelAttributesDto> remoteSyncTemplateModelRecordsDao() {
+        return new RemoteSyncRecordsDao<>("notifications/template", TemplateMultiModelAttributesDto.class);
     }
 
 }
