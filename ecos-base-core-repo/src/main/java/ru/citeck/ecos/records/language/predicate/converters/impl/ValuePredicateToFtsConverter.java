@@ -109,11 +109,11 @@ public class ValuePredicateToFtsConverter implements PredicateToFtsConverter {
                 break;
             }
             case MODIFIER: {
-                convertValuePredicateCopyForAttr(valuePredicate, CM_MODIFIER_ATTRIBUTE, query);
+                convertValuePredicateCopyForAttr(valuePredicate, ContentModel.PROP_MODIFIER.getPrefixString(), query);
                 break;
             }
             case MODIFIED: {
-                convertValuePredicateCopyForAttr(valuePredicate, CM_MODIFIED_ATTRIBUTE, query);
+                convertValuePredicateCopyForAttr(valuePredicate, ContentModel.PROP_MODIFIED.getPrefixString(), query);
                 break;
             }
             case ACTORS: {
@@ -182,7 +182,7 @@ public class ValuePredicateToFtsConverter implements PredicateToFtsConverter {
         }
 
         if (!(classAttributeDefinition instanceof PropertyDefinition)) {
-            return "\"" + valueStr + "\"";
+            return String.format(QUOTES_STRING_TEMPLATE, valueStr);
         }
 
         String predicateValue;
@@ -193,7 +193,7 @@ public class ValuePredicateToFtsConverter implements PredicateToFtsConverter {
             predicateValue = valueStr;
         }
 
-        return "\"" + predicateValue + "\"";
+        return String.format(QUOTES_STRING_TEMPLATE, predicateValue);
     }
 
     private OrPredicate getOrPredicateForActors(String actor) {
@@ -269,7 +269,6 @@ public class ValuePredicateToFtsConverter implements PredicateToFtsConverter {
     }
 
     private void addNodeRefSearchTerms(FTSQuery query, QName field, QName targetTypeName, String value) {
-
         if (NodeRef.isNodeRef(value)) {
             query.value(field, value);
             return;
@@ -282,10 +281,9 @@ public class ValuePredicateToFtsConverter implements PredicateToFtsConverter {
         FTSQuery innerQuery = FTSQuery.createRaw();
         innerQuery.maxItems(INNER_QUERY_MAX_ITEMS);
 
-
         Map<QName, Serializable> attributes = new HashMap<>();
 
-        String assocVal = "*" + value + "*";
+        String assocVal = String.format(CONTAINS_STRING_TEMPLATE, value);
 
         attributes.put(ContentModel.PROP_TITLE, assocVal);
         attributes.put(ContentModel.PROP_NAME, assocVal);
@@ -303,8 +301,9 @@ public class ValuePredicateToFtsConverter implements PredicateToFtsConverter {
 
             TypeDefinition targetType = dictUtils.getTypeDefinition(targetTypeName);
             if (targetType != null) {
-
-                if (targetType.getName().getLocalName().equals("category")) {
+                QName targetTypeQName = targetType.getName();
+                String targetTypeLocalName = targetTypeQName.getLocalName();
+                if (CATEGORY_LOCAL_NAME.equals(targetTypeLocalName)) {
                     innerQuery.type(ContentModel.TYPE_CATEGORY);
                 }
 
@@ -312,9 +311,9 @@ public class ValuePredicateToFtsConverter implements PredicateToFtsConverter {
             }
         }
 
-        innerQuery.and().values(attributes, BinOperator.OR, false);
-
-        List<NodeRef> assocs = innerQuery.query(searchService);
+        List<NodeRef> assocs = innerQuery
+            .and().values(attributes, BinOperator.OR, false)
+            .query(searchService);
         if (assocs.size() > 0) {
             query.any(field, new ArrayList<>(assocs));
             return;
@@ -368,7 +367,7 @@ public class ValuePredicateToFtsConverter implements PredicateToFtsConverter {
         try {
             return QName.resolveToQName(namespaceService, propQName);
         } catch (Exception e) {
-            log.warn("propName: " + propQName + " didn't parse. ", e);
+            log.warn(String.format(PROPERTY_NAME_NOT_PARSED, propQName), e);
         }
         return null;
     }
@@ -410,7 +409,7 @@ public class ValuePredicateToFtsConverter implements PredicateToFtsConverter {
                 return;
             }
             case LIKE: {
-                query.value(field, predicateValue.replaceAll("%", "*"));
+                query.value(field, predicateValue.replaceAll(PERCENT, STAR));
                 return;
             }
             case CONTAINS: {
@@ -428,7 +427,7 @@ public class ValuePredicateToFtsConverter implements PredicateToFtsConverter {
                         return;
                     }
                     if (DataTypeDefinition.MLTEXT.equals(typeName)) {
-                        query.value(field, "*" + predicateValue + "*");
+                        query.value(field, String.format(CONTAINS_STRING_TEMPLATE, predicateValue));
                         return;
                     }
                     if (DataTypeDefinition.CATEGORY.equals(typeName)) {

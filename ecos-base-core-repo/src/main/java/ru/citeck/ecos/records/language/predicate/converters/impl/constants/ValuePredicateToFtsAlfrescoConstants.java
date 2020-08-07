@@ -18,7 +18,6 @@ public class ValuePredicateToFtsAlfrescoConstants {
     public static final String IS_NULL = "ISNULL";
     public static final String IS_NOT_NULL = "ISNOTNULL";
     public static final String IS_UNSET = "ISUNSET";
-    public static final String OTHER = "OTHER";
 
     // System journal search parameters
     public static final String SEARCH_PROPS = "search-value-properties-names";
@@ -31,11 +30,18 @@ public class ValuePredicateToFtsAlfrescoConstants {
 
     // Exception templates
     public static final String UNKNOWN_VALUE_PREDICATE_TYPE = "Unknown value predicate type: %s";
+    public static final String PROPERTY_NAME_NOT_PARSED = "propName: %s didn't parse.";
 
-    // TODO: Check attributes usage
-    public static final String CM_MODIFIED_ATTRIBUTE = "cm:modified";
-    public static final String CM_MODIFIER_ATTRIBUTE = "cm:modifier";
+    // Attributes short QNames
     public static final String WFM_ACTORS_ATTRIBUTE = "wfm:actors";
+
+    public static final String CATEGORY_LOCAL_NAME = "category";
+    public static final String PERCENT = "%";
+    public static final String STAR = "*";
+
+    // String templates
+    public static final String QUOTES_STRING_TEMPLATE = "\"%s\"";
+    public static final String CONTAINS_STRING_TEMPLATE = "*%s*";
 
     // System constants
     public static final String COMMA_DELIMITER = ",";
