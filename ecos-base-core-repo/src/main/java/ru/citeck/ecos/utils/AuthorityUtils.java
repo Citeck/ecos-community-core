@@ -11,6 +11,7 @@ import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
+import ru.citeck.ecos.node.DisplayNameService;
 
 import java.io.Serializable;
 import java.util.*;
@@ -21,6 +22,7 @@ public class AuthorityUtils {
 
     private AuthorityService authorityService;
     private NodeService nodeService;
+    private DisplayNameService displayNameService;
 
     public Set<String> getContainedUsers(NodeRef rootRef, boolean immediate) {
         return getContainedUsers(getAuthorityName(rootRef), immediate);
@@ -78,6 +80,24 @@ public class AuthorityUtils {
                           .collect(Collectors.toSet());
     }
 
+    public String getDisplayName(String authority) {
+
+        if (StringUtils.isBlank(authority)) {
+            return authority;
+        }
+
+        NodeRef authorityNodeRef = authorityService.getAuthorityNodeRef(authority);
+        if (authorityNodeRef == null) {
+            return authority;
+        }
+
+        String result = displayNameService.getDisplayName(authorityNodeRef);
+        if (StringUtils.isBlank(result)) {
+            result = authority;
+        }
+        return result;
+    }
+
     public NodeRef getNodeRef(String authority) {
         return authorityService.getAuthorityNodeRef(authority);
     }
@@ -92,6 +112,11 @@ public class AuthorityUtils {
 
     public Set<NodeRef> getUserAuthoritiesRefs() {
         return getUserAuthoritiesRefs(AuthenticationUtil.getRunAsUser());
+    }
+
+    @Autowired
+    public void setDisplayNameService(DisplayNameService displayNameService) {
+        this.displayNameService = displayNameService;
     }
 
     @Autowired

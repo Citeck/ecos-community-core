@@ -6,12 +6,13 @@ import org.springframework.stereotype.Component;
 import ru.citeck.ecos.records.models.UserDTO;
 import ru.citeck.ecos.records2.RecordRef;
 import ru.citeck.ecos.records2.RecordsService;
+import ru.citeck.ecos.records2.graphql.meta.value.MetaField;
 import ru.citeck.ecos.records2.request.delete.RecordsDelResult;
 import ru.citeck.ecos.records2.request.delete.RecordsDeletion;
 import ru.citeck.ecos.records2.request.mutation.RecordsMutResult;
 import ru.citeck.ecos.records2.request.query.RecordsQuery;
 import ru.citeck.ecos.records2.request.query.RecordsQueryResult;
-import ru.citeck.ecos.records2.source.dao.local.CrudRecordsDAO;
+import ru.citeck.ecos.records2.source.dao.local.v2.LocalRecordsCrudDao;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -20,7 +21,7 @@ import java.util.stream.Collectors;
  * @author Roman Makarskiy
  */
 @Component
-public class BirthdaysRecords extends CrudRecordsDAO<UserDTO> {
+public class BirthdaysRecords extends LocalRecordsCrudDao<UserDTO> {
 
     private static final String ID = "birthdays";
     private static final String ERROR_UNSUPPORTED_OPERATION = "This operation not supported";
@@ -39,7 +40,7 @@ public class BirthdaysRecords extends CrudRecordsDAO<UserDTO> {
     }
 
     @Override
-    public RecordsQueryResult<UserDTO> getMetaValues(RecordsQuery recordsQuery) {
+    public RecordsQueryResult<UserDTO> queryLocalRecords(RecordsQuery recordsQuery, MetaField metaField) {
         RecordsQueryResult<UserDTO> result = new RecordsQueryResult<>();
 
         List<UserDTO> birthdays = getBirthdays();
@@ -77,8 +78,7 @@ public class BirthdaysRecords extends CrudRecordsDAO<UserDTO> {
     }
 
     @Override
-    public List<UserDTO> getMetaValues(List<RecordRef> list) {
+    public List<UserDTO> getLocalRecordsMeta(List<RecordRef> list, MetaField metaField) {
         throw new IllegalArgumentException(ERROR_UNSUPPORTED_OPERATION);
     }
-
 }

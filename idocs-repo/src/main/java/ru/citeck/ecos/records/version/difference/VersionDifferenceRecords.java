@@ -6,10 +6,11 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import ru.citeck.ecos.records2.RecordRef;
+import ru.citeck.ecos.records2.graphql.meta.value.MetaField;
 import ru.citeck.ecos.records2.request.query.RecordsQuery;
 import ru.citeck.ecos.records2.request.query.RecordsQueryResult;
-import ru.citeck.ecos.records2.source.dao.local.LocalRecordsDAO;
-import ru.citeck.ecos.records2.source.dao.local.RecordsQueryWithMetaLocalDAO;
+import ru.citeck.ecos.records2.source.dao.local.LocalRecordsDao;
+import ru.citeck.ecos.records2.source.dao.local.v2.LocalRecordsQueryWithMetaDao;
 import ru.citeck.ecos.version.VersionDifferenceUtils;
 
 import java.util.Collections;
@@ -19,8 +20,8 @@ import java.util.LinkedList;
  * @author Roman Makarskiy
  */
 @Component
-public class VersionDifferenceRecords extends LocalRecordsDAO
-        implements RecordsQueryWithMetaLocalDAO<VersionDifferenceDTO> {
+public class VersionDifferenceRecords extends LocalRecordsDao
+        implements LocalRecordsQueryWithMetaDao<VersionDifferenceDTO> {
 
     private static final String TEMPLATE = "<span class=\"%s\">%s</span>";
     private final VersionDifferenceUtils versionDifferenceUtils;
@@ -37,7 +38,7 @@ public class VersionDifferenceRecords extends LocalRecordsDAO
     }
 
     @Override
-    public RecordsQueryResult<VersionDifferenceDTO> getMetaValues(RecordsQuery recordsQuery) {
+    public RecordsQueryResult<VersionDifferenceDTO> queryLocalRecords(RecordsQuery recordsQuery, MetaField metaField) {
         VersionDifferenceQuery query = recordsQuery.getQuery(VersionDifferenceQuery.class);
 
         checkRecordRefIsNodeRef(query.getFirst());

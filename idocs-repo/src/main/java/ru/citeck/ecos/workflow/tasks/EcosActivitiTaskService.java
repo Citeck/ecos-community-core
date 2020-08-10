@@ -121,10 +121,10 @@ public class EcosActivitiTaskService implements EngineTaskService {
         if (transition != null) {
             String formKey = getRawFormKey(taskId);
             String outcomeProp = workflowUtils.getOutcomePropFromModel(formKey).orElse(null);
-            if (StringUtils.isBlank(outcomeProp)) {
-                outcomeProp = DEFAULT_OUTCOME_FIELD;
+            if (!StringUtils.isBlank(outcomeProp)) {
+                taskVariables.put(outcomeProp, transition);
             }
-            taskVariables.put(outcomeProp, transition);
+            taskVariables.put(DEFAULT_OUTCOME_FIELD, transition);
             taskVariables.put(OUTCOME_FIELD, transition);
         }
 

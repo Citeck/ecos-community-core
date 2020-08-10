@@ -14,7 +14,6 @@ import ru.citeck.ecos.commons.data.ObjectData;
 import ru.citeck.ecos.records.source.alf.AlfNodesRecordsDAO;
 import ru.citeck.ecos.records.source.alf.meta.AlfNodeRecord;
 import ru.citeck.ecos.records2.QueryContext;
-import ru.citeck.ecos.records2.RecordConstants;
 import ru.citeck.ecos.records2.RecordMeta;
 import ru.citeck.ecos.records2.RecordRef;
 import ru.citeck.ecos.records2.graphql.meta.value.MetaField;
@@ -25,10 +24,10 @@ import ru.citeck.ecos.records2.request.mutation.RecordsMutResult;
 import ru.citeck.ecos.records2.request.mutation.RecordsMutation;
 import ru.citeck.ecos.records2.request.query.RecordsQuery;
 import ru.citeck.ecos.records2.request.query.RecordsQueryResult;
-import ru.citeck.ecos.records2.source.dao.MutableRecordsDAO;
-import ru.citeck.ecos.records2.source.dao.local.LocalRecordsDAO;
-import ru.citeck.ecos.records2.source.dao.local.RecordsMetaLocalDAO;
-import ru.citeck.ecos.records2.source.dao.local.RecordsQueryWithMetaLocalDAO;
+import ru.citeck.ecos.records2.source.dao.MutableRecordsDao;
+import ru.citeck.ecos.records2.source.dao.local.LocalRecordsDao;
+import ru.citeck.ecos.records2.source.dao.local.v2.LocalRecordsMetaDao;
+import ru.citeck.ecos.records2.source.dao.local.v2.LocalRecordsQueryWithMetaDao;
 import ru.citeck.ecos.utils.AuthorityUtils;
 
 import java.util.ArrayList;
@@ -37,10 +36,10 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 @Component
-public class PeopleRecordsDAO extends LocalRecordsDAO
-    implements RecordsQueryWithMetaLocalDAO<PeopleRecordsDAO.UserValue>,
-    RecordsMetaLocalDAO<PeopleRecordsDAO.UserValue>,
-    MutableRecordsDAO {
+public class PeopleRecordsDao extends LocalRecordsDao
+    implements LocalRecordsQueryWithMetaDao<PeopleRecordsDao.UserValue>,
+    LocalRecordsMetaDao<PeopleRecordsDao.UserValue>,
+    MutableRecordsDao {
 
     public static final String ID = "people";
     private static final RecordRef ETYPE = RecordRef.valueOf("emodel/type@person");
@@ -57,20 +56,20 @@ public class PeopleRecordsDAO extends LocalRecordsDAO
     private static final String ECOS_PASS = "ecos:pass";
     private static final String ECOS_PASS_VERIFY = "ecos:passVerify";
 
-    private AuthorityUtils authorityUtils;
-    private AuthorityService authorityService;
-    private AlfNodesRecordsDAO alfNodesRecordsDAO;
-    private MutableAuthenticationService authenticationService;
+    private final AuthorityUtils authorityUtils;
+    private final AuthorityService authorityService;
+    private final AlfNodesRecordsDAO alfNodesRecordsDao;
+    private final MutableAuthenticationService authenticationService;
 
     @Autowired
-    public PeopleRecordsDAO(AuthorityUtils authorityUtils,
+    public PeopleRecordsDao(AuthorityUtils authorityUtils,
                             AuthorityService authorityService,
-                            AlfNodesRecordsDAO alfNodesRecordsDAO,
+                            AlfNodesRecordsDAO alfNodesRecordsDao,
                             MutableAuthenticationService authenticationService) {
         setId(ID);
         this.authorityUtils = authorityUtils;
         this.authorityService = authorityService;
-        this.alfNodesRecordsDAO = alfNodesRecordsDAO;
+        this.alfNodesRecordsDao = alfNodesRecordsDao;
         this.authenticationService = authenticationService;
     }
 
@@ -88,7 +87,7 @@ public class PeopleRecordsDAO extends LocalRecordsDAO
 
         mutation.setRecords(handledMeta);
 
-        return alfNodesRecordsDAO.mutate(mutation);
+        return alfNodesRecordsDao.mutate(mutation);
     }
 
     private RecordMeta handleMeta(RecordMeta meta) {
@@ -141,18 +140,18 @@ public class PeopleRecordsDAO extends LocalRecordsDAO
     }
 
     @Override
-    public List<UserValue> getMetaValues(List<RecordRef> records) {
+    public List<UserValue> getLocalRecordsMeta(List<RecordRef> records, MetaField metaField) {
         return records.stream()
             .map(r -> new UserValue(r.toString()))
             .collect(Collectors.toList());
     }
 
     @Override
-    public RecordsQueryResult<UserValue> getMetaValues(RecordsQuery query) {
+    public RecordsQueryResult<UserValue> queryLocalRecords(RecordsQuery query, MetaField metaField) {
 
         if (SearchService.LANGUAGE_FTS_ALFRESCO.equals(query.getLanguage())) {
 
-            RecordsQueryResult<RecordRef> records = alfNodesRecordsDAO.queryRecords(query);
+            RecordsQueryResult<RecordRef> records = alfNodesRecordsDao.queryRecords(query);
             return new RecordsQueryResult<>(records, UserValue::new);
         }
 

@@ -31,6 +31,7 @@ import ru.citeck.ecos.records2.RecordConstants;
 import ru.citeck.ecos.records2.RecordMeta;
 import ru.citeck.ecos.records2.RecordRef;
 import ru.citeck.ecos.records2.graphql.meta.value.EmptyValue;
+import ru.citeck.ecos.records2.graphql.meta.value.MetaField;
 import ru.citeck.ecos.records2.graphql.meta.value.MetaValue;
 import ru.citeck.ecos.records2.meta.RecordsTemplateService;
 import ru.citeck.ecos.records2.request.delete.RecordsDelResult;
@@ -39,11 +40,11 @@ import ru.citeck.ecos.records2.request.mutation.RecordsMutResult;
 import ru.citeck.ecos.records2.request.mutation.RecordsMutation;
 import ru.citeck.ecos.records2.request.query.RecordsQuery;
 import ru.citeck.ecos.records2.request.query.RecordsQueryResult;
-import ru.citeck.ecos.records2.source.dao.MutableRecordsDAO;
-import ru.citeck.ecos.records2.source.dao.RecordsQueryDAO;
-import ru.citeck.ecos.records2.source.dao.local.LocalRecordsDAO;
-import ru.citeck.ecos.records2.source.dao.local.RecordsMetaLocalDAO;
-import ru.citeck.ecos.records2.source.dao.local.RecordsQueryWithMetaLocalDAO;
+import ru.citeck.ecos.records2.source.dao.MutableRecordsDao;
+import ru.citeck.ecos.records2.source.dao.RecordsQueryDao;
+import ru.citeck.ecos.records2.source.dao.local.LocalRecordsDao;
+import ru.citeck.ecos.records2.source.dao.local.v2.LocalRecordsMetaDao;
+import ru.citeck.ecos.records2.source.dao.local.v2.LocalRecordsQueryWithMetaDao;
 import ru.citeck.ecos.security.EcosPermissionService;
 import ru.citeck.ecos.utils.NodeUtils;
 
@@ -59,11 +60,11 @@ import static ru.citeck.ecos.model.ClassificationModel.PROP_DOCUMENT_TYPE;
 
 @Component
 @Slf4j
-public class AlfNodesRecordsDAO extends LocalRecordsDAO
-    implements RecordsQueryDAO,
-    RecordsMetaLocalDAO<MetaValue>,
-    RecordsQueryWithMetaLocalDAO<Object>,
-    MutableRecordsDAO, RecordsActionExecutor {
+public class AlfNodesRecordsDAO extends LocalRecordsDao
+    implements RecordsQueryDao,
+    LocalRecordsMetaDao<MetaValue>,
+    LocalRecordsQueryWithMetaDao<Object>,
+    MutableRecordsDao, RecordsActionExecutor {
 
     public static final String ID = "";
     private static final String ADD_CMD_PREFIX = "att_add_";
@@ -585,7 +586,7 @@ public class AlfNodesRecordsDAO extends LocalRecordsDAO
     }
 
     @Override
-    public RecordsQueryResult<Object> getMetaValues(RecordsQuery recordsQuery) {
+    public RecordsQueryResult<Object> queryLocalRecords(RecordsQuery recordsQuery, MetaField metaField) {
 
         RecordsQueryResult<RecordRef> records = queryRecords(recordsQuery);
 
@@ -593,7 +594,7 @@ public class AlfNodesRecordsDAO extends LocalRecordsDAO
         result.merge(records);
         result.setHasMore(records.getHasMore());
         result.setTotalCount(records.getTotalCount());
-        result.setRecords((List) getMetaValues(records.getRecords()));
+        result.setRecords((List) getLocalRecordsMeta(records.getRecords(), metaField));
 
         if (recordsQuery.isDebug()) {
             result.setDebugInfo(getClass(), "query", recordsQuery.getQuery());
@@ -662,8 +663,8 @@ public class AlfNodesRecordsDAO extends LocalRecordsDAO
     }
 
     @Override
-    public List<MetaValue> getMetaValues(List<RecordRef> recordRef) {
-        return recordRef.stream()
+    public List<MetaValue> getLocalRecordsMeta(List<RecordRef> list, MetaField metaField) {
+        return list.stream()
             .map(this::createMetaValue)
             .collect(Collectors.toList());
     }

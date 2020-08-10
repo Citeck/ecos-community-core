@@ -18,29 +18,13 @@
  */
 package ru.citeck.ecos.template;
 
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.io.StringWriter;
-import java.io.Writer;
-import java.nio.charset.Charset;
-import java.nio.charset.StandardCharsets;
-import java.util.*;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
-import javax.xml.bind.JAXBElement;
-import javax.xml.bind.JAXBException;
-
+import lombok.extern.slf4j.Slf4j;
 import org.alfresco.model.ContentModel;
 import org.alfresco.repo.processor.BaseProcessor;
 import org.alfresco.repo.template.FreeMarkerProcessor;
 import org.alfresco.service.cmr.repository.ContentReader;
 import org.alfresco.service.cmr.repository.NodeRef;
 import org.alfresco.service.cmr.repository.TemplateProcessor;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.docx4j.XmlUtils;
 import org.docx4j.jaxb.XPathBinderAssociationIsPartialException;
 import org.docx4j.openpackaging.exceptions.Docx4JException;
@@ -52,6 +36,14 @@ import org.docx4j.openpackaging.parts.PartName;
 import org.docx4j.wml.ContentAccessor;
 import org.docx4j.wml.P;
 import org.docx4j.wml.Text;
+
+import javax.xml.bind.JAXBElement;
+import javax.xml.bind.JAXBException;
+import java.io.*;
+import java.nio.charset.StandardCharsets;
+import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * DOCX template processor with support of FreeMarker tags.
@@ -73,30 +65,29 @@ import org.docx4j.wml.Text;
  * @author Alexander Nemerov
  * @date 24.07.13
  */
+@Slf4j
 public class DocxFreeMarkerProcessor extends BaseProcessor implements TemplateProcessor {
-
-    private static final Log logger = LogFactory.getLog(DocxFreeMarkerProcessor.class);
 
     private FreeMarkerProcessor processor;
     private String newLineRegexp = "\\r?\\n";
     Pattern newLinePattern = Pattern.compile(newLineRegexp, Pattern.DOTALL);
 
-    private synchronized WordprocessingMLPackage getWordTemplate(NodeRef templateNode) {
+    protected synchronized WordprocessingMLPackage getWordTemplate(NodeRef templateNode) {
         ContentReader reader = this.services.getContentService()
                 .getReader(templateNode, ContentModel.PROP_CONTENT);
-        InputStream reportStream = null;
-        try {
-            reportStream = reader.getContentInputStream();
+        String extension = null;
+        String mimetype = reader.getMimetype();
+        if (mimetype != null) {
+            extension = services.getMimetypeService().getExtension(mimetype);
+        }
+        if (!"docx".equals(extension)) {
+            throw new IllegalStateException("Could not read docx from node: " + templateNode);
+        }
+        try (InputStream reportStream = reader.getContentInputStream()) {
             WordprocessingMLPackage wordMLPackage = WordprocessingMLPackage.load(reportStream);
             return (WordprocessingMLPackage) wordMLPackage.clone();
-        } catch (Docx4JException e) {
+        } catch (Docx4JException | IOException e) {
             throw new IllegalStateException("Could not read docx from node", e);
-        } finally {
-            try {
-                reportStream.close();
-            } catch (IOException e) {
-                logger.error(e.getLocalizedMessage(), e);
-            }
         }
     }
 
@@ -109,14 +100,14 @@ public class DocxFreeMarkerProcessor extends BaseProcessor implements TemplatePr
 
     @Override
     public void process(String template, Object model, Writer out) {
-        logger.debug("Start processing template " + template);
+        log.debug("Start processing template " + template);
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
         process(template, model, outputStream);
 
         try {
             out.write(new String(outputStream.toByteArray(), StandardCharsets.ISO_8859_1));
         } catch (IOException e) {
-            logger.error("Write failed", e);
+            log.error("Write failed", e);
         }
     }
 
@@ -145,18 +136,23 @@ public class DocxFreeMarkerProcessor extends BaseProcessor implements TemplatePr
                         }
                     }
                 } catch (JAXBException | Docx4JException e) {
-                    logger.error(e.getLocalizedMessage(), e);
+                    log.error(e.getLocalizedMessage(), e);
                 }
             }
         }
+
+        postProcess(wpMLPackage);
 
         // save processed Wordprocessing ML package
         Save saver = new Save(wpMLPackage);
         try {
             saver.save(out);
         } catch (Docx4JException e) {
-            logger.error(e.getLocalizedMessage(), e);
+            log.error(e.getLocalizedMessage(), e);
         }
+    }
+
+    protected void postProcess(WordprocessingMLPackage wpMLPackage) {
     }
 
     @Override
@@ -184,8 +180,8 @@ public class DocxFreeMarkerProcessor extends BaseProcessor implements TemplatePr
         // The old new-lines are not displayed in the real document, so we replace it on the space ' '.
         for (Text text : texts) {
             if (containsNewLine(text.getValue())) {
-                if (logger.isDebugEnabled())
-                    logger.debug("Found new line symbol in the template document (it is replacing on the space), see text: " + text.getValue());
+                if (log.isDebugEnabled())
+                    log.debug("Found new line symbol in the template document (it is replacing on the space), see text: " + text.getValue());
                 text.setValue(text.getValue().replaceAll(newLineRegexp, " "));
             }
         }
@@ -198,7 +194,7 @@ public class DocxFreeMarkerProcessor extends BaseProcessor implements TemplatePr
     }
 
     private void processTexts(List<Text> textParts, Object model) {
-        logger.debug("Start processing of texts: " + textParts.size());
+        log.debug("Start processing of texts: " + textParts.size());
         LexerState state = LexerState.TEXT;
 
         Map<Character, Character> parentheses = new HashMap<>();
@@ -269,9 +265,9 @@ public class DocxFreeMarkerProcessor extends BaseProcessor implements TemplatePr
                 StringWriter textOut = new StringWriter();
                 String templatePart = "[#ftl strip_whitespace=false/]"
                         + buffer.toString().replaceAll("\\[\\#(.*)\\#\\]", "$1");
-                logger.debug("Processing template: " + templatePart);
+                log.debug("Processing template: " + templatePart);
                 processor.processString(templatePart, model, textOut);
-                logger.debug("Yields result: " + textOut.toString());
+                log.debug("Yields result: " + textOut.toString());
                 text.setValue(textOut.toString());
                 if (textOut.toString().startsWith(" ") || textOut.toString().endsWith(" "))
                     text.setSpace("preserve");

@@ -107,16 +107,15 @@ class ContentFromTemplateGeneratorImpl implements ContentFromTemplateGenerator {
         }
 
         // get template encoding
+        String mimetype = templateContent.getMimetype();
         String encoding = "ISO-8859-1";
         String docxTemplateMimetype = mimetypeService.getMimetypesByExtension().get(DOCX_EXTENSION);
         if (nodeService.hasAspect(nodeRef, DmsModel.ASPECT_TEMPLATEABLE)
                 && !Objects.equals(templateContent.getEncoding(), "")
                 && templateContent.getEncoding() != null
-                && !templateContent.getMimetype().equals(docxTemplateMimetype)) {
+                && !mimetype.equals(docxTemplateMimetype)) {
             encoding = templateContent.getEncoding();
         }
-
-        String mimetype = templateContent.getMimetype();
 
         Map<String, Object> model = new HashMap<>();
         model.put(KEY_DOCUMENT, nodeRef);
@@ -124,6 +123,10 @@ class ContentFromTemplateGeneratorImpl implements ContentFromTemplateGenerator {
         FileFolderServiceType type = serviceRegistry.getFileFolderService().getType(nodeService.getType(nodeRef));
         if (type.equals(FileFolderServiceType.FOLDER)) {
             String nodeName = (String) nodeService.getProperty(nodeRef, ContentModel.PROP_NAME);
+            String extension = mimetypeService.getExtension(mimetype);
+            if (extension != null) {
+                nodeName += "." + extension;
+            }
             NodeRef childNodeRef = RepoUtils.getChildByName(nodeRef, ContentModel.ASSOC_CONTAINS, nodeName, nodeService);
             if (childNodeRef == null) {
                 childNodeRef = RepoUtils.createChildWithName(nodeRef, ContentModel.ASSOC_CONTAINS,

@@ -26,6 +26,16 @@
             </properties>
         </aspect>
 
+        <aspect name="etype:forTypeAspect">
+            <properties>
+                <property name="etype:forType">
+                    <title>ECOS Type</title>
+                    <type>d:text</type>
+                    <mandatory>false</mandatory>
+                </property>
+            </properties>
+        </aspect>
+
         <aspect name="etype:tenantSite">
         </aspect>
 

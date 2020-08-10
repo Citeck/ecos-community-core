@@ -24,20 +24,20 @@ public class AspectsMixin implements AttributesMixin<Class<RecordRef>, RecordRef
 
     private NamespaceService namespaceService;
     private NodeService nodeService;
-    private AlfNodesRecordsDAO alfNodesRecordsDAO;
+    private AlfNodesRecordsDAO alfNodesRecordsDao;
 
     @Autowired
     public AspectsMixin(NamespaceService namespaceService,
                         NodeService nodeService,
-                        AlfNodesRecordsDAO alfNodesRecordsDAO) {
+                        AlfNodesRecordsDAO alfNodesRecordsDao) {
         this.namespaceService = namespaceService;
         this.nodeService = nodeService;
-        this.alfNodesRecordsDAO = alfNodesRecordsDAO;
+        this.alfNodesRecordsDao = alfNodesRecordsDao;
     }
 
     @PostConstruct
     public void setup() {
-        alfNodesRecordsDAO.addAttributesMixin(this);
+        alfNodesRecordsDao.addAttributesMixin(this);
     }
 
     @Override

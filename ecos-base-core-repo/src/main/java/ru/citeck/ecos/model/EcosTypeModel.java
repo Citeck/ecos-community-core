@@ -9,10 +9,12 @@ public class EcosTypeModel {
 
     // aspects
     public static final QName ASPECT_HAS_TYPE = QName.createQName(NAMESPACE, "hasType");
+    public static final QName ASPECT_FOR_TYPE = QName.createQName(NAMESPACE, "forTypeAspect");
     public static final QName ASPECT_TENANT_SITE = QName.createQName(NAMESPACE, "tenantSite");
 
     // properties
     public static final QName PROP_TYPE = QName.createQName(NAMESPACE, "type");
+    public static final QName PROP_FOR_TYPE = QName.createQName(NAMESPACE, "forType");
     public static final QName PROP_ROOT_FOR_TYPE = QName.createQName(NAMESPACE, "rootForType");
     public static final QName PROP_TENANT = QName.createQName(NAMESPACE, "tenant");
 }

@@ -12,7 +12,7 @@ import java.util.Map;
 
 public class AlfNodesDefaultParentRegistrar {
 
-    private AlfNodesRecordsDAO alfNodesRecordsDAO;
+    private AlfNodesRecordsDAO alfNodesRecordsDao;
     private Map<QName, String> defaultParents;
 
     private NodeUtils nodeUtils;
@@ -28,7 +28,7 @@ public class AlfNodesDefaultParentRegistrar {
                 defaultParents.forEach((type, node) ->
                         nodeRefs.put(type, nodeUtils.getNodeRef(node))
                 );
-                alfNodesRecordsDAO.registerDefaultParentByType(nodeRefs);
+                alfNodesRecordsDao.registerDefaultParentByType(nodeRefs);
 
                 return null;
             });
@@ -45,7 +45,7 @@ public class AlfNodesDefaultParentRegistrar {
     }
 
     @Autowired
-    public void setAlfNodesRecordsDAO(AlfNodesRecordsDAO alfNodesRecordsDAO) {
-        this.alfNodesRecordsDAO = alfNodesRecordsDAO;
+    public void setAlfNodesRecordsDao(AlfNodesRecordsDAO alfNodesRecordsDao) {
+        this.alfNodesRecordsDao = alfNodesRecordsDao;
     }
 }
