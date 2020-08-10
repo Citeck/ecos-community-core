@@ -159,7 +159,8 @@ public class FTSQuery implements OperatorExpected, OperandExpected {
         return this;
     }
 
-    public FTSQuery containsValue(QName field, Serializable value) {
+    @Override
+    public FTSQuery contains(QName field, Serializable value) {
         return value(field, String.format(CONTAINS_TEMPLATE, value));
     }
 

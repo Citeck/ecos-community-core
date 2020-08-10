@@ -142,7 +142,7 @@ public class ValuePredicateToFtsConverter implements PredicateToFtsConverter {
         query.and().open();
 
         List<QName> propsForSearch = getQNameConfigValueDelimitedByComma(SEARCH_PROPS);
-        propsForSearch.forEach(prop -> query.containsValue(prop, value).or());
+        propsForSearch.forEach(prop -> query.contains(prop, value).or());
 
         query.close();
     }
@@ -162,7 +162,7 @@ public class ValuePredicateToFtsConverter implements PredicateToFtsConverter {
 
         List<Serializable> values = getPropertyValuesByConstraintsFromField(container, field, value);
         if (values.isEmpty()) {
-            query.containsValue(field, value);
+            query.contains(field, value);
             return;
         }
 
