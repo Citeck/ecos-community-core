@@ -36,6 +36,7 @@ public class FTSQuery implements OperatorExpected, OperandExpected {
     private static final String VALUE_ENVELOP_START = "(";
     private static final String VALUE_ENVELOP_END = ")";
 
+    private static final String CONTAINS_TEMPLATE = "*%s*";
     private static final String RANGE_TEMPLATE = "%s TO %s";
     private static final String QUOTES_TEMPLATE = "\"%s\"";
 
@@ -156,6 +157,11 @@ public class FTSQuery implements OperatorExpected, OperandExpected {
             group.addTerm(valueOperator);
         }
         return this;
+    }
+
+    @Override
+    public FTSQuery contains(QName field, Serializable value) {
+        return value(field, String.format(CONTAINS_TEMPLATE, value));
     }
 
     @Override
