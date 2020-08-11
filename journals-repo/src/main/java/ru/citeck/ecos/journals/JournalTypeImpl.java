@@ -311,6 +311,7 @@ class JournalTypeImpl implements JournalType {
     private static List<RecordRef> getActions(Journal journal) {
         if (journal.getActions() == null) {
             return Arrays.asList(
+                RecordRef.create(UI_ACTION_APP_NAME, UI_ACTION_SOURCE, "download-zip"),
                 RecordRef.create(UI_ACTION_APP_NAME, UI_ACTION_SOURCE, "content-download"),
                 RecordRef.create(UI_ACTION_APP_NAME, UI_ACTION_SOURCE, "edit"),
                 RecordRef.create(UI_ACTION_APP_NAME, UI_ACTION_SOURCE, "delete"),
