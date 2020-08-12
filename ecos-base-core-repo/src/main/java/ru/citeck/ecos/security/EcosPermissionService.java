@@ -23,7 +23,12 @@ public class EcosPermissionService {
             return false;
         }
 
-        QName attQName = QName.resolveToQName(namespaceService, attributeName);
+        QName attQName;
+        if (attributeName.equals("_type") || attributeName.equals("_etype")) {
+            attQName = QName.createQName("", attributeName);
+        } else {
+            attQName = QName.resolveToQName(namespaceService, attributeName);
+        }
         if (attQName == null) {
             return false;
         }
