@@ -27,6 +27,7 @@ public class ValuePredicateToFtsAlfrescoConstants {
     // User ids
     public static final String CURRENT_USER = "$CURRENT";
     public static final String SYSTEM = "system";
+    public static final String SYSTEM2 = "System";
 
     // Exception templates
     public static final String UNKNOWN_VALUE_PREDICATE_TYPE = "Unknown value predicate type: %s";
