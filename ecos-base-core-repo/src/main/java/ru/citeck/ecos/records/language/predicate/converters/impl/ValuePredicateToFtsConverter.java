@@ -131,6 +131,7 @@ public class ValuePredicateToFtsConverter implements PredicateToFtsConverter {
     private void processAllAttribute(FTSQuery query, String value) {
         query.type(ContentModel.TYPE_CONTENT)
             .and().not().value(ContentModel.PROP_CREATOR, SYSTEM)
+            .and().not().value(ContentModel.PROP_CREATOR, SYSTEM2)
             .consistency(QueryConsistency.EVENTUAL);
 
         addSearchingPropsToQuery(query, value);
