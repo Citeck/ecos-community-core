@@ -38,6 +38,7 @@ import ru.citeck.ecos.utils.TransactionUtils;
 
 import java.io.Serializable;
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -76,10 +77,12 @@ public class EProcActivityServiceImpl implements EProcActivityService {
 
         this.typesToRevisionIdCache = CacheBuilder.newBuilder()
                 .maximumSize(250)
+                .expireAfterWrite(30, TimeUnit.MINUTES)
                 .build(CacheLoader.from(this::findProcDefRevIdFromMicroservice));
 
         this.revisionIdToProcessDefinitionCache = CacheBuilder.newBuilder()
                 .maximumSize(150)
+                .expireAfterWrite(30, TimeUnit.MINUTES)
                 .build(CacheLoader.from(this::getProcessDefByRevIdFromMicroservice));
     }
 
