@@ -958,9 +958,6 @@
         <property name="order" value="40"/>
     </bean>
 
-    <bean id="idocs.resetMenuCacheBehaviour" class="ru.citeck.ecos.behavior.menu.ResetMenuCacheBehaviour">
-    </bean>
-
     <!--<bean id="ru.citeck.ecos.copy-metadata-from-target-to-source-assoc"-->
           <!--class="ru.citeck.ecos.behavior.copy.CopyMetadataFromTargetToSourceBehaviour" init-method="init">-->
         <!--<property name="policyComponent" ref="policyComponent"/>-->

@@ -44,20 +44,6 @@
 })();
 
 function hasEForm() {
-
-    if (!this['ecosForms']) {
-        return false;
-    }
-
-    var record = args.nodeRef || args.formKey;
-
-    if (record) {
-        try {
-            return ecosForms.hasForm(record);
-        } catch (e) {
-            logger.error(e);
-        }
-    }
-
+    // Forms moved to uiserv. This webscript is deprecated
     return false;
 }

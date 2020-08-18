@@ -15,45 +15,6 @@
         <property name="appliesFromVersion" value="3.6.0" />
     </bean>
 
-    <bean id="idocs.module-component.journal-menu-configs" parent="idocs.import-spaces.3-6-0" depends-on="idocs.dictionaryBootstrap">
-        <property name="name" value="journals-menu-configs" />
-        <property name="description" value="Menu configurations" />
-        <property name="dependsOn">
-            <list>
-                <ref bean="idocs.module-component.journals-meta-root" />
-            </list>
-        </property>
-        <property name="bootstrapViews">
-            <list>
-                <props>
-                    <prop key="path">/cm:IDocsRoot/journal:journalMetaRoot/cm:journals</prop>
-                    <prop key="location">alfresco/templates/bootstrap/ru/citeck/journals/journal.xml</prop>
-                    <prop key="messages">alfresco/module/idocs-repo/bootstrap/journals/system/menu-configs</prop>
-                    <prop key="encoding">UTF-8</prop>
-                </props>
-                <props>
-                    <prop key="path">/cm:IDocsRoot/journal:journalMetaRoot/cm:journals/cm:menu-configs</prop>
-                    <prop key="location">alfresco/templates/bootstrap/ru/citeck/journals/criterion1.xml</prop>
-                    <prop key="messages">alfresco/module/idocs-repo/bootstrap/journals/system/menu-configs</prop>
-                    <prop key="encoding">UTF-8</prop>
-                </props>
-            </list>
-        </property>
-    </bean>
-
-    <bean id="idocs.module-component.journal-menu-configs-add-to-list" parent="module.baseComponent"
-          class="ru.citeck.ecos.journals.module.AddToJournalListModuleComponent">
-        <property name="name" value="add-menu-configs-to-list" />
-        <property name="moduleId" value="idocs-repo" />
-        <property name="journalList" value="global-system" />
-        <property name="journal" value="menu-configs" />
-        <property name="dependsOn">
-            <list>
-                <ref bean="idocs.module-component.journal-menu-configs" />
-            </list>
-        </property>
-    </bean>
-
     <bean id="idocs.module-component.defaultUILeftMenuAccess" parent="idocs.import-spaces.3-6-0">
         <property name="name" value="default-ui-left-menu-access-groups" />
         <property name="description" value="default-ui-left-menu-access-groups" />
