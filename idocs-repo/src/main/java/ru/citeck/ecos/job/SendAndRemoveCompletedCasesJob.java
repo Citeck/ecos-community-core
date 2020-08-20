@@ -118,6 +118,7 @@ public class SendAndRemoveCompletedCasesJob extends AbstractLockedJob {
         parameters.addStore(storeRef);
         parameters.setLanguage(SearchService.LANGUAGE_LUCENE);
         parameters.setQuery("TYPE:\"idocs:doc\" " +
+            "AND NOT ASPECT:\"icaseEproc:hasProcessId\" " +
             "AND @idocs\\:caseCompleted:true " +
             "AND -@idocs\\:caseModelsSent:true");
         parameters.addSort("@cm:created", true);

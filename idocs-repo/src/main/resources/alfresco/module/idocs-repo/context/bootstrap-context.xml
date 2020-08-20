@@ -77,6 +77,7 @@
                 <value>alfresco/module/idocs-repo/messages/workflow</value>
                 <value>alfresco/module/idocs-repo/messages/idocs</value>
                 <value>alfresco/module/idocs-repo/messages/history</value>
+                <value>alfresco/module/idocs-repo/messages/historyMessages</value>
                 <value>alfresco/module/idocs-repo/messages/case-mt/icase</value>
                 <value>alfresco/module/idocs-repo/messages/case-mt/icaseActivityModel</value>
                 <value>alfresco/module/idocs-repo/messages/case-mt/icaseRoleModel</value>

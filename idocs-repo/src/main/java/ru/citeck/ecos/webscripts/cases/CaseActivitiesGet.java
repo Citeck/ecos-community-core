@@ -158,9 +158,6 @@ public class CaseActivitiesGet extends CaseActivityGet {
         if (!nodeService.exists(nodeRef)) {
             return false;
         }
-        if (!"admin".equals(authenticationService.getCurrentUserName())) {
-            return false;
-        }
         Boolean sentFlag = (Boolean) nodeService.getProperty(nodeRef, IdocsModel.PROP_CASE_MODELS_SENT);
         return sentFlag != null ? sentFlag : false;
     }
