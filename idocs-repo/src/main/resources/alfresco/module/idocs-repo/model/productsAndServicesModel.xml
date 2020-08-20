@@ -38,11 +38,14 @@
                 </property>
             </properties>
         </type>
-        
+
         <type name="pas:pasEntity">
             <title>Common object for products and services</title>
             <parent>dl:dataListItem</parent>
             <properties>
+                <property name="pas:title">
+                    <type>d:text</type>
+                </property>
                 <property name="pas:pricePerUnit">
                     <type>d:double</type>
                 </property>
@@ -140,7 +143,7 @@
                 </child-association>
             </associations>
         </aspect>
-        
+
         <aspect name="pas:hasCurrency">
             <associations>
                 <association name="pas:currency">
