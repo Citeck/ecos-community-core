@@ -7,6 +7,7 @@ import org.alfresco.service.cmr.dictionary.*;
 import org.alfresco.service.cmr.repository.NodeRef;
 import org.alfresco.service.namespace.NamespaceService;
 import org.alfresco.service.namespace.QName;
+import ru.citeck.ecos.commons.data.MLText;
 import ru.citeck.ecos.graphql.AlfGqlContext;
 import ru.citeck.ecos.records2.RecordRef;
 import ru.citeck.ecos.records2.graphql.meta.value.CreateVariant;
@@ -26,16 +27,16 @@ public class AlfNodeMetaEdge extends SimpleMetaEdge {
 
     private static final NodeRef TYPES_ROOT = new NodeRef("workspace://SpacesStore/category-document-type-root");
 
-    private MessageService messageService;
-    private NamespaceService namespaceService;
-    private DictionaryService dictionaryService;
+    private final MessageService messageService;
+    private final NamespaceService namespaceService;
+    private final DictionaryService dictionaryService;
 
-    private DictUtils dictUtils;
-    private EcosPermissionService ecosPermissionService;
+    private final DictUtils dictUtils;
+    private final EcosPermissionService ecosPermissionService;
 
-    private QName scopeType;
-    private MetaValue scope;
-    private AlfGqlContext context;
+    private final QName scopeType;
+    private final MetaValue scope;
+    private final AlfGqlContext context;
 
     @Getter(lazy = true)
     private final NodeRef nodeRef = evalNodeRef();
@@ -111,7 +112,7 @@ public class AlfNodeMetaEdge extends SimpleMetaEdge {
                 CreateVariant createVariant = new CreateVariant();
                 String prefixStr = typeName.toPrefixString(namespaceService);
                 createVariant.setRecordRef(RecordRef.create("dict", prefixStr));
-                createVariant.setLabel(typeDef.getTitle(messageService));
+                createVariant.setLabel(new MLText(typeDef.getTitle(messageService)));
 
                 return createVariant;
             }).collect(Collectors.toList());
@@ -277,8 +278,8 @@ public class AlfNodeMetaEdge extends SimpleMetaEdge {
 
     public static class AttOption implements MetaValue {
 
-        private String value;
-        private String title;
+        private final String value;
+        private final String title;
 
         public AttOption(String value, String title) {
             this.value = value;

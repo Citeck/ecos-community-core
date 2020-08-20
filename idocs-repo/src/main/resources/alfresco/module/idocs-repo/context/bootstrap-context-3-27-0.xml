@@ -1,0 +1,61 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+        http://www.springframework.org/schema/beans/spring-beans-3.0.xsd">
+
+    <bean id="idocs.import-spaces.3-27-0" abstract="true" parent="idocs.import-spaces">
+        <property name="sinceVersion" value="3.27.0"/>
+        <property name="appliesFromVersion" value="3.27.0"/>
+    </bean>
+
+    <bean id="idocs.import-scripts.3-27-0" abstract="true" parent="idocs.import-scripts">
+        <property name="sinceVersion" value="3.27.0"/>
+        <property name="appliesFromVersion" value="3.27.0"/>
+    </bean>
+
+    <bean id="idocs.module-component.search-property-names" parent="idocs.import-spaces.3-27-0">
+        <property name="name" value="search-property-names" />
+        <property name="description" value="search-property-names" />
+        <property name="bootstrapViews">
+            <list>
+                <props>
+                    <prop key="path">/app:company_home/app:dictionary</prop>
+                    <prop key="location">alfresco/templates/bootstrap/ru/citeck/ecosConfig.xml</prop>
+                    <prop key="messages">alfresco/module/idocs-repo/bootstrap/configs/search-property-names</prop>
+                    <prop key="encoding">UTF-8</prop>
+                </props>
+            </list>
+        </property>
+    </bean>
+
+    <bean id="idocs.module-component.search-type-names-excluded" parent="idocs.import-spaces.3-27-0">
+        <property name="name" value="search-type-names-excluded" />
+        <property name="description" value="search-type-names-excluded" />
+        <property name="bootstrapViews">
+            <list>
+                <props>
+                    <prop key="path">/app:company_home/app:dictionary</prop>
+                    <prop key="location">alfresco/templates/bootstrap/ru/citeck/ecosConfig.xml</prop>
+                    <prop key="messages">alfresco/module/idocs-repo/bootstrap/configs/search-type-names-excluded</prop>
+                    <prop key="encoding">UTF-8</prop>
+                </props>
+            </list>
+        </property>
+    </bean>
+
+    <bean id="idocs.module-component.search-aspect-names-excluded" parent="idocs.import-spaces.3-27-0">
+        <property name="name" value="search-aspect-names-excluded" />
+        <property name="description" value="search-aspect-names-excluded" />
+        <property name="bootstrapViews">
+            <list>
+                <props>
+                    <prop key="path">/app:company_home/app:dictionary</prop>
+                    <prop key="location">alfresco/templates/bootstrap/ru/citeck/ecosConfig.xml</prop>
+                    <prop key="messages">alfresco/module/idocs-repo/bootstrap/configs/search-aspect-names-excluded</prop>
+                    <prop key="encoding">UTF-8</prop>
+                </props>
+            </list>
+        </property>
+    </bean>
+</beans>

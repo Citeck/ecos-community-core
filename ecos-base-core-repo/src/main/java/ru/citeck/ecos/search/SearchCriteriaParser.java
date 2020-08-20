@@ -142,7 +142,12 @@ public class SearchCriteriaParser {
         for (int i = 0, ii = sortParams.length(); i < ii; i++) {
             JSONObject sortParam = sortParams.getJSONObject(i);
             String field = sortParam.getString(ATTRIBUTE);
-            String order = sortParam.getString(ORDER);
+
+            String order = null;
+            if(sortParam.has(ORDER)) {
+                order = sortParam.getString(ORDER);
+            }
+
             if (order != null) {
                 searchCriteria.addSort(field, order);
             } else {

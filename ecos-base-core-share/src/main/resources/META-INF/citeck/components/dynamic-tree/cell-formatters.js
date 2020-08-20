@@ -1123,7 +1123,7 @@ define([
                     fallback: showLegacyForm,
                     formContainer: elCell,
                     onSubmit: function(record) {
-                        window.location.reload();
+                        YAHOO.Bubbling.fire("metadataRefresh");
                     }
                 });
             }

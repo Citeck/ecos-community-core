@@ -9,7 +9,7 @@
     <bean id="journalService" class="ru.citeck.ecos.journals.JournalServiceImpl">
         <property name="journalsRoot" value="/cm:IDocsRoot/journal:journalMetaRoot/cm:journals" />
         <property name="serviceRegistry" ref="ServiceRegistry" />
-        <property name="recordsDAO" ref="journals.recordsDAO" />
+        <property name="recordsDao" ref="journals.recordsDao" />
         <property name="searchCriteriaSettingsRegistry" ref="searchCriteriaSettingsRegistry" />
         <property name="namespaceService" ref="namespaceService" />
     </bean>

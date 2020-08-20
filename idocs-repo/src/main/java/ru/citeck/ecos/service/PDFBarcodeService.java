@@ -7,10 +7,9 @@ import com.itextpdf.text.pdf.Barcode;
 import com.itextpdf.text.pdf.BarcodeQRCode;
 import com.itextpdf.text.pdf.PdfReader;
 import com.itextpdf.text.pdf.PdfStamper;
-import org.alfresco.repo.admin.SysAdminParams;
+import lombok.extern.slf4j.Slf4j;
 import org.alfresco.service.cmr.repository.ContentService;
 import org.alfresco.service.cmr.repository.ContentWriter;
-import org.apache.log4j.Logger;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -19,25 +18,25 @@ import org.springframework.context.ApplicationContextAware;
 import org.springframework.stereotype.Service;
 import ru.citeck.ecos.processor.DataBundle;
 import ru.citeck.ecos.processor.ProcessorHelper;
+import ru.citeck.ecos.utils.UrlUtils;
 
 import java.awt.geom.AffineTransform;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
+@Slf4j
 @Service
 public class PDFBarcodeService implements ApplicationContextAware {
-
-    private final static Logger logger = Logger.getLogger(PDFBarcodeService.class);
-
-    private ApplicationContext applicationContext;
-    private ContentService contentService;
-    private SysAdminParams sysAdminParams;
-    private ProcessorHelper helper;
 
     private static final String BARCODE_NAME = "Barcode.code128";
     private static final Integer UNDER_MARGIN = 10;
     private static final Integer STAMP_MARGIN = 20;
+
+    private ApplicationContext applicationContext;
+    private ContentService contentService;
+    private UrlUtils urlUtils;
+    private ProcessorHelper helper;
 
     public DataBundle putBarcodeOnDocument(DataBundle transformedDocument, String barcode) {
         return putBarcodeOnDocument(transformedDocument, barcode, null);
@@ -53,7 +52,7 @@ public class PDFBarcodeService implements ApplicationContextAware {
         }
 
         if (documentRef != null) {
-            barCodeQRCode = generateQRcode(documentRef);
+            barCodeQRCode = generateQrCode(documentRef);
         }
 
         if (barCode != null || barCodeQRCode != null) {
@@ -65,7 +64,7 @@ public class PDFBarcodeService implements ApplicationContextAware {
                 PdfStamper stamper = new PdfStamper(reader, writer.getContentOutputStream());
 
                 Image imageBarcode = null;
-                Image imageQRcode = null;
+                Image imageQrCode = null;
 
                 int countPages = reader.getNumberOfPages();
 
@@ -73,7 +72,7 @@ public class PDFBarcodeService implements ApplicationContextAware {
                     imageBarcode = barCode.createImageWithBarcode(stamper.getUnderContent(1), null, null);
                 }
                 if (barCodeQRCode != null) {
-                    imageQRcode = barCodeQRCode.getImage();
+                    imageQrCode = barCodeQRCode.getImage();
                 }
 
                 if (imageBarcode != null) {
@@ -87,26 +86,26 @@ public class PDFBarcodeService implements ApplicationContextAware {
                     }
                 }
 
-                if (imageQRcode != null) {
+                if (imageQrCode != null) {
                     float marginFromCenter;
                     if (imageBarcode != null) {
                         marginFromCenter = imageBarcode.getWidth() / 2 + STAMP_MARGIN;
                     } else {
-                        marginFromCenter = -imageQRcode.getWidth() / 2;
+                        marginFromCenter = -imageQrCode.getWidth() / 2;
                     }
 
-                    AffineTransform transformPrefsQRcode = AffineTransform.getTranslateInstance(
+                    AffineTransform transformPrefsQrCode = AffineTransform.getTranslateInstance(
                         stamper.getReader().getPageSize(1).getWidth() / 2 + marginFromCenter,
                         UNDER_MARGIN);
-                    transformPrefsQRcode.concatenate(AffineTransform.getScaleInstance(imageQRcode.getScaledWidth(),
-                        imageQRcode.getScaledHeight()));
-                    stamper.getUnderContent(1).addImage(imageQRcode, transformPrefsQRcode);
+                    transformPrefsQrCode.concatenate(AffineTransform.getScaleInstance(imageQrCode.getScaledWidth(),
+                        imageQrCode.getScaledHeight()));
+                    stamper.getUnderContent(1).addImage(imageQrCode, transformPrefsQrCode);
                 }
 
                 stamper.close();
                 reader.close();
             } catch (IOException | DocumentException e) {
-                logger.error("Error while adding barcode or QR-code on document", e);
+                log.error("Error while adding barcode or QR-code on document", e);
             }
 
             Map<String, Object> model = new HashMap<>();
@@ -125,7 +124,7 @@ public class PDFBarcodeService implements ApplicationContextAware {
         return barcode;
     }
 
-    private BarcodeQRCode generateQRcode(String documentRef) {
+    private BarcodeQRCode generateQrCode(String documentRef) {
         if (documentRef == null) {
             return null;
         }
@@ -134,7 +133,7 @@ public class PDFBarcodeService implements ApplicationContextAware {
             return null;
         }
 
-        logger.debug("Generate QR for address = " + link);
+        log.debug("Generate QR for address = " + link);
         return new BarcodeQRCode(link, 1, 1, null);
     }
 
@@ -142,31 +141,7 @@ public class PDFBarcodeService implements ApplicationContextAware {
         if (ref == null) {
             return null;
         }
-        return getUrl(sysAdminParams) + "/v2/dashboard?recordRef=" + ref;
-    }
-
-    private String getUrl(SysAdminParams sysAdminParams) {
-        return buildUrl(
-            sysAdminParams.getShareProtocol(),
-            sysAdminParams.getShareHost(),
-            sysAdminParams.getSharePort()
-        );
-    }
-
-    private String buildUrl(String protocol, String host, int port) {
-        StringBuilder url = new StringBuilder();
-        url.append(protocol);
-        url.append("://");
-        url.append(host);
-        if ("http".equals(protocol) && port == 80) {
-            // Not needed
-        } else if ("https".equals(protocol) && port == 443) {
-            // Not needed
-        } else {
-            url.append(':');
-            url.append(port);
-        }
-        return url.toString();
+        return urlUtils.generateDashboardRefUrl(ref);
     }
 
     @Override
@@ -187,7 +162,7 @@ public class PDFBarcodeService implements ApplicationContextAware {
     }
 
     @Autowired
-    public void setSysAdminParams(SysAdminParams sysAdminParams) {
-        this.sysAdminParams = sysAdminParams;
+    public void setUrlUtils(UrlUtils urlUtils) {
+        this.urlUtils = urlUtils;
     }
 }

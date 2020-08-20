@@ -1,8 +1,0 @@
-<webscript>
-    <shortname>Get menu config</shortname>
-    <description>return left menu config by username</description>
-    <url>/citeck/menu/menu?userName={userName}</url>
-    <format default="json"/>
-    <authentication>user</authentication>
-    <transaction allow="readonly">required</transaction>
-</webscript>

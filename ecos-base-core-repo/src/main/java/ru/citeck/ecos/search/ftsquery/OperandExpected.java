@@ -77,6 +77,13 @@ public interface OperandExpected {
     OperatorExpected value(QName field, Serializable value, boolean exact);
 
     /**
+     * Field contains value.
+     * If value is null then it will be empty() check
+     * @param value value to check
+     */
+    OperatorExpected contains(QName field, Serializable value);
+
+    /**
      * Search by date field from MIN to "to" argument
      * @param field date field. mandatory
      */

@@ -13,7 +13,7 @@
     <parent>
         <groupId>ru.citeck.ecos.community</groupId>
         <artifactId>ecos-community-core</artifactId>
-        <version>3.26.3</version>
+        <version>3.28.0-SNAPSHOT</version>
     </parent>
 
     <properties>
@@ -91,6 +91,12 @@
             <groupId>org.jetbrains.kotlin</groupId>
             <artifactId>kotlin-stdlib-jdk8</artifactId>
             <version>${kotlin.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>ru.citeck.ecos</groupId>
+            <artifactId>ecos-notifications-lib</artifactId>
+            <version>${ecos.notifications.lib.version}</version>
         </dependency>
 
     </dependencies>

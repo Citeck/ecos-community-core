@@ -12,12 +12,13 @@ import org.springframework.stereotype.Component;
 import ru.citeck.ecos.comment.model.CommentDTO;
 import ru.citeck.ecos.records2.RecordMeta;
 import ru.citeck.ecos.records2.RecordRef;
+import ru.citeck.ecos.records2.graphql.meta.value.MetaField;
 import ru.citeck.ecos.records2.request.delete.RecordsDelResult;
 import ru.citeck.ecos.records2.request.delete.RecordsDeletion;
 import ru.citeck.ecos.records2.request.mutation.RecordsMutResult;
 import ru.citeck.ecos.records2.request.query.RecordsQuery;
 import ru.citeck.ecos.records2.request.query.RecordsQueryResult;
-import ru.citeck.ecos.records2.source.dao.local.CrudRecordsDAO;
+import ru.citeck.ecos.records2.source.dao.local.v2.LocalRecordsCrudDao;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -28,7 +29,7 @@ import java.util.stream.Collectors;
  */
 @Log4j
 @Component
-public class CommentRecords extends CrudRecordsDAO<CommentDTO> {
+public class CommentRecords extends LocalRecordsCrudDao<CommentDTO> {
 
     private static final String ID = "comment";
 
@@ -48,7 +49,7 @@ public class CommentRecords extends CrudRecordsDAO<CommentDTO> {
     }
 
     @Override
-    public List<CommentDTO> getMetaValues(List<RecordRef> list) {
+    public List<CommentDTO> getLocalRecordsMeta(List<RecordRef> list, MetaField metaField) {
         return getValues(list);
     }
 
@@ -105,7 +106,7 @@ public class CommentRecords extends CrudRecordsDAO<CommentDTO> {
     }
 
     @Override
-    public RecordsQueryResult<CommentDTO> getMetaValues(RecordsQuery recordsQuery) {
+    public RecordsQueryResult<CommentDTO> queryLocalRecords(RecordsQuery recordsQuery, MetaField metaField) {
         CommentQuery query = recordsQuery.getQuery(CommentQuery.class);
         if (query.record == null || StringUtils.isBlank(query.record.getId())) {
             throw new IllegalArgumentException("You mus specify a record to find comments");

@@ -85,33 +85,6 @@
         </property>
     </bean>
 
-    <bean id="idocs.module-component.ui-actions-journal" parent="idocs.import-spaces.3-16-0" depends-on="idocs.dictionaryBootstrap">
-        <property name="name" value="idocs.module-component.ui-actions-journal" />
-        <property name="description" value="idocs.module-component.ui-actions-journal" />
-        <property name="dependsOn">
-            <list>
-                <ref bean="idocs.module-component.journals-meta-root" />
-                <ref bean="idocs.module-component.system-journals-list" />
-            </list>
-        </property>
-        <property name="bootstrapViews">
-            <list>
-                <props>
-                    <prop key="path">/cm:IDocsRoot/journal:journalMetaRoot/cm:journals</prop>
-                    <prop key="location">alfresco/templates/bootstrap/ru/citeck/journals/journal.xml</prop>
-                    <prop key="messages">alfresco/module/idocs-repo/bootstrap/journals/system/ui-actions-journal</prop>
-                    <prop key="encoding">UTF-8</prop>
-                </props>
-                <props>
-                    <prop key="path">/cm:IDocsRoot/journal:journalMetaRoot/cm:journalLists</prop>
-                    <prop key="location">alfresco/module/idocs-repo/bootstrap/journals/system/journal-in-list.xml</prop>
-                    <prop key="messages">alfresco/module/idocs-repo/bootstrap/journals/system/ui-actions-journal</prop>
-                    <prop key="encoding">UTF-8</prop>
-                </props>
-            </list>
-        </property>
-    </bean>
-
     <bean id="idocs.module-component.rename-ecos-types-journal" parent="idocs.import-scripts.3-16-0">
         <property name="executeOnceOnly" value="true" />
         <property name="name" value="rename-ecos-types-journal.js" />

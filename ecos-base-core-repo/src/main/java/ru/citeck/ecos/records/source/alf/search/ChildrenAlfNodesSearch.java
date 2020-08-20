@@ -28,8 +28,8 @@ public class ChildrenAlfNodesSearch implements AlfNodesSearch {
     private NamespaceService namespaceService;
 
     @Autowired
-    public ChildrenAlfNodesSearch(AlfNodesRecordsDAO recordsDAO) {
-        recordsDAO.register(this);
+    public ChildrenAlfNodesSearch(AlfNodesRecordsDAO recordsDao) {
+        recordsDao.register(this);
     }
 
     @Override

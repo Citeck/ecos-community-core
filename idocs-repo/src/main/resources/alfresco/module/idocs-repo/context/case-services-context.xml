@@ -33,7 +33,7 @@
 		<property name="criteriaFactory" ref="searchCriteriaFactory"/>
 		<property name="language" value="lucene"/>
 	</bean>
-	
+
 	<bean id="icase-element-strategy-atomic" class="org.springframework.transaction.interceptor.TransactionInterceptor">
 		<property name="transactionManager">
 			<ref bean="transactionManager"/>
@@ -107,5 +107,13 @@
 		<property name="dictionaryService" ref="dictionaryService"/>
 		<property name="caseElementService" ref="caseElementService"/>
 	</bean>
+
+    <bean id="notificationCommandServiceJS" name="NotificationCommandServiceJS"
+          class="ru.citeck.ecos.records.notification.NotificationCommandServiceJS"
+          parent="baseJavaScriptExtension">
+        <property name="extensionName" value="notificationService" />
+        <property name="serviceRegistry" ref="ServiceRegistry" />
+        <property name="notificationService" ref="ecosNotificationService"/>
+    </bean>
 
 </beans>

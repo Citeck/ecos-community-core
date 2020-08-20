@@ -74,7 +74,7 @@ public class TypeKindContentDAO<T> extends RepoContentDAOImpl<T> {
 
             ecosTypeService.forEachAsc(ecosTypeRef, typeDto -> {
 
-                Map<QName, Serializable> keys = Collections.singletonMap(EcosTypeModel.PROP_TYPE, typeDto.getId());
+                Map<QName, Serializable> keys = Collections.singletonMap(EcosTypeModel.PROP_FOR_TYPE, typeDto.getId());
                 List<ContentData<T>> configsByKeys = getContentData(keys);
                 if (configsByKeys != null && !configsByKeys.isEmpty()) {
                     configsByType.set(configsByKeys);

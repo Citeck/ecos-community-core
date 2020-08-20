@@ -51,26 +51,4 @@
         <property name="bootstrapScript" value="alfresco/module/idocs-repo/bootstrap/scripts/fill-role-and-branch-assocs.js"/>
     </bean>
 
-    <bean id="idocs.module-component.menu-configs" parent="idocs.import-spaces.3-5-0">
-        <property name="name" value="menu-configs"/>
-        <property name="description" value="Root for ecos menu-configs"/>
-        <property name="sinceVersion" value="3.5.0"/>
-        <property name="appliesFromVersion" value="3.5.0"/>
-        <property name="dependsOn">
-            <list>
-                <ref bean="idocs.module-component.idocs-root" />
-            </list>
-        </property>
-        <property name="bootstrapViews">
-            <list>
-                <props>
-                    <prop key="uuidBinding">UPDATE_EXISTING</prop>
-                    <prop key="path">/cm:IDocsRoot</prop>
-                    <prop key="location">alfresco/module/idocs-repo/bootstrap/explicit/menu-configs.xml</prop>
-                    <prop key="encoding">UTF-8</prop>
-                </props>
-            </list>
-        </property>
-    </bean>
-
 </beans>

@@ -20,20 +20,20 @@ import java.util.List;
 @Component
 public class IsLockedMixin implements AttributesMixin<Class<RecordRef>, RecordRef> {
 
-    private final AlfNodesRecordsDAO alfNodesRecordsDAO;
+    private final AlfNodesRecordsDAO alfNodesRecordsDao;
     private final NodeService nodeService;
     private final LockService lockService;
 
     @Autowired
-    public IsLockedMixin(AlfNodesRecordsDAO alfNodesRecordsDAO, NodeService nodeService, LockService lockService) {
-        this.alfNodesRecordsDAO = alfNodesRecordsDAO;
+    public IsLockedMixin(AlfNodesRecordsDAO alfNodesRecordsDao, NodeService nodeService, LockService lockService) {
+        this.alfNodesRecordsDao = alfNodesRecordsDao;
         this.nodeService = nodeService;
         this.lockService = lockService;
     }
 
     @PostConstruct
     public void setup() {
-        alfNodesRecordsDAO.addAttributesMixin(this);
+        alfNodesRecordsDao.addAttributesMixin(this);
     }
 
     @Override

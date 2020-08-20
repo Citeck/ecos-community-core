@@ -15,7 +15,6 @@
         </property>
         <property name="labels">
             <list>
-                <value>alfresco/module/ecos-eform-repo/messages/ecos-form-model</value>
             </list>
         </property>
     </bean>

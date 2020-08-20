@@ -1,5 +1,5 @@
 {
-  "id": "alf_wfperf:controlTask",
+  "id": "alf_wfperf_controlTask",
   "formKey": "alf_wfperf:controlTask",
   "title": {
     "en": "Check form task"

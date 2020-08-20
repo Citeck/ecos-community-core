@@ -14,7 +14,7 @@
     <parent>
         <groupId>ru.citeck.ecos.community</groupId>
         <artifactId>ecos-community-core</artifactId>
-        <version>3.26.3</version>
+        <version>3.28.0-SNAPSHOT</version>
     </parent>
 
     <dependencies>
@@ -40,9 +40,9 @@
         </dependency>
 
         <dependency>
-            <groupId>org.flowable</groupId>
+            <groupId>ru.citeck.ecos.flowable</groupId>
             <artifactId>flowable-engine</artifactId>
-            <version>${flowable.version}</version>
+            <version>${ecos.flowable.version}</version>
             <exclusions>
                 <exclusion>
                     <groupId>org.springframework</groupId>
@@ -64,9 +64,9 @@
         </dependency>
 
         <dependency>
-            <groupId>org.flowable</groupId>
+            <groupId>ru.citeck.ecos.flowable</groupId>
             <artifactId>flowable-json-converter</artifactId>
-            <version>${flowable.version}</version>
+            <version>${ecos.flowable.version}</version>
             <exclusions>
                 <exclusion>
                     <groupId>org.springframework</groupId>
@@ -76,9 +76,9 @@
         </dependency>
 
         <dependency>
-            <groupId>org.flowable</groupId>
+            <groupId>ru.citeck.ecos.flowable</groupId>
             <artifactId>flowable-bpmn-layout</artifactId>
-            <version>${flowable.version}</version>
+            <version>${ecos.flowable.version}</version>
             <exclusions>
                 <exclusion>
                     <groupId>org.springframework</groupId>
@@ -88,9 +88,9 @@
         </dependency>
 
         <dependency>
-            <groupId>org.flowable</groupId>
+            <groupId>ru.citeck.ecos.flowable</groupId>
             <artifactId>flowable-ui-modeler-logic</artifactId>
-            <version>${flowable.version}</version>
+            <version>${ecos.flowable.version}</version>
             <exclusions>
                 <exclusion>
                     <groupId>org.springframework</groupId>
@@ -160,9 +160,9 @@
         </dependency>
 
         <dependency>
-            <groupId>org.flowable</groupId>
+            <groupId>ru.citeck.ecos.flowable</groupId>
             <artifactId>flowable-spring</artifactId>
-            <version>${flowable.version}</version>
+            <version>${ecos.flowable.version}</version>
             <exclusions>
                 <exclusion>
                     <groupId>org.springframework</groupId>

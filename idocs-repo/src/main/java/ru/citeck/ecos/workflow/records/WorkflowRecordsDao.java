@@ -12,6 +12,7 @@ import org.alfresco.service.cmr.workflow.*;
 import org.alfresco.service.namespace.NamespaceService;
 import org.alfresco.service.namespace.QName;
 import org.apache.commons.lang.StringUtils;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import ru.citeck.ecos.commons.data.ObjectData;
@@ -50,7 +51,6 @@ public class WorkflowRecordsDao extends LocalRecordsDao
     private static final String DEFINITION_PREFIX = "def_";
     private static final int MIN_RECORDS_SIZE = 0;
     private static final int MAX_RECORDS_SIZE = 10000;
-    private final WorkflowRecord EMPTY_RECORD = new WorkflowRecord();
 
     private final EcosWorkflowService ecosWorkflowService;
     private final NamespaceService namespaceService;
@@ -72,17 +72,18 @@ public class WorkflowRecordsDao extends LocalRecordsDao
         this.workflowUtils = workflowUtils;
     }
 
+    @NotNull
     @Override
-    public List<MetaValue> getLocalRecordsMeta(List<RecordRef> list, MetaField metaField) {
+    public List<MetaValue> getLocalRecordsMeta(List<RecordRef> list, @NotNull MetaField metaField) {
 
         if (list.size() == 1 && list.get(0).getId().isEmpty()) {
-            return Collections.singletonList(EMPTY_RECORD);
+            return Collections.singletonList(EmptyValue.INSTANCE);
         }
 
         return list.stream()
             .map(ref -> {
                 if (ref.getId().isEmpty()) {
-                    return EMPTY_RECORD;
+                    return EmptyValue.INSTANCE;
                 }
                 if (StringUtils.startsWith(ref.getId(), DEFINITION_PREFIX)) {
                     WorkflowDefinition definition = ecosWorkflowService.getDefinitionByName(ref.getId()
@@ -104,8 +105,10 @@ public class WorkflowRecordsDao extends LocalRecordsDao
             .collect(Collectors.toList());
     }
 
+    @NotNull
     @Override
-    public RecordsQueryResult<WorkflowRecord> queryLocalRecords(RecordsQuery recordsQuery, MetaField metaField) {
+    public RecordsQueryResult<WorkflowRecord> queryLocalRecords(@NotNull RecordsQuery recordsQuery,
+                                                                @NotNull MetaField metaField) {
 
         RecordsQueryResult<WorkflowRecord> result = new RecordsQueryResult<>();
 
@@ -266,7 +269,7 @@ public class WorkflowRecordsDao extends LocalRecordsDao
 
     @AllArgsConstructor
     @NoArgsConstructor
-    public class WorkflowDefinitionRecord implements MetaValue {
+    public static class WorkflowDefinitionRecord implements MetaValue {
 
         private static final String WORKFLOW_PREFIX = "workflow_";
 

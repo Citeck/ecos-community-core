@@ -16,15 +16,15 @@ import ru.citeck.ecos.records2.request.query.RecordsQuery;
 import ru.citeck.ecos.records2.request.query.RecordsQueryResult;
 import ru.citeck.ecos.records2.request.query.lang.DistinctQuery;
 import ru.citeck.ecos.records2.source.common.group.DistinctValue;
-import ru.citeck.ecos.records2.source.dao.local.LocalRecordsDAO;
-import ru.citeck.ecos.records2.source.dao.local.v2.LocalRecordsQueryWithMetaDAO;
+import ru.citeck.ecos.records2.source.dao.local.LocalRecordsDao;
+import ru.citeck.ecos.records2.source.dao.local.v2.LocalRecordsQueryWithMetaDao;
 import ru.citeck.ecos.search.SearchPredicate;
 
 /**
  * @author Roman Makarskiy
  */
 @Component
-public class CounterpartyRecords extends LocalRecordsDAO implements LocalRecordsQueryWithMetaDAO<AlfNodeRecord> {
+public class CounterpartyRecords extends LocalRecordsDao implements LocalRecordsQueryWithMetaDao<AlfNodeRecord> {
 
     private static final String ID = "counterparty";
 

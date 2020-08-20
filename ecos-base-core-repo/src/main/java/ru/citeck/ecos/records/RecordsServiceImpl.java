@@ -36,7 +36,7 @@ public class RecordsServiceImpl extends ru.citeck.ecos.records2.RecordsServiceIm
 
             } else {
 
-                ActionStatus status = ActionStatus.skipped("RecordsDAO can't execute action");
+                ActionStatus status = ActionStatus.skipped("RecordsDao can't execute action");
                 results.addResults(refs.stream()
                                        .map(r -> new ActionResult<>(r, status))
                                        .collect(Collectors.toList()));

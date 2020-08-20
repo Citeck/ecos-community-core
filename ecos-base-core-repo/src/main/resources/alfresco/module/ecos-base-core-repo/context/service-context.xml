@@ -446,4 +446,12 @@
 
     <bean id="documentToCounterparty.mappingRegistry" class="ru.citeck.ecos.spring.registry.MappingRegistry"/>
 
+    <bean class="ru.citeck.ecos.security.ProtectedAttributesRegistrar">
+        <property name="protectedAttributes">
+            <list>
+                <value>{http://www.citeck.ru/model/icase/1.0}caseStatusAssoc</value>
+            </list>
+        </property>
+    </bean>
+
 </beans>

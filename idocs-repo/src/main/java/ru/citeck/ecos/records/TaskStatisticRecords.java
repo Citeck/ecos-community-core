@@ -34,8 +34,8 @@ import ru.citeck.ecos.records2.request.query.RecordsQueryResult;
 import ru.citeck.ecos.records2.request.query.SortBy;
 import ru.citeck.ecos.records2.request.query.page.QueryPage;
 import ru.citeck.ecos.records2.request.query.page.SkipPage;
-import ru.citeck.ecos.records2.source.dao.AbstractRecordsDAO;
-import ru.citeck.ecos.records2.source.dao.RecordsQueryWithMetaDAO;
+import ru.citeck.ecos.records2.source.dao.AbstractRecordsDao;
+import ru.citeck.ecos.records2.source.dao.RecordsQueryWithMetaDao;
 import ru.citeck.ecos.search.*;
 import ru.citeck.ecos.search.ftsquery.FTSQuery;
 import ru.citeck.ecos.utils.AuthorityUtils;
@@ -53,7 +53,7 @@ import java.util.stream.Collectors;
  * @author Pavel Simonov
  */
 @Component
-public class TaskStatisticRecords extends AbstractRecordsDAO implements RecordsQueryWithMetaDAO {
+public class TaskStatisticRecords extends AbstractRecordsDao implements RecordsQueryWithMetaDao {
 
     public static final String ID = "task-statistic";
 
@@ -69,16 +69,16 @@ public class TaskStatisticRecords extends AbstractRecordsDAO implements RecordsQ
     private static final Log logger = LogFactory.getLog(TaskStatisticRecords.class);
     private static final int TOTAL_COUNT_PAGE_SKIP_COUNT = 0;
 
-    private PersonService personService;
-    private SearchService searchService;
-    private NamespaceService namespaceService;
-    private NodeService nodeService;
-    private SearchCriteriaParser criteriaParser;
-    private AuthorityUtils authorityUtils;
-    private FTSQueryBuilder queryBuilder;
-    private SearchUtils searchUtils;
-    private RecordsMetaService recordsMetaService;
-    private EcosConfigService ecosConfigService;
+    private final PersonService personService;
+    private final SearchService searchService;
+    private final NamespaceService namespaceService;
+    private final NodeService nodeService;
+    private final SearchCriteriaParser criteriaParser;
+    private final AuthorityUtils authorityUtils;
+    private final FTSQueryBuilder queryBuilder;
+    private final SearchUtils searchUtils;
+    private final RecordsMetaService recordsMetaService;
+    private final EcosConfigService ecosConfigService;
 
     @Autowired
     public TaskStatisticRecords(ServiceRegistry serviceRegistry,
