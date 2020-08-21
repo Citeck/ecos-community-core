@@ -8,6 +8,7 @@ import org.springframework.context.annotation.Configuration;
 import ru.citeck.ecos.commands.CommandsService;
 import ru.citeck.ecos.notifications.lib.dto.TemplateMultiModelAttributesDto;
 import ru.citeck.ecos.notifications.lib.service.NotificationService;
+import ru.citeck.ecos.notifications.lib.service.NotificationServiceImpl;
 import ru.citeck.ecos.notifications.lib.service.NotificationTemplateService;
 import ru.citeck.ecos.records2.RecordsService;
 import ru.citeck.ecos.records2.meta.RecordsMetaService;
@@ -27,7 +28,7 @@ public class NotificationServiceConfig {
                                                        RecordsService recordsService,
                                                        RecordsMetaService recordsMetaService,
                                                        NotificationTemplateService notificationTemplateService) {
-        NotificationService service = new NotificationService(commandsService, recordsService, recordsMetaService,
+        NotificationServiceImpl service = new NotificationServiceImpl(commandsService, recordsService, recordsMetaService,
             notificationTemplateService);
         service.setDefaultLocale(LocaleUtils.toLocale(defaultAppNotificationLocale));
         service.setDefaultFrom(defaultAppNotificationFrom);
@@ -36,8 +37,8 @@ public class NotificationServiceConfig {
 
     @Bean
     public NotificationTemplateService notificationTemplateService(
-        @Qualifier("remoteSyncTemplateModelRecordsDao") RemoteSyncRecordsDao<TemplateMultiModelAttributesDto> syncRecordsDao
-    ) {
+        @Qualifier("remoteSyncTemplateModelRecordsDao") RemoteSyncRecordsDao<TemplateMultiModelAttributesDto>
+            syncRecordsDao) {
         return new NotificationTemplateService(syncRecordsDao);
     }
 
