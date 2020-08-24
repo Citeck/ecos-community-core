@@ -454,4 +454,12 @@
         </property>
     </bean>
 
+    <bean class="ru.citeck.ecos.node.AlfNodeContentPathRegistrar">
+        <property name="contentPath">
+            <map>
+                <entry key="{http://www.alfresco.org/model/bpm/1.0}task" value="wfm:document.cm:content" />
+            </map>
+        </property>
+    </bean>
+
 </beans>
