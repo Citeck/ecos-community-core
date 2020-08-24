@@ -25,7 +25,6 @@ var header = findObjectById(model.jsonModel.widgets, "SHARE_HEADER"),
     customizeUserDashboard = findObjectById(model.jsonModel.widgets, "HEADER_CUSTOMIZE_USER_DASHBOARD"),
     currentSite = page.url.templateArgs.site || getLastSiteFromCookie(),
     accessibleSites = getSitesForUser(user.name),
-    isSlideMenu = isShouldDisplayLeftMenuForUser(user.name),
     isCascadCreateMenu = getMenuConfig("default-ui-create-menu") == "cascad",
     siteData = getSiteData(),
     myTools = [
@@ -51,8 +50,12 @@ var header = findObjectById(model.jsonModel.widgets, "SHARE_HEADER"),
         { id: "more", url: "console/admin-console/", iconImage: "/share/res/components/images/header/more.png" }
     ];
 
-    model.isReactMenu = isSlideMenu;
-    model.isCascadeCreateMenu = isCascadCreateMenu;
+var defaultUIMainMenu = getMenuConfig("default-ui-main-menu");
+var isSlideMenu = isShouldDisplayLeftMenuForUser(user.name, defaultUIMainMenu);
+
+model.isReactMenu = isSlideMenu;
+model.isNewReactMenu = isSlideMenu && (defaultUIMainMenu !== "left-legacy");
+model.isCascadeCreateMenu = isCascadCreateMenu;
 
 // ---------------------
 // General code
@@ -357,7 +360,6 @@ if (config.global.flags.getChildValue("client-debug") == "true") {
         }
     ];
 }
-
 
 // USER MENU ITEMS
 
