@@ -22,7 +22,7 @@ define(['js/citeck/modules/utils/citeck'], function() {
 
     Citeck.invariants.NodeViewManager = function(key) {
         this.key = key;
-        
+
         this.options = {
             onsubmit: null,
             oncancel: null,
@@ -40,15 +40,15 @@ define(['js/citeck/modules/utils/citeck'], function() {
             card: this.goToCardDraft,
             redirect: this.redirect
         };
-       
+
         this.defaultBehaviour = this.behaviours.back;
 
         YAHOO.Bubbling.on("node-view-submit", this.onSubmit, this);
         YAHOO.Bubbling.on("node-view-cancel", this.onCancel, this);
     };
-    
+
     Citeck.invariants.NodeViewManager.prototype = {
-        
+
         setOptions: function(options) {
             _.each(options, function(value, key) {
                 if(value != null) {
@@ -57,7 +57,7 @@ define(['js/citeck/modules/utils/citeck'], function() {
             }, this);
             return this;
         },
-        
+
         onSubmit: function(layer, args) {
             if (this.key != args[1].key) return;
             var behaviours = args[1].isDraft ? this.behavioursDraft : this.behaviours;
@@ -67,23 +67,23 @@ define(['js/citeck/modules/utils/citeck'], function() {
             node.thisclass.save(node, {
                 scope: this,
                 fn: function(result) {
-                  var submitBehaviour = this.options.redirect ? 
+                  var submitBehaviour = this.options.redirect ?
                                         behaviours.redirect :
                                         (behaviours[this.options.onsubmit] || this.defaultBehaviour);
                   submitBehaviour.call(this, result, isDraft);
                 }
             });
         },
-        
+
         onCancel: function(layer, args) {
             if (this.key != args[1].key) return;
             var node = args[1].node;
             var cancelBehaviour = this.behaviours[this.options.oncancel] || this.defaultBehaviour;
             cancelBehaviour.call(this, node);
         },
-        
+
         goBack: function(node) {
-            
+
             if (history.length > 1) {
                 history.go(-1);
             } else if(document.referrer) {
@@ -94,11 +94,6 @@ define(['js/citeck/modules/utils/citeck'], function() {
         },
 
         goToCard: function(node, isDraft) {
-
-            if (this.isV2Page()) {
-                document.location.href = "/v2/dashboard?recordRef="  + node.nodeRef;
-                return;
-            }
 
             var showStartMessage = true;
             if (!isDraft && location.pathname.indexOf('node-edit-page') !== -1) {
@@ -139,7 +134,7 @@ define(['js/citeck/modules/utils/citeck'], function() {
 
             document.location.href = link;
         }
-        
+
     };
 
     return Citeck.invariants.NodeViewManager;
