@@ -24,7 +24,6 @@ var header = findObjectById(model.jsonModel.widgets, "SHARE_HEADER"),
     navigationMenuBar = findObjectById(model.jsonModel.widgets, "HEADER_NAVIGATION_MENU_BAR"),
     customizeUserDashboard = findObjectById(model.jsonModel.widgets, "HEADER_CUSTOMIZE_USER_DASHBOARD"),
     currentSite = page.url.templateArgs.site || getLastSiteFromCookie(),
-    isSlideMenu = isShouldDisplayLeftMenuForUser(user.name),
     siteData = getSiteData(),
     myTools = [
         { id: "task-journals", url: "journals2/list/tasks", iconImage: "/share/res/components/images/header/my-tasks.png" },
@@ -48,6 +47,9 @@ var header = findObjectById(model.jsonModel.widgets, "SHARE_HEADER"),
         { id: "templates", url: "journals2/list/templates", iconImage: "/share/res/components/images/header/templates.png" },
         { id: "more", url: "console/admin-console/", iconImage: "/share/res/components/images/header/more.png" }
     ];
+
+var defaultUIMainMenu = getMenuConfig("default-ui-main-menu");
+var isSlideMenu = isShouldDisplayLeftMenuForUser(user.name, defaultUIMainMenu);
 
 model.isReactMenu = isSlideMenu;
 var isCascadCreateMenu = true;

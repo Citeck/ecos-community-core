@@ -1,3 +1,6 @@
+
+<#assign isNewLeftMenuFlag = (isNewReactMenu!false) />
+
 <@markup id="css" >
    <#if config.global.header?? && config.global.header.dependencies?? && config.global.header.dependencies.css??>
       <#list config.global.header.dependencies.css as cssFile>
@@ -62,35 +65,56 @@
 
             var legacySiteMenuItems = ${jsonUtils.toJSONString(siteMenuItems)};
 
-            require(['ecosui!header'], function(Header) {
-                Header.render('share-header', {
-                    hideSiteMenu: !Array.isArray(legacySiteMenuItems) || !legacySiteMenuItems.length,
-                    legacySiteMenuItems
-                }, function() {
-                    var basePageContainer = document.createElement('div');
-                    basePageContainer.classList.add('ecos-base-page');
-                    basePageContainer.style.height = getBaseContainerHeight();
+            <#if isNewLeftMenuFlag>
+                require(['ecosui!header'], function(Header) {
+                    Header.render('share-header', {
+                        hideSiteMenu: !Array.isArray(legacySiteMenuItems) || !legacySiteMenuItems.length,
+                        legacySiteMenuItems
+                    }, function () {
+                        var basePageContainer = document.createElement('div');
+                        basePageContainer.classList.add('ecos-base-page');
+                        basePageContainer.style.height = getBaseContainerHeight();
 
-                    var slideMenuContainer = document.createElement('div');
-                    slideMenuContainer.setAttribute('id', 'slide-menu');
+                        var slideMenuContainer = document.createElement('div');
+                        slideMenuContainer.setAttribute('id', 'slide-menu');
 
-                    var bd = document.querySelector('#bd');
-                    bd.classList.add('ecos-main-area');
+                        var bd = document.querySelector('#bd');
+                        bd.classList.add('ecos-main-area');
 
-                    var alfHd = document.querySelector('#alf-hd');
+                        var alfHd = document.querySelector('#alf-hd');
 
-                    alfHd.after(basePageContainer);
-                    basePageContainer.prepend(slideMenuContainer);
-                    basePageContainer.appendChild(bd);
+                        alfHd.after(basePageContainer);
+                        basePageContainer.prepend(slideMenuContainer);
+                        basePageContainer.appendChild(bd);
 
-                    require([
-                        'ecosui!slide-menu'
-                    ], function(SlideMenu) {
-                        SlideMenu.render('slide-menu');
+                        require([
+                            'ecosui!slide-menu'
+                        ], function (SlideMenu) {
+                            SlideMenu.render('slide-menu');
+                        });
                     });
                 });
-            });
-
+            <#else>
+                require([
+                    'ecosui!header-legacy'
+                ], function(ShareHeader) {
+                    ShareHeader.render('share-header', {
+                        userName: "${((user.name)!"")?js_string}",
+                        userFullname: "${((user.fullName)!"")?js_string}",
+                        userNodeRef: "${((user.properties.nodeRef)!"")?js_string}",
+                        userIsAvailable: "${((user.properties.available)!"")?string}",
+                        userIsMutable: "${((user.capabilities.isMutable)!"")?string}",
+                        isExternalAuthentication: "${((context.externalAuthentication)!"")?string}",
+                        siteMenuItems: legacySiteMenuItems,
+                        isCascadeCreateMenu: "${isCascadeCreateMenu?string}"
+                    });
+                });
+                require([
+                    'ecosui!slide-menu-legacy'
+                ], function(SlideMenu) {
+                    SlideMenu.render('slide-menu');
+                });
+            </#if>
         //]]></script>
    <#else>
       <@processJsonModel group="share"/>
@@ -99,4 +123,7 @@
 
 <@markup id="html">
    <div id="share-header"></div>
+<#if isNewLeftMenuFlag == false>
+   <div id="slide-menu"></div>
+</#if>
 </@>

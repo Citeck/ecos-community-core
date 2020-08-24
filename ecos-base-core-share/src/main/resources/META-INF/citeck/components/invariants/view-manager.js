@@ -95,6 +95,11 @@ define(['js/citeck/modules/utils/citeck'], function() {
 
         goToCard: function(node, isDraft) {
 
+            if (this.isV2Page()) {
+                document.location.href = "/v2/dashboard?recordRef="  + node.nodeRef;
+                return;
+            }
+
             var showStartMessage = true;
             if (!isDraft && location.pathname.indexOf('node-edit-page') !== -1) {
                 showStartMessage = false;
