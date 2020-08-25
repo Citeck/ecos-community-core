@@ -52,14 +52,15 @@ var defaultUIMainMenu = getMenuConfig("default-ui-main-menu");
 var isSlideMenu = isShouldDisplayLeftMenuForUser(user.name, defaultUIMainMenu);
 
 model.isReactMenu = isSlideMenu;
+model.isNewReactMenu = isSlideMenu && (defaultUIMainMenu !== "left-legacy");
 var isCascadCreateMenu = true;
 var accessibleSites = [];
 
 if (!isSlideMenu) {
     isCascadCreateMenu = getMenuConfig("default-ui-create-menu") == "cascad";
-    model.isCascadeCreateMenu = isCascadCreateMenu;
     accessibleSites = getSitesForUser(user.name);
 }
+model.isCascadeCreateMenu = isCascadCreateMenu;
 
 // ---------------------
 // General code
