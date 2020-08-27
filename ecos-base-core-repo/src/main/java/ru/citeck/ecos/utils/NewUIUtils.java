@@ -3,6 +3,8 @@ package ru.citeck.ecos.utils;
 import ecos.com.google.common.cache.CacheBuilder;
 import ecos.com.google.common.cache.CacheLoader;
 import ecos.com.google.common.cache.LoadingCache;
+import lombok.AllArgsConstructor;
+import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.alfresco.service.cmr.repository.NodeRef;
 import org.alfresco.service.cmr.security.AuthenticationService;
@@ -50,8 +52,8 @@ public class NewUIUtils {
     private final RecordsService recordsService;
     private final EcosTypeService ecosTypeService;
 
-    private LoadingCache<RecordRef, String> uiTypeByRecord;
-    private LoadingCache<String, Boolean> isNewUIEnabledCache;
+    private final LoadingCache<RecordRefUserKey, String> uiTypeByRecord;
+    private final LoadingCache<String, Boolean> isNewUIEnabledForUserCache;
 
     @Autowired
     public NewUIUtils(@Qualifier("ecosConfigService") EcosConfigService ecosConfigService,
@@ -66,7 +68,7 @@ public class NewUIUtils {
         this.ecosTypeService = ecosTypeService;
         this.recordsService = recordsService;
 
-        isNewUIEnabledCache = CacheBuilder.newBuilder()
+        isNewUIEnabledForUserCache = CacheBuilder.newBuilder()
             .expireAfterWrite(1, TimeUnit.MINUTES)
             .maximumSize(100)
             .build(CacheLoader.from(this::isNewUIEnabledForUserImpl));
@@ -77,16 +79,24 @@ public class NewUIUtils {
             .build(CacheLoader.from(this::getUITypeByRecord));
     }
 
+    public void invalidateCache() {
+        uiTypeByRecord.invalidateAll();
+        isNewUIEnabledForUserCache.invalidateAll();
+    }
+
     public boolean isNewUIEnabled() {
         return isNewUIEnabledForUser(authenticationService.getCurrentUserName());
     }
 
     public boolean isNewUIEnabledForUser(String username) {
-        return isNewUIEnabledCache.getUnchecked(username);
+        return isNewUIEnabledForUserCache.getUnchecked(username);
     }
 
     public boolean isOldCardDetailsRequired(RecordRef recordRef) {
-        return getUITypeByRecord(recordRef).equals(UI_TYPE_SHARE);
+        return getUITypeByRecord(new RecordRefUserKey(
+            recordRef,
+            authenticationService.getCurrentUserName())
+        ).equals(UI_TYPE_SHARE);
     }
 
     public String getNewUIRedirectUrl() {
@@ -99,8 +109,12 @@ public class NewUIUtils {
     }
 
     public String getUITypeForRecord(RecordRef recordRef) {
+        return getUITypeForRecord(recordRef, authenticationService.getCurrentUserName());
+    }
+
+    public String getUITypeForRecord(RecordRef recordRef, String userName) {
         try {
-            return uiTypeByRecord.getUnchecked(recordRef);
+            return uiTypeByRecord.getUnchecked(new RecordRefUserKey(recordRef, userName));
         } catch (Exception e) {
             log.error("Exception. RecordRef: " + recordRef, e);
             return "";
@@ -113,7 +127,10 @@ public class NewUIUtils {
         return isNewUIRedirectEnabled || isNewJournalsGroupMember(username);
     }
 
-    private String getUITypeByRecord(RecordRef recordRef) {
+    private String getUITypeByRecord(RecordRefUserKey refAndUser) {
+
+        RecordRef recordRef = refAndUser.getRecordRef();
+
         String att;
         if (recordRef.getSourceId().equals("site")) {
             att = UI_TYPE_FROM_SECTION_ATT;
@@ -136,11 +153,11 @@ public class NewUIUtils {
 
         String resStr;
         if (res.isNull() || StringUtils.isBlank(res.asText())) {
-            resStr = isNewUIEnabled() ? UI_TYPE_REACT : UI_TYPE_SHARE;
+            resStr = isNewUIEnabledForUser(refAndUser.getUserName()) ? UI_TYPE_REACT : UI_TYPE_SHARE;
         } else {
             resStr = res.asText();
             if (!UI_TYPE_SHARE.equals(resStr) && !UI_TYPE_REACT.equals(resStr)) {
-                resStr = isNewUIEnabled() ? UI_TYPE_REACT : UI_TYPE_SHARE;
+                resStr = isNewUIEnabledForUser(refAndUser.getUserName()) ? UI_TYPE_REACT : UI_TYPE_SHARE;
             }
         }
         return resStr;
@@ -173,5 +190,12 @@ public class NewUIUtils {
         Set<String> avalibleGroups = new HashSet<>(Arrays.asList(groupsInString.split(",")));
         Set<String> userGroups = authorityService.getAuthoritiesForUser(username);
         return !Collections.disjoint(avalibleGroups, userGroups);
+    }
+
+    @Data
+    @AllArgsConstructor
+    private static class RecordRefUserKey {
+        private RecordRef recordRef;
+        private String userName;
     }
 }
