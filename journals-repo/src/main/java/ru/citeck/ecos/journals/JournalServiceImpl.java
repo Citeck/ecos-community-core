@@ -23,6 +23,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import ecos.com.google.common.cache.CacheBuilder;
 import ecos.com.google.common.cache.CacheLoader;
 import ecos.com.google.common.cache.LoadingCache;
+import lombok.AllArgsConstructor;
+import lombok.Data;
 import org.alfresco.model.ContentModel;
 import org.alfresco.repo.security.authentication.AuthenticationUtil;
 import org.alfresco.service.ServiceRegistry;
@@ -30,6 +32,7 @@ import org.alfresco.service.cmr.dictionary.PropertyDefinition;
 import org.alfresco.service.cmr.repository.ChildAssociationRef;
 import org.alfresco.service.cmr.repository.NodeRef;
 import org.alfresco.service.cmr.repository.NodeService;
+import org.alfresco.service.cmr.security.AuthenticationService;
 import org.alfresco.service.namespace.NamespacePrefixResolver;
 import org.alfresco.service.namespace.NamespaceService;
 import org.alfresco.service.namespace.QName;
@@ -78,15 +81,18 @@ class JournalServiceImpl implements JournalService {
     private DictUtils dictUtils;
 
     private LazyNodeRef journalsRoot;
-    private Map<String, JournalType> journalTypes = new ConcurrentHashMap<>();
+    private final Map<String, JournalType> journalTypes = new ConcurrentHashMap<>();
 
     @Autowired
     private TemplateExpressionEvaluator expressionEvaluator;
-    private List<CriterionInvariantsProvider> criterionInvariantsProviders;
-    private ObjectMapper objectMapper = new ObjectMapper();
+    @Autowired
+    private AuthenticationService authenticationService;
 
-    private LoadingCache<String, Optional<JournalType>> journalTypeByJournalIdOrRef;
-    private LoadingCache<String, String> uiTypeByJournal;
+    private final List<CriterionInvariantsProvider> criterionInvariantsProviders;
+    private final ObjectMapper objectMapper = new ObjectMapper();
+
+    private final LoadingCache<String, Optional<JournalType>> journalTypeByJournalIdOrRef;
+    private final LoadingCache<JournalUserKey, String> uiTypeByJournal;
 
     public JournalServiceImpl() {
         criterionInvariantsProviders = Collections.synchronizedList(new ArrayList<>());
@@ -245,6 +251,7 @@ class JournalServiceImpl implements JournalService {
             provider.clearCache();
         }
         recordsDao.clearCache();
+        uiTypeByJournal.invalidateAll();
         journalTypeByJournalIdOrRef.invalidateAll();
     }
 
@@ -364,10 +371,12 @@ class JournalServiceImpl implements JournalService {
 
     @Override
     public String getUIType(String journalId) {
-        return uiTypeByJournal.getUnchecked(journalId);
+        return uiTypeByJournal.getUnchecked(new JournalUserKey(journalId, authenticationService.getCurrentUserName()));
     }
 
-    public String getUITypeImpl(String journalId) {
+    public String getUITypeImpl(JournalUserKey journalUserKey) {
+
+        String journalId = journalUserKey.getJournalId();
 
         if (StringUtils.isBlank(journalId)) {
             return "";
@@ -378,7 +387,7 @@ class JournalServiceImpl implements JournalService {
             NodeRef ecosType = (NodeRef) nodeService.getProperty(journalRef, ClassificationModel.PROP_RELATES_TO_TYPE);
             if (ecosType != null) {
                 RecordRef typeRef = RecordRef.create("emodel", "type", ecosType.getId());
-                return newUIUtils.getUITypeForRecord(typeRef);
+                return newUIUtils.getUITypeForRecord(typeRef, journalUserKey.getUserName());
             }
         }
 
@@ -391,7 +400,7 @@ class JournalServiceImpl implements JournalService {
 
         String typeRefOption = journal.getOptions().get("typeRef");
         if (StringUtils.isNotBlank(typeRefOption)) {
-            return newUIUtils.getUITypeForRecord(RecordRef.valueOf(typeRefOption));
+            return newUIUtils.getUITypeForRecord(RecordRef.valueOf(typeRefOption), journalUserKey.getUserName());
         } else {
 
             String type = journal.getOptions().get("type");
@@ -403,7 +412,7 @@ class JournalServiceImpl implements JournalService {
                     if (StringUtils.isNotBlank(value) && NodeRef.isNodeRef(value)) {
                         NodeRef typeNodeRef = new NodeRef(value);
                         RecordRef typeRef = RecordRef.create("emodel", "type", typeNodeRef.getId());
-                        return newUIUtils.getUITypeForRecord(typeRef);
+                        return newUIUtils.getUITypeForRecord(typeRef, journalUserKey.getUserName());
                     }
                 }
             }
@@ -454,5 +463,12 @@ class JournalServiceImpl implements JournalService {
     @Autowired
     public void setDictUtils(DictUtils dictUtils) {
         this.dictUtils = dictUtils;
+    }
+
+    @Data
+    @AllArgsConstructor
+    private static class JournalUserKey {
+        private String journalId;
+        private String userName;
     }
 }
