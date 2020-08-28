@@ -24,9 +24,6 @@ var header = findObjectById(model.jsonModel.widgets, "SHARE_HEADER"),
     navigationMenuBar = findObjectById(model.jsonModel.widgets, "HEADER_NAVIGATION_MENU_BAR"),
     customizeUserDashboard = findObjectById(model.jsonModel.widgets, "HEADER_CUSTOMIZE_USER_DASHBOARD"),
     currentSite = page.url.templateArgs.site || getLastSiteFromCookie(),
-    accessibleSites = getSitesForUser(user.name),
-    isSlideMenu = isShouldDisplayLeftMenuForUser(user.name),
-    isCascadCreateMenu = getMenuConfig("default-ui-create-menu") == "cascad",
     siteData = getSiteData(),
     myTools = [
         { id: "task-journals", url: "journals2/list/tasks", iconImage: "/share/res/components/images/header/my-tasks.png" },
@@ -51,8 +48,19 @@ var header = findObjectById(model.jsonModel.widgets, "SHARE_HEADER"),
         { id: "more", url: "console/admin-console/", iconImage: "/share/res/components/images/header/more.png" }
     ];
 
-    model.isReactMenu = isSlideMenu;
-    model.isCascadeCreateMenu = isCascadCreateMenu;
+var defaultUIMainMenu = getMenuConfig("default-ui-main-menu");
+var isSlideMenu = isShouldDisplayLeftMenuForUser(user.name, defaultUIMainMenu);
+
+model.isReactMenu = isSlideMenu;
+model.isNewReactMenu = isSlideMenu && (defaultUIMainMenu !== "left-legacy");
+var isCascadCreateMenu = true;
+var accessibleSites = [];
+
+if (!isSlideMenu) {
+    isCascadCreateMenu = getMenuConfig("default-ui-create-menu") == "cascad";
+    accessibleSites = getSitesForUser(user.name);
+}
+model.isCascadeCreateMenu = isCascadCreateMenu;
 
 // ---------------------
 // General code
@@ -272,502 +280,507 @@ if (siteMenuItems.length) {
 
 model.siteMenuItems = siteMenuItems;
 
+if (!isSlideMenu) {
 
-// DEBUG MENU
+    //This is a legacy calculations and should be done on UI side.
 
-var loggingWidgetItems;
-if (config.global.flags.getChildValue("client-debug") == "true") {
-    var loggingEnabled = false,
-        allEnabled     = false,
-        warnEnabled    = false,
-        errorEnabled   = false;
+    // DEBUG MENU
 
-    if (userPreferences &&
-        userPreferences.org &&
-        userPreferences.org.alfresco &&
-        userPreferences.org.alfresco.share &&
-        userPreferences.org.alfresco.share.logging) {
+    var loggingWidgetItems;
+    if (config.global.flags.getChildValue("client-debug") == "true") {
+        var loggingEnabled = false,
+            allEnabled     = false,
+            warnEnabled    = false,
+            errorEnabled   = false;
 
-        var loggingPreferences = userPreferences.org.alfresco.share.logging;
-        loggingEnabled = loggingPreferences.enabled && true;
-        allEnabled = (loggingPreferences.all != null) ?  loggingPreferences.all : false;
-        warnEnabled = (loggingPreferences.warn != null) ?  loggingPreferences.warn : false;
-        errorEnabled = (loggingPreferences.error != null) ?  loggingPreferences.error : false;
-    }
+        if (userPreferences &&
+            userPreferences.org &&
+            userPreferences.org.alfresco &&
+            userPreferences.org.alfresco.share &&
+            userPreferences.org.alfresco.share.logging) {
 
-    loggingWidgetItems = [
-        {
-            name: "js/citeck/menus/citeckMenuGroup",
-            config: {
-                label: "Quick Settings",
-                widgets: [
-                    {
-                        name: "alfresco/menus/AlfCheckableMenuItem",
-                        config: {
-                            label: "Debug Logging",
-                            value: "enabled",
-                            publishTopic: "ALF_LOGGING_STATUS_CHANGE",
-                            checked: loggingEnabled
-                        }
-                    },
-                    {
-                        name: "alfresco/menus/AlfCheckableMenuItem",
-                        config: {
-                            label: "Show All Logs",
-                            value: "all",
-                            publishTopic: "ALF_LOGGING_STATUS_CHANGE",
-                            checked: allEnabled
-                        }
-                    },
-                    {
-                        name: "alfresco/menus/AlfCheckableMenuItem",
-                        config: {
-                            label: "Show Warning Messages",
-                            value: "warn",
-                            publishTopic: "ALF_LOGGING_STATUS_CHANGE",
-                            checked: warnEnabled
-                        }
-                    },
-                    {
-                        name: "alfresco/menus/AlfCheckableMenuItem",
-                        config: {
-                            label: "Show Error Messages",
-                            value: "error",
-                            publishTopic: "ALF_LOGGING_STATUS_CHANGE",
-                            checked: errorEnabled
-                        }
-                    }
-                ]
-            }
-        },
-        {
-            name: "js/citeck/menus/citeckMenuGroup",
-            config: {
-                label: "Logging Configuration",
-                widgets: [
-                    {
-                        name: "js/citeck/menus/citeckMenuItem",
-                        config: {
-                            label: "Update Logging Preferences",
-                            publishTopic: "ALF_UPDATE_LOGGING_PREFERENCES"
-                        }
-                    }
-                ]
-            }
+            var loggingPreferences = userPreferences.org.alfresco.share.logging;
+            loggingEnabled = loggingPreferences.enabled && true;
+            allEnabled = (loggingPreferences.all != null) ?  loggingPreferences.all : false;
+            warnEnabled = (loggingPreferences.warn != null) ?  loggingPreferences.warn : false;
+            errorEnabled = (loggingPreferences.error != null) ?  loggingPreferences.error : false;
         }
-    ];
-}
 
-
-// USER MENU ITEMS
-
-var availability = "make-" + (user.properties.available === false ? "" : "not") + "available",
-    clickEvent = function (event, element) {
-        Citeck.forms.dialog("deputy:selfAbsenceEvent", "", {
-            scope: this,
-            fn: function (node) {
-                this.alfPublish("ALF_NAVIGATE_TO_PAGE", {
-                    url: this.targetUrl,
-                    type: this.targetUrlType,
-                    target: this.targetUrlLocation
-                });
-            }
-        }, {
-            title: "",
-            destination: "workspace://SpacesStore/absence-events"
-        })
-    },
-    userMenuItems = [
-        {
-            id: "HEADER_USER_MENU_STATUS",
-            name: "alfresco/header/CurrentUserStatus"
-        },
-        {
-            id: "HEADER_USER_MENU_MY_PROFILE",
-            name: "js/citeck/header/citeckMenuItem",
-            config: {
-                id: "HEADER_USER_MENU_MY_PROFILE",
-                label: "header.my-profile.label",
-                iconImage: "/share/res/components/images/header/my-profile.png",
-                targetUrl: "user/" + encodeURIComponent(user.name) + "/profile"
-            }
-        },
-        {
-            id: "HEADER_USER_MENU_AVAILABILITY",
-            name: "js/citeck/header/citeckMenuItem",
-            config: {
-                id: "HEADER_USER_MENU_AVAILABILITY",
-                label: "header." + availability + ".label",
-                iconImage: "/share/res/components/images/header/" + availability + ".png",
-                targetUrl: "/components/deputy/make-available?available=" + (user.properties.available === false ? "true" : "false"),
-                clickEvent: "" + (user.properties.available === false ? "" : clickEvent.toString())
-            }
-        }
-    ];
-
-if (user.capabilities.isMutable) {
-    userMenuItems.push({
-        id: "HEADER_USER_MENU_PASSWORD",
-        name: "js/citeck/header/citeckMenuItem",
-        config: {
-            id: "HEADER_USER_MENU_PASSWORD",
-            label: "header.change-password.label",
-            iconImage: "/share/res/components/images/header/change-password.png",
-            targetUrl: "user/" + encodeURIComponent(user.name) + "/change-password"
-        }
-    });
-}
-
-// Feedback Tools
-userMenuItems.push(
-    {
-        id: "HEADER_USER_MENU_FEEDBACK",
-        name: "js/citeck/menus/citeckMenuItem",
-        config: {
-            id: "HEADER_USER_MENU_FEEDBACK",
-            label: "header.feedback.label",
-            iconImage: "/share/res/components/images/header/default-error-report-16.png",
-            targetUrl: "https://www.citeck.ru/feedback",
-            targetUrlType: "FULL_PATH",
-            targetUrlLocation: "NEW"
-        }
-    },
-    {
-        id: "HEADER_USER_MENU_REPORTISSUE",
-        name: "js/citeck/menus/citeckMenuItem",
-        config: {
-            id: "HEADER_USER_MENU_REPORTISSUE",
-            label: "header.reportIssue.label",
-            iconImage: "/share/res/components/images/header/default-feedback-16.png",
-            targetUrl: "mailto:support@citeck.ru?subject=Ошибка в работе Citeck ECOS: краткое описание&body=Summary: Короткое описание проблемы (продублировать в теме письма)%0A%0ADescription:%0AПожалуйста, детально опишите возникшую проблему, последовательность действий, которая привела к ней. При необходимости приложите скриншоты.",
-            targetUrlType: "FULL_PATH",
-            targetUrlLocation: "NEW"
-        }
-    });
-
-var logoutItemConfig = {
-    id: "HEADER_USER_MENU_LOGOUT",
-    name: "js/citeck/header/citeckMenuItem",
-    config: {
-        id: "HEADER_USER_MENU_LOGOUT",
-        label: "header.logout.label",
-        iconImage: "/share/res/components/images/header/logout.png",
-        actionType: "logout"
-    }
-};
-
-if (!context.externalAuthentication) {
-    // Alfresco community version doesn't have LogoutService so we should check
-    if (model.jsonModel.services && model.jsonModel.services.indexOf("alfresco/services/LogoutService") > -1) {
-        logoutItemConfig.config.publishTopic = "ALF_DOLOGOUT";
-    } else {
-        logoutItemConfig.config.targetUrl = "dologout";
-    }
-}
-
-userMenuItems.push(logoutItemConfig);
-
-var HEADER_USER_MENU = {
-    id: "HEADER_USER_MENU",
-    name: "js/citeck/menus/citeckMenuBarPopup",
-    config: {
-        id: "HEADER_USER_MENU",
-        label: user.fullName,
-        widgets: [{
-            name: "js/citeck/menus/citeckMenuGroup",
-            config: {
-                widgets: userMenuItems
-            }
-        }]
-    }
-};
-
-// APP MENU ITEMS
-
-appMenuBar.config.widgets = [];
-var createSiteClickEvent = isSlideMenu ? "Citeck.module.getCreateSiteInstance().show()"
-                                       : function(event, element) {
-                                            Citeck.module.getCreateSiteInstance().show();
-                                         };
-
-
-var HEADER_SITES_VARIANTS = {
-        id: "HEADER_SITES_VARIANTS",
-        name: "js/citeck/menus/citeckMenuGroup",
-        config: {
-            id: "HEADER_SITES_VARIANTS",
-            widgets: buildSitesForUser(accessibleSites)
-        }
-    },
-    HEADER_SITES_SEARCH = {
-        id: "HEADER_SITES_SEARCH",
-        name: "js/citeck/menus/citeckMenuItem",
-        config: {
-            id: "HEADER_SITES_SEARCH",
-            label: "header.find-sites.label",
-            targetUrl: "custom-site-finder"
-        }
-    },
-    HEADER_SITES_CREATE = {
-        id: "HEADER_SITES_CREATE",
-        name: "js/citeck/menus/citeckMenuItem",
-        config: {
-            id: "HEADER_SITES_CREATE",
-            label: "header.create-site.label",
-            clickEvent: createSiteClickEvent.toString(),
-            inheriteClickEvent: false
-        }
-    },
-    HEADER_CREATE_VARIANTS = {
-        id: "HEADER_CREATE_VARIANTS",
-        name: "js/citeck/menus/citeckMenuGroup",
-        config: {
-            id: "HEADER_CREATE_VARIANTS",
-            widgets: buildCreateVariantsForSite(currentSite)
-        }
-    },
-    HEADER_CREATE = {
-        id: "HEADER_CREATE",
-        name: "alfresco/header/AlfMenuBarPopup",
-        config: {
-            id: "HEADER_CREATE",
-            label: "header.create-variants.label",
-            widgets: [ HEADER_CREATE_VARIANTS ]
-        }
-    },
-    HEADER_JOURNALS = {
-        id: "HEADER_JOURNALS",
-        name: "js/citeck/menus/citeckMenuBarItem",
-        config: {
-            id: "HEADER_JOURNALS",
-            label: "header.journals.label",
-            targetUrl: buildSiteUrl(currentSite) + "journals2/list/main",
-            movable: { minWidth: 1089 }
-        }
-    },
-    HEADER_DOCUMENTLIBRARY = {
-        id: "HEADER_DOCUMENTLIBRARY",
-        name: "js/citeck/menus/citeckMenuBarItem",
-        config: {
-            id: "HEADER_DOCUMENTLIBRARY",
-            label: "header.documentlibrary.label",
-            targetUrl: buildSiteUrl(currentSite) + "documentlibrary",
-            movable: { minWidth: 1171 }
-        }
-    },
-    HEADER_CREATE_WORKFLOW_VARIANTS = {
-        id: "HEADER_CREATE_WORKFLOW_VARIANTS",
-        name: "js/citeck/menus/citeckMenuGroup",
-        config: {
-            id: "HEADER_CREATE_WORKFLOW_VARIANTS",
-            widgets: [
-                {
-                    id: "HEADER_CREATE_WORKFLOW_ADHOC",
-                    name: "js/citeck/menus/citeckMenuItem",
-                    config: {
-                        id: "HEADER_CREATE_WORKFLOW_ADHOC",
-                        label: "header.create-workflow-adhoc.label",
-                        targetUrl: "workflow-start-page?formType=workflowId&formKey=activiti$perform"
-                    }
-                },
-                {
-                    id: "HEADER_CREATE_WORKFLOW_CONFIRM",
-                    name: "js/citeck/menus/citeckMenuItem",
-                    config: {
-                        id: "HEADER_CREATE_WORKFLOW_CONFIRM",
-                        label: "header.create-workflow-confirm.label",
-                        targetUrl: "start-specified-workflow?workflowId=activiti$confirm"
-                    }
-                }
-            ]
-        }
-    },
-    HEADER_CREATE_WORKFLOW = {
-        id: "HEADER_CREATE_WORKFLOW",
-        name: "alfresco/header/AlfMenuBarPopup",
-        config: {
-            id: "HEADER_CREATE_WORKFLOW",
-            label: "header.create-workflow.label",
-            widgets: [ HEADER_CREATE_WORKFLOW_VARIANTS ]
-        }
-    },
-    HEADER_SITES = {
-        id: "HEADER_SITES",
-        name: "alfresco/header/AlfMenuBarPopup",
-        config: {
-            id: "HEADER_SITES",
-            label: "header.sites.label",
-            widgets: [
-                HEADER_SITES_VARIANTS,
-                {
-                    id: "HEADER_SITES_MANAGEMENT",
-                    name: "js/citeck/menus/citeckMenuGroup",
-                    config: {
-                        id: "HEADER_SITES_MANAGEMENT",
-                        widgets: [
-                            HEADER_SITES_SEARCH,
-                            HEADER_SITES_CREATE
-                        ]
-                    }
-                }
-            ]
-        }
-    },
-    HEADER_CREATE_CASE = {
-        id: "HEADER_CREATE_CASE",
-        name: "alfresco/menus/AlfMenuBarPopup",
-        config: {
-            id: "HEADER_CREATE_CASE",
-            widgets: buildCreateVariants(accessibleSites)
-        }
-    },
-    HEADER_LOGGING = {
-        id: "HEADER_LOGGING",
-        name: "alfresco/header/AlfMenuBarPopup",
-        config: {
-            id: "HEADER_LOGGING",
-            label: "Debug Menu",
-            widgets: loggingWidgetItems
-        }
-    };
-
-
-// ---------------------
-// Slide Menu
-// ---------------------
-if (isSlideMenu) {
-
-    // USER MENU BAR
-    if (user && user.properties && getPhoto(user.properties.nodeRef)) {
-        HEADER_USER_MENU.config.iconClass = "user-photo-header";
-        HEADER_USER_MENU.config.profileIconSrc = "api/node/content;ecos:photo/" + user.properties.nodeRef.replace(":/", "") + "/image.jpg"
-    } else if(isMobile) {
-        HEADER_USER_MENU.config.iconSrc = "/share/res/components/images/header/user-profile.png"
-    }
-    userMenuBar.config.widgets.push(HEADER_USER_MENU);
-
-    // BUILD APP MENU
-    var slideMenuConfig = {
-        id: "HEADER_SLIDE_MENU",
-        isMobile: isMobile,
-        userName: user.name,
-        logoSrc: getHeaderLogoUrl(),
-        logoSrcMobile: getHeaderMobileLogoUrl(),
-        widgets: getWidgets()
-    };
-
-    model.slideMenuConfig = slideMenuConfig;
-
-    appMenuBar.config.widgets.push({
-        id: "HEADER_SLIDE_MENU",
-        name: "js/citeck/header/citeckMainSlideMenu",
-        config: slideMenuConfig
-    },
-        HEADER_CREATE_CASE);
-
-    if (!isMobile) {
-        if (loggingWidgetItems) {
-            appMenuBar.config.widgets.push(HEADER_LOGGING);
-        }
-    }
-} else {
-    // ---------------------
-    // Old Menu
-    // ---------------------
-    if (!isMobile) {
-        var morePopup = buildMorePopup(false);
-        appMenuBar.config.widgets.push(HEADER_SITES, HEADER_CREATE, HEADER_JOURNALS, HEADER_DOCUMENTLIBRARY, HEADER_CREATE_WORKFLOW, morePopup);
-        if (loggingWidgetItems) {
-            appMenuBar.config.widgets.push(HEADER_LOGGING);
-        }
-    }
-
-    // USER MENU BAR
-    if(isMobile) {
-        HEADER_USER_MENU.config.iconSrc = "/share/res/components/images/header/user-profile.png"
-    }
-    userMenuBar.config.widgets.push(HEADER_USER_MENU);
-
-    // BUILD MOBILE MENU
-    var HEADER_MOBILE_JOURNALS = toMobileWidget(HEADER_JOURNALS);
-    HEADER_MOBILE_JOURNALS.name = "js/citeck/menus/citeckMenuItem";
-    HEADER_MOBILE_JOURNALS.config.movable = null;
-
-    var HEADER_MOBILE_DOCUMENTLIBRARY = toMobileWidget(HEADER_DOCUMENTLIBRARY);
-    HEADER_MOBILE_DOCUMENTLIBRARY.name = "js/citeck/menus/citeckMenuItem";
-    HEADER_MOBILE_DOCUMENTLIBRARY.config.movable = null;
-
-    var HEADER_MOBILE_CREATE_WORKFLOW_VARIANTS = toMobileWidget(HEADER_CREATE_WORKFLOW_VARIANTS);
-    HEADER_MOBILE_CREATE_WORKFLOW_VARIANTS.config.label = "header.create-workflow.label";
-
-    var HEADER_MOBILE_CREATE_VARIANTS = toMobileWidget(HEADER_CREATE_VARIANTS);
-    HEADER_MOBILE_CREATE_VARIANTS.config.label = "header.create-variants.label";
-
-    var HEADER_MOBILE_SITES_VARIANTS = toMobileWidget(HEADER_SITES_VARIANTS);
-    var HEADER_MOBILE_SITES_SEARCH = toMobileWidget(HEADER_SITES_SEARCH);
-    var HEADER_MOBILE_SITES_CREATE = toMobileWidget(HEADER_SITES_CREATE);
-
-    var HEADER_MOBILE_MENU_VARIANTS = {
-        id: "HEADER_MOBILE_MENU_VARIANTS",
-        name: "js/citeck/menus/citeckMenuGroup",
-        config: {
-            id: "HEADER_MOBILE_MENU_VARIANTS",
-            widgets: [
-                HEADER_MOBILE_JOURNALS,
-                HEADER_MOBILE_DOCUMENTLIBRARY,
-                {
-                    id: "HEADER_MOBILE_SITES",
-                    name: "js/citeck/menus/citeckMenuGroup",
-                    config: {
-                        id: "HEADER_MOBILE_SITES",
-                        label: "header.sites.label",
-                        widgets: [
-                            HEADER_MOBILE_SITES_VARIANTS,
-                            {
-                                id: "HEADER_MOBILE_SITES_MANAGEMENT",
-                                name: "js/citeck/menus/citeckMenuGroup",
-                                config: {
-                                    id: "HEADER_MOBILE_SITES_MANAGEMENT",
-                                    widgets: [ HEADER_MOBILE_SITES_SEARCH, HEADER_MOBILE_SITES_CREATE ]
-                                }
+        loggingWidgetItems = [
+            {
+                name: "js/citeck/menus/citeckMenuGroup",
+                config: {
+                    label: "Quick Settings",
+                    widgets: [
+                        {
+                            name: "alfresco/menus/AlfCheckableMenuItem",
+                            config: {
+                                label: "Debug Logging",
+                                value: "enabled",
+                                publishTopic: "ALF_LOGGING_STATUS_CHANGE",
+                                checked: loggingEnabled
                             }
-                        ]
-                    }
-                },
+                        },
+                        {
+                            name: "alfresco/menus/AlfCheckableMenuItem",
+                            config: {
+                                label: "Show All Logs",
+                                value: "all",
+                                publishTopic: "ALF_LOGGING_STATUS_CHANGE",
+                                checked: allEnabled
+                            }
+                        },
+                        {
+                            name: "alfresco/menus/AlfCheckableMenuItem",
+                            config: {
+                                label: "Show Warning Messages",
+                                value: "warn",
+                                publishTopic: "ALF_LOGGING_STATUS_CHANGE",
+                                checked: warnEnabled
+                            }
+                        },
+                        {
+                            name: "alfresco/menus/AlfCheckableMenuItem",
+                            config: {
+                                label: "Show Error Messages",
+                                value: "error",
+                                publishTopic: "ALF_LOGGING_STATUS_CHANGE",
+                                checked: errorEnabled
+                            }
+                        }
+                    ]
+                }
+            },
+            {
+                name: "js/citeck/menus/citeckMenuGroup",
+                config: {
+                    label: "Logging Configuration",
+                    widgets: [
+                        {
+                            name: "js/citeck/menus/citeckMenuItem",
+                            config: {
+                                label: "Update Logging Preferences",
+                                publishTopic: "ALF_UPDATE_LOGGING_PREFERENCES"
+                            }
+                        }
+                    ]
+                }
+            }
+        ];
+    }
 
-                HEADER_MOBILE_CREATE_VARIANTS,
-                HEADER_MOBILE_CREATE_WORKFLOW_VARIANTS
-            ]
-        }
-    };
 
-    HEADER_MOBILE_MENU_VARIANTS.config.widgets.push(buildMorePopup(true));
+    // USER MENU ITEMS
 
-    if (loggingWidgetItems) {
-        HEADER_MOBILE_MENU_VARIANTS.config.widgets.push({
-            id: "HEADER_LOGGING",
-            name: "js/citeck/header/citeckMenuGroup",
+    var availability = "make-" + (user.properties.available === false ? "" : "not") + "available",
+        clickEvent = function (event, element) {
+            Citeck.forms.dialog("deputy:selfAbsenceEvent", "", {
+                scope: this,
+                fn: function (node) {
+                    this.alfPublish("ALF_NAVIGATE_TO_PAGE", {
+                        url: this.targetUrl,
+                        type: this.targetUrlType,
+                        target: this.targetUrlLocation
+                    });
+                }
+            }, {
+                title: "",
+                destination: "workspace://SpacesStore/absence-events"
+            })
+        },
+        userMenuItems = [
+            {
+                id: "HEADER_USER_MENU_STATUS",
+                name: "alfresco/header/CurrentUserStatus"
+            },
+            {
+                id: "HEADER_USER_MENU_MY_PROFILE",
+                name: "js/citeck/header/citeckMenuItem",
+                config: {
+                    id: "HEADER_USER_MENU_MY_PROFILE",
+                    label: "header.my-profile.label",
+                    iconImage: "/share/res/components/images/header/my-profile.png",
+                    targetUrl: "user/" + encodeURIComponent(user.name) + "/profile"
+                }
+            },
+            {
+                id: "HEADER_USER_MENU_AVAILABILITY",
+                name: "js/citeck/header/citeckMenuItem",
+                config: {
+                    id: "HEADER_USER_MENU_AVAILABILITY",
+                    label: "header." + availability + ".label",
+                    iconImage: "/share/res/components/images/header/" + availability + ".png",
+                    targetUrl: "/components/deputy/make-available?available=" + (user.properties.available === false ? "true" : "false"),
+                    clickEvent: "" + (user.properties.available === false ? "" : clickEvent.toString())
+                }
+            }
+        ];
+
+    if (user.capabilities.isMutable) {
+        userMenuItems.push({
+            id: "HEADER_USER_MENU_PASSWORD",
+            name: "js/citeck/header/citeckMenuItem",
             config: {
-                id: "HEADER_MOBILE_LOGGING",
-                label: "Debug Menu",
-                widgets: loggingWidgetItems
+                id: "HEADER_USER_MENU_PASSWORD",
+                label: "header.change-password.label",
+                iconImage: "/share/res/components/images/header/change-password.png",
+                targetUrl: "user/" + encodeURIComponent(user.name) + "/change-password"
             }
         });
     }
 
-    appMenuBar.config.widgets.unshift(
+    // Feedback Tools
+    userMenuItems.push(
         {
-            id: "HEADER_MOBILE_MENU",
-            name: "alfresco/header/AlfMenuBarPopup",
+            id: "HEADER_USER_MENU_FEEDBACK",
+            name: "js/citeck/menus/citeckMenuItem",
             config: {
-                id: "HEADER_MOBILE_MENU",
-                widgets: [HEADER_MOBILE_MENU_VARIANTS],
-                style: "padding-right: 5px;"
+                id: "HEADER_USER_MENU_FEEDBACK",
+                label: "header.feedback.label",
+                iconImage: "/share/res/components/images/header/default-error-report-16.png",
+                targetUrl: "https://www.citeck.ru/feedback",
+                targetUrlType: "FULL_PATH",
+                targetUrlLocation: "NEW"
             }
         },
-        buildLogo(isMobile)
-    );
+        {
+            id: "HEADER_USER_MENU_REPORTISSUE",
+            name: "js/citeck/menus/citeckMenuItem",
+            config: {
+                id: "HEADER_USER_MENU_REPORTISSUE",
+                label: "header.reportIssue.label",
+                iconImage: "/share/res/components/images/header/default-feedback-16.png",
+                targetUrl: "mailto:support@citeck.ru?subject=Ошибка в работе Citeck ECOS: краткое описание&body=Summary: Короткое описание проблемы (продублировать в теме письма)%0A%0ADescription:%0AПожалуйста, детально опишите возникшую проблему, последовательность действий, которая привела к ней. При необходимости приложите скриншоты.",
+                targetUrlType: "FULL_PATH",
+                targetUrlLocation: "NEW"
+            }
+        });
 
+    var logoutItemConfig = {
+        id: "HEADER_USER_MENU_LOGOUT",
+        name: "js/citeck/header/citeckMenuItem",
+        config: {
+            id: "HEADER_USER_MENU_LOGOUT",
+            label: "header.logout.label",
+            iconImage: "/share/res/components/images/header/logout.png",
+            actionType: "logout"
+        }
+    };
+
+    if (!context.externalAuthentication) {
+        // Alfresco community version doesn't have LogoutService so we should check
+        if (model.jsonModel.services && model.jsonModel.services.indexOf("alfresco/services/LogoutService") > -1) {
+            logoutItemConfig.config.publishTopic = "ALF_DOLOGOUT";
+        } else {
+            logoutItemConfig.config.targetUrl = "dologout";
+        }
+    }
+
+    userMenuItems.push(logoutItemConfig);
+
+    var HEADER_USER_MENU = {
+        id: "HEADER_USER_MENU",
+        name: "js/citeck/menus/citeckMenuBarPopup",
+        config: {
+            id: "HEADER_USER_MENU",
+            label: user.fullName,
+            widgets: [{
+                name: "js/citeck/menus/citeckMenuGroup",
+                config: {
+                    widgets: userMenuItems
+                }
+            }]
+        }
+    };
+
+    // APP MENU ITEMS
+
+    appMenuBar.config.widgets = [];
+    var createSiteClickEvent = isSlideMenu ? "Citeck.module.getCreateSiteInstance().show()"
+                                           : function(event, element) {
+                                                Citeck.module.getCreateSiteInstance().show();
+                                             };
+
+
+    var HEADER_SITES_VARIANTS = {
+            id: "HEADER_SITES_VARIANTS",
+            name: "js/citeck/menus/citeckMenuGroup",
+            config: {
+                id: "HEADER_SITES_VARIANTS",
+                widgets: buildSitesForUser(accessibleSites)
+            }
+        },
+        HEADER_SITES_SEARCH = {
+            id: "HEADER_SITES_SEARCH",
+            name: "js/citeck/menus/citeckMenuItem",
+            config: {
+                id: "HEADER_SITES_SEARCH",
+                label: "header.find-sites.label",
+                targetUrl: "custom-site-finder"
+            }
+        },
+        HEADER_SITES_CREATE = {
+            id: "HEADER_SITES_CREATE",
+            name: "js/citeck/menus/citeckMenuItem",
+            config: {
+                id: "HEADER_SITES_CREATE",
+                label: "header.create-site.label",
+                clickEvent: createSiteClickEvent.toString(),
+                inheriteClickEvent: false
+            }
+        },
+        HEADER_CREATE_VARIANTS = {
+            id: "HEADER_CREATE_VARIANTS",
+            name: "js/citeck/menus/citeckMenuGroup",
+            config: {
+                id: "HEADER_CREATE_VARIANTS",
+                widgets: buildCreateVariantsForSite(currentSite)
+            }
+        },
+        HEADER_CREATE = {
+            id: "HEADER_CREATE",
+            name: "alfresco/header/AlfMenuBarPopup",
+            config: {
+                id: "HEADER_CREATE",
+                label: "header.create-variants.label",
+                widgets: [ HEADER_CREATE_VARIANTS ]
+            }
+        },
+        HEADER_JOURNALS = {
+            id: "HEADER_JOURNALS",
+            name: "js/citeck/menus/citeckMenuBarItem",
+            config: {
+                id: "HEADER_JOURNALS",
+                label: "header.journals.label",
+                targetUrl: buildSiteUrl(currentSite) + "journals2/list/main",
+                movable: { minWidth: 1089 }
+            }
+        },
+        HEADER_DOCUMENTLIBRARY = {
+            id: "HEADER_DOCUMENTLIBRARY",
+            name: "js/citeck/menus/citeckMenuBarItem",
+            config: {
+                id: "HEADER_DOCUMENTLIBRARY",
+                label: "header.documentlibrary.label",
+                targetUrl: buildSiteUrl(currentSite) + "documentlibrary",
+                movable: { minWidth: 1171 }
+            }
+        },
+        HEADER_CREATE_WORKFLOW_VARIANTS = {
+            id: "HEADER_CREATE_WORKFLOW_VARIANTS",
+            name: "js/citeck/menus/citeckMenuGroup",
+            config: {
+                id: "HEADER_CREATE_WORKFLOW_VARIANTS",
+                widgets: [
+                    {
+                        id: "HEADER_CREATE_WORKFLOW_ADHOC",
+                        name: "js/citeck/menus/citeckMenuItem",
+                        config: {
+                            id: "HEADER_CREATE_WORKFLOW_ADHOC",
+                            label: "header.create-workflow-adhoc.label",
+                            targetUrl: "workflow-start-page?formType=workflowId&formKey=activiti$perform"
+                        }
+                    },
+                    {
+                        id: "HEADER_CREATE_WORKFLOW_CONFIRM",
+                        name: "js/citeck/menus/citeckMenuItem",
+                        config: {
+                            id: "HEADER_CREATE_WORKFLOW_CONFIRM",
+                            label: "header.create-workflow-confirm.label",
+                            targetUrl: "start-specified-workflow?workflowId=activiti$confirm"
+                        }
+                    }
+                ]
+            }
+        },
+        HEADER_CREATE_WORKFLOW = {
+            id: "HEADER_CREATE_WORKFLOW",
+            name: "alfresco/header/AlfMenuBarPopup",
+            config: {
+                id: "HEADER_CREATE_WORKFLOW",
+                label: "header.create-workflow.label",
+                widgets: [ HEADER_CREATE_WORKFLOW_VARIANTS ]
+            }
+        },
+        HEADER_SITES = {
+            id: "HEADER_SITES",
+            name: "alfresco/header/AlfMenuBarPopup",
+            config: {
+                id: "HEADER_SITES",
+                label: "header.sites.label",
+                widgets: [
+                    HEADER_SITES_VARIANTS,
+                    {
+                        id: "HEADER_SITES_MANAGEMENT",
+                        name: "js/citeck/menus/citeckMenuGroup",
+                        config: {
+                            id: "HEADER_SITES_MANAGEMENT",
+                            widgets: [
+                                HEADER_SITES_SEARCH,
+                                HEADER_SITES_CREATE
+                            ]
+                        }
+                    }
+                ]
+            }
+        },
+        HEADER_CREATE_CASE = {
+            id: "HEADER_CREATE_CASE",
+            name: "alfresco/menus/AlfMenuBarPopup",
+            config: {
+                id: "HEADER_CREATE_CASE",
+                widgets: buildCreateVariants(accessibleSites)
+            }
+        },
+        HEADER_LOGGING = {
+            id: "HEADER_LOGGING",
+            name: "alfresco/header/AlfMenuBarPopup",
+            config: {
+                id: "HEADER_LOGGING",
+                label: "Debug Menu",
+                widgets: loggingWidgetItems
+            }
+        };
+
+
+    // ---------------------
+    // Slide Menu
+    // ---------------------
+    if (isSlideMenu) {
+
+        // USER MENU BAR
+        if (user && user.properties && getPhoto(user.properties.nodeRef)) {
+            HEADER_USER_MENU.config.iconClass = "user-photo-header";
+            HEADER_USER_MENU.config.profileIconSrc = "api/node/content;ecos:photo/" + user.properties.nodeRef.replace(":/", "") + "/image.jpg"
+        } else if(isMobile) {
+            HEADER_USER_MENU.config.iconSrc = "/share/res/components/images/header/user-profile.png"
+        }
+        userMenuBar.config.widgets.push(HEADER_USER_MENU);
+
+        // BUILD APP MENU
+        var slideMenuConfig = {
+            id: "HEADER_SLIDE_MENU",
+            isMobile: isMobile,
+            userName: user.name,
+            logoSrc: getHeaderLogoUrl(),
+            logoSrcMobile: getHeaderMobileLogoUrl(),
+            //new menu doesn't use this config
+            widgets: []//getWidgets()
+        };
+
+        model.slideMenuConfig = slideMenuConfig;
+
+        appMenuBar.config.widgets.push({
+            id: "HEADER_SLIDE_MENU",
+            name: "js/citeck/header/citeckMainSlideMenu",
+            config: slideMenuConfig
+        },
+            HEADER_CREATE_CASE);
+
+        if (!isMobile) {
+            if (loggingWidgetItems) {
+                appMenuBar.config.widgets.push(HEADER_LOGGING);
+            }
+        }
+    } else {
+        // ---------------------
+        // Old Menu
+        // ---------------------
+        if (!isMobile) {
+            var morePopup = buildMorePopup(false);
+            appMenuBar.config.widgets.push(HEADER_SITES, HEADER_CREATE, HEADER_JOURNALS, HEADER_DOCUMENTLIBRARY, HEADER_CREATE_WORKFLOW, morePopup);
+            if (loggingWidgetItems) {
+                appMenuBar.config.widgets.push(HEADER_LOGGING);
+            }
+        }
+
+        // USER MENU BAR
+        if(isMobile) {
+            HEADER_USER_MENU.config.iconSrc = "/share/res/components/images/header/user-profile.png"
+        }
+        userMenuBar.config.widgets.push(HEADER_USER_MENU);
+
+        // BUILD MOBILE MENU
+        var HEADER_MOBILE_JOURNALS = toMobileWidget(HEADER_JOURNALS);
+        HEADER_MOBILE_JOURNALS.name = "js/citeck/menus/citeckMenuItem";
+        HEADER_MOBILE_JOURNALS.config.movable = null;
+
+        var HEADER_MOBILE_DOCUMENTLIBRARY = toMobileWidget(HEADER_DOCUMENTLIBRARY);
+        HEADER_MOBILE_DOCUMENTLIBRARY.name = "js/citeck/menus/citeckMenuItem";
+        HEADER_MOBILE_DOCUMENTLIBRARY.config.movable = null;
+
+        var HEADER_MOBILE_CREATE_WORKFLOW_VARIANTS = toMobileWidget(HEADER_CREATE_WORKFLOW_VARIANTS);
+        HEADER_MOBILE_CREATE_WORKFLOW_VARIANTS.config.label = "header.create-workflow.label";
+
+        var HEADER_MOBILE_CREATE_VARIANTS = toMobileWidget(HEADER_CREATE_VARIANTS);
+        HEADER_MOBILE_CREATE_VARIANTS.config.label = "header.create-variants.label";
+
+        var HEADER_MOBILE_SITES_VARIANTS = toMobileWidget(HEADER_SITES_VARIANTS);
+        var HEADER_MOBILE_SITES_SEARCH = toMobileWidget(HEADER_SITES_SEARCH);
+        var HEADER_MOBILE_SITES_CREATE = toMobileWidget(HEADER_SITES_CREATE);
+
+        var HEADER_MOBILE_MENU_VARIANTS = {
+            id: "HEADER_MOBILE_MENU_VARIANTS",
+            name: "js/citeck/menus/citeckMenuGroup",
+            config: {
+                id: "HEADER_MOBILE_MENU_VARIANTS",
+                widgets: [
+                    HEADER_MOBILE_JOURNALS,
+                    HEADER_MOBILE_DOCUMENTLIBRARY,
+                    {
+                        id: "HEADER_MOBILE_SITES",
+                        name: "js/citeck/menus/citeckMenuGroup",
+                        config: {
+                            id: "HEADER_MOBILE_SITES",
+                            label: "header.sites.label",
+                            widgets: [
+                                HEADER_MOBILE_SITES_VARIANTS,
+                                {
+                                    id: "HEADER_MOBILE_SITES_MANAGEMENT",
+                                    name: "js/citeck/menus/citeckMenuGroup",
+                                    config: {
+                                        id: "HEADER_MOBILE_SITES_MANAGEMENT",
+                                        widgets: [ HEADER_MOBILE_SITES_SEARCH, HEADER_MOBILE_SITES_CREATE ]
+                                    }
+                                }
+                            ]
+                        }
+                    },
+
+                    HEADER_MOBILE_CREATE_VARIANTS,
+                    HEADER_MOBILE_CREATE_WORKFLOW_VARIANTS
+                ]
+            }
+        };
+
+        HEADER_MOBILE_MENU_VARIANTS.config.widgets.push(buildMorePopup(true));
+
+        if (loggingWidgetItems) {
+            HEADER_MOBILE_MENU_VARIANTS.config.widgets.push({
+                id: "HEADER_LOGGING",
+                name: "js/citeck/header/citeckMenuGroup",
+                config: {
+                    id: "HEADER_MOBILE_LOGGING",
+                    label: "Debug Menu",
+                    widgets: loggingWidgetItems
+                }
+            });
+        }
+
+        appMenuBar.config.widgets.unshift(
+            {
+                id: "HEADER_MOBILE_MENU",
+                name: "alfresco/header/AlfMenuBarPopup",
+                config: {
+                    id: "HEADER_MOBILE_MENU",
+                    widgets: [HEADER_MOBILE_MENU_VARIANTS],
+                    style: "padding-right: 5px;"
+                }
+            },
+            buildLogo(isMobile)
+        );
+
+    }
 }
 
 

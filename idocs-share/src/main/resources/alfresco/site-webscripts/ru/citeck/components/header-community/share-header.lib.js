@@ -71,7 +71,7 @@ function toMobileWidget(object) {
       widget.config.widgets[i] = toMobileWidget(widget.config.widgets[i])
     }
   }
-  
+
   return widget;
 }
 
@@ -114,11 +114,17 @@ function addSubWidgetsToSectionSlideMenu(sectionId, newItem, insetToTop) {
     }
 }
 
-function isShouldDisplayLeftMenuForUser(userName) {
-    var userGroups = getGroupsForUser(userName);
-    return (getMenuConfig("default-ui-main-menu") == "left") && isShouldDisplayLeftMenu(userGroups);
+function isShouldDisplayLeftMenuForUser(userName, config) {
+    if (!config) {
+        config = getMenuConfig("default-ui-main-menu");
+    }
+    if (config.indexOf("left") !== 0) {
+        return false;
+    } else {
+        var userGroups = getGroupsForUser(userName);
+        return isShouldDisplayLeftMenu(userGroups);
+    }
 }
-
 
 function isShouldDisplayLeftMenu(userGroups) {
 

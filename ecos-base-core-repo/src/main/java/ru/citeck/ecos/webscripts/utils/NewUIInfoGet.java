@@ -21,7 +21,7 @@ public class NewUIInfoGet extends AbstractWebScript {
 
     private NewUIUtils newUIUtils;
 
-    private ObjectMapper objectMapper = new ObjectMapper();
+    private final ObjectMapper objectMapper = new ObjectMapper();
 
     @Override
     public void execute(WebScriptRequest req, WebScriptResponse res) throws IOException {

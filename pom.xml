@@ -4,7 +4,7 @@
 
     <groupId>ru.citeck.ecos.community</groupId>
     <artifactId>ecos-community-core</artifactId>
-    <version>3.28.0-SNAPSHOT</version>
+    <version>3.29.0-SNAPSHOT</version>
     <packaging>pom</packaging>
 
     <name>ecos-community</name>
@@ -65,7 +65,7 @@
         <default.locale>en</default.locale>
         <yuicompressor.compress.skip>false</yuicompressor.compress.skip>
 
-        <ecos.flowable.version>2.0.1</ecos.flowable.version>
+        <ecos.flowable.version>2.0.3</ecos.flowable.version>
         <ecos.records.version>1.33.0</ecos.records.version>
         <ecos.apps.lib.version>2.7.0</ecos.apps.lib.version>
         <ecos.jackson.version>2.10.4.3</ecos.jackson.version>
@@ -73,7 +73,7 @@
         <ecos.commons.version>1.9.0</ecos.commons.version>
         <ecos.commands.version>1.6.0</ecos.commands.version>
         <ecos.meta-repo.version>1.1.0</ecos.meta-repo.version>
-        <ecos.notifications.lib.version>1.0.1</ecos.notifications.lib.version>
+        <ecos.notifications.lib.version>1.0.2</ecos.notifications.lib.version>
 
         <spring.retry.version>1.2.4.RELEASE</spring.retry.version>
 

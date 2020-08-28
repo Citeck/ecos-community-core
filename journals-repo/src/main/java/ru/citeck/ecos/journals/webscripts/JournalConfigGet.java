@@ -141,17 +141,22 @@ public class JournalConfigGet extends AbstractWebScript {
             column.setParams(journalType.getAttributeOptions(name));
             column.setText(getColumnLabel(column));
 
+            AttInfo info = columnInfo.get(name);
+            column.setJavaClass(info.getJavaClass() != null ? info.getJavaClass().getName() : null);
+            column.setEditorKey(info.getEditorKey());
+            column.setType(info.getType());
+            column.setEditable(!Boolean.TRUE.equals(info.notEditable));
+
             if (column.getParams() != null) {
                 String schema = column.getParams().get("schema");
                 if (StringUtils.isNotBlank(schema)) {
                     column.setSchema(schema);
                 }
+                String editable = column.getParams().get("editable");
+                if (Boolean.FALSE.toString().equals(editable)) {
+                    column.setEditable(false);
+                }
             }
-
-            AttInfo info = columnInfo.get(name);
-            column.setJavaClass(info.getJavaClass() != null ? info.getJavaClass().getName() : null);
-            column.setEditorKey(info.getEditorKey());
-            column.setType(info.getType());
 
             columns.add(column);
         }
@@ -422,7 +427,8 @@ public class JournalConfigGet extends AbstractWebScript {
 
         Map<String, String> attributesEdges = new HashMap<>();
         for (String attribute : attributes) {
-            attributesEdges.put(attribute, ".edge(n:\"" + attribute + "\"){type,editorKey,javaClass}");
+            attributesEdges.put(attribute, ".edge(n:\"" + attribute + "\"){type,editorKey," +
+                                                                           "javaClass,notEditable:protected}");
         }
 
         RecordRef metaRecordRef;
@@ -561,6 +567,7 @@ public class JournalConfigGet extends AbstractWebScript {
         boolean isSortable;
         boolean isVisible;
         boolean isGroupable;
+        boolean isEditable;
     }
 
     @Data
@@ -574,5 +581,6 @@ public class JournalConfigGet extends AbstractWebScript {
         String type;
         String editorKey;
         Class<?> javaClass;
+        Boolean notEditable;
     }
 }

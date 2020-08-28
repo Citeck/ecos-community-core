@@ -79,7 +79,7 @@ public class FlowableConfiguration {
 
 
     private static final String BEAN_KEY_COMPLETENESS_SERVICE_JS = "caseCompletenessServiceJS";
-    private static final String BEAN_KEY_NOTIFICATION_SERVICE = "ecosNotificationService";
+    private static final String BEAN_KEY_SYSTEM_ALF_NOTIFICATION_SERVICE = "systemAlfNotificationService";
     private static final String BEAN_KEY_CASE_STATUS_SERVICE_JS = "caseStatusServiceJS";
 
     /**
@@ -223,8 +223,8 @@ public class FlowableConfiguration {
         CaseStatusServiceJS caseStatusServiceJS = applicationContext.getBean(BEAN_KEY_CASE_STATUS_SERVICE_JS,
                 CaseStatusServiceJS.class);
         Properties properties = applicationContext.getBean("global-properties", Properties.class);
-        NotificationService notificationService = applicationContext.getBean(BEAN_KEY_NOTIFICATION_SERVICE,
-            NotificationService.class);
+        NotificationService notificationService = applicationContext.getBean(
+            BEAN_KEY_SYSTEM_ALF_NOTIFICATION_SERVICE, NotificationService.class);
 
         beans.put(FlowableConstants.SERVICE_REGISTRY_BEAN_KEY, descriptorRegistry);
         beans.put(FlowableConstants.COMPLETENESS_SERVICE_JS_KEY, caseCompletenessServiceJS);
