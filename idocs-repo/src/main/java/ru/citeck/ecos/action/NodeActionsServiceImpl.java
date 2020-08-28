@@ -1,17 +1,17 @@
 package ru.citeck.ecos.action;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.cache.CacheBuilder;
-import com.google.common.cache.CacheLoader;
-import com.google.common.cache.CacheStats;
-import com.google.common.cache.LoadingCache;
+import ecos.com.google.common.cache.CacheBuilder;
+import ecos.com.google.common.cache.CacheLoader;
+import ecos.com.google.common.cache.CacheStats;
+import ecos.com.google.common.cache.LoadingCache;
+import lombok.AllArgsConstructor;
+import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.alfresco.model.ContentModel;
 import org.alfresco.repo.security.authentication.AuthenticationUtil;
 import org.alfresco.service.ServiceRegistry;
 import org.alfresco.service.cmr.repository.NodeRef;
 import org.alfresco.service.cmr.repository.NodeService;
-import org.alfresco.util.Pair;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.extensions.surf.util.I18NUtil;
 import ru.citeck.ecos.action.node.NodeActionDefinition;
@@ -31,8 +31,6 @@ import java.util.stream.Collectors;
 @Slf4j
 public class NodeActionsServiceImpl implements NodeActionsService {
 
-    private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
-
     private static final String PARAM_ACTION_ID = "actionId";
     private static final String PARAM_ACTION_TITLE = "title";
     private static final String PARAM_ACTION_TYPE = "actionType";
@@ -41,9 +39,9 @@ public class NodeActionsServiceImpl implements NodeActionsService {
             PARAM_ACTION_TYPE);
 
     private List<NodeActionsV2Provider> v2providersList = new ArrayList<>();
-    private List<NodeActionsProvider> providersList = new ArrayList<>();
+    private final List<NodeActionsProvider> providersList = new ArrayList<>();
 
-    private LoadingCache<Pair<String, NodeRef>, NodeActions> cache;
+    private LoadingCache<ActionsCacheKey, NodeActions> cache;
     private long cacheAge = 600;
     private boolean enableCache = true;
 
@@ -59,14 +57,12 @@ public class NodeActionsServiceImpl implements NodeActionsService {
     public List<Map<String, String>> getNodeActionsRaw(NodeRef nodeRef) {
 
         NodeActions data;
-        Pair<String, NodeRef> key = new Pair<>(AuthenticationUtil.getRunAsUser(), nodeRef);
+
+        Date lastModified = getLastModified(nodeRef);
+        ActionsCacheKey key = new ActionsCacheKey(lastModified, AuthenticationUtil.getRunAsUser(), nodeRef);
 
         if (enableCache) {
             data = cache.getUnchecked(key);
-            if (getLastModified(nodeRef).after(data.lastModified)) {
-                cache.invalidate(key);
-                data = cache.getUnchecked(key);
-            }
         } else {
             data = getNodeActionsImpl(key);
         }
@@ -103,13 +99,13 @@ public class NodeActionsServiceImpl implements NodeActionsService {
         return result;
     }
 
-    private NodeActions getNodeActionsImpl(Pair<String, NodeRef> userNode) {
+    private NodeActions getNodeActionsImpl(ActionsCacheKey userNode) {
 
         List<Map<String, String>> actionsData = new ArrayList<>();
 
         int id = 0;
         for (NodeActionsProvider provider : providersList) {
-            List<ru.citeck.ecos.action.node.NodeActionDefinition> list = provider.getNodeActions(userNode.getSecond());
+            List<ru.citeck.ecos.action.node.NodeActionDefinition> list = provider.getNodeActions(userNode.getNodeRef());
             for (NodeActionDefinition action : list) {
                 action.setActionId(Integer.toString(id++));
                 if (action.isValid()) {
@@ -128,7 +124,7 @@ public class NodeActionsServiceImpl implements NodeActionsService {
             }
         }
 
-        return new NodeActions(getLastModified(userNode.getSecond()), actionsData);
+        return new NodeActions(userNode.getLastModified(), actionsData);
     }
 
     private Date getLastModified(NodeRef nodeRef) {
@@ -140,9 +136,9 @@ public class NodeActionsServiceImpl implements NodeActionsService {
     }
 
     public void clearCache(NodeRef nodeRef) {
-        List<Pair<String, NodeRef>> keysToInvalidate = new ArrayList<>();
+        List<ActionsCacheKey> keysToInvalidate = new ArrayList<>();
         cache.asMap().forEach((k, v) -> {
-            if (k.getSecond().equals(nodeRef)) {
+            if (Objects.equals(k.getNodeRef(), nodeRef)) {
                 keysToInvalidate.add(k);
             }
         });
@@ -191,5 +187,13 @@ public class NodeActionsServiceImpl implements NodeActionsService {
             this.lastModified = lastModified;
             this.actionsData = actionsData;
         }
+    }
+
+    @Data
+    @AllArgsConstructor
+    private static class ActionsCacheKey {
+        private Date lastModified;
+        private String user;
+        private NodeRef nodeRef;
     }
 }

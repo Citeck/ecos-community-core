@@ -30,6 +30,13 @@
     </types>
 
     <aspects>
+        <aspect name="cwf:hasLastCompletedTaskInfo">
+            <properties>
+                <property name="cwf:lastCompletedTaskDate">
+                    <type>d:datetime</type>
+                </property>
+            </properties>
+        </aspect>
         <aspect name="cwf:sender">
             <title>Sender</title>
             <properties>
