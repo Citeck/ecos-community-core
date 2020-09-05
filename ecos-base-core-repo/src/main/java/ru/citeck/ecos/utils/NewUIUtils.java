@@ -124,7 +124,7 @@ public class NewUIUtils {
     private boolean isNewUIEnabledForUserImpl(String username) {
         Object objValue = ecosConfigService.getParamValue(NEW_UI_REDIRECT_ENABLED);
         boolean isNewUIRedirectEnabled = String.valueOf(objValue).equals(Boolean.TRUE.toString());
-        return isNewUIRedirectEnabled || isNewJournalsGroupMember(username);
+        return isNewUIRedirectEnabled || isNewJournalsGroupMember(username) || isNewJournalsEnabledForUser(username);
     }
 
     private String getUITypeByRecord(RecordRefUserKey refAndUser) {
@@ -190,6 +190,12 @@ public class NewUIUtils {
         Set<String> avalibleGroups = new HashSet<>(Arrays.asList(groupsInString.split(",")));
         Set<String> userGroups = authorityService.getAuthoritiesForUser(username);
         return !Collections.disjoint(avalibleGroups, userGroups);
+    }
+
+    private boolean isNewJournalsEnabledForUser(String username) {
+        RecordRef recordRef = RecordRef.create("people", username);
+        DataValue att = recordsService.getAtt(recordRef, "ecos:newJournalsEnabled");
+        return att.asBoolean();
     }
 
     @Data
