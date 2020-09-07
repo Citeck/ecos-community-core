@@ -20,6 +20,7 @@ package ru.citeck.ecos.journals;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import ecos.com.fasterxml.jackson210.databind.JsonNode;
 import ecos.com.google.common.cache.CacheBuilder;
 import ecos.com.google.common.cache.CacheLoader;
 import ecos.com.google.common.cache.LoadingCache;
@@ -54,6 +55,7 @@ import ru.citeck.ecos.model.ClassificationModel;
 import ru.citeck.ecos.model.JournalsModel;
 import ru.citeck.ecos.processor.TemplateExpressionEvaluator;
 import ru.citeck.ecos.records2.RecordRef;
+import ru.citeck.ecos.records2.RecordsService;
 import ru.citeck.ecos.records2.request.query.RecordsQueryResult;
 import ru.citeck.ecos.search.SearchCriteria;
 import ru.citeck.ecos.search.SearchCriteriaSettingsRegistry;
@@ -70,6 +72,9 @@ class JournalServiceImpl implements JournalService {
 
     protected static final String JOURNALS_SCHEMA_LOCATION = "alfresco/module/journals-repo/schema/journals.xsd";
     protected static final String INVARIANTS_SCHEMA_LOCATION = "alfresco/module/ecos-forms-repo/schema/invariants.xsd";
+
+    @Autowired
+    private RecordsService recordsService;
 
     private NodeService nodeService;
     private ServiceRegistry serviceRegistry;
@@ -393,6 +398,14 @@ class JournalServiceImpl implements JournalService {
 
         Optional<JournalType> optJournal = getJournalTypeByIdOrNodeRefImpl(journalId);
         if (!optJournal.isPresent()) {
+            RecordRef journalRef = RecordRef.create("uiserv", "journal", journalId);
+            JsonNode type = recordsService.getAttribute(journalRef, "typeRef?id").getValue();
+
+            if (type != null) {
+                RecordRef typeRef = RecordRef.valueOf(type.asText());
+                return newUIUtils.getUITypeForRecord(typeRef, journalUserKey.getUserName());
+            }
+
             return "";
         }
 
