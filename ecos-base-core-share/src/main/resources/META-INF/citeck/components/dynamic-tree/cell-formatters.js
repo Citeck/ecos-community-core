@@ -848,7 +848,7 @@ define([
                     'title="' + title +'"  target="_blank"/>' + '</div>';
             }
         },
-        
+
         doubleClickLink: function(urlTemplate, fieldId, formatter, target) {
             if (!target) target = '_self';
             if (!urlTemplate) urlTemplate = '';
@@ -1050,7 +1050,7 @@ define([
                     tr = this.getTrEl(elCell);
                 Dom.addClass(th, "hide-column");
                 Dom.addClass(td, "hide-column");
-                
+
                 var move = function() {
                     var ntr = document.createElement("TR"),
                         ntd = document.createElement("TD");
@@ -1118,17 +1118,25 @@ define([
                     });
                 };
 
-                Citeck.forms.editRecord({
-                    recordRef: "wftask@" + taskId,
-                    fallback: showLegacyForm,
-                    formContainer: elCell,
-                    onSubmit: function(record) {
-                        YAHOO.Bubbling.fire("metadataRefresh");
+                Citeck.Records.get('ecos-config@ecos-forms-card-enable').load('.bool').then(function(isEnable) {
+                    if (isEnable) {
+                        Citeck.forms.editRecord({
+                            recordRef: "wftask@" + taskId,
+                            fallback: showLegacyForm,
+                            formContainer: elCell,
+                            onSubmit: function(record) {
+                                YAHOO.Bubbling.fire("metadataRefresh");
+                            }
+                        });
+                    } else {
+                        showLegacyForm();
                     }
+                }).catch(function() {
+                    showLegacyForm();
                 });
             }
         },
-        
+
         taskButtons: function() {
             var formatterScope = this;
             return function (elCell, oRecord, oColumn, sData) {
@@ -1374,7 +1382,7 @@ define([
                 this.subscribe('renderEvent', move, this, true);
             }
         },
-        
+
         taskAttachments: function() {
             return function(elCell, oRecord, oColumn, oData) {
                 if(!oData || oData.length == 0) {
@@ -1391,7 +1399,7 @@ define([
                     elCell.innerHTML = "";
                     return;
                 }
-                elCell.innerHTML = '<a title="' + Alfresco.util.message("button.view.detailed") + '" href="' + Alfresco.constants.URL_PAGECONTEXT + 'task-details?taskId=' + sData + '" target="_blank">' + 
+                elCell.innerHTML = '<a title="' + Alfresco.util.message("button.view.detailed") + '" href="' + Alfresco.constants.URL_PAGECONTEXT + 'task-details?taskId=' + sData + '" target="_blank">' +
                     '<img src="' + Alfresco.constants.URL_RESCONTEXT + 'citeck/images/task-16.png"></a>';
             }
         },
