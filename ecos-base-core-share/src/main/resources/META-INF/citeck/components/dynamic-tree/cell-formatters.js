@@ -1132,7 +1132,7 @@ define([
                         showLegacyForm();
                     }
                 }).catch(() => {
-                    return showLegacyForm();
+                    showLegacyForm();
                 });
             }
         },
