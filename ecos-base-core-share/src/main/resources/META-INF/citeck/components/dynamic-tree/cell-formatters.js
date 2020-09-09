@@ -1118,7 +1118,7 @@ define([
                     });
                 };
 
-                Citeck.Records.get('ecos-config@ecos-forms-card-enable').load('.bool').then(isEnable => {
+                Citeck.Records.get('ecos-config@ecos-forms-card-enable').load('.bool').then(function(isEnable) {
                     if (isEnable) {
                         Citeck.forms.editRecord({
                             recordRef: "wftask@" + taskId,
@@ -1131,7 +1131,7 @@ define([
                     } else {
                         showLegacyForm();
                     }
-                }).catch(() => {
+                }).catch(function() {
                     showLegacyForm();
                 });
             }
