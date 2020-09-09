@@ -1118,7 +1118,7 @@ define([
                     });
                 };
 
-                Citeck.Records.Records.get('ecos-config@ecos-forms-card-enable').load('.bool').then((isEnable) => {
+                Citeck.Records.get('ecos-config@ecos-forms-card-enable').load('.bool').then(isEnable => {
                     if (isEnable) {
                         Citeck.forms.editRecord({
                             recordRef: "wftask@" + taskId,
