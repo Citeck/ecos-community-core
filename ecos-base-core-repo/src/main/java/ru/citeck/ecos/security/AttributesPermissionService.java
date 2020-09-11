@@ -19,4 +19,6 @@ public interface AttributesPermissionService {
     void reloadDefinition(NodeRef matrixDefinitionRef);
 
     void reloadAllDefinitions();
+
+    boolean hasAttributesPermission(NodeRef caseRef);
 }

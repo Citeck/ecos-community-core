@@ -45,6 +45,13 @@ public interface CaseRoleService {
     NodeRef getRole(NodeRef caseRef, String name);
 
     /**
+     * Get roles by user in specified case
+     * @return roles or empty list
+     * @throws IllegalArgumentException if name is null or empty
+     */
+    List<String> getUserRoles(NodeRef caseRef, String userName);
+
+    /**
      * Get role assignees by case reference and role name
      * @return role assignees
      * @throws IllegalArgumentException if role with specified name not found in case

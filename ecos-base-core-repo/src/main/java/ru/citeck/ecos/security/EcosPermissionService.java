@@ -5,6 +5,7 @@ import org.alfresco.service.namespace.NamespaceService;
 import org.alfresco.service.namespace.QName;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
 import java.util.HashSet;
@@ -18,7 +19,7 @@ public class EcosPermissionService {
 
     private static final String EDIT_MODE = "edit";
 
-    private AttributesPermissionService attsPermService;
+    private AttributesPermissionServiceResolver attsPermServiceResolver;
     private NamespaceService namespaceService;
 
     private Set<QName> protectedAttributes = new HashSet<>();
@@ -41,15 +42,16 @@ public class EcosPermissionService {
         if (protectedAttributes.contains(attQName)) {
             return true;
         }
-        if (attsPermService == null) {
+        if (attsPermServiceResolver == null) {
             return false;
         }
-        return !attsPermService.isFieldEditable(attQName, nodeRef, EDIT_MODE);
+        AttributesPermissionService attrsPermissionService = attsPermServiceResolver.resolve(nodeRef);
+        return attrsPermissionService == null ? false : !attrsPermissionService.isFieldEditable(attQName, nodeRef, EDIT_MODE);
     }
 
     @Autowired(required = false)
-    public void setAttsPermService(AttributesPermissionService attsPermService) {
-        this.attsPermService = attsPermService;
+    public void setAttsPermServiceResolver(AttributesPermissionServiceResolver attsPermServiceResolver) {
+        this.attsPermServiceResolver = attsPermServiceResolver;
     }
 
     @Autowired
