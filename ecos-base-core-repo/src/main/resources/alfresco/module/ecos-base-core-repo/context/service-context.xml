@@ -450,6 +450,7 @@
         <property name="protectedAttributes">
             <list>
                 <value>{http://www.citeck.ru/model/icase/1.0}caseStatusAssoc</value>
+                <value>{http://www.citeck.ru/model/content/idocs/1.0}documentStatus</value>
             </list>
         </property>
     </bean>
