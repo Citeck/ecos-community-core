@@ -84,6 +84,11 @@ public class NewUIUtils {
         isNewUIEnabledForUserCache.invalidateAll();
     }
 
+    public void invalidateCacheForUser(String username) {
+        uiTypeByRecord.invalidate(username);
+        isNewUIEnabledForUserCache.invalidate(username);
+    }
+
     public boolean isNewUIEnabled() {
         return isNewUIEnabledForUser(authenticationService.getCurrentUserName());
     }
