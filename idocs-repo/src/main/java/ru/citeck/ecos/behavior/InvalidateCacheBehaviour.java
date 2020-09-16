@@ -1,7 +1,7 @@
 package ru.citeck.ecos.behavior;
 
 import org.alfresco.model.ContentModel;
-import org.alfresco.repo.node.NodeServicePolicies;
+import org.alfresco.repo.node.NodeServicePolicies.OnUpdatePropertiesPolicy;
 import org.alfresco.repo.policy.Behaviour;
 import org.alfresco.service.cmr.repository.NodeRef;
 import org.alfresco.service.cmr.security.PersonService;
@@ -17,7 +17,7 @@ import java.io.Serializable;
 import java.util.Map;
 import java.util.Objects;
 
-public class InvalidateCacheBehaviour extends AbstractBehaviour implements NodeServicePolicies.OnUpdatePropertiesPolicy {
+public class InvalidateCacheBehaviour extends AbstractBehaviour implements OnUpdatePropertiesPolicy {
     @Autowired
     private PersonService personService;
 
@@ -33,7 +33,8 @@ public class InvalidateCacheBehaviour extends AbstractBehaviour implements NodeS
     }
 
     @Override
-    @PolicyMethod(policy = NodeServicePolicies.OnUpdatePropertiesPolicy.class, frequency = Behaviour.NotificationFrequency.TRANSACTION_COMMIT)
+    @PolicyMethod(policy = OnUpdatePropertiesPolicy.class,
+        frequency = Behaviour.NotificationFrequency.TRANSACTION_COMMIT)
     public void onUpdateProperties(NodeRef nodeRef, Map<QName, Serializable> before, Map<QName, Serializable> after) {
         Object propBefore = before.get(EcosModel.PROP_NEW_JOURNALS_ENABLED);
         Object propAfter = after.get(EcosModel.PROP_NEW_JOURNALS_ENABLED);
