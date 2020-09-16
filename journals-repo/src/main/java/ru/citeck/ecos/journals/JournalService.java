@@ -51,7 +51,7 @@ public interface JournalService {
 
     void clearCache();
 
-    default void clearCacheForUser(String username) {}
+    void clearCacheForUser(String username);
 
     List<InvariantDefinition> getCriterionInvariants(String journalId, String attribute);
 
