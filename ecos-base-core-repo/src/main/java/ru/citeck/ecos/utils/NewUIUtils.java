@@ -20,10 +20,7 @@ import ru.citeck.ecos.node.EcosTypeService;
 import ru.citeck.ecos.records2.RecordRef;
 import ru.citeck.ecos.records2.RecordsService;
 
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -82,6 +79,17 @@ public class NewUIUtils {
     public void invalidateCache() {
         uiTypeByRecord.invalidateAll();
         isNewUIEnabledForUserCache.invalidateAll();
+    }
+
+    public void invalidateCacheForUser(String username) {
+        List<RecordRefUserKey> recordRefUserKeys = new ArrayList<>();
+        uiTypeByRecord.asMap().forEach((k, v) -> {
+            if (k.getUserName().equals(username)) {
+                recordRefUserKeys.add(k);
+            }
+        });
+        uiTypeByRecord.invalidateAll(recordRefUserKeys);
+        isNewUIEnabledForUserCache.invalidate(username);
     }
 
     public boolean isNewUIEnabled() {

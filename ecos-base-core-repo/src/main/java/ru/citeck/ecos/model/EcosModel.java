@@ -51,6 +51,7 @@ public interface EcosModel {
     QName PROP_SUPERVISOR_NAME = QName.createQName(ECOS_NAMESPACE, "supervisorName");
     QName PROP_HR_MANAGER_ID = QName.createQName(ECOS_NAMESPACE, "hrManagerId");
     QName PROP_DOC_NUM = QName.createQName(ECOS_NAMESPACE, "docNum");
+    QName PROP_NEW_JOURNALS_ENABLED = QName.createQName(ECOS_NAMESPACE, "newJournalsEnabled");
 
     //Associations
     QName ASSOC_RESPONSIBLE = QName.createQName(ECOS_NAMESPACE, "responsible");
