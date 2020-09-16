@@ -38,7 +38,7 @@ timestamps {
       }
       def project_version = readMavenPom().getVersion()
       project_id = readMavenPom().getArtifactId()
-      mattermostSend endpoint: 'https://mm.citeck.ru/hooks/9ytch3uox3retkfypuq7xi3yyr', channel: "build_notifications", color: 'good', message: " :arrow_forward: **Build project ${project_id}:**\n**Branch:** ${env.BRANCH_NAME}\n**Version:** ${project_version}\n**Build id:** ${env.BUILD_NUMBER}\n**Build url:** ${env.BUILD_URL}\n**Changes:**\n" + getChangeString()
+      mattermostSend endpoint: 'https://mm.citeck.ru/hooks/9ytch3uox3retkfypuq7xi3yyr', channel: "qa-cicd", color: 'good', message: " :arrow_forward: **Build project ${project_id}:**\n**Branch:** ${env.BRANCH_NAME}\n**Version:** ${project_version}\n**Build id:** ${env.BUILD_NUMBER}\n**Build url:** ${env.BUILD_URL}\n**Changes:**\n" + getChangeString()
       if ((env.BRANCH_NAME != "master") && (!project_version.contains('SNAPSHOT')))  {
         echo "Assembly of release artifacts is allowed only from the master branch!"
         currentBuild.result = 'SUCCESS'
@@ -57,10 +57,10 @@ timestamps {
     }
     script{
       if(currentBuild.result != 'FAILURE'){
-        mattermostSend endpoint: 'https://mm.citeck.ru/hooks/9ytch3uox3retkfypuq7xi3yyr', channel: "build_notifications", color: 'good', message: " :white_check_mark: **Build project ${project_id} with ID ${env.BUILD_NUMBER} complete!**"
+        mattermostSend endpoint: 'https://mm.citeck.ru/hooks/9ytch3uox3retkfypuq7xi3yyr', channel: "qa-cicd", color: 'good', message: " :white_check_mark: **Build project ${project_id} with ID ${env.BUILD_NUMBER} complete!**"
       }
       else{
-        mattermostSend endpoint: 'https://mm.citeck.ru/hooks/9ytch3uox3retkfypuq7xi3yyr', channel: "build_notifications", color: 'danger', message: " @channel :exclamation: **Build project ${project_id} with ID  ${env.BUILD_NUMBER} failure with message:**\n```${error_message}```"
+        mattermostSend endpoint: 'https://mm.citeck.ru/hooks/9ytch3uox3retkfypuq7xi3yyr', channel: "qa-cicd", color: 'danger', message: " @channel :exclamation: **Build project ${project_id} with ID  ${env.BUILD_NUMBER} failure with message:**\n```${error_message}```"
       }
     }
   }
