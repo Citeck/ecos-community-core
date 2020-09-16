@@ -3,43 +3,44 @@ package ru.citeck.ecos.behavior;
 import org.alfresco.model.ContentModel;
 import org.alfresco.repo.node.NodeServicePolicies;
 import org.alfresco.repo.policy.Behaviour;
-import org.alfresco.repo.policy.PolicyComponent;
-import org.alfresco.repo.security.authentication.AuthenticationUtil;
 import org.alfresco.service.cmr.repository.NodeRef;
+import org.alfresco.service.cmr.security.PersonService;
 import org.alfresco.service.namespace.QName;
 import org.springframework.beans.factory.annotation.Autowired;
+import ru.citeck.ecos.behavior.base.AbstractBehaviour;
+import ru.citeck.ecos.behavior.base.PolicyMethod;
+import ru.citeck.ecos.journals.JournalService;
 import ru.citeck.ecos.model.EcosModel;
 import ru.citeck.ecos.utils.NewUIUtils;
 
-import javax.annotation.PostConstruct;
 import java.io.Serializable;
 import java.util.Map;
 import java.util.Objects;
 
-public class InvalidateCacheBehaviour implements NodeServicePolicies.OnUpdatePropertiesPolicy {
+public class InvalidateCacheBehaviour extends AbstractBehaviour implements NodeServicePolicies.OnUpdatePropertiesPolicy {
     @Autowired
-    private PolicyComponent policyComponent;
+    private PersonService personService;
 
     @Autowired
     private NewUIUtils newUIUtils;
 
-    @PostConstruct
-    public void init() {
-        policyComponent.bindClassBehaviour(
-            NodeServicePolicies.OnUpdatePropertiesPolicy.QNAME,
-            ContentModel.TYPE_PERSON,
-            new JavaBehaviour(this,
-                "onUpdateProperties",
-                Behaviour.NotificationFrequency.TRANSACTION_COMMIT)
-        );
+    @Autowired
+    private JournalService journalService;
+
+    @Override
+    protected void beforeInit() {
+        setClassName(ContentModel.TYPE_PERSON);
     }
 
     @Override
+    @PolicyMethod(policy = NodeServicePolicies.OnUpdatePropertiesPolicy.class, frequency = Behaviour.NotificationFrequency.TRANSACTION_COMMIT)
     public void onUpdateProperties(NodeRef nodeRef, Map<QName, Serializable> before, Map<QName, Serializable> after) {
         Object propBefore = before.get(EcosModel.PROP_NEW_JOURNALS_ENABLED);
         Object propAfter = after.get(EcosModel.PROP_NEW_JOURNALS_ENABLED);
+        String userName = personService.getPerson(nodeRef).getUserName();
         if (!Objects.equals(propBefore, propAfter)) {
-            newUIUtils.invalidateCacheForUser(AuthenticationUtil.getRunAsUser());
+            newUIUtils.invalidateCacheForUser(userName);
+            journalService.clearCacheForUser(userName);
         }
     }
 }
