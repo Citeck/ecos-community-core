@@ -20,17 +20,19 @@ define([
     'lib/knockout',
     'citeck/utils/knockout.utils',
     'ecosui!menu-api',
+    'ecosui!journalsApi',
     'ecosui!user-in-groups-list-helper',
     'underscore',
     'citeck/components/invariants/invariants',
     'citeck/components/dynamic-tree/cell-formatters',
     'citeck/components/dynamic-tree/action-renderer'
-], function(ko, koutils, MenuApi, checkFunctionalAvailabilityHelper, _) {
+], function(ko, koutils, MenuApi, JournalsApi, checkFunctionalAvailabilityHelper, _) {
 
     if (!Citeck) Citeck = {};
     if (!Citeck.constants) Citeck.constants = {};
 
     var menuApi = new MenuApi();
+    var journalsApi = JournalsApi;
 
 var logger = Alfresco.logger,
         noneActionGroupId = "none",
@@ -1492,10 +1494,11 @@ JournalsWidget
     })
 
     .property('newJournalsPageEnable', b)
-
+    .property('uiType', o)
     .computed('fullscreenLink', function() {
         var self = this;
         var newJournalsPageEnable = this.newJournalsPageEnable();
+        var uiType = this.uiType() || {};
 
         var journalsList = this.journalsList(),
             journalId = this.journalId(),
@@ -1503,6 +1506,7 @@ JournalsWidget
             settingsId = this.settingsId(),
             prefix = '',
             postfix = '',
+            site = '',
             tokens = {
                 journal: this.journalId(),
                 filter: this.filterId(),
@@ -1515,7 +1519,8 @@ JournalsWidget
             }).join('&');
         if(journalsList != null) {
             if(journalsList.scope() != 'global') {
-                prefix = journalsList.scope() + '/' + journalsList.scopeId() + '/';
+            	site = journalsList.scopeId();
+                prefix = journalsList.scope() + '/' + site + '/';
             }
             postfix = '/list/' + journalsList.listId();
         }
@@ -1526,6 +1531,21 @@ JournalsWidget
             postfix: postfix,
             hash: hash
         });
+
+        var uiTypeKey = !!journalId ? journalId : site;
+        if (uiType.key != uiTypeKey) {
+            var promice = !!journalId
+                ? journalsApi.getJournalUIType(journalId)
+                : MenuApi.getSiteUiType(site);
+
+            promice.then(function (type) {
+                self.uiType({
+                    key: uiTypeKey,
+                    type: type
+                });
+            })
+        }
+        newJournalsPageEnable = uiType.type == 'share' ? false : newJournalsPageEnable;
 
         if (newJournalsPageEnable === null) {
             self.newJournalsPageEnable(false);
