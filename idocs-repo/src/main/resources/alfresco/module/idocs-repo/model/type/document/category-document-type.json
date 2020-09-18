@@ -4,7 +4,7 @@
     "parent": "emodel/type@user-base",
     "inheritActions": true,
     "actions": [
-        "uiserv/action@view-in-browser",
+        "uiserv/action@view-content-in-browser",
         "uiserv/action@delete"
     ]
 }
