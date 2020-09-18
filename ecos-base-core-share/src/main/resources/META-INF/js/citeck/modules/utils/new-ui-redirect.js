@@ -4,10 +4,11 @@ define([
 ], function () {
 
     var siteDashboardPattern = /^\/share\/page\/site\/([^\/]*)\/dashboard\/?$/;
-    var dashboardTemplateToTest = /^\/share\/page\/user\/[^\/]*\/dashboard\/?$/;
+    var userDashboardPattern = /^\/share\/page\/user\/[^\/]*\/dashboard\/?$/;
 
     var pageTemplatesToTest = [
         siteDashboardPattern,
+        userDashboardPattern,
         /^\/share\/page\/?$/,
         /^\/share\/?$/
     ];
@@ -27,10 +28,19 @@ define([
             return {};
         }
 
-        Citeck.Records.get('ecos-config@new-ui-redirect-dashboard-enabled').load('.bool').then(function(isRedirectOn) {
+        var isForceOldDashboard;
+        var recordRefParam = extractRecordRef(window.location.pathname) || "";
+        if (recordRefParam) {
+            recordRefParam = "?recordRef=" + recordRefParam;
+            isForceOldDashboard = Promise.resolve(false);
+        } else {
+            isForceOldDashboard = Citeck.Records.get('ecos-config@force-old-user-dashboard-enabled').load('.bool');
+        }
 
-            if (isRedirectOn) {
-                pageTemplatesToTest.push(dashboardTemplateToTest);
+        isForceOldDashboard.then(isForceOldDashboard => {
+
+            if (isForceOldDashboard) {
+                return;
             }
 
             let isAnyTemplateMatch = false;
@@ -49,11 +59,6 @@ define([
             }
             Citeck.newUIRedirectCheckingPerformed = true;
 
-            var recordRefParam = extractRecordRef(window.location.pathname) || "";
-            if (recordRefParam) {
-                recordRefParam = "?recordRef=" + recordRefParam;
-            }
-
             Alfresco.util.Ajax.jsonGet({
                 url: Alfresco.constants.PROXY_URI + 'citeck/ecos/new-ui-info-get' + recordRefParam,
                 successCallback: {
@@ -63,7 +68,7 @@ define([
                             return;
                         }
                         if (response.json.recordUIType === "react"
-                                || (response.json.recordUIType !== "share" && response.json.newUIEnabled)) {
+                            || (response.json.recordUIType !== "share" && response.json.newUIEnabled)) {
 
                             window.location.href = response.json.newUIRedirectUrl;
                         }
