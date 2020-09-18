@@ -261,6 +261,17 @@ class JournalServiceImpl implements JournalService {
     }
 
     @Override
+    public void clearCacheForUser(String username) {
+        List<JournalUserKey> journalUserKeys = new ArrayList<>();
+        uiTypeByJournal.asMap().forEach((k, v) -> {
+            if (k.getUserName().equals(username)) {
+                journalUserKeys.add(k);
+            }
+        });
+        uiTypeByJournal.invalidateAll(journalUserKeys);
+    }
+
+    @Override
     public JournalType getJournalType(String id) {
         if (id == null) {
             return null;

@@ -101,7 +101,10 @@ public class EcosTaskService {
             lockUtils.doWithLock(String.format(TASKS_PREFIX, taskId), () -> {
                 taskService.endTask(task.getLocalId(), transition, finalVariables, finalTransientVariables);
             });
-            addLastCompletedTaskDate(taskInfo.getDocument());
+            AuthenticationUtil.runAsSystem(() -> {
+                addLastCompletedTaskDate(taskInfo.getDocument());
+                return null;
+            });
         } catch (RuntimeException exception) {
             unwrapJsExceptionAndThrow(exception);
         }
@@ -114,10 +117,7 @@ public class EcosTaskService {
         String nodeRefStr = documentRef.getId();
         if (NodeRef.isNodeRef(nodeRefStr)) {
             NodeRef nodeRef = new NodeRef(nodeRefStr);
-            AuthenticationUtil.runAsSystem(() -> {
-                nodeService.setProperty(nodeRef, CiteckWorkflowModel.PROP_LAST_COMPLETED_TASK_DATE, new Date());
-                return null;
-            });
+            nodeService.setProperty(nodeRef, CiteckWorkflowModel.PROP_LAST_COMPLETED_TASK_DATE, new Date());
         }
     }
 

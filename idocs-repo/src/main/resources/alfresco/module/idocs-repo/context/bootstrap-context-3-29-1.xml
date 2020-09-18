@@ -1,0 +1,35 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+        http://www.springframework.org/schema/beans/spring-beans-3.0.xsd">
+
+    <bean id="idocs.import-spaces.3-29-1" abstract="true" parent="idocs.import-spaces">
+        <property name="sinceVersion" value="3.29.1"/>
+        <property name="appliesFromVersion" value="3.29.1"/>
+    </bean>
+
+    <bean id="idocs.import-scripts.3-29-1" abstract="true" parent="idocs.import-scripts">
+        <property name="sinceVersion" value="3.29.1"/>
+        <property name="appliesFromVersion" value="3.29.1"/>
+    </bean>
+
+    <bean id="idocs.module-component.config.force-old-user-dashboard-enabled.create" parent="module.baseComponent"
+          class="ru.citeck.ecos.config.patch.CreateConfig">
+        <property name="dependsOn">
+            <list>
+                <ref bean="ecos-base-core.module-component.ecos-config-root" />
+            </list>
+        </property>
+        <property name="configKey" value="force-old-user-dashboard-enabled" />
+        <property name="configValue" value="false" />
+        <property name="configTitle" value="ecos-config.force-old-user-dashboard-enabled.title" />
+        <property name="configDescription" value="ecos-config.force-old-user-dashboard-enabled.description" />
+        <property name="moduleId" value="idocs-repo" />
+        <property name="sinceVersion" value="3.29.1" />
+        <property name="appliesFromVersion" value="3.29.1" />
+        <property name="name" value="idocs.module-component.config.force-old-user-dashboard-enabled.create" />
+        <property name="description" value="idocs.module-component.config.force-old-user-dashboard-enabled.create" />
+    </bean>
+
+</beans>
