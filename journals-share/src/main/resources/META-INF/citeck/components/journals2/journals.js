@@ -1545,7 +1545,11 @@ JournalsWidget
                 });
             })
         }
-        newJournalsPageEnable = uiType.type == 'share' ? false : newJournalsPageEnable;
+
+        switch (uiType.type) {
+            case 'share': newJournalsPageEnable = false; break;
+            case 'react': newJournalsPageEnable = true; break;
+        }
 
         if (newJournalsPageEnable === null) {
             self.newJournalsPageEnable(false);
