@@ -6,8 +6,8 @@ import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.BooleanUtils;
 import ru.citeck.ecos.model.EcosModel;
 
-import java.util.LinkedList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class PersonUtils {
 
@@ -16,14 +16,16 @@ public class PersonUtils {
             return;
         }
 
-        List<NodeRef> excludedUsers = new LinkedList<>();
-        for (NodeRef user : users) {
-            Boolean isPersonDisabled = (Boolean) nodeService.getProperty(user, EcosModel.PROP_IS_PERSON_DISABLED);
-            if (BooleanUtils.isTrue(isPersonDisabled)) {
-                excludedUsers.add(user);
-            }
-        }
+        List<NodeRef> excludedUsers = users
+            .stream()
+            .filter(user -> isPersonDisabled(user, nodeService))
+            .collect(Collectors.toList());
 
         users.removeAll(excludedUsers);
     }
+
+    public static boolean isPersonDisabled(NodeRef user, NodeService nodeService) {
+        return BooleanUtils.isTrue((Boolean) nodeService.getProperty(user, EcosModel.PROP_IS_PERSON_DISABLED));
+    }
+
 }
