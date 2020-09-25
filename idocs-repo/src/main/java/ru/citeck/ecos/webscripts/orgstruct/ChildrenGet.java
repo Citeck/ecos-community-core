@@ -31,6 +31,7 @@ import ru.citeck.ecos.orgstruct.OrgMetaService;
 import ru.citeck.ecos.orgstruct.OrgStructService;
 import ru.citeck.ecos.search.ftsquery.FTSQuery;
 import ru.citeck.ecos.utils.ConfigUtils;
+import ru.citeck.ecos.utils.PersonUtils;
 
 import java.io.IOException;
 import java.io.Serializable;
@@ -273,7 +274,8 @@ public class ChildrenGet extends AbstractWebScript {
         }
         if (!options.showDisabled) {
             if (!authorityName.startsWith(GROUP_PREFIX) &&
-                    !authenticationService.getAuthenticationEnabled(authorityName)) {
+                (!authenticationService.getAuthenticationEnabled(authorityName) ||
+                    PersonUtils.isPersonDisabled(authority.getFirst(), nodeService))) {
                 return false;
             }
         }
