@@ -16,6 +16,7 @@ import ru.citeck.ecos.graphql.node.GqlAlfNode;
 import ru.citeck.ecos.graphql.node.GqlQName;
 import ru.citeck.ecos.records2.RecordsService;
 import ru.citeck.ecos.records2.graphql.GqlContext;
+import ru.citeck.ecos.security.EcosPermissionService;
 
 import java.util.Collection;
 import java.util.List;
@@ -39,6 +40,8 @@ public class AlfGqlContext extends GqlContext {
     private final NodeService nodeService;
     @Getter
     private final MessageService messageService;
+    @Getter
+    private final EcosPermissionService ecosPermissionService;
 
     private final Map<String, Object> servicesCache = new ConcurrentHashMap<>();
 
@@ -47,11 +50,13 @@ public class AlfGqlContext extends GqlContext {
     }
 
     public AlfGqlContext(ServiceRegistry serviceRegistry, RecordsService recordsService) {
+
         this.serviceRegistry = serviceRegistry;
         this.dictionaryService = serviceRegistry.getDictionaryService();
         this.namespaceService = serviceRegistry.getNamespaceService();
         this.nodeService = serviceRegistry.getNodeService();
         this.messageService = serviceRegistry.getMessageService();
+        this.ecosPermissionService = (EcosPermissionService) serviceRegistry.getService(EcosPermissionService.QNAME);
 
         nodes = CacheBuilder.newBuilder()
                             .maximumSize(500)
