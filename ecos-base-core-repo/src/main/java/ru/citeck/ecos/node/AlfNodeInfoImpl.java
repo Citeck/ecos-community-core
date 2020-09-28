@@ -10,11 +10,11 @@ import java.util.Map;
 
 public class AlfNodeInfoImpl implements AlfNodeInfo {
 
-    private NodeService nodeService;
+    private final NodeService nodeService;
 
     private final NodeRef nodeRef;
 
-    AlfNodeInfoImpl(NodeRef nodeRef, ServiceRegistry serviceRegistry) {
+    public AlfNodeInfoImpl(NodeRef nodeRef, ServiceRegistry serviceRegistry) {
         this.nodeRef = nodeRef;
         this.nodeService = serviceRegistry.getNodeService();
     }

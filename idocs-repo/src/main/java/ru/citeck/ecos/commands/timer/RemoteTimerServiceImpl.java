@@ -25,8 +25,8 @@ public class RemoteTimerServiceImpl implements RemoteTimerService {
 
     private static final String EPROC_TARGET_APP_NAME = "eproc";
 
-    private CommandsProperties commandsProperties;
-    private CommandsService commandsService;
+    private final CommandsProperties commandsProperties;
+    private final CommandsService commandsService;
 
     @Autowired
     public RemoteTimerServiceImpl(CommandsProperties commandsProperties, CommandsService commandsService) {
