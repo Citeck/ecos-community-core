@@ -1,11 +1,13 @@
 package ru.citeck.ecos.node;
 
+import org.alfresco.repo.security.permissions.AccessDeniedException;
 import org.alfresco.service.ServiceRegistry;
 import org.alfresco.service.cmr.repository.NodeRef;
 import org.alfresco.service.cmr.repository.NodeService;
 import org.alfresco.service.namespace.QName;
 
 import java.io.Serializable;
+import java.util.Collections;
 import java.util.Map;
 
 public class AlfNodeInfoImpl implements AlfNodeInfo {
@@ -31,6 +33,10 @@ public class AlfNodeInfoImpl implements AlfNodeInfo {
 
     @Override
     public Map<QName, Serializable> getProperties() {
-        return nodeService.getProperties(nodeRef);
+        try {
+            return nodeService.getProperties(nodeRef);
+        } catch (AccessDeniedException e) {
+            return Collections.emptyMap();
+        }
     }
 }
