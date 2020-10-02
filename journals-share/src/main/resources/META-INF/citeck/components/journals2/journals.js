@@ -330,7 +330,7 @@ CreateVariant
             }
         })
 
-        .method('filterOptions', function(criteria, pagination, paramJournalType) {
+        .method('filterOptions', function(criteria, pagination, paramJournalType, allowedFilterValues) {
 
             if (!this.cache) this.cache = {};
             if (!this.cache.result) {
@@ -359,11 +359,19 @@ CreateVariant
                 if (pagination.skipCount) query.skipCount = pagination.skipCount;
             }
 
+            var lastIndex = 1;
             _.each(criteria, function(criterion, index) {
                 query['field_' + (index + 2)] = criterion.attribute;
                 query['predicate_' + (index + 2)] = criterion.predicate;
                 query['value_' + (index + 2)] = criterion.value;
+                lastIndex = index + 2;
             });
+
+            if (allowedFilterValues && allowedFilterValues[paramJournalType]) {
+                query['field_' + (lastIndex + 1)] = allowedFilterValues[paramJournalType].field;
+                query['predicate_' + (lastIndex + 1)] = allowedFilterValues[paramJournalType].predicate;
+                query['value_' + (lastIndex + 1)] = allowedFilterValues[paramJournalType].values.join(',');
+            }
 
             if(this.cache.query) {
                 if(_.isEqual(query, this.cache.query)) return this.cache.result();

@@ -535,6 +535,7 @@ define(['jquery','lib/knockout', 'citeck/utils/knockout.utils', 'citeck/componen
             this.criterion.containerId = this.containerId;
             this.criterion.applyCriteria = this.applyCriteria;
             this.criterion.keyDownManagment = this.keyDownManagment;
+            this.criterion.allowedFilterValues = JSON.parse(this.journalType.options().allowedFilterValues || null);
 
             this.containerContent = ko.observable("");
 
