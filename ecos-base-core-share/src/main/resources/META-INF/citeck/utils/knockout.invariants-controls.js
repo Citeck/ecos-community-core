@@ -1403,6 +1403,7 @@ ko.components.register('documentSelect', {
 ko.bindingHandlers.journalControl = {
   init: function(element, valueAccessor, allBindings, data, context) {
     var self = this;
+    var allowedFilterValues = data.allowedFilterValues;
 
     // html elements
     var button  = Dom.get(element.id + "-button"),
@@ -1645,7 +1646,7 @@ ko.bindingHandlers.journalControl = {
                             skipCount: skipCount(),
                             searchScript: searchScript,
                             sortBy: sortBy
-                        }, journalTypeId);
+                        }, journalTypeId, allowedFilterValues);
                         var config = nudeOptions.pagination, result;
 
                         var tempAdditionalOptions = additionalOptions();
