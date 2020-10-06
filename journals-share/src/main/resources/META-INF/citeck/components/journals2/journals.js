@@ -939,10 +939,12 @@ Record
         return aspectList;
     })
     .computed('isDocument', function() {
-        return ((this.attributes()['attr:isDocument'] || [])[0] || {str: 'false'}).str == 'true';
+        var attr = this.attributes()['attr:isDocument'];
+        return attr === true || ((attr || [])[0] || {str: 'false'}).str == 'true';
     })
     .computed('isContainer', function() {
-        return ((this.attributes()['attr:isContainer'] || [])[0] || {str: 'false'}).str == 'true';
+        var attr = this.attributes()['attr:isContainer'];
+        return attr === true || ((attr || [])[0] || {str: 'false'}).str == 'true';
     })
     .property('selected', b)
     .load('selected', function() { this.selected(false) })
@@ -2288,6 +2290,10 @@ JournalsWidget
                             var att = atts[i];
                             attributes[att.name()] = att.name() + "[]";
                         }
+
+                        attributes['attr:isDocument'] = 'attr:isDocument?bool';
+                        attributes['attr:isContainer'] = 'attr:isContainer?bool';
+
                         body.attributes = attributes;
                     }
 
