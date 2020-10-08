@@ -186,9 +186,39 @@
         </dependency>
 
         <dependency>
+            <groupId>ru.citeck.ecos.rabbitmq</groupId>
+            <artifactId>ecos-rabbitmq</artifactId>
+            <version>${ecos.rabbitmq.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>ru.citeck.ecos.zookeeper</groupId>
+            <artifactId>ecos-zookeeper</artifactId>
+            <version>${ecos.zookeeper.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>ru.citeck.ecos</groupId>
+            <artifactId>ecos-curator-framework</artifactId>
+            <version>5.0.0</version>
+        </dependency>
+
+        <dependency>
             <groupId>ru.citeck.ecos</groupId>
             <artifactId>ecos-meta-repo</artifactId>
             <version>${ecos.meta-repo.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>ru.citeck.ecos.events2</groupId>
+            <artifactId>ecos-events2</artifactId>
+            <version>${ecos.events2.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>ru.citeck.ecos.events2</groupId>
+            <artifactId>ecos-events2-rabbitmq</artifactId>
+            <version>${ecos.events2.version}</version>
         </dependency>
 
         <dependency>
