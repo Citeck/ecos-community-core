@@ -24,6 +24,7 @@
             UserProfile.render('user-profile-root', {
                 el: "${((el)!"")?js_string}",
                 userRef: "${((userRef)!"")?js_string}",
+                userName: "${((userName)!"")?js_string}",
                 mode: "${((mode)!"")?js_string}",
                 <#if mode == "view" && writeMode>
                     canWrite: true,
