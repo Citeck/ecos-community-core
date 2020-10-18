@@ -29,7 +29,7 @@ public class EmptyPredicateToFtsConverter implements PredicateToFtsConverter {
         QName attQName = getQueryField(dictUtils.getAttDefinition(attribute));
         DataTypeDefinition attDataType = dictUtils.getPropertyDataType(attQName);
 
-        if ("java.lang.String".equalsIgnoreCase(attDataType.getJavaClassName())) {
+        if (attDataType != null && "java.lang.String".equalsIgnoreCase(attDataType.getJavaClassName())) {
             consumeQueryField(attribute, query::emptyString);
         } else {
             consumeQueryField(attribute, query::empty);
