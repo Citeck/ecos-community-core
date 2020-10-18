@@ -115,7 +115,7 @@ public class FTSQuery implements OperatorExpected, OperandExpected {
     public FTSQuery empty(QName field) {
         return open().isNull(field).or()
             .isUnset(field)
-            .close().and().range(field, "", "*");
+            .close();
     }
 
     @Override
@@ -123,7 +123,7 @@ public class FTSQuery implements OperatorExpected, OperandExpected {
         return open().isNull(field).or()
             .isUnset(field).or()
             .exact(field, "")
-            .close();
+            .close().and().range(field, "", "*");
     }
 
     @Override

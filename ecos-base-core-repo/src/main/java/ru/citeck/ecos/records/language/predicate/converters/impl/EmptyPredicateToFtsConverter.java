@@ -3,6 +3,7 @@ package ru.citeck.ecos.records.language.predicate.converters.impl;
 import lombok.extern.slf4j.Slf4j;
 import org.alfresco.service.cmr.dictionary.AssociationDefinition;
 import org.alfresco.service.cmr.dictionary.ClassAttributeDefinition;
+import org.alfresco.service.cmr.dictionary.DataTypeDefinition;
 import org.alfresco.service.namespace.QName;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -25,7 +26,14 @@ public class EmptyPredicateToFtsConverter implements PredicateToFtsConverter {
     @Override
     public void convert(Predicate predicate, FTSQuery query) {
         String attribute = ((EmptyPredicate) predicate).getAttribute();
-        consumeQueryField(attribute, query::empty);
+        QName attQName = getQueryField(dictUtils.getAttDefinition(attribute));
+        DataTypeDefinition attDataType = dictUtils.getPropertyDataType(attQName);
+
+        if ("java.lang.String".equalsIgnoreCase(attDataType.getJavaClassName())) {
+            consumeQueryField(attribute, query::emptyString);
+        } else {
+            consumeQueryField(attribute, query::empty);
+        }
     }
 
     private void consumeQueryField(String field, Consumer<QName> consumer) {
