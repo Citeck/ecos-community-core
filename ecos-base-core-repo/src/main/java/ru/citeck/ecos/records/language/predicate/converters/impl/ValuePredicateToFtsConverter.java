@@ -376,7 +376,7 @@ public class ValuePredicateToFtsConverter implements PredicateToFtsConverter {
     private void processDefaultAttribute(FTSQuery query, ValuePredicate valuePredicate) {
         String attribute = valuePredicate.getAttribute();
         Object objectPredicateValue = valuePredicate.getValue();
-        String predicateValue = objectPredicateValue.toString();
+        String predicateValue = objectPredicateValue.toString().replaceAll("\"", "\\\\\"");
 
         ClassAttributeDefinition attDef = dictUtils.getAttDefinition(attribute);
         QName field = getQueryField(attDef);
