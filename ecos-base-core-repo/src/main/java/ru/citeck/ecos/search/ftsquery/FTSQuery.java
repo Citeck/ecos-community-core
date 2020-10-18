@@ -120,10 +120,8 @@ public class FTSQuery implements OperatorExpected, OperandExpected {
 
     @Override
     public FTSQuery emptyString(QName field) {
-        return open().isNull(field).or()
-            .isUnset(field).or()
-            .exact(field, "")
-            .close().and().range(field, "", "*");
+        return open().exact(field, "")
+            .or().not().range(field, "\"\"", "*").close();
     }
 
     @Override
