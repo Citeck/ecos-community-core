@@ -192,7 +192,7 @@ public class AlfNodeRecord implements MetaValue {
             case ATTR_UI_TYPE:
 
                 NewUIUtils utils = context.getService(NewUIUtils.QNAME);
-                attribute = Collections.singletonList(new AlfNodeAttValue(utils.getUITypeForRecord(recordRef)));
+                attribute = Collections.singletonList(new AlfNodeAttValue(utils.getUITypeForRecordAndUser(recordRef)));
                 break;
 
             case RecordConstants.ATT_MODIFIER: {

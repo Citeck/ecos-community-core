@@ -403,7 +403,7 @@ class JournalServiceImpl implements JournalService {
             NodeRef ecosType = (NodeRef) nodeService.getProperty(journalRef, ClassificationModel.PROP_RELATES_TO_TYPE);
             if (ecosType != null) {
                 RecordRef typeRef = RecordRef.create("emodel", "type", ecosType.getId());
-                return newUIUtils.getUITypeForRecord(typeRef, journalUserKey.getUserName());
+                return newUIUtils.getUITypeForRecord(typeRef);
             }
         }
 
@@ -414,7 +414,7 @@ class JournalServiceImpl implements JournalService {
 
             if (type != null) {
                 RecordRef typeRef = RecordRef.valueOf(type.asText());
-                return newUIUtils.getUITypeForRecord(typeRef, journalUserKey.getUserName());
+                return newUIUtils.getUITypeForRecord(typeRef);
             }
 
             return "";
@@ -424,7 +424,7 @@ class JournalServiceImpl implements JournalService {
 
         String typeRefOption = journal.getOptions().get("typeRef");
         if (StringUtils.isNotBlank(typeRefOption)) {
-            return newUIUtils.getUITypeForRecord(RecordRef.valueOf(typeRefOption), journalUserKey.getUserName());
+            return newUIUtils.getUITypeForRecord(RecordRef.valueOf(typeRefOption));
         } else {
 
             String type = journal.getOptions().get("type");
@@ -436,7 +436,7 @@ class JournalServiceImpl implements JournalService {
                     if (StringUtils.isNotBlank(value) && NodeRef.isNodeRef(value)) {
                         NodeRef typeNodeRef = new NodeRef(value);
                         RecordRef typeRef = RecordRef.create("emodel", "type", typeNodeRef.getId());
-                        return newUIUtils.getUITypeForRecord(typeRef, journalUserKey.getUserName());
+                        return newUIUtils.getUITypeForRecord(typeRef);
                     }
                 }
             }
