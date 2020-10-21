@@ -120,8 +120,7 @@ public class FTSQuery implements OperatorExpected, OperandExpected {
 
     @Override
     public FTSQuery emptyString(QName field) {
-        return open().exact(field, "")
-            .or().not().range(field, "\"\"", "*").close();
+        return not().range(field, "\"\"", "*");
     }
 
     @Override
@@ -749,6 +748,10 @@ public class FTSQuery implements OperatorExpected, OperandExpected {
         void setUnOperator(UnOperatorTerm operator) {
             if (group != null) {
                 group.setUnOperator(operator);
+            } else if (unOperator != null
+                && NOT.equalsIgnoreCase(unOperator.operator)
+                && NOT.equalsIgnoreCase(operator.operator)) {
+                unOperator = null;
             } else {
                 unOperator = operator;
             }
