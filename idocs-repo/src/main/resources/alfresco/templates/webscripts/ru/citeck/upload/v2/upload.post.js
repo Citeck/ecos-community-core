@@ -214,7 +214,6 @@ function main() {
                 exitUpload(404, "Node specified by updateNodeRef (" + updateNodeRef + ") not found.");
                 return;
             }
-            updateNode.name = formdata.fields[1].value;
 
             var workingcopy = updateNode.hasAspect("cm:workingcopy");
             if (!workingcopy && updateNode.isLocked) {
@@ -238,6 +237,7 @@ function main() {
             // Update the working copy content
             updateNode.properties.content.write(content, false, true);
             updateNode.properties.content.guessMimetype(filename);
+            updateNode.name = formdata.fields[1].value;
             // check it in again, with supplied version history note
 
             // Extract the metadata
