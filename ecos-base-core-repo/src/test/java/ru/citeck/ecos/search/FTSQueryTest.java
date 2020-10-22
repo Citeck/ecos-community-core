@@ -82,5 +82,9 @@ public class FTSQueryTest {
                         .open().open().close().close()
                         .close();
         assertEquals(fieldQuery, query.getQuery());
+
+        query = FTSQuery.createRaw()
+            .not().not().exact(field, value);
+        assertEquals(fieldQuery, query.getQuery());
     }
 }
