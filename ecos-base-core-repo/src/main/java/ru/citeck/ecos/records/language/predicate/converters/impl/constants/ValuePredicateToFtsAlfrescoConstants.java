@@ -23,6 +23,7 @@ public class ValuePredicateToFtsAlfrescoConstants {
     public static final String SEARCH_PROPS = "search-value-properties-names";
     public static final String SEARCH_EXCLUDED_TYPES = "search-type-names-excluded";
     public static final String SEARCH_EXCLUDED_ASPECTS = "search-aspect-names-excluded";
+    public static final String SEARCH_ALL_TYPES_INCLUDED = "search-all-types-included";
 
     // User ids
     public static final String CURRENT_USER = "$CURRENT";

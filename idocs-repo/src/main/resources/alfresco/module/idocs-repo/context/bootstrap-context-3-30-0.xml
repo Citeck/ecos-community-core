@@ -1,0 +1,32 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+        http://www.springframework.org/schema/beans/spring-beans-3.0.xsd">
+
+    <bean id="idocs.import-spaces.3-30-0" abstract="true" parent="idocs.import-spaces">
+        <property name="sinceVersion" value="3.30.0"/>
+        <property name="appliesFromVersion" value="3.30.0"/>
+    </bean>
+
+    <bean id="idocs.import-scripts.3-30-0" abstract="true" parent="idocs.import-scripts">
+        <property name="sinceVersion" value="3.30.0"/>
+        <property name="appliesFromVersion" value="3.30.0"/>
+    </bean>
+
+    <bean id="idocs.module-component.search-all-types-included" parent="idocs.import-spaces.3-30-0">
+        <property name="name" value="search-all-types-included" />
+        <property name="description" value="search-all-types-included" />
+        <property name="bootstrapViews">
+            <list>
+                <props>
+                    <prop key="path">/app:company_home/app:dictionary</prop>
+                    <prop key="location">alfresco/templates/bootstrap/ru/citeck/ecosConfig.xml</prop>
+                    <prop key="messages">alfresco/module/idocs-repo/bootstrap/configs/search-all-types-included</prop>
+                    <prop key="encoding">UTF-8</prop>
+                </props>
+            </list>
+        </property>
+    </bean>
+
+</beans>
