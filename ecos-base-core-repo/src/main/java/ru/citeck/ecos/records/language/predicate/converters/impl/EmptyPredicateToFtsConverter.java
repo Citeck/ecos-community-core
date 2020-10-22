@@ -3,7 +3,7 @@ package ru.citeck.ecos.records.language.predicate.converters.impl;
 import lombok.extern.slf4j.Slf4j;
 import org.alfresco.service.cmr.dictionary.AssociationDefinition;
 import org.alfresco.service.cmr.dictionary.ClassAttributeDefinition;
-import org.alfresco.service.cmr.dictionary.DataTypeDefinition;
+import org.alfresco.service.cmr.dictionary.PropertyDefinition;
 import org.alfresco.service.namespace.QName;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -54,11 +54,11 @@ public class EmptyPredicateToFtsConverter implements PredicateToFtsConverter {
     }
 
     private boolean isTextField(ClassAttributeDefinition attDef) {
-        QName attQName = getQueryField(attDef);
-        DataTypeDefinition attDataType = dictUtils.getPropertyDataType(attQName);
-        return (attDataType != null &&
-                ("java.lang.String".equalsIgnoreCase(attDataType.getJavaClassName())
-                || "org.alfresco.service.cmr.repository.MLText".equalsIgnoreCase(attDataType.getJavaClassName())));
+        if (attDef instanceof PropertyDefinition) {
+            return "java.lang.String".equalsIgnoreCase(((PropertyDefinition) attDef).getDataType().getJavaClassName())
+                || "org.alfresco.service.cmr.repository.MLText".equalsIgnoreCase(((PropertyDefinition) attDef).getDataType().getJavaClassName());
+        }
+        return false;
     }
 
     @Autowired
