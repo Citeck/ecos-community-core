@@ -169,14 +169,6 @@ public class DictUtils {
         return dictionaryService.getProperty(field);
     }
 
-    public DataTypeDefinition getPropertyDataType(QName field) {
-        AssociationDefinition assocDef = dictionaryService.getAssociation(field);
-        if (assocDef != null) {
-            return null;
-        }
-        return dictionaryService.getProperty(field).getDataType();
-    }
-
     public String getPropertyDisplayName(QName name, String value) {
         return getPropertyDisplayName(null, name, value);
     }
