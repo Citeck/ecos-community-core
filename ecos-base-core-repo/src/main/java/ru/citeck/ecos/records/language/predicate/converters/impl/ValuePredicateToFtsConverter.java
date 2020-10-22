@@ -133,7 +133,7 @@ public class ValuePredicateToFtsConverter implements PredicateToFtsConverter {
             .and().not().value(ContentModel.PROP_CREATOR, SYSTEM2)
             .consistency(QueryConsistency.EVENTUAL);
 
-        addTypesForQuery(query);
+        includeTypesForQuery(query);
         addSearchingPropsToQuery(query, value);
         excludeTypesFromQuery(query);
         excludeAspectsFromQuery(query);
@@ -158,7 +158,7 @@ public class ValuePredicateToFtsConverter implements PredicateToFtsConverter {
         excludedAspects.forEach(aspect -> query.and().not().aspect(aspect));
     }
 
-    private void addTypesForQuery(FTSQuery query) {
+    private void includeTypesForQuery(FTSQuery query) {
         List<QName> addTypes = getQNameConfigValueDelimitedByComma(SEARCH_ALL_TYPES_INCLUDED);
 
         if (addTypes.isEmpty()) {
@@ -169,12 +169,10 @@ public class ValuePredicateToFtsConverter implements PredicateToFtsConverter {
         QName addType = iterator.next();
 
         query.and().open().type(addType);
-
         while (iterator.hasNext()) {
             addType = iterator.next();
             query.or().type(addType);
         }
-
         query.close();
     }
 
