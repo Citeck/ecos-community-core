@@ -26,12 +26,9 @@ public class EmptyPredicateToFtsConverter implements PredicateToFtsConverter {
     @Override
     public void convert(Predicate predicate, FTSQuery query) {
         String attribute = ((EmptyPredicate) predicate).getAttribute();
-        QName attQName = getQueryField(dictUtils.getAttDefinition(attribute));
-        DataTypeDefinition attDataType = dictUtils.getPropertyDataType(attQName);
+        ClassAttributeDefinition attDef = dictUtils.getAttDefinition(attribute);
 
-        if (attDataType != null &&
-            ("java.lang.String".equalsIgnoreCase(attDataType.getJavaClassName())
-            || "org.alfresco.service.cmr.repository.MLText".equalsIgnoreCase(attDataType.getJavaClassName()))) {
+        if (isTextField(attDef)) {
             consumeQueryField(attribute, query::emptyString);
         } else {
             consumeQueryField(attribute, query::empty);
@@ -54,6 +51,14 @@ public class EmptyPredicateToFtsConverter implements PredicateToFtsConverter {
             return associationIndexPropertyRegistry.getAssociationIndexProperty(def.getName());
         }
         return def.getName();
+    }
+
+    private boolean isTextField(ClassAttributeDefinition attDef) {
+        QName attQName = getQueryField(attDef);
+        DataTypeDefinition attDataType = dictUtils.getPropertyDataType(attQName);
+        return (attDataType != null &&
+                ("java.lang.String".equalsIgnoreCase(attDataType.getJavaClassName())
+                || "org.alfresco.service.cmr.repository.MLText".equalsIgnoreCase(attDataType.getJavaClassName())));
     }
 
     @Autowired
