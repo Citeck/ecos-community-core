@@ -25,7 +25,7 @@
       "cm:userStatus": "Status",
       "org:workingCalendar": "Working calendar",
       "ecos:timezone": "Timezone",
-      "ecos:isPersonDisabled": "Disable account",
+      "ecos:isPersonDisabled": "Disabled account",
       "deputy:available": "In the workplace",
       "Cancel": "Cancel",
       "Submit": "Save"
