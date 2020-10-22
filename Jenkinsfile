@@ -1,4 +1,3 @@
-// Changes func
 properties([
     buildDiscarder(logRotator(daysToKeepStr: '', numToKeepStr: '7')),
 ])
@@ -46,14 +45,14 @@ timestamps {
       buildTools.notifyBuildStarted(repoUrl, project_version, env)
       // build-info
       def buildData = buildTools.getBuildInfo(repoUrl, "${env.BRANCH_NAME}", project_version)
-      dir('idocs-repo/src/main/resources/alfresco/module/idocs-repo/build-info') {
+      dir('build/build-info') {
         buildTools.writeBuildInfoToFiles(buildData)
       }
       // /build-info
 
       stage('Assembling and publishing project artifacts') {
         withMaven(mavenLocalRepo: '/opt/jenkins/.m2/repository', tempBinDir: '') {
-          sh "mvn clean deploy -Penterprise -DskipTests=true"
+          sh "mvn clean deploy -DskipTests=true"
         }
       }
     }
