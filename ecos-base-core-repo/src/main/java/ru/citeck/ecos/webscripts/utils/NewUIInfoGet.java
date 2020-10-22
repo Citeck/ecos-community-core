@@ -34,7 +34,7 @@ public class NewUIInfoGet extends AbstractWebScript {
             resp.newUIRedirectUrl = newUIUtils.getNewUIRedirectUrl();
 
             if (StringUtils.isNotBlank(recordRef)) {
-                resp.recordUIType = newUIUtils.getUITypeForRecord(RecordRef.valueOf(recordRef));
+                resp.recordUIType = newUIUtils.getUITypeForRecordAndUser(RecordRef.valueOf(recordRef));
                 resp.isOldCardDetailsRequired = resp.recordUIType.equals(NewUIUtils.UI_TYPE_SHARE);
             }
         } catch (Exception e) {

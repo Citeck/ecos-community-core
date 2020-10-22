@@ -13,7 +13,7 @@
 		<property name="nodeAttributeService" ref="nodeAttributeService" />
 		<property name="attributeTypesRegistry" ref="invariantAttributeTypesRegistry" />
 		<property name="prefixResolver" ref="ecosNsPrefixResolver"/>
-		<property name="attrsPermServiceResolver" value="#{getObject('attributesPermissionServiceResolver')}"/>
+		<property name="attributesPermissionService" value="#{getObject('attributesPermissionService')}"/>
 	</bean>
 
 	<bean id="invariantsRuntime" class="ru.citeck.ecos.invariants.InvariantsRuntime">

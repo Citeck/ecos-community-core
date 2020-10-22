@@ -31,7 +31,6 @@ import ru.citeck.ecos.attr.NodeAttributeService;
 import ru.citeck.ecos.invariants.InvariantScope.AttributeScopeKind;
 import ru.citeck.ecos.model.AttributeModel;
 import ru.citeck.ecos.security.AttributesPermissionService;
-import ru.citeck.ecos.security.AttributesPermissionServiceResolver;
 import ru.citeck.ecos.utils.DictionaryUtils;
 
 import java.util.*;
@@ -47,7 +46,7 @@ class InvariantsFilter {
 
     private DictionaryService dictionaryService;
     private NodeAttributeService nodeAttributeService;
-    private AttributesPermissionServiceResolver attrsPermServiceResolver;
+    private AttributesPermissionService attributesPermissionService;
     private NamespacePrefixResolver prefixResolver;
 
     private Map<QName, InvariantAttributeType> attributeTypes;
@@ -220,10 +219,8 @@ class InvariantsFilter {
 
 
                 // Check current user permissions for attribute
-                AttributesPermissionService attrsPermissionService = attrsPermServiceResolver == null ? null :
-                        attrsPermServiceResolver.resolve(fieldParams.caseRef);
-                if (attrsPermissionService != null) {
-                    if (!fieldParams.isFieldEditable(attrsPermissionService, attributeName)) {
+                if (attributesPermissionService != null) {
+                    if (!fieldParams.isFieldEditable(attributeName)) {
                         InvariantDefinition.Builder builder = new InvariantDefinition.Builder(prefixResolver);
                         if (attributeTypeName.equals(AttributeModel.TYPE_PROPERTY)) {
                             invariants.add(builder.pushScope(attributeName, AttributeScopeKind.PROPERTY)
@@ -239,7 +236,7 @@ class InvariantsFilter {
                                     .feature(Feature.PROTECTED).explicit(true).buildFinal());
                         }
                     }
-                    if (!fieldParams.isFieldVisible(attrsPermissionService, attributeName)) {
+                    if (!fieldParams.isFieldVisible(attributeName)) {
                         InvariantDefinition.Builder builder = new InvariantDefinition.Builder(prefixResolver);
                         invariants.add(builder.pushScope(attributeName, AttributeScopeKind.PROPERTY)
                                 .feature(Feature.RELEVANT).explicit(false).buildFinal());
@@ -392,14 +389,14 @@ class InvariantsFilter {
         this.prefixResolver = prefixResolver;
     }
 
-    public void setAttrsPermServiceResolver(AttributesPermissionServiceResolver attrsPermServiceResolver) {
-        this.attrsPermServiceResolver = attrsPermServiceResolver;
+    public void setAttributesPermissionService(AttributesPermissionService attributesPermissionService) {
+        this.attributesPermissionService = attributesPermissionService;
     }
 
     private interface Protected {
-        boolean isFieldEditable(AttributesPermissionService attrsPermissionService, QName attribute);
+        boolean isFieldEditable(QName attribute);
 
-        boolean isFieldVisible(AttributesPermissionService attrsPermissionService, QName attribute);
+        boolean isFieldVisible(QName attribute);
     }
 
     private abstract class FieldParams implements Protected {
@@ -413,12 +410,12 @@ class InvariantsFilter {
             this.mode = mode;
         }
 
-        public boolean isFieldEditable(AttributesPermissionService attrsPermissionService, QName attribute) {
-            return attrsPermissionService.isFieldEditable(attribute, caseRef, mode);
+        public boolean isFieldEditable(QName attribute) {
+            return attributesPermissionService.isFieldEditable(attribute, caseRef, mode);
         }
 
-        public boolean isFieldVisible(AttributesPermissionService attrsPermissionService, QName attribute) {
-            return attrsPermissionService.isFieldVisible(attribute, caseRef, mode);
+        public boolean isFieldVisible(QName attribute) {
+            return attributesPermissionService.isFieldVisible(attribute, caseRef, mode);
         }
     }
 
@@ -433,12 +430,12 @@ class InvariantsFilter {
             this.mode = mode;
         }
 
-        public boolean isFieldEditable(AttributesPermissionService attrsPermissionService, QName attribute) {
-            return attrsPermissionService.isFieldOfAssocEditable(attribute, assocRef, assocQName, caseRef, mode);
+        public boolean isFieldEditable(QName attribute) {
+            return attributesPermissionService.isFieldOfAssocEditable(attribute, assocRef, assocQName, caseRef, mode);
         }
 
-        public boolean isFieldVisible(AttributesPermissionService attrsPermissionService, QName attribute) {
-            return attrsPermissionService.isFieldOfAssocVisible(attribute, assocRef, assocQName, caseRef, mode);
+        public boolean isFieldVisible(QName attribute) {
+            return attributesPermissionService.isFieldOfAssocVisible(attribute, assocRef, assocQName, caseRef, mode);
         }
     }
 
@@ -482,7 +479,5 @@ class InvariantsFilter {
 
             return 0;
         }
-
     }
-
 }

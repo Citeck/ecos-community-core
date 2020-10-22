@@ -71,7 +71,7 @@ public class SiteRecordsDao extends LocalRecordsDao
 
             switch (name) {
                 case "uiType":
-                    return newUIUtils.getUITypeForRecord(RecordRef.create(ID, id));
+                    return newUIUtils.getUITypeForRecordAndUser(RecordRef.create(ID, id));
             }
 
             return null;
