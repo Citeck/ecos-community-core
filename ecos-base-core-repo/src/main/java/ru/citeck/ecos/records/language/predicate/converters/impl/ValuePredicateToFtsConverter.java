@@ -129,11 +129,11 @@ public class ValuePredicateToFtsConverter implements PredicateToFtsConverter {
     }
 
     private void processAllAttribute(FTSQuery query, String value) {
-        query.type(ContentModel.TYPE_CONTENT)
-            .and().not().value(ContentModel.PROP_CREATOR, SYSTEM)
+        query.not().value(ContentModel.PROP_CREATOR, SYSTEM)
             .and().not().value(ContentModel.PROP_CREATOR, SYSTEM2)
             .consistency(QueryConsistency.EVENTUAL);
 
+        includeTypesForQuery(query);
         addSearchingPropsToQuery(query, value);
         excludeTypesFromQuery(query);
         excludeAspectsFromQuery(query);
@@ -157,6 +157,19 @@ public class ValuePredicateToFtsConverter implements PredicateToFtsConverter {
         List<QName> excludedAspects = getQNameConfigValueDelimitedByComma(SEARCH_EXCLUDED_ASPECTS);
         excludedAspects.forEach(aspect -> query.and().not().aspect(aspect));
     }
+
+    private void includeTypesForQuery(FTSQuery query) {
+        List<QName> addTypes = getQNameConfigValueDelimitedByComma(SEARCH_ALL_TYPES_INCLUDED);
+
+        if (addTypes.isEmpty()) {
+            return;
+        }
+
+        query.and().open();
+        addTypes.forEach(addType -> query.type(addType).or());
+        query.close();
+    }
+
 
     private void convertContainsTextPredicate(PropertyDefinition propertyDefinition, FTSQuery query, QName field, String value) {
         QName container = propertyDefinition.getContainerClass().getName();

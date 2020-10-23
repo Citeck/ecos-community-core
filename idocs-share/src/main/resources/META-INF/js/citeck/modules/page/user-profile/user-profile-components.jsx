@@ -6,7 +6,7 @@ import { DOCUMENTS_TAB, setCurrentTabUrl } from './user-profile-util';
 
 export const EditUserForm = () => {
     const context = useContext(UserProfileContext);
-    const { userRef, mode, canWrite, theme } = context.rootProps;
+    const { userRef, userName, mode, canWrite, theme } = context.rootProps;
 
     let className = 'user-profile__edit-form_mode-edit';
     let editLink = null;
@@ -15,9 +15,8 @@ export const EditUserForm = () => {
         className = 'user-profile__edit-form_mode-view';
 
         if (canWrite) {
-            let username = Alfresco.constants.USERNAME;
             editLink = (
-                <a className="user-profile__edit-link" href={'/share/page/user/' + username + '/profile?mode=edit'}>
+                <a className="user-profile__edit-link" href={'/share/page/user/' + userName + '/profile?mode=edit'}>
                     {Alfresco.util.message('user-profile.edit-link.label')}
                 </a>
             );

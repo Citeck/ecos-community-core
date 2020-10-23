@@ -330,7 +330,7 @@ CreateVariant
             }
         })
 
-        .method('filterOptions', function(criteria, pagination, paramJournalType) {
+        .method('filterOptions', function(criteria, pagination, paramJournalType, allowedFilterValues) {
 
             if (!this.cache) this.cache = {};
             if (!this.cache.result) {
@@ -359,11 +359,19 @@ CreateVariant
                 if (pagination.skipCount) query.skipCount = pagination.skipCount;
             }
 
+            var lastIndex = 1;
             _.each(criteria, function(criterion, index) {
                 query['field_' + (index + 2)] = criterion.attribute;
                 query['predicate_' + (index + 2)] = criterion.predicate;
                 query['value_' + (index + 2)] = criterion.value;
+                lastIndex = index + 2;
             });
+
+            if (allowedFilterValues && allowedFilterValues[paramJournalType]) {
+                query['field_' + (lastIndex + 1)] = allowedFilterValues[paramJournalType].field;
+                query['predicate_' + (lastIndex + 1)] = allowedFilterValues[paramJournalType].predicate;
+                query['value_' + (lastIndex + 1)] = allowedFilterValues[paramJournalType].values.join(',');
+            }
 
             if(this.cache.query) {
                 if(_.isEqual(query, this.cache.query)) return this.cache.result();
@@ -931,10 +939,12 @@ Record
         return aspectList;
     })
     .computed('isDocument', function() {
-        return ((this.attributes()['attr:isDocument'] || [])[0] || {str: 'false'}).str == 'true';
+        var attr = this.attributes()['attr:isDocument'];
+        return attr === true || ((attr || [])[0] || {str: 'false'}).str == 'true';
     })
     .computed('isContainer', function() {
-        return ((this.attributes()['attr:isContainer'] || [])[0] || {str: 'false'}).str == 'true';
+        var attr = this.attributes()['attr:isContainer'];
+        return attr === true || ((attr || [])[0] || {str: 'false'}).str == 'true';
     })
     .property('selected', b)
     .load('selected', function() { this.selected(false) })
@@ -2280,6 +2290,10 @@ JournalsWidget
                             var att = atts[i];
                             attributes[att.name()] = att.name() + "[]";
                         }
+
+                        attributes['attr:isDocument'] = 'attr:isDocument?bool';
+                        attributes['attr:isContainer'] = 'attr:isContainer?bool';
+
                         body.attributes = attributes;
                     }
 

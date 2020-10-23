@@ -1,5 +1,6 @@
 package ru.citeck.ecos.records.version;
 
+import lombok.extern.slf4j.Slf4j;
 import org.alfresco.model.ContentModel;
 import org.alfresco.repo.version.VersionModel;
 import org.alfresco.service.cmr.coci.CheckOutCheckInService;
@@ -27,6 +28,7 @@ import ru.citeck.ecos.records2.request.mutation.RecordsMutation;
 import ru.citeck.ecos.records2.request.query.RecordsQuery;
 import ru.citeck.ecos.records2.request.query.RecordsQueryResult;
 import ru.citeck.ecos.records2.source.dao.local.v2.LocalRecordsCrudDao;
+import ru.citeck.ecos.security.EcosPermissionService;
 
 import java.io.Serializable;
 import java.util.*;
@@ -38,6 +40,7 @@ import static ru.citeck.ecos.records.version.VersionRecordsConstants.*;
  * @author Roman Makarskiy
  */
 @Component
+@Slf4j
 public class VersionRecords extends LocalRecordsCrudDao<VersionDTO> {
 
     private final VersionService versionService;
@@ -45,15 +48,18 @@ public class VersionRecords extends LocalRecordsCrudDao<VersionDTO> {
     private final LockService lockService;
     private final CheckOutCheckInService checkOutCheckInService;
     private final VersionFactory versionFactory;
+    private final EcosPermissionService ecosPermissionService;
 
     @Autowired
     public VersionRecords(VersionService versionService, NodeService nodeService, LockService lockService,
-                          CheckOutCheckInService checkOutCheckInService, VersionFactory versionFactory) {
+                          CheckOutCheckInService checkOutCheckInService, VersionFactory versionFactory,
+                          EcosPermissionService ecosPermissionService) {
         this.versionService = versionService;
         this.nodeService = nodeService;
         this.lockService = lockService;
         this.checkOutCheckInService = checkOutCheckInService;
         this.versionFactory = versionFactory;
+        this.ecosPermissionService = ecosPermissionService;
     }
 
     private static final String ID = "version";
@@ -102,6 +108,14 @@ public class VersionRecords extends LocalRecordsCrudDao<VersionDTO> {
                 String id = meta.getId().getId();
 
                 NodeRef document = getBaseDocumentFromVersion(new NodeRef(id));
+
+                boolean isContentProtected = ecosPermissionService.isAttributeProtected(document, "cm:content");
+
+                if (isContentProtected) {
+                    log.warn(String.format("Change version is not allowed for record <%s>", id));
+                    continue;
+                }
+
                 if (documentIsLocked(document)) {
                     throw new IllegalStateException(String.format("Record <%s> is locked", id));
                 }
@@ -190,22 +204,29 @@ public class VersionRecords extends LocalRecordsCrudDao<VersionDTO> {
         }
 
         RecordsQueryResult<VersionDTO> result = new RecordsQueryResult<>();
+        NodeRef document = new NodeRef(id);
 
-        VersionHistory versionHistory = versionService.getVersionHistory(new NodeRef(id));
-        if (versionHistory == null || CollectionUtils.isEmpty(versionHistory.getAllVersions())) {
-            VersionDTO baseVersion = versionFactory.baseVersion(new NodeRef(id));
-            result.setRecords(Collections.singletonList(baseVersion));
-            result.setTotalCount(1);
-            return result;
+        boolean isContentViewable = ecosPermissionService.isAttributeVisible(document, "cm:content");
+
+        if (isContentViewable) {
+
+            VersionHistory versionHistory = versionService.getVersionHistory(document);
+
+            if (versionHistory == null || CollectionUtils.isEmpty(versionHistory.getAllVersions())) {
+                VersionDTO baseVersion = versionFactory.baseVersion(new NodeRef(id));
+                result.setRecords(Collections.singletonList(baseVersion));
+                result.setTotalCount(1);
+                return result;
+            }
+
+            List<VersionDTO> versions = versionHistory.getAllVersions()
+                    .stream()
+                    .map(versionFactory::fromVersion)
+                    .collect(Collectors.toList());
+
+            result.setRecords(versions);
+            result.setTotalCount(versions.size());
         }
-
-        List<VersionDTO> versions = versionHistory.getAllVersions()
-                .stream()
-                .map(versionFactory::fromVersion)
-                .collect(Collectors.toList());
-
-        result.setRecords(versions);
-        result.setTotalCount(versions.size());
 
         return result;
     }

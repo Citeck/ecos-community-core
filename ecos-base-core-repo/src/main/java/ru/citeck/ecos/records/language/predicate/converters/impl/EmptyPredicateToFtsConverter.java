@@ -3,6 +3,7 @@ package ru.citeck.ecos.records.language.predicate.converters.impl;
 import lombok.extern.slf4j.Slf4j;
 import org.alfresco.service.cmr.dictionary.AssociationDefinition;
 import org.alfresco.service.cmr.dictionary.ClassAttributeDefinition;
+import org.alfresco.service.cmr.dictionary.PropertyDefinition;
 import org.alfresco.service.namespace.QName;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -25,7 +26,13 @@ public class EmptyPredicateToFtsConverter implements PredicateToFtsConverter {
     @Override
     public void convert(Predicate predicate, FTSQuery query) {
         String attribute = ((EmptyPredicate) predicate).getAttribute();
-        consumeQueryField(attribute, query::empty);
+        ClassAttributeDefinition attDef = dictUtils.getAttDefinition(attribute);
+
+        if (isTextField(attDef)) {
+            consumeQueryField(attribute, query::emptyString);
+        } else {
+            consumeQueryField(attribute, query::empty);
+        }
     }
 
     private void consumeQueryField(String field, Consumer<QName> consumer) {
@@ -44,6 +51,14 @@ public class EmptyPredicateToFtsConverter implements PredicateToFtsConverter {
             return associationIndexPropertyRegistry.getAssociationIndexProperty(def.getName());
         }
         return def.getName();
+    }
+
+    private boolean isTextField(ClassAttributeDefinition attDef) {
+        if (attDef instanceof PropertyDefinition) {
+            return "java.lang.String".equalsIgnoreCase(((PropertyDefinition) attDef).getDataType().getJavaClassName())
+                || "org.alfresco.service.cmr.repository.MLText".equalsIgnoreCase(((PropertyDefinition) attDef).getDataType().getJavaClassName());
+        }
+        return false;
     }
 
     @Autowired

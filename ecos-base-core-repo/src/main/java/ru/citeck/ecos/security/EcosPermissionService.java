@@ -21,12 +21,6 @@ public class EcosPermissionService {
 
     private static final String EDIT_MODE = "edit";
 
-    /**
-     * @deprecated use EcosPermissionComponent instead
-     */
-    @Deprecated
-    private AttributesPermissionServiceResolver attsPermServiceResolver;
-
     private EcosPermissionComponent ecosPermissionComponent;
 
     private NamespaceService namespaceService;
@@ -66,17 +60,16 @@ public class EcosPermissionService {
             return ecosPermissionComponent.isAttProtected(node, attributeName);
         }
 
-        if (attsPermServiceResolver == null) {
+        return false;
+    }
+
+    public boolean isAttributeVisible(NodeRef nodeRef, String attributeName) {
+
+        if (nodeRef == null || StringUtils.isBlank(attributeName)) {
             return false;
         }
 
-        AttributesPermissionService attrsPermissionService = attsPermServiceResolver.resolve(node.getNodeRef());
-
-        if (attrsPermissionService == null) {
-            return false;
-        }
-
-        return !attrsPermissionService.isFieldEditable(attQName, node.getNodeRef(), EDIT_MODE);
+        return isAttVisible(new AlfNodeInfoImpl(nodeRef, serviceRegistry), attributeName);
     }
 
     public boolean isAttVisible(AlfNodeInfo info, String attributeName) {
@@ -86,11 +79,6 @@ public class EcosPermissionService {
         }
 
         return ecosPermissionComponent.isAttVisible(info, attributeName);
-    }
-
-    @Autowired(required = false)
-    public void setAttsPermServiceResolver(AttributesPermissionServiceResolver attsPermServiceResolver) {
-        this.attsPermServiceResolver = attsPermServiceResolver;
     }
 
     @Autowired(required = false)
