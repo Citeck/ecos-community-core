@@ -19,16 +19,18 @@
       "deputy:available": "Присутствие на рабочем месте",
       "ecos:isPersonDisabled": "Отключить учетную запись",
       "Cancel": "Отмена",
-      "Submit": "Сохранить"
+      "Submit": "Сохранить",
+      "Disabled": "Отключен"
     },
     "en": {
       "cm:userStatus": "Status",
       "org:workingCalendar": "Working calendar",
       "ecos:timezone": "Timezone",
-      "ecos:isPersonDisabled": "Disabled account",
       "deputy:available": "In the workplace",
+      "ecos:isPersonDisabled": "Disabled account",
       "Cancel": "Cancel",
-      "Submit": "Save"
+      "Submit": "Save",
+      "Disabled": "Disabled"
     }
   },
   "definition": {
@@ -41,11 +43,23 @@
         "components": [
           {
             "label": "cm:userStatus",
+            "clearOnHide": false,
+            "disabled": true,
             "defaultValue": "",
+            "customDefaultValue": "value = instance.t(\"Disabled\");",
+            "key": "fake_userStatus",
+            "customConditional": "const { ecos_isPersonDisabled } = data || {};\n\nshow = ecos_isPersonDisabled === true;",
+            "type": "textfield",
+            "input": true
+          },
+          {
+            "label": "cm:userStatus",
+            "clearOnHide": false,
             "key": "cm_userStatus",
             "properties": {
               "attribute": "cm:userStatus"
             },
+            "customConditional": "const { ecos_isPersonDisabled } = data || {};\n\nshow = ecos_isPersonDisabled === false;",
             "type": "textfield",
             "input": true
           },
