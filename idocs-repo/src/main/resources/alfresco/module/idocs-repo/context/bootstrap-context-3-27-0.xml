@@ -58,4 +58,19 @@
             </list>
         </property>
     </bean>
+
+    <bean id="idocs.module-component.search-all-types-included" parent="idocs.import-spaces.3-27-0">
+        <property name="name" value="search-all-types-included" />
+        <property name="description" value="search-all-types-included" />
+        <property name="bootstrapViews">
+            <list>
+                <props>
+                    <prop key="path">/app:company_home/app:dictionary</prop>
+                    <prop key="location">alfresco/templates/bootstrap/ru/citeck/ecosConfig.xml</prop>
+                    <prop key="messages">alfresco/module/idocs-repo/bootstrap/configs/search-all-types-included</prop>
+                    <prop key="encoding">UTF-8</prop>
+                </props>
+            </list>
+        </property>
+    </bean>
 </beans>

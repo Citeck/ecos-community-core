@@ -165,14 +165,8 @@ public class ValuePredicateToFtsConverter implements PredicateToFtsConverter {
             return;
         }
 
-        Iterator<QName> iterator = addTypes.iterator();
-        QName addType = iterator.next();
-
-        query.and().open().type(addType);
-        while (iterator.hasNext()) {
-            addType = iterator.next();
-            query.or().type(addType);
-        }
+        query.and().open();
+        addTypes.forEach(addType -> query.type(addType).or());
         query.close();
     }
 
