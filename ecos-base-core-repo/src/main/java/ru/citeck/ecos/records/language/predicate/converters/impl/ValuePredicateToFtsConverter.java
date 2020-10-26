@@ -18,18 +18,17 @@ import ru.citeck.ecos.model.EcosTypeModel;
 import ru.citeck.ecos.node.EcosTypeService;
 import ru.citeck.ecos.records.language.predicate.converters.PredicateToFtsConverter;
 import ru.citeck.ecos.records.language.predicate.converters.delegators.ConvertersDelegator;
+import ru.citeck.ecos.records.language.predicate.converters.impl.utils.IsoTimeUtils;
 import ru.citeck.ecos.records.language.predicate.converters.impl.utils.TimeUtils;
 import ru.citeck.ecos.records2.RecordRef;
-import ru.citeck.ecos.records2.predicate.model.ComposedPredicate;
-import ru.citeck.ecos.records2.predicate.model.OrPredicate;
-import ru.citeck.ecos.records2.predicate.model.Predicate;
-import ru.citeck.ecos.records2.predicate.model.ValuePredicate;
+import ru.citeck.ecos.records2.predicate.model.*;
 import ru.citeck.ecos.search.AssociationIndexPropertyRegistry;
 import ru.citeck.ecos.search.ftsquery.BinOperator;
 import ru.citeck.ecos.search.ftsquery.FTSQuery;
 import ru.citeck.ecos.utils.AuthorityUtils;
 import ru.citeck.ecos.utils.DictUtils;
 
+import javax.xml.datatype.Duration;
 import java.io.Serializable;
 import java.util.*;
 import java.util.function.Consumer;
@@ -40,8 +39,7 @@ import static ru.citeck.ecos.model.ClassificationModel.PROP_DOCUMENT_KIND;
 import static ru.citeck.ecos.model.ClassificationModel.PROP_DOCUMENT_TYPE;
 import static ru.citeck.ecos.records.language.predicate.converters.impl.constants.ValuePredicateToFtsAlfrescoConstants.*;
 import static ru.citeck.ecos.records.language.predicate.converters.impl.utils.ValuePredicateToFtsConverterUtils.*;
-import static ru.citeck.ecos.records2.predicate.model.ValuePredicate.Type.CONTAINS;
-import static ru.citeck.ecos.records2.predicate.model.ValuePredicate.Type.EQ;
+import static ru.citeck.ecos.records2.predicate.model.ValuePredicate.Type.*;
 
 @Component
 @Slf4j
@@ -399,16 +397,10 @@ public class ValuePredicateToFtsConverter implements PredicateToFtsConverter {
 
         ValuePredicate.Type valuePredType = valuePredicate.getType();
 
-        boolean valueContainsComma = predicateValue.contains(COMMA_DELIMITER);
-        boolean valueEqualEqOrContainsPredType = EQ.equals(valuePredType) || CONTAINS.equals(valuePredType);
-
-        if (valueContainsComma && valueEqualEqOrContainsPredType) {
-            List<String> values = Arrays.asList(predicateValue.split(COMMA_DELIMITER));
-            ComposedPredicate orPredicate = new OrPredicate();
-            values.stream()
-                .map(value -> new ValuePredicate(attribute, valuePredType, value))
-                .forEach(orPredicate::addPredicate);
-            delegator.delegate(orPredicate, query);
+        ComposedPredicate composedPredicate = getAdvantageComposedPredicate(valuePredType,
+                                                                            predicateValue, attribute, attDef);
+        if (composedPredicate != null) {
+            delegator.delegate(composedPredicate, query);
             return;
         }
 
@@ -416,6 +408,7 @@ public class ValuePredicateToFtsConverter implements PredicateToFtsConverter {
             predicateValue = toValidNodeRef(predicateValue);
         }
 
+        predicateValue = evalPredicateValue(predicateValue);
         String predValue = getPredicateValue(objectPredicateValue, predicateValue, attDef);
         switch (valuePredType) {
             case EQ: {
@@ -426,47 +419,9 @@ public class ValuePredicateToFtsConverter implements PredicateToFtsConverter {
                 query.value(field, predicateValue.replaceAll(PERCENT, STAR));
                 return;
             }
-            case CONTAINS: {
-                if (StringUtils.isEmpty(predicateValue)) {
-                    return;
-                }
-
-                if (attDef instanceof PropertyDefinition) {
-                    PropertyDefinition propertyDefinition = (PropertyDefinition) attDef;
-                    DataTypeDefinition dataType = propertyDefinition.getDataType();
-                    QName typeName = dataType != null ? dataType.getName() : null;
-
-                    if (DataTypeDefinition.TEXT.equals(typeName)) {
-                        convertContainsTextPredicate(propertyDefinition, query, field, predicateValue);
-                        return;
-                    }
-                    if (DataTypeDefinition.MLTEXT.equals(typeName)) {
-                        query.value(field, String.format(CONTAINS_STRING_TEMPLATE, predicateValue));
-                        return;
-                    }
-                    if (DataTypeDefinition.CATEGORY.equals(typeName)) {
-                        addNodeRefSearchTerms(query, field, DataTypeDefinition.CATEGORY, predicateValue);
-                        return;
-                    }
-                    if (DataTypeDefinition.NODE_REF.equals(typeName)) {
-                        addNodeRefSearchTerms(query, field, null, predicateValue);
-                        return;
-                    }
-
-                    query.value(field, predicateValue);
-                    return;
-                }
-                if (attDef instanceof AssociationDefinition) {
-                    if (NodeRef.isNodeRef(predicateValue)) {
-                        query.value(field, predicateValue);
-                        return;
-                    }
-
-                    ClassDefinition targetType = ((AssociationDefinition) attDef).getTargetClass();
-                    addNodeRefSearchTerms(query, field, targetType.getName(), predicateValue);
-                }
+            case CONTAINS:
+                processValuePredContains(query, predicateValue, field, attDef);
                 return;
-            }
             case GE: {
                 query.range(field, predValue, true, null, false);
                 return;
@@ -485,6 +440,164 @@ public class ValuePredicateToFtsConverter implements PredicateToFtsConverter {
             }
         }
         throw new RuntimeException(String.format(UNKNOWN_VALUE_PREDICATE_TYPE, valuePredType));
+    }
+
+    private ComposedPredicate getAdvantageComposedPredicate(ValuePredicate.Type valuePredType, String predicateValue,
+                                                            String attribute, ClassAttributeDefinition attDef) {
+        boolean valueContainsComma = predicateValue.contains(COMMA_DELIMITER);
+        boolean valueEqualEq = EQ.equals(valuePredType);
+        boolean valueEqualEqOrContainsPredType =  valueEqualEq || CONTAINS.equals(valuePredType);
+
+        if (valueContainsComma && valueEqualEqOrContainsPredType) {
+            ComposedPredicate orPredicate = new OrPredicate();
+            Arrays.stream(predicateValue.split(COMMA_DELIMITER))
+                .map(value -> new ValuePredicate(attribute, valuePredType, value))
+                .forEach(orPredicate::addPredicate);
+            return orPredicate;
+        }
+
+        boolean valueContainsSlash = predicateValue.contains(SLASH_DELIMITER);
+        if (valueEqualEq && valueContainsSlash) {
+            ComposedPredicate intervalPredicate = getIntervalPredicate(predicateValue, attribute, attDef);
+            if (intervalPredicate != null) {
+                return intervalPredicate;
+            }
+        }
+
+        return null;
+    }
+
+    private ComposedPredicate getIntervalPredicate(String predicateValue, String attribute,
+                                                   ClassAttributeDefinition attDef) {
+        String[] interval = predicateValue.split(SLASH_DELIMITER);
+
+        if (interval.length != 2) {
+            return null;
+        }
+
+        DataTypeDefinition dataTypeDefinition = ((PropertyDefinition) attDef).getDataType();
+        boolean isDateTime = DataTypeDefinition.DATETIME.equals(dataTypeDefinition.getName());
+        boolean isDate = DataTypeDefinition.DATE.equals(dataTypeDefinition.getName());
+
+        if (!isDateTime && !isDate) {
+            return null;
+        }
+
+        String[] newInterval = getDateTimeIntervalPredicate(interval, isDateTime);
+
+        if (newInterval == null) {
+            return null;
+        }
+
+        ComposedPredicate andPredicate = new AndPredicate();
+        andPredicate.addPredicate(new ValuePredicate(attribute, GE, interval[0]));
+        andPredicate.addPredicate(new ValuePredicate(attribute, LE, interval[1]));
+
+        return andPredicate;
+    }
+
+    private String[] getDateTimeIntervalPredicate(String[] interval,  boolean isDateTime) {
+        String[] newInterval = Arrays.copyOf(interval, interval.length);
+
+        List<Duration> durations = Arrays.stream(interval)
+            .map(IsoTimeUtils::parseIsoDuration)
+            .collect(Collectors.toList());
+
+        int i = 0;
+        Calendar calendar = Calendar.getInstance();
+        for (Duration duration : durations) {
+            if (duration != null) {
+                duration.addTo(calendar);
+            } else {
+                interval[i] = evalConstants(interval[i]);
+                calendar = IsoTimeUtils.parseIsoTime(interval[i]);
+                if (calendar == null) {
+                    return null;
+                }
+            }
+
+            newInterval[i++] = isDateTime
+                ? IsoTimeUtils.getIsoDateTimeByCalendar(calendar)
+                : IsoTimeUtils.getIsoDateByCalendar(calendar);
+        }
+
+        return newInterval;
+    }
+
+    private String evalPredicateValue(String predicateValue) {
+        predicateValue = evalConstants(predicateValue);
+        predicateValue = evalDuration(predicateValue);
+
+        return predicateValue;
+    }
+
+    private String evalConstants(String predicateValue) {
+        switch (predicateValue) {
+            case "$TODAY": {
+                Calendar calendar = Calendar.getInstance();
+                return IsoTimeUtils.getIsoDateByCalendar(calendar);
+            }
+            case "$NOW": {
+                Calendar calendar = Calendar.getInstance();
+                return IsoTimeUtils.getIsoDateTimeByCalendar(calendar);
+            }
+            default:
+                return predicateValue;
+        }
+    }
+
+    private String evalDuration(String predicateValue) {
+        Duration duration = IsoTimeUtils.parseIsoDuration(predicateValue);
+        if (duration != null) {
+            Calendar calendar = Calendar.getInstance();
+            duration.addTo(calendar);
+            return IsoTimeUtils.getIsoDateTimeByCalendar(calendar);
+        }
+
+        return predicateValue;
+    }
+
+    private void processValuePredContains(FTSQuery query, String predicateValue, QName field,
+                                          ClassAttributeDefinition attDef) {
+        if (StringUtils.isEmpty(predicateValue)) {
+            return;
+        }
+
+        if (attDef instanceof PropertyDefinition) {
+            PropertyDefinition propertyDefinition = (PropertyDefinition) attDef;
+            DataTypeDefinition dataType = propertyDefinition.getDataType();
+            QName typeName = dataType != null ? dataType.getName() : null;
+
+            if (DataTypeDefinition.TEXT.equals(typeName)) {
+                convertContainsTextPredicate(propertyDefinition, query, field, predicateValue);
+                return;
+            }
+            if (DataTypeDefinition.MLTEXT.equals(typeName)) {
+                query.value(field, String.format(CONTAINS_STRING_TEMPLATE, predicateValue));
+                return;
+            }
+            if (DataTypeDefinition.CATEGORY.equals(typeName)) {
+                addNodeRefSearchTerms(query, field, DataTypeDefinition.CATEGORY, predicateValue);
+                return;
+            }
+            if (DataTypeDefinition.NODE_REF.equals(typeName)) {
+                addNodeRefSearchTerms(query, field, null, predicateValue);
+                return;
+            }
+
+            query.value(field, predicateValue);
+            return;
+        }
+
+        if (attDef instanceof AssociationDefinition) {
+            if (NodeRef.isNodeRef(predicateValue)) {
+                query.value(field, predicateValue);
+                return;
+            }
+
+            ClassDefinition targetType = ((AssociationDefinition) attDef).getTargetClass();
+            addNodeRefSearchTerms(query, field, targetType.getName(), predicateValue);
+        }
     }
 
     @Autowired
