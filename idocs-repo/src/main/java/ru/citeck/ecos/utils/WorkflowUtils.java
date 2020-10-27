@@ -6,6 +6,7 @@ import org.alfresco.repo.workflow.WorkflowModel;
 import org.alfresco.repo.workflow.WorkflowQNameConverter;
 import org.alfresco.service.cmr.dictionary.DictionaryService;
 import org.alfresco.service.cmr.dictionary.PropertyDefinition;
+import org.alfresco.service.cmr.dictionary.TypeDefinition;
 import org.alfresco.service.cmr.repository.ChildAssociationRef;
 import org.alfresco.service.cmr.repository.MLText;
 import org.alfresco.service.cmr.repository.NodeRef;
@@ -291,25 +292,43 @@ public class WorkflowUtils {
     }
 
     public MLText getTaskMLTitle(WorkflowTask task) {
-
-        MLText result = new MLText();
-
         String taskTitle = (String) task.getProperties().get(CiteckWorkflowModel.PROP_TASK_TITLE);
 
-        if (StringUtils.isNotBlank(taskTitle)) {
-
-            for (Locale locale : locales) {
-                String taskTitleMessage = I18NUtil.getMessage(taskTitle, locale);
-                if (StringUtils.isNotBlank(taskTitleMessage)) {
-                    result.put(locale, taskTitleMessage);
-                }
+        TypeDefinition taskType = task.getDefinition().getMetadata();
+        if (StringUtils.isBlank(taskTitle) && taskType != null) {
+            MLText result = getMessagesByTaskType(taskType);
+            if (!result.isEmpty()) {
+                return result;
             }
+        }
 
+        MLText result = new MLText();
+        if (StringUtils.isNotBlank(taskTitle)) {
+            result = getMessagesByKey(taskTitle);
             if (result.isEmpty()) {
                 result.put(Locale.ENGLISH, taskTitle);
             }
         } else {
             result.put(Locale.ENGLISH, task.getTitle());
+        }
+
+        return result;
+    }
+
+    private MLText getMessagesByTaskType(TypeDefinition taskType) {
+        String modelName = taskType.getModel().getName().getPrefixString().replace(":", "_");
+        String propName = taskType.getName().getPrefixString().replace(":", "_");
+        return getMessagesByKey(modelName + ".type." + propName + ".title");
+    }
+
+    private MLText getMessagesByKey(String messageKey) {
+        MLText result = new MLText();
+
+        for (Locale locale : locales) {
+            String message = I18NUtil.getMessage(messageKey, locale);
+            if (StringUtils.isNotBlank(message)) {
+                result.put(locale, message);
+            }
         }
 
         return result;
