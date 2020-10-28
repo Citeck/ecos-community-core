@@ -19,7 +19,6 @@ import ru.citeck.ecos.model.EcosTypeModel;
 import ru.citeck.ecos.node.EcosTypeService;
 import ru.citeck.ecos.records.language.predicate.converters.PredicateToFtsConverter;
 import ru.citeck.ecos.records.language.predicate.converters.delegators.ConvertersDelegator;
-import ru.citeck.ecos.records.language.predicate.converters.impl.utils.IsoTimeUtils;
 import ru.citeck.ecos.records.language.predicate.converters.impl.utils.TimeUtils;
 import ru.citeck.ecos.records2.RecordRef;
 import ru.citeck.ecos.records2.predicate.model.*;
@@ -501,7 +500,7 @@ public class ValuePredicateToFtsConverter implements PredicateToFtsConverter {
         String[] newInterval = new String[interval.length];
 
         List<Duration> durations = Arrays.stream(interval)
-            .map(IsoTimeUtils::parseIsoDuration)
+            .map(TimeUtils::parseIsoDuration)
             .collect(Collectors.toList());
 
         int i = 0;
@@ -510,15 +509,15 @@ public class ValuePredicateToFtsConverter implements PredicateToFtsConverter {
             if (duration != null) {
                 duration.addTo(date);
             } else {
-                date = IsoTimeUtils.parseIsoTime(evalConstants(interval[i]));
+                date = TimeUtils.parseIsoTime(evalConstants(interval[i]));
                 if (date == null) {
                     return null;
                 }
             }
 
             newInterval[i++] = isDateTime
-                ? IsoTimeUtils.getIsoDateTimeByCalendar(date)
-                : IsoTimeUtils.getIsoDateByCalendar(date);
+                ? TimeUtils.formatIsoDateTime(date)
+                : TimeUtils.formatIsoDate(date);
         }
 
         return new Pair<>(newInterval[0], newInterval[1]);
@@ -534,10 +533,10 @@ public class ValuePredicateToFtsConverter implements PredicateToFtsConverter {
     private String evalConstants(String predicateValue) {
         switch (predicateValue) {
             case "$TODAY": {
-                return IsoTimeUtils.getIsoDateByCalendar(new Date());
+                return TimeUtils.formatIsoDate(new Date());
             }
             case "$NOW": {
-                return IsoTimeUtils.getIsoDateTimeByCalendar(new Date());
+                return TimeUtils.formatIsoDateTime(new Date());
             }
             default:
                 return predicateValue;
@@ -545,11 +544,11 @@ public class ValuePredicateToFtsConverter implements PredicateToFtsConverter {
     }
 
     private String evalDuration(String predicateValue) {
-        Duration duration = IsoTimeUtils.parseIsoDuration(predicateValue);
+        Duration duration = TimeUtils.parseIsoDuration(predicateValue);
         if (duration != null) {
             Date date = new Date();
             duration.addTo(date);
-            return IsoTimeUtils.getIsoDateTimeByCalendar(date);
+            return TimeUtils.formatIsoDateTime(date);
         }
 
         return predicateValue;
