@@ -1,28 +1,18 @@
 package ru.citeck.ecos.records.language.predicate.converters.impl.utils;
 
 import lombok.extern.slf4j.Slf4j;
+import org.alfresco.error.AlfrescoRuntimeException;
+import org.alfresco.util.ISO8601DateFormat;
 
-import javax.xml.bind.DatatypeConverter;
 import javax.xml.datatype.DatatypeConfigurationException;
 import javax.xml.datatype.DatatypeFactory;
 import javax.xml.datatype.Duration;
 import java.text.SimpleDateFormat;
-import java.util.Calendar;
+import java.util.Date;
 import java.util.TimeZone;
 
 @Slf4j
 public class IsoTimeUtils {
-
-    private static final SimpleDateFormat DATE_TIME_FORMAT;
-    private static final SimpleDateFormat DATE_FORMAT;
-
-    static {
-        DATE_TIME_FORMAT = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXXX");
-        DATE_TIME_FORMAT.setTimeZone(TimeZone.getTimeZone("UTC"));
-
-        DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd");
-        DATE_FORMAT.setTimeZone(TimeZone.getTimeZone("UTC"));
-    }
 
     /**
      * Obtains a Duration from a text string such as "PnYnMnDTnHnMnS" and for negate value "-PnYnMnDTnHnMnS".
@@ -44,33 +34,36 @@ public class IsoTimeUtils {
 
     /**
      * Converts the string argument into a Calendar value
-     * @param isoTime A string in format "yyyy-MM-dd'T'HH:mm:ss.SSSXXX" or "yyyy-MM-dd"
+     * @param isoTime A string in format "yyyy-MM-dd'T'HH:mm:ss.SSSXXX"
      * @return Calendar
      */
-    public static Calendar parseIsoTime(String isoTime) {
+    public static Date parseIsoTime(String isoTime) {
         try {
-            return DatatypeConverter.parseDateTime(isoTime);
-        } catch (IllegalArgumentException e) {
+            return ISO8601DateFormat.parse(isoTime);
+        } catch (AlfrescoRuntimeException e) {
             log.warn("Cannot parse iso time");
             return null;
         }
     }
 
     /**
-     * Converts the Calendar argument into a string value
-     * @param calendar java.util.Calendar
+     * Converts the Date argument into a string value
+     * @param date java.util.Date
      * @return string in format "yyyy-MM-dd" in UTC
      */
-    public static String getIsoDateByCalendar(Calendar calendar) {
-        return DATE_FORMAT.format(calendar.getTime());
+    public static String getIsoDateByCalendar(Date date) {
+        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+        dateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
+
+        return dateFormat.format(date);
     }
 
     /**
-     * Converts the Calendar argument into a string value
-     * @param calendar java.util.Calendar
+     * Converts the Date argument into a string value
+     * @param date java.util.Date
      * @return string in format "yyyy-MM-dd'T'HH:mm:ss.SSSXXX" in UTC
      */
-    public static String getIsoDateTimeByCalendar(Calendar calendar) {
-        return DATE_TIME_FORMAT.format(calendar.getTime());
+    public static String getIsoDateTimeByCalendar(Date date) {
+        return ISO8601DateFormat.format(date);
     }
 }

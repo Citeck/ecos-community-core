@@ -10,6 +10,7 @@ import org.alfresco.service.cmr.search.QueryConsistency;
 import org.alfresco.service.cmr.search.SearchService;
 import org.alfresco.service.namespace.NamespaceService;
 import org.alfresco.service.namespace.QName;
+import org.alfresco.util.Pair;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -483,45 +484,44 @@ public class ValuePredicateToFtsConverter implements PredicateToFtsConverter {
             return null;
         }
 
-        String[] newInterval = getDateTimeIntervalPredicate(interval, isDateTime);
+        Pair<String, String> newInterval = getDateTimeIntervalPredicate(interval, isDateTime);
 
         if (newInterval == null) {
             return null;
         }
 
         ComposedPredicate andPredicate = new AndPredicate();
-        andPredicate.addPredicate(new ValuePredicate(attribute, GE, interval[0]));
-        andPredicate.addPredicate(new ValuePredicate(attribute, LE, interval[1]));
+        andPredicate.addPredicate(new ValuePredicate(attribute, GE, newInterval.getFirst()));
+        andPredicate.addPredicate(new ValuePredicate(attribute, LE, newInterval.getSecond()));
 
         return andPredicate;
     }
 
-    private String[] getDateTimeIntervalPredicate(String[] interval,  boolean isDateTime) {
-        String[] newInterval = Arrays.copyOf(interval, interval.length);
+    private Pair<String, String> getDateTimeIntervalPredicate(String[] interval,  boolean isDateTime) {
+        String[] newInterval = new String[interval.length];
 
         List<Duration> durations = Arrays.stream(interval)
             .map(IsoTimeUtils::parseIsoDuration)
             .collect(Collectors.toList());
 
         int i = 0;
-        Calendar calendar = Calendar.getInstance();
+        Date date = new Date();
         for (Duration duration : durations) {
             if (duration != null) {
-                duration.addTo(calendar);
+                duration.addTo(date);
             } else {
-                interval[i] = evalConstants(interval[i]);
-                calendar = IsoTimeUtils.parseIsoTime(interval[i]);
-                if (calendar == null) {
+                date = IsoTimeUtils.parseIsoTime(evalConstants(interval[i]));
+                if (date == null) {
                     return null;
                 }
             }
 
             newInterval[i++] = isDateTime
-                ? IsoTimeUtils.getIsoDateTimeByCalendar(calendar)
-                : IsoTimeUtils.getIsoDateByCalendar(calendar);
+                ? IsoTimeUtils.getIsoDateTimeByCalendar(date)
+                : IsoTimeUtils.getIsoDateByCalendar(date);
         }
 
-        return newInterval;
+        return new Pair<>(newInterval[0], newInterval[1]);
     }
 
     private String evalPredicateValue(String predicateValue) {
@@ -534,12 +534,10 @@ public class ValuePredicateToFtsConverter implements PredicateToFtsConverter {
     private String evalConstants(String predicateValue) {
         switch (predicateValue) {
             case "$TODAY": {
-                Calendar calendar = Calendar.getInstance();
-                return IsoTimeUtils.getIsoDateByCalendar(calendar);
+                return IsoTimeUtils.getIsoDateByCalendar(new Date());
             }
             case "$NOW": {
-                Calendar calendar = Calendar.getInstance();
-                return IsoTimeUtils.getIsoDateTimeByCalendar(calendar);
+                return IsoTimeUtils.getIsoDateTimeByCalendar(new Date());
             }
             default:
                 return predicateValue;
@@ -549,9 +547,9 @@ public class ValuePredicateToFtsConverter implements PredicateToFtsConverter {
     private String evalDuration(String predicateValue) {
         Duration duration = IsoTimeUtils.parseIsoDuration(predicateValue);
         if (duration != null) {
-            Calendar calendar = Calendar.getInstance();
-            duration.addTo(calendar);
-            return IsoTimeUtils.getIsoDateTimeByCalendar(calendar);
+            Date date = new Date();
+            duration.addTo(date);
+            return IsoTimeUtils.getIsoDateTimeByCalendar(date);
         }
 
         return predicateValue;
