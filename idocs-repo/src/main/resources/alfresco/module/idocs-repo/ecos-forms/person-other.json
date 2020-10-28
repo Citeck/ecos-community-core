@@ -85,6 +85,9 @@
           },
           {
             "label": "deputy:available",
+            "labelPosition": "left-left",
+            "clearOnHide": false,
+            "disabled": true,
             "key": "deputy_available",
             "properties": {
               "attribute": "deputy:available"
