@@ -5,6 +5,7 @@ import org.alfresco.repo.security.authentication.AuthenticationUtil;
 import org.alfresco.repo.workflow.WorkflowModel;
 import org.alfresco.repo.workflow.WorkflowQNameConverter;
 import org.alfresco.service.cmr.dictionary.DictionaryService;
+import org.alfresco.service.cmr.dictionary.ModelDefinition;
 import org.alfresco.service.cmr.dictionary.PropertyDefinition;
 import org.alfresco.service.cmr.dictionary.TypeDefinition;
 import org.alfresco.service.cmr.repository.ChildAssociationRef;
@@ -294,31 +295,39 @@ public class WorkflowUtils {
     public MLText getTaskMLTitle(WorkflowTask task) {
         String taskTitle = (String) task.getProperties().get(CiteckWorkflowModel.PROP_TASK_TITLE);
 
-        TypeDefinition taskType = task.getDefinition().getMetadata();
-        if (StringUtils.isBlank(taskTitle) && taskType != null) {
-            MLText result = getMessagesByTaskType(taskType);
-            if (!result.isEmpty()) {
-                return result;
-            }
-        }
-
-        MLText result = new MLText();
+        MLText result;
         if (StringUtils.isNotBlank(taskTitle)) {
             result = getMessagesByKey(taskTitle);
             if (result.isEmpty()) {
                 result.put(Locale.ENGLISH, taskTitle);
             }
         } else {
-            result.put(Locale.ENGLISH, task.getTitle());
+            result = getMessagesByTask(task);
+            if (result.isEmpty()) {
+                result.put(Locale.ENGLISH, task.getTitle());
+            }
         }
 
         return result;
     }
 
-    private MLText getMessagesByTaskType(TypeDefinition taskType) {
-        String modelName = taskType.getModel().getName().getPrefixString().replace(":", "_");
-        String propName = taskType.getName().getPrefixString().replace(":", "_");
-        return getMessagesByKey(modelName + ".type." + propName + ".title");
+    private MLText getMessagesByTask(WorkflowTask task) {
+        WorkflowTaskDefinition workflowTaskDefinition = task.getDefinition();
+        TypeDefinition typeDefinition = workflowTaskDefinition != null ? workflowTaskDefinition.getMetadata() : null;
+
+        if (typeDefinition == null) {
+            return new MLText();
+        }
+
+        ModelDefinition model = typeDefinition.getModel();
+        String modelName = "";
+        if (model != null) {
+            modelName = model.getName().getPrefixString()
+                .replace(":", "_")
+                .concat(".type.");
+        }
+        String propName = typeDefinition.getName().getPrefixString().replace(":", "_");
+        return getMessagesByKey(modelName + propName + ".title");
     }
 
     private MLText getMessagesByKey(String messageKey) {
