@@ -326,8 +326,8 @@ public class WorkflowUtils {
                 .replace(":", "_")
                 .concat(".type.");
         }
-        String propName = typeDefinition.getName().getPrefixString().replace(":", "_");
-        return getMessagesByKey(modelName + propName + ".title");
+        String typeName = typeDefinition.getName().getPrefixString().replace(":", "_");
+        return getMessagesByKey(modelName + typeName + ".title");
     }
 
     private MLText getMessagesByKey(String messageKey) {
