@@ -475,6 +475,8 @@ public class ValuePredicateToFtsConverter implements PredicateToFtsConverter {
             return null;
         }
 
+        Pair<String, String> intervalPair = new Pair<>(interval[0], interval[1]);
+
         DataTypeDefinition dataTypeDefinition = ((PropertyDefinition) attDef).getDataType();
         boolean isDateTime = DataTypeDefinition.DATETIME.equals(dataTypeDefinition.getName());
         boolean isDate = DataTypeDefinition.DATE.equals(dataTypeDefinition.getName());
@@ -483,7 +485,7 @@ public class ValuePredicateToFtsConverter implements PredicateToFtsConverter {
             return null;
         }
 
-        Pair<String, String> newInterval = getDateTimeIntervalPredicate(interval, isDateTime);
+        Pair<String, String> newInterval = getDateTimeInterval(intervalPair, isDateTime);
 
         if (newInterval == null) {
             return null;
@@ -496,31 +498,52 @@ public class ValuePredicateToFtsConverter implements PredicateToFtsConverter {
         return andPredicate;
     }
 
-    private Pair<String, String> getDateTimeIntervalPredicate(String[] interval,  boolean isDateTime) {
-        String[] newInterval = new String[interval.length];
+    private Pair<String, String> getDateTimeInterval(Pair<String, String> interval, boolean isDateTime) {
+        Pair<String, String> newInterval = new Pair<>(null, null);
 
-        List<Duration> durations = Arrays.stream(interval)
-            .map(TimeUtils::parseIsoDuration)
-            .collect(Collectors.toList());
-
-        int i = 0;
         Date date = new Date();
-        for (Duration duration : durations) {
-            if (duration != null) {
-                duration.addTo(date);
-            } else {
-                date = TimeUtils.parseIsoTime(evalConstants(interval[i]));
-                if (date == null) {
-                    return null;
-                }
+        for (int i = 0; i < 2; i++) {
+            boolean isFirstBoundary = i == 0;
+            String intervalBoundary = getBoundary(interval, isFirstBoundary);
+
+            date = calcDateByBoundary(intervalBoundary, date);
+            if (date == null) {
+                return null;
             }
 
-            newInterval[i++] = isDateTime
+            intervalBoundary = isDateTime
                 ? TimeUtils.formatIsoDateTime(date)
                 : TimeUtils.formatIsoDate(date);
+
+            setBoundary(newInterval, isFirstBoundary, intervalBoundary);
         }
 
-        return new Pair<>(newInterval[0], newInterval[1]);
+        return newInterval;
+    }
+
+    private String getBoundary(Pair<String, String> interval, boolean isFirst) {
+        return isFirst ? interval.getFirst() : interval.getSecond();
+    }
+
+    private void setBoundary(Pair<String, String> interval, boolean isFirst, String intervalBoundary) {
+        if (isFirst) {
+            interval.setFirst(intervalBoundary);
+        } else {
+            interval.setSecond(intervalBoundary);
+        }
+    }
+
+    private Date calcDateByBoundary(String intervalBoundary, Date date) {
+        Date newDate;
+        Duration duration = TimeUtils.parseIsoDuration(intervalBoundary);
+        if (duration != null) {
+            newDate = new Date(date.getTime());
+            duration.addTo(newDate);
+        } else {
+            newDate = TimeUtils.parseIsoTime(evalConstants(intervalBoundary));
+        }
+
+        return newDate;
     }
 
     private String evalPredicateValue(String predicateValue) {
