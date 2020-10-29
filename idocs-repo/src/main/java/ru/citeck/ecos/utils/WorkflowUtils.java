@@ -5,7 +5,9 @@ import org.alfresco.repo.security.authentication.AuthenticationUtil;
 import org.alfresco.repo.workflow.WorkflowModel;
 import org.alfresco.repo.workflow.WorkflowQNameConverter;
 import org.alfresco.service.cmr.dictionary.DictionaryService;
+import org.alfresco.service.cmr.dictionary.ModelDefinition;
 import org.alfresco.service.cmr.dictionary.PropertyDefinition;
+import org.alfresco.service.cmr.dictionary.TypeDefinition;
 import org.alfresco.service.cmr.repository.ChildAssociationRef;
 import org.alfresco.service.cmr.repository.MLText;
 import org.alfresco.service.cmr.repository.NodeRef;
@@ -291,25 +293,51 @@ public class WorkflowUtils {
     }
 
     public MLText getTaskMLTitle(WorkflowTask task) {
-
-        MLText result = new MLText();
-
         String taskTitle = (String) task.getProperties().get(CiteckWorkflowModel.PROP_TASK_TITLE);
 
+        MLText result;
         if (StringUtils.isNotBlank(taskTitle)) {
-
-            for (Locale locale : locales) {
-                String taskTitleMessage = I18NUtil.getMessage(taskTitle, locale);
-                if (StringUtils.isNotBlank(taskTitleMessage)) {
-                    result.put(locale, taskTitleMessage);
-                }
-            }
-
+            result = getMessagesByKey(taskTitle);
             if (result.isEmpty()) {
                 result.put(Locale.ENGLISH, taskTitle);
             }
         } else {
-            result.put(Locale.ENGLISH, task.getTitle());
+            result = getMessagesByTask(task);
+            if (result.isEmpty()) {
+                result.put(Locale.ENGLISH, task.getTitle());
+            }
+        }
+
+        return result;
+    }
+
+    private MLText getMessagesByTask(WorkflowTask task) {
+        WorkflowTaskDefinition workflowTaskDefinition = task.getDefinition();
+        TypeDefinition typeDefinition = workflowTaskDefinition != null ? workflowTaskDefinition.getMetadata() : null;
+
+        if (typeDefinition == null) {
+            return new MLText();
+        }
+
+        ModelDefinition model = typeDefinition.getModel();
+        String modelName = "";
+        if (model != null) {
+            modelName = model.getName().getPrefixString()
+                .replace(":", "_")
+                .concat(".type.");
+        }
+        String typeName = typeDefinition.getName().getPrefixString().replace(":", "_");
+        return getMessagesByKey(modelName + typeName + ".title");
+    }
+
+    private MLText getMessagesByKey(String messageKey) {
+        MLText result = new MLText();
+
+        for (Locale locale : locales) {
+            String message = I18NUtil.getMessage(messageKey, locale);
+            if (StringUtils.isNotBlank(message)) {
+                result.put(locale, message);
+            }
         }
 
         return result;
