@@ -92,6 +92,27 @@
             "properties": {
               "attribute": "deputy:available"
             },
+            "logic": [
+              {
+                "name": "Disable",
+                "trigger": {
+                  "type": "javascript",
+                  "javascript": "const { currentUserData } = data || {};\r\nconst { isAlfrecoAdmin } = currentUserData || {};\r\n\r\nresult = isAlfrecoAdmin === true;"
+                },
+                "actions": [
+                  {
+                    "name": "Disable",
+                    "type": "property",
+                    "property": {
+                      "label": "Disabled",
+                      "value": "disabled",
+                      "type": "boolean"
+                    },
+                    "state": "false"
+                  }
+                ]
+              }
+            ],
             "type": "checkbox",
             "input": true
           },
@@ -106,7 +127,7 @@
             },
             "logic": [
               {
-                "name": "Disable ",
+                "name": "Disable",
                 "trigger": {
                   "type": "javascript",
                   "javascript": "const { currentUserData } = data || {};\r\nconst { isAlfrecoAdmin } = currentUserData || {};\r\n\r\nresult = isAlfrecoAdmin === true;"
