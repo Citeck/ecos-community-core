@@ -5,14 +5,18 @@ import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import com.google.common.collect.Iterables;
+import com.sun.org.apache.xpath.internal.operations.Bool;
 import lombok.extern.slf4j.Slf4j;
 import org.alfresco.error.AlfrescoRuntimeException;
 import org.alfresco.model.ContentModel;
+import org.alfresco.repo.forms.FormException;
 import org.alfresco.repo.security.authentication.AuthenticationUtil;
 import org.alfresco.service.ServiceRegistry;
 import org.alfresco.service.cmr.repository.NodeRef;
 import org.alfresco.service.cmr.repository.NodeService;
+import org.alfresco.service.cmr.repository.StoreRef;
 import org.alfresco.service.cmr.search.PermissionEvaluationMode;
+import org.alfresco.service.cmr.search.ResultSet;
 import org.alfresco.service.cmr.search.SearchService;
 import org.alfresco.service.cmr.security.AuthenticationService;
 import org.alfresco.service.cmr.security.AuthorityService;
@@ -55,11 +59,14 @@ public class ChildrenGet extends AbstractWebScript {
     private static final String PARAM_RECURSE = "recurse";
     private static final String PARAM_SUB_TYPES = "subTypes";
     private static final String PARAM_SHOW_DISABLED = "showdisabled";
+    private static final String PARAM_ADD_ADMIN_GROUP = "addAdminGroup";
     private static final String PARAM_EXCLUDE_AUTHORITIES = "excludeAuthorities";
 
     private static final String CONFIG_KEY_SHOW_INACTIVE = "orgstruct-show-inactive-user-only-for-admin";
     private static final String CONFIG_KEY_HIDE_INACTIVE_FOR_ALL = "hide-disabled-users-for-everyone";
     private static final String CONFIG_KEY_HIDE_IN_ORGSTRUCT = "hide-in-orgstruct";
+
+    private static final String GROUP_ALFRESCO_ADMINISTRATORS = "GROUP_ALFRESCO_ADMINISTRATORS";
 
     private static final String GROUP_PREFIX = "GROUP_";
     private static final int DEFAULT_RESULTS_LIMIT = 50;
@@ -191,6 +198,9 @@ public class ChildrenGet extends AbstractWebScript {
         }
 
         authority.displayName = (String) props.get(ContentModel.PROP_AUTHORITY_DISPLAY_NAME);
+        if (StringUtils.isBlank(authority.displayName)) {
+            authority.displayName = (String) props.get(ContentModel.PROP_AUTHORITY_NAME);
+        }
 
         return authority;
     }
@@ -210,10 +220,37 @@ public class ChildrenGet extends AbstractWebScript {
         }
 
         Map<String, Boolean> inRootGroupCache = new HashMap<>();
+        List<Pair<NodeRef, String>> results = authorities.filter(auth -> filterAuthority(auth, filterOptions, inRootGroupCache))
+            .limit(filterOptions.limit)
+            .collect(Collectors.toList());
 
-        return authorities.filter(auth -> filterAuthority(auth, filterOptions, inRootGroupCache))
-                .limit(filterOptions.limit)
-                .collect(Collectors.toList());
+        results.addAll(getAdminGroup(filterOptions));
+
+        return results;
+    }
+
+    private List<Pair<NodeRef, String>> getAdminGroup(FilterOptions filterOptions) {
+        boolean isAddAdminGroup = filterOptions.group
+            && filterOptions.addAdminGroup
+            && filterOptions.rootGroup.equals("GROUP__orgstruct_home_")
+            && StringUtils.isNotBlank(filterOptions.filter);
+
+        List<Pair<NodeRef, String>> results = Collections.emptyList();
+        if (isAddAdminGroup) {
+            List<NodeRef> groups = FTSQuery.createRaw().type(ContentModel.TYPE_AUTHORITY_CONTAINER)
+                .and().open()
+                .value(ContentModel.PROP_AUTHORITY_NAME, GROUP_ALFRESCO_ADMINISTRATORS).and()
+                .value(ContentModel.PROP_AUTHORITY_NAME, filterOptions.filter)
+                .close().query(searchService);
+
+            if (groups != null) {
+                results = groups.stream()
+                    .map(this::getAuthorityNameRef)
+                    .collect(Collectors.toList());
+            }
+        }
+
+        return results;
     }
 
     private Stream<Pair<NodeRef, String>> findAuthorities(FilterOptions filterOptions) {
@@ -229,9 +266,9 @@ public class ChildrenGet extends AbstractWebScript {
         if (filterOptions.group) {
             notEmpty = true;
             query.open()
-                    .value(ContentModel.PROP_AUTHORITY_DISPLAY_NAME, filter).or()
-                    .value(ContentModel.PROP_AUTHORITY_NAME, filter)
-                    .close();
+                .value(ContentModel.PROP_AUTHORITY_DISPLAY_NAME, filter).or()
+                .value(ContentModel.PROP_AUTHORITY_NAME, filter)
+                .close();
         }
         if (filterOptions.user) {
             if (notEmpty) {
@@ -272,42 +309,60 @@ public class ChildrenGet extends AbstractWebScript {
         if (!isInRootGroup(authorityName, options.rootGroup, inRootGroupCache)) {
             return false;
         }
-        if (!options.showDisabled) {
-            if (!authorityName.startsWith(GROUP_PREFIX) &&
-                (!authenticationService.getAuthenticationEnabled(authorityName) ||
-                    PersonUtils.isPersonDisabled(authority.getFirst(), nodeService))) {
-                return false;
-            }
+        if (!options.showDisabled && authorityIsDisabled(authority)) {
+            return false;
         }
-        if (authorityName.startsWith(GROUP_PREFIX)) {
-            String groupType = orgStructService.getGroupType(authorityName);
-            if (StringUtils.isBlank(groupType)) {
-                groupType = "group";
-            }
-            switch (groupType) {
-                case "role":
-                    if (!options.role) {
-                        return false;
-                    }
-                    break;
-                case "user":
-                    if (!options.user) {
-                        return false;
-                    }
-                    break;
-                case "group":
-                    if (!options.group) {
-                        return false;
-                    }
-                    break;
-                case "branch":
-                    if (!options.branch) {
-                        return false;
-                    }
-                    break;
-            }
+        if (groupIsNotAllow(authorityName, options)) {
+            return false;
         }
         return true;
+    }
+
+    private boolean groupIsNotAllow(String authorityName, FilterOptions options){
+        if (!authorityName.startsWith(GROUP_PREFIX)) {
+            return false;
+        }
+
+        String groupType = orgStructService.getGroupType(authorityName);
+        if (StringUtils.isBlank(groupType)) {
+            groupType = "group";
+        }
+        switch (groupType) {
+            case "role":
+                if (!options.role) {
+                    return true;
+                }
+                break;
+            case "user":
+                if (!options.user) {
+                    return true;
+                }
+                break;
+            case "group":
+                if (!options.group) {
+                    return true;
+                }
+                break;
+            case "branch":
+                if (!options.branch) {
+                    return true;
+                }
+                break;
+        }
+
+        return false;
+    }
+
+    private boolean authorityIsDisabled(Pair<NodeRef, String> authority) {
+        String authorityName = authority.getSecond();
+
+        boolean isDisabled = !authorityName.startsWith(GROUP_PREFIX);
+        if (isDisabled) {
+            isDisabled = !authenticationService.getAuthenticationEnabled(authorityName);
+            isDisabled = isDisabled || PersonUtils.isPersonDisabled(authority.getFirst(), nodeService);
+        }
+
+        return isDisabled;
     }
 
     private Pair<NodeRef, String> getAuthorityNameRef(String name) {
@@ -403,6 +458,7 @@ public class ChildrenGet extends AbstractWebScript {
         options.branch = ConfigUtils.strToBool(req.getParameter(PARAM_BRANCH), defaultEnabled);
         options.limit = DEFAULT_RESULTS_LIMIT;
         options.subTypes = strToSet(req.getParameter(PARAM_SUB_TYPES));
+        options.addAdminGroup = ConfigUtils.strToBool(req.getParameter(PARAM_ADD_ADMIN_GROUP), Boolean.FALSE);
 
         Function<String, String> addStars = str -> {
             if (StringUtils.isNotBlank(str)) {
@@ -556,6 +612,7 @@ public class ChildrenGet extends AbstractWebScript {
         boolean branch;
         boolean showDisabled;
         boolean userIsAdmin;
+        boolean addAdminGroup;
         int limit;
         String filter;
         Set<String> filterTokens;
@@ -596,6 +653,7 @@ public class ChildrenGet extends AbstractWebScript {
             result = 31 * result + (user ? 1 : 0);
             result = 31 * result + (showDisabled ? 1 : 0);
             result = 31 * result + (userIsAdmin ? 1 : 0);
+            result = 31 * result + (addAdminGroup ? 1 : 0);
             result = 31 * result + Objects.hashCode(rootGroup);
             result = 31 * result + Objects.hashCode(filter);
             result = 31 * result + limit;
