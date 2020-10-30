@@ -7,6 +7,7 @@ import org.springframework.context.annotation.Configuration;
 import ru.citeck.ecos.commands.CommandsService;
 import ru.citeck.ecos.commands.dto.CommandResult;
 import ru.citeck.ecos.commons.data.ObjectData;
+import ru.citeck.ecos.model.lib.permissions.dto.TypePermsDef;
 import ru.citeck.ecos.records2.RecordRef;
 import ru.citeck.ecos.records2.source.dao.local.RemoteSyncRecordsDao;
 
@@ -20,6 +21,11 @@ public class TypesSyncConfiguration {
     @Bean
     public RemoteSyncRecordsDao<TypeDto> createRemoteTypesSyncRecordsDao() {
         return new RemoteSyncRecordsDao<>("emodel/type", TypeDto.class);
+    }
+
+    @Bean
+    public RemoteSyncRecordsDao<TypePermsDef.Mutable> createRemoteTypePermsSyncRecordsDao() {
+        return new RemoteSyncRecordsDao<>("emodel/perms", TypePermsDef.Mutable.class);
     }
 
     @Bean

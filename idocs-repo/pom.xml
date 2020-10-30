@@ -192,6 +192,12 @@
         </dependency>
 
         <dependency>
+            <groupId>ru.citeck.ecos.model</groupId>
+            <artifactId>ecos-model-lib</artifactId>
+            <version>${ecos.model-lib.version}</version>
+        </dependency>
+
+        <dependency>
             <groupId>org.springframework.retry</groupId>
             <artifactId>spring-retry</artifactId>
             <scope>compile</scope>

@@ -74,6 +74,7 @@
         <ecos.commands.version>1.6.0</ecos.commands.version>
         <ecos.meta-repo.version>1.1.0</ecos.meta-repo.version>
         <ecos.notifications.lib.version>1.0.3</ecos.notifications.lib.version>
+        <ecos.model-lib.version>1.0.0-SNAPSHOT</ecos.model-lib.version>
 
         <spring.retry.version>1.2.4.RELEASE</spring.retry.version>
 
