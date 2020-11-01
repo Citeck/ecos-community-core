@@ -2,6 +2,7 @@ package ru.citeck.ecos.records.workflow;
 
 import com.fasterxml.jackson.databind.node.NullNode;
 import lombok.Data;
+import lombok.RequiredArgsConstructor;
 import org.alfresco.repo.jscript.ScriptNode;
 import org.alfresco.repo.security.authentication.AuthenticationUtil;
 import org.alfresco.repo.template.TemplateNode;
@@ -690,7 +691,7 @@ public class WorkflowTaskRecords extends LocalRecordsDao
                 case ATT_ETYPE:
                     return RecordRef.create("emodel", "type", "workflow-task");
                 case ATT_PERMISSIONS:
-                    return new Permissions();
+                    return new Permissions(taskInfo);
             }
 
             if (name.contains(":")) {
@@ -776,10 +777,47 @@ public class WorkflowTaskRecords extends LocalRecordsDao
         }
     }
 
-    public static class Permissions implements MetaValue {
+    @RequiredArgsConstructor
+    public class Permissions implements MetaValue {
+
+        private final TaskInfo taskInfo;
+
         @Override
         public boolean has(String name) {
-            return true;
+
+            if (!name.equals("Write") && !name.equals("Read")) {
+                return true;
+            }
+
+            String user = AuthenticationUtil.getFullyAuthenticatedUser();
+            if (StringUtils.isBlank(user)) {
+                return false;
+            }
+            if (authorityService.isAdminAuthority(user)
+                    || Objects.equals(user, AuthenticationUtil.getSystemUserName())) {
+                return true;
+            }
+
+            String assignee = taskInfo.getAssignee();
+            if (StringUtils.isNotBlank(assignee)) {
+                return Objects.equals(user, assignee);
+            }
+
+            List<String> actors = taskInfo.getActors()
+                .stream()
+                .map(actor -> {
+                    if (actor.startsWith("workspace://")) {
+                        return authorityUtils.getAuthorityName(new NodeRef(actor));
+                    } else {
+                        return actor;
+                    }
+                }).collect(Collectors.toList());
+            if (actors.contains(user)) {
+                return true;
+            }
+
+            Set<String> authoritiesForUser = authorityService.getAuthoritiesForUser(user);
+            return actors.stream().anyMatch(authoritiesForUser::contains);
         }
     }
 }

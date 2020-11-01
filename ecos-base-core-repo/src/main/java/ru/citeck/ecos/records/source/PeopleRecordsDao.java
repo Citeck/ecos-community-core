@@ -17,6 +17,7 @@ import ru.citeck.ecos.records.source.alf.meta.AlfNodeRecord;
 import ru.citeck.ecos.records2.QueryContext;
 import ru.citeck.ecos.records2.RecordMeta;
 import ru.citeck.ecos.records2.RecordRef;
+import ru.citeck.ecos.records2.graphql.meta.value.EmptyValue;
 import ru.citeck.ecos.records2.graphql.meta.value.MetaEdge;
 import ru.citeck.ecos.records2.graphql.meta.value.MetaField;
 import ru.citeck.ecos.records2.graphql.meta.value.MetaValue;
@@ -40,7 +41,7 @@ import java.util.stream.Collectors;
 @Component
 public class PeopleRecordsDao extends LocalRecordsDao
     implements LocalRecordsQueryWithMetaDao<PeopleRecordsDao.UserValue>,
-    LocalRecordsMetaDao<PeopleRecordsDao.UserValue>,
+    LocalRecordsMetaDao<Object>,
     MutableRecordsDao {
 
     public static final String ID = "people";
@@ -142,9 +143,16 @@ public class PeopleRecordsDao extends LocalRecordsDao
     }
 
     @Override
-    public List<UserValue> getLocalRecordsMeta(List<RecordRef> records, MetaField metaField) {
+    public List<Object> getLocalRecordsMeta(List<RecordRef> records, MetaField metaField) {
         return records.stream()
-            .map(r -> new UserValue(r.toString()))
+            .map(r -> {
+                String authName = r.toString();
+                if (authorityService.authorityExists(authName)) {
+                    return new UserValue(authName);
+                } else {
+                    return EmptyValue.INSTANCE;
+                }
+            })
             .collect(Collectors.toList());
     }
 
