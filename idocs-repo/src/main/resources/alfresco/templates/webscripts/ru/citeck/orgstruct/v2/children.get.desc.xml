@@ -1,72 +1,76 @@
 <webscript>
-  <shortname>Org.Struct children groups</shortname>
-  <description>All children groups (branches, roles and ordinary groups)</description>
-  <url>/api/orgstruct/v2/group/{groupname}/v2/children/</url>
-  <url>/api/orgstruct/v2/group/{groupname}/children?branch={includeBranches?}&amp;role={includeRoles?}&amp;group={includeGroups?}&amp;user={includeUsers?}&amp;filter={filter?}&amp;recurse={recurse}&amp;showdisabled={showDisabled}&amp;excludeAuthorities={excludeAuthorities}</url>
-  <format default="json">argument</format>
-  <authentication>user</authentication>
-  <transaction allow="readonly">required</transaction>
-  <args>
-    <arg>
-      <shortname>groupname</shortname>
-      <description>shortName of parent group</description>
-    </arg>
-    <arg>
-      <shortname>includeBranches</shortname>
-      <description>include branch groups or not (true by default)</description>
-    </arg>
-    <arg>
-      <shortname>includeRoles</shortname>
-      <description>include role groups or not (true by default)</description>
-    </arg>
-    <arg>
-      <shortname>includeGroups</shortname>
-      <description>include simple groups or not (true by default)</description>
-    </arg>
-    <arg>
-      <shortname>includeUsers</shortname>
-      <description>include users or not (true by default)</description>
-    </arg>
-    <arg>
-      <shortname>filter</shortname>
-      <description>regular expression to filter group results</description>
-    </arg>
-    <arg>
-      <shortname>recurse</shortname>
-      <description>true to get all subgroups and users, false to get only immediate (false by default)</description>
-    </arg>
-    <arg>
-      <shortname>showDisabled</shortname>
-      <description>true to get users with no attention to "cm:personDisabled" field (true by default)</description>
-    </arg>
-    <arg>
-      <shortname>excludeAuthorities</shortname>
-      <description>exclude authorities (groups and users)</description>
-    </arg>
-  </args>
-  <responses>
-    <response>
-      <format>json</format>
-      <type>
-        <![CDATA[
-        [
-            {
-                authorityType: ... // "GROUP" or "USER"
-                shortName: ...
-                fullName: ...
-                displayName: ...
-                groupType: ... // only for groups
-                groupSubType: ... // only for groups
-                ... // custom attributes
-                nodeRef: ...
-            },
-            {
-                ...
-            },
-            ...
-        ]
-        ]]>
-      </type>
-    </response>
-  </responses>
+    <shortname>Org.Struct children groups</shortname>
+    <description>All children groups (branches, roles and ordinary groups)</description>
+    <url>/api/orgstruct/v2/group/{groupname}/v2/children/</url>
+    <url>/api/orgstruct/v2/group/{groupname}/children?branch={includeBranches?}&amp;role={includeRoles?}&amp;group={includeGroups?}&amp;user={includeUsers?}&amp;filter={filter?}&amp;recurse={recurse}&amp;showdisabled={showDisabled}&amp;excludeAuthorities={excludeAuthorities}&amp;addAdminGroup={addAdminGroup?}</url>
+    <format default="json">argument</format>
+    <authentication>user</authentication>
+    <transaction allow="readonly">required</transaction>
+    <args>
+        <arg>
+            <shortname>groupname</shortname>
+            <description>shortName of parent group</description>
+        </arg>
+        <arg>
+            <shortname>includeBranches</shortname>
+            <description>include branch groups or not (true by default)</description>
+        </arg>
+        <arg>
+            <shortname>includeRoles</shortname>
+            <description>include role groups or not (true by default)</description>
+        </arg>
+        <arg>
+            <shortname>includeGroups</shortname>
+            <description>include simple groups or not (true by default)</description>
+        </arg>
+        <arg>
+            <shortname>includeUsers</shortname>
+            <description>include users or not (true by default)</description>
+        </arg>
+        <arg>
+            <shortname>filter</shortname>
+            <description>regular expression to filter group results</description>
+        </arg>
+        <arg>
+            <shortname>recurse</shortname>
+            <description>true to get all subgroups and users, false to get only immediate (false by default)</description>
+        </arg>
+        <arg>
+            <shortname>showDisabled</shortname>
+            <description>true to get users with no attention to "cm:personDisabled" field (true by default)</description>
+        </arg>
+        <arg>
+            <shortname>excludeAuthorities</shortname>
+            <description>exclude authorities (groups and users)</description>
+        </arg>
+        <arg>
+            <shortname>addAdminGroup</shortname>
+            <description>true to get GROUP_ALFRESCO_ADMINISTRATORS in search (false by default), includeGroups must be true</description>
+        </arg>
+    </args>
+    <responses>
+        <response>
+            <format>json</format>
+            <type>
+                <![CDATA[
+                    [
+                        {
+                            authorityType: ... // "GROUP" or "USER"
+                            shortName: ...
+                            fullName: ...
+                            displayName: ...
+                            groupType: ... // only for groups
+                            groupSubType: ... // only for groups
+                            ... // custom attributes
+                            nodeRef: ...
+                        },
+                        {
+                            ...
+                        },
+                        ...
+                    ]
+                ]]>
+            </type>
+        </response>
+    </responses>
 </webscript>
