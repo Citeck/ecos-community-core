@@ -296,27 +296,6 @@
             </associations>
         </aspect>
 
-        <aspect name="ecos:hasAuditInfo">
-            <properties>
-                <property name="ecos:auditCreated">
-                    <title>Created</title>
-                    <type>d:datetime</type>
-                </property>
-                <property name="ecos:auditCreator">
-                    <title>Creator</title>
-                    <type>d:text</type>
-                </property>
-                <property name="ecos:auditModified">
-                    <title>Modified</title>
-                    <type>d:datetime</type>
-                </property>
-                <property name="ecos:auditModifier">
-                    <title>Modifier</title>
-                    <type>d:text</type>
-                </property>
-            </properties>
-        </aspect>
-
         <aspect name="ecos:hasUiInfo">
             <properties>
                 <property name="ecos:newJournalsEnabled">
