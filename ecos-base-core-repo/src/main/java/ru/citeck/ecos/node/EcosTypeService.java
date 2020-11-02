@@ -161,7 +161,7 @@ public class EcosTypeService {
         });
     }
 
-    private List<RecordRef> getChildren(RecordRef typeRef) {
+    public List<RecordRef> getChildren(RecordRef typeRef) {
 
         RecordsQuery query = new RecordsQuery();
         query.setSourceId("emodel/type");

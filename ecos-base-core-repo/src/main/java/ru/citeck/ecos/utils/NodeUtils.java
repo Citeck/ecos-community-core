@@ -20,6 +20,7 @@ import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import ru.citeck.ecos.node.DisplayNameService;
+import ru.citeck.ecos.records2.RecordRef;
 
 import java.io.Serializable;
 import java.util.*;
@@ -63,8 +64,12 @@ public class NodeUtils {
      */
     public NodeRef getNodeRef(String node) {
 
-        if (NodeRef.isNodeRef(node)) {
+        if (node.charAt(0) == 'w' && NodeRef.isNodeRef(node)) {
             return new NodeRef(node);
+        }
+        int workspaceIdx = node.indexOf("workspace://SpacesStore/");
+        if (workspaceIdx >= 0) {
+            return new NodeRef(node.substring(workspaceIdx));
         }
 
         NodeRef root = nodeService.getRootNode(StoreRef.STORE_REF_WORKSPACE_SPACESSTORE);
