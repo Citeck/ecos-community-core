@@ -15,10 +15,4 @@ public interface AttributesPermissionService {
     boolean isFieldEditable(QName fieldQName, NodeRef caseRef, String mode);
 
     boolean isFieldOfAssocEditable(QName fieldQName, NodeRef childRef, QName assocQName, NodeRef caseRef, String mode);
-
-    void reloadDefinition(NodeRef matrixDefinitionRef);
-
-    void reloadAllDefinitions();
-
-    boolean hasAttributesPermission(NodeRef caseRef);
 }
