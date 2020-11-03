@@ -36,7 +36,13 @@
       "Сотрудник": "Сотрудник",
       "Create": "Создать",
       "Cancel": "Отмена",
-      "Save": "Сохранить"
+      "Save": "Сохранить",
+      "Error": "Ошибка",
+      "Inn field is requered": "Поле Инн не может быть пустым",
+      "Error while requesting data": "Ошибка при запросе данных",
+      "Data is empty": "Контрагент не найден",
+      "Перезаписать заполненные поля формы?": "Перезаписать заполненные поля формы?",
+      "Undefined error": "Undefined error"
     },
     "en": {
       "Классификация": "Classification",
@@ -63,7 +69,13 @@
       "Сотрудник": "Employee",
       "Create": "Create",
       "Cancel": "Cancel",
-      "Save": "Save"
+      "Save": "Save",
+      "Error": "Error",
+      "Inn field is requered": "Inn field is requered",
+      "Error while requesting data": "Error while requesting data",
+      "Data is empty": "Counterparty not found",
+      "Перезаписать заполненные поля формы?": "Overwrite completed form fields?",
+      "Undefined error": "Неизвестная ошибка"
     }
   },
   "definition": {
@@ -639,14 +651,14 @@
                                 "label": "Автозаполнение",
                                 "action": "custom",
                                 "state": "",
+                                "showValidations": false,
+                                "custom": "const { idocs_inn: inn } = data || {};\r\n\r\nif (!inn) {\r\n\tCiteck.Dialogs.showInfoDialog({\r\n\t\ttitle: instance.t('Error'), \r\n\t\ttext: instance.t('Inn field is requered')\r\n\t});\r\n\treturn;\r\n}\r\n\r\nconst setCEO = result => {\r\n\tlet { heads } = result || {};\r\n\theads = _.isArray(heads) ? heads : [];\r\n\r\n\tfor (let head of heads) {\r\n\t\tconst {position, fio} = head || {};\r\n\t\tif (position == 'Генеральный Директор') {\r\n\t\t\tresult['idocs_CEOname'] = fio;\r\n\t\t\tbreak;\r\n\t\t}\r\n\t}\r\n\r\n\treturn result;\r\n};\r\n\r\nconst setAddress = result => {\r\n\tconst { legalAddress } = result || {};\r\n\tif (_.isArray(legalAddress)) {\r\n\t\tresult['idocs_juridicalAddress'] = result['idocs_postAddress'] = legalAddress.map(s => {\r\n\t\t\treturn _.isArray(s) ? s.join(\". \") : s;\r\n\t\t}).join(\", \");\r\n\t}\r\n\treturn result;\r\n}\r\n\r\nconst isNeedAsk = (attributes, result) => {\r\n\tfor (let att of attributes) {\r\n\t\tconst {[att]: prevVal} = data || {};\r\n\t\tconst {[att]: curVal} = result || {};\r\n\r\n\t\tif (!!prevVal && curVal !== prevVal) {\r\n\t\t\treturn true;\r\n\t\t}\r\n\t}\r\n\treturn false;\r\n}\r\n\r\nCiteck.Records.query({\r\n\tsourceId: 'integrations/rs_focusApiKonturApi3Req',\r\n\tquery: {\r\n\t\tkey: \"3208d29d15c507395db770d0e65f3711e40374df\",\r\n\t\tinn: inn\r\n\t}\r\n}, '.json')\r\n.then(result => {\r\n\tconst {errors} = result || {};\r\n\tif (_.isArray(errors) && errors.length > 0) {\r\n\t\tthrow({\r\n\t\t\t'msgForUser': instance.t('Error while requesting data'),\r\n\t\t\terrors\r\n\t\t});\r\n\t}\r\n\treturn result;\r\n})\r\n.then(result => {\r\n\tconst { records } = result || {};\r\n\tconst { '.json': queryData } = (records || {})[0] || {};\r\n\tif (!queryData) {\r\n\t\tthrow({\r\n\t\t\t'msgForUser': instance.t('Data is empty'),\r\n\t\t\trecords\r\n\t\t});\r\n\t}\r\n\treturn queryData;\r\n})\r\n.then(setCEO).then(setAddress)\r\n.then(result => {\r\n\tconst attributes = [\r\n\t\t'idocs_fullOrganizationName', 'idocs_shortOrganizationName',\r\n\t\t'idocs_juridicalAddress', 'idocs_postAddress', \r\n\t\t'idocs_okpo', 'idocs_CEOname', 'idocs_kpp', 'idocs_ogrn'\r\n\t];\r\n\r\n\tvar needAsk = isNeedAsk(attributes);\r\n\r\n\tconst rewrite = () => {\r\n\t\tutils.eachComponent(form.components, component => {\r\n\t\t\tvar newValue = result[component.key];\r\n\t\t\tif (!!newValue) {\r\n\t\t\t\tcomponent.setValue(newValue);\r\n\t\t\t}\r\n\t\t});\r\n\t};\r\n\r\n\tif (needAsk) {\r\n\t\tCiteck.Dialogs.confirmDialog({\r\n\t\t\ttitle: instance.t('Перезаписать заполненные поля формы?'),\r\n\t\t\tonYes: rewrite\r\n\t\t})\r\n\t} else {\r\n\t\trewrite()\r\n\t}\r\n}).catch(error => {\r\n\tconst { msgForUser } = error || {};\r\n\tCiteck.Dialogs.showInfoDialog({\r\n\t\ttitle: instance.t('Error'), \r\n\t\ttext: msgForUser || instance.t('Undefined error')\r\n\t});\r\n\tconsole.error(error);\r\n});",
                                 "theme": "primary",
                                 "tooltip": "Нажмите, чтобы автоматически заполнить поля реквизитов",
                                 "key": "dadata_loader",
                                 "customConditional": "var isEntInstalled = data.isEntInstalled === 'true';\n\nshow = isEntInstalled;",
                                 "type": "button",
-                                "input": true,
-                                "showValidations": false,
-                                "custom": "var inn = data.idocs_inn;\n\nif (inn) {\n    fetch('/micro/integrations/records/query',{\n        method: 'POST',\n        credentials: 'include',\n        headers: {'Content-type': 'application/json;charset=UTF-8'},\n        body: JSON.stringify({\n            \"query\": {\n                \"sourceId\": \"dadata-party\",\n                \"query\":{\"tin\": inn},\n                \"attributes\": {\"subjectName\": \"subjectName\"},\n                \"main\": true\n            }})\n    }).then(response => { return response.json();}).then(function (response){\n\n      response = (response.suggestions || [])[0];\n\n      var attributes = [\n          'idocs_fullOrganizationName',\n          'idocs_shortOrganizationName',\n          'idocs_juridicalAddress',\n          'idocs_kpp',\n          'idocs_ogrn',\n          'idocs_okpo',\n          'idocs_CEOname',\n          'idocs_postAddress'\n      ];\n      var map = {\n          'idocs_fullOrganizationName': function(){return response.value},\n          'idocs_shortOrganizationName': function(){return response.unrestricted_value},\n          'idocs_juridicalAddress': function(){return response.data.address.unrestricted_value},\n          'idocs_kpp': function(){return response.data.kpp},\n          'idocs_ogrn': function(){return response.data.ogrn},\n          'idocs_okpo': function(){return response.data.okpo},\n          'idocs_CEOname': function(){return response.data.management.post + ', ' + response.data.management.name},\n          'idocs_postAddress': function(){return response.data.address.unrestricted_value},\n      };\n      var needAsk = false;\n\n      if (response) {\n          for (var i=0, count=attributes.length; i < count; i++) {\n              var attribute = attributes[i];\n              var formAttributeValue = data[attribute];\n\n              if (formAttributeValue && formAttributeValue !== map[attribute]()) {\n                  needAsk = true;\n                  break;\n              }\n          }\n\n          var rewrite = () => {\n              utils.eachComponent(form.components, component => {\n                  var newValue = map[component.key] && map[component.key]();\n                  newValue && component.setValue(newValue);\n              });\n          };\n\n          needAsk ? Citeck.forms.confirm('Перезаписать заполненные поля формы?', rewrite):rewrite();\n      }\n    });\n}"
+                                "input": true
                               }
                             ],
                             "width": 4,
@@ -1508,10 +1520,10 @@
                 "source": {
                   "type": "ajax",
                   "ajax": {
-                    "method": "GET",
                     "url": "/citeck/info/is-ent-installed",
                     "data": "value = {}",
-                    "mapping": "value = data.isEntInstalled;"
+                    "mapping": "value = data.isEntInstalled;",
+                    "method": "GET"
                   },
                   "forceLoad": false
                 },
