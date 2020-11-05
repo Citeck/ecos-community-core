@@ -15,6 +15,7 @@ import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import ru.citeck.ecos.commons.data.DataValue;
+import ru.citeck.ecos.domain.model.alf.service.AlfAutoModelService;
 import ru.citeck.ecos.records.source.alf.AlfNodesRecordsDAO;
 import ru.citeck.ecos.records.source.alf.search.AlfNodesSearch.AfterIdType;
 import ru.citeck.ecos.records2.RecordRef;
@@ -22,11 +23,18 @@ import ru.citeck.ecos.records2.request.query.RecordsQuery;
 import ru.citeck.ecos.records2.request.query.RecordsQueryResult;
 import ru.citeck.ecos.records2.request.query.SortBy;
 
+import java.util.Collections;
 import java.util.Date;
+import java.util.Map;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 @Component
 public class SearchServiceAlfNodesSearch {
+
+    public static final String ECOS_PARAMS_DELIM = "__?";
+    public static final String ECOS_TYPE_DELIM = ECOS_PARAMS_DELIM + "_type=";
+    private static final String ECOS_TYPE_DELIM_REGEXP = Pattern.quote(ECOS_TYPE_DELIM);
 
     private static final Log logger = LogFactory.getLog(SearchServiceAlfNodesSearch.class);
 
@@ -34,6 +42,7 @@ public class SearchServiceAlfNodesSearch {
 
     private SearchService searchService;
     private NamespaceService namespaceService;
+    private AlfAutoModelService alfAutoModelService;
 
     @Autowired
     public SearchServiceAlfNodesSearch(SearchService searchService,
@@ -55,7 +64,12 @@ public class SearchServiceAlfNodesSearch {
 
     private RecordsQueryResult<RecordRef> queryRecordsImpl(RecordsQuery recordsQuery, Long afterDbId, Date afterCreated) {
 
-        String query = recordsQuery.getQuery(DataValue.class).asText();
+        String[] queryWithType = recordsQuery.getQuery(DataValue.class)
+            .asText()
+            .split(ECOS_TYPE_DELIM_REGEXP);
+
+        String query = queryWithType[0];
+        RecordRef ecosTypeRef = RecordRef.valueOf(queryWithType.length > 1 ? queryWithType[1] : null);
 
         SearchParameters searchParameters = new SearchParameters();
         searchParameters.addStore(StoreRef.STORE_REF_WORKSPACE_SPACESSTORE);
@@ -101,8 +115,16 @@ public class SearchServiceAlfNodesSearch {
         searchParameters.setQuery(query);
 
         if (!ignoreQuerySort) {
+
+            Map<String, String> propsMapping;
+            if (alfAutoModelService != null) {
+                propsMapping = alfAutoModelService.getPropsMapping(ecosTypeRef);
+            } else {
+                propsMapping = Collections.emptyMap();
+            }
             for (SortBy sortBy : recordsQuery.getSortBy()) {
-                String field = "@" + sortBy.getAttribute();
+                String att = sortBy.getAttribute();
+                String field = "@" + propsMapping.getOrDefault(att, att);
                 if (!afterIdMode || !afterIdSortField.equals(field)) {
                     searchParameters.addSort(field, sortBy.isAscending());
                 }
@@ -133,6 +155,11 @@ public class SearchServiceAlfNodesSearch {
                 resultSet.close();
             }
         }
+    }
+
+    @Autowired(required = false)
+    public void setAlfAutoModelService(AlfAutoModelService alfAutoModelService) {
+        this.alfAutoModelService = alfAutoModelService;
     }
 
     private class SearchWithLanguage implements AlfNodesSearch {

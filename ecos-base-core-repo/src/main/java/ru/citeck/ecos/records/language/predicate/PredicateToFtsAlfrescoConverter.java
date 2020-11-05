@@ -2,12 +2,14 @@ package ru.citeck.ecos.records.language.predicate;
 
 import lombok.extern.slf4j.Slf4j;
 import org.alfresco.service.cmr.search.SearchService;
+import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import ru.citeck.ecos.commons.utils.IterUtils;
 import ru.citeck.ecos.domain.model.alf.service.AlfAutoModelService;
 import ru.citeck.ecos.records.language.predicate.converters.PredToFtsContext;
 import ru.citeck.ecos.records.language.predicate.converters.delegators.ConvertersDelegator;
+import ru.citeck.ecos.records.source.alf.search.SearchServiceAlfNodesSearch;
 import ru.citeck.ecos.records2.RecordConstants;
 import ru.citeck.ecos.records2.RecordRef;
 import ru.citeck.ecos.records2.predicate.PredicateService;
@@ -38,15 +40,24 @@ public class PredicateToFtsAlfrescoConverter implements QueryLangConverter<Predi
         }
 
         FTSQuery query = FTSQuery.createRaw();
-        delegator.delegate(predicate, query, new PredToFtsContext(getAttsMapping(predicate)));
+        PredToFtsContext context = getPredToFtsContext(predicate);
+        if (context == null) {
+            context = new PredToFtsContext(RecordRef.EMPTY, Collections.emptyMap());
+        }
+        delegator.delegate(predicate, query, context);
 
-        return query.getQuery();
+        String queryStr = query.getQuery();
+        if (RecordRef.isNotEmpty(context.getTypeRef())) {
+            queryStr += SearchServiceAlfNodesSearch.ECOS_TYPE_DELIM + context.getTypeRef();
+        }
+        return queryStr;
     }
 
-    private Map<String, String> getAttsMapping(Predicate predicate) {
+    @Nullable
+    private PredToFtsContext getPredToFtsContext(Predicate predicate) {
 
         if (alfAutoModelService == null) {
-            return Collections.emptyMap();
+            return null;
         }
 
         Set<String> typesInPredicates = new HashSet<>();
@@ -59,11 +70,13 @@ public class PredicateToFtsAlfrescoConverter implements QueryLangConverter<Predi
         }, true);
 
         if (typesInPredicates.size() != 1) {
-            return Collections.emptyMap();
+            return null;
         }
 
         String type = IterUtils.first(typesInPredicates).orElse(null);
-        return alfAutoModelService.getPropsMapping(RecordRef.valueOf(type));
+        RecordRef typeRef = RecordRef.valueOf(type);
+
+        return new PredToFtsContext(typeRef, alfAutoModelService.getPropsMapping(typeRef));
     }
 
     @Autowired

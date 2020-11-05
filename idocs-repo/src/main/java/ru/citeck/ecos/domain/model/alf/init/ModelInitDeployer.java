@@ -56,8 +56,13 @@ public class ModelInitDeployer implements DictionaryListener, ApplicationListene
 
         log.info("==== Auto models deployer ====");
 
-        List<TypeModelInfo> modelsInfo =
-            transactionService.getRetryingTransactionHelper().doInTransaction(modelsDao::getAllModels);
+        List<TypeModelInfo> modelsInfo;
+        try {
+            modelsInfo = transactionService.getRetryingTransactionHelper().doInTransaction(modelsDao::getAllModels);
+        } catch (Exception e) {
+            log.error("Auto models can't be received", e);
+            return;
+        }
 
         modelsInfo.forEach(model -> {
             try {
