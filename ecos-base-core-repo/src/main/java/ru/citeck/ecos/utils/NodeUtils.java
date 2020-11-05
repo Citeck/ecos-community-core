@@ -17,10 +17,11 @@ import org.alfresco.service.namespace.RegexQNamePattern;
 import org.alfresco.util.GUID;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang.StringUtils;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import ru.citeck.ecos.node.DisplayNameService;
-import ru.citeck.ecos.records2.RecordRef;
 
 import java.io.Serializable;
 import java.util.*;
@@ -62,7 +63,20 @@ public class NodeUtils {
     /**
      * Get node by nodeRef or path
      */
+    @NotNull
     public NodeRef getNodeRef(String node) {
+        NodeRef nodeRef = getNodeRefOrNull(node);
+        if (nodeRef == null) {
+            throw new IllegalArgumentException("Node not found: '" + node + "'");
+        }
+        return nodeRef;
+    }
+
+    /**
+     * Get node by nodeRef or path
+     */
+    @Nullable
+    public NodeRef getNodeRefOrNull(String node) {
 
         if (node.charAt(0) == 'w' && NodeRef.isNodeRef(node)) {
             return new NodeRef(node);
@@ -75,10 +89,8 @@ public class NodeUtils {
         NodeRef root = nodeService.getRootNode(StoreRef.STORE_REF_WORKSPACE_SPACESSTORE);
         List<NodeRef> results = searchService.selectNodes(root, node, null,
                                                           namespaceService, false);
-        if (results.isEmpty()) {
-            throw new IllegalArgumentException("Node not found by path: " + node);
-        }
-        return results.get(0);
+
+        return results.isEmpty() ? null : results.get(0);
     }
 
     /**

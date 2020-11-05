@@ -18,6 +18,7 @@ import ru.citeck.ecos.action.node.NodeActionsService;
 import ru.citeck.ecos.attr.prov.VirtualScriptAttributes;
 import ru.citeck.ecos.commons.data.DataValue;
 import ru.citeck.ecos.document.sum.DocSumService;
+import ru.citeck.ecos.domain.model.alf.service.AlfAutoModelService;
 import ru.citeck.ecos.graphql.AlfGqlContext;
 import ru.citeck.ecos.graphql.node.Attribute;
 import ru.citeck.ecos.graphql.node.GqlAlfNode;
@@ -78,6 +79,8 @@ public class AlfNodeRecord implements MetaValue {
     private GqlAlfNode node;
     private AlfGqlContext context;
 
+    private Map<String, String> attributesMapping = Collections.emptyMap();
+
     @Getter(lazy = true)
     private final Permissions permissions = new Permissions();
 
@@ -87,9 +90,16 @@ public class AlfNodeRecord implements MetaValue {
 
     @Override
     public <T extends QueryContext> void init(T context, MetaField field) {
+
         this.context = (AlfGqlContext) context;
         this.nodeRef = RecordsUtils.toNodeRef(recordRef);
         this.node = this.context.getNode(nodeRef).orElse(null);
+
+        RecordRef typeRef = getRecordType();
+        if (RecordRef.isNotEmpty(typeRef)) {
+            AlfAutoModelService autoModelService = ((AlfGqlContext) context).getService(AlfAutoModelService.QNAME);
+            attributesMapping = autoModelService.getPropsMapping(typeRef);
+        }
     }
 
     @Override
@@ -114,6 +124,8 @@ public class AlfNodeRecord implements MetaValue {
         if (!context.getEcosPermissionService().isAttVisible(new NodeInfo(), name)) {
             return false;
         }
+
+        name = attributesMapping.getOrDefault(name, name);
 
         if (RecordConstants.ATT_DOC_NUM.equals(name)) {
             name = EcosModel.PROP_DOC_NUM.toPrefixString(context.getNamespaceService());
@@ -172,6 +184,8 @@ public class AlfNodeRecord implements MetaValue {
         if (!context.getEcosPermissionService().isAttVisible(new NodeInfo(), name)) {
             return Collections.emptyList();
         }
+
+        name = attributesMapping.getOrDefault(name, name);
 
         List<? extends MetaValue> attribute = null;
 
@@ -454,6 +468,7 @@ public class AlfNodeRecord implements MetaValue {
         if (node != null) {
             type = node.getType();
         }
+        name = attributesMapping.getOrDefault(name, name);
         return new AlfNodeMetaEdge(context, type, name, this);
     }
 

@@ -17,6 +17,7 @@ import org.springframework.stereotype.Component;
 import ru.citeck.ecos.config.EcosConfigService;
 import ru.citeck.ecos.model.EcosTypeModel;
 import ru.citeck.ecos.node.EcosTypeService;
+import ru.citeck.ecos.records.language.predicate.converters.PredToFtsContext;
 import ru.citeck.ecos.records.language.predicate.converters.PredicateToFtsConverter;
 import ru.citeck.ecos.records.language.predicate.converters.delegators.ConvertersDelegator;
 import ru.citeck.ecos.records.language.predicate.converters.impl.utils.TimeUtils;
@@ -58,7 +59,7 @@ public class ValuePredicateToFtsConverter implements PredicateToFtsConverter {
     private AuthorityUtils authorityUtils;
 
     @Override
-    public void convert(Predicate predicate, FTSQuery query) {
+    public void convert(Predicate predicate, FTSQuery query, PredToFtsContext context) {
         ValuePredicate valuePredicate = (ValuePredicate) predicate;
         String attribute = valuePredicate.getAttribute();
 
@@ -107,20 +108,30 @@ public class ValuePredicateToFtsConverter implements PredicateToFtsConverter {
                 break;
             }
             case MODIFIER: {
-                convertValuePredicateCopyForAttr(valuePredicate, ContentModel.PROP_MODIFIER.getPrefixString(), query);
+                convertValuePredicateCopyForAttr(
+                    valuePredicate,
+                    ContentModel.PROP_MODIFIER.getPrefixString(),
+                    query,
+                    context
+                );
                 break;
             }
             case MODIFIED: {
-                convertValuePredicateCopyForAttr(valuePredicate, ContentModel.PROP_MODIFIED.getPrefixString(), query);
+                convertValuePredicateCopyForAttr(
+                    valuePredicate,
+                    ContentModel.PROP_MODIFIED.getPrefixString(),
+                    query,
+                    context
+                );
                 break;
             }
             case ACTORS: {
                 String actor = getActorByValue(predicateValue);
-                delegator.delegate(getOrPredicateForActors(actor), query);
+                delegator.delegate(getOrPredicateForActors(actor), query, context);
                 break;
             }
             default: {
-                processDefaultAttribute(query, valuePredicate);
+                processDefaultAttribute(query, valuePredicate, context);
                 break;
             }
         }
@@ -230,10 +241,14 @@ public class ValuePredicateToFtsConverter implements PredicateToFtsConverter {
             .map(NodeRef::toString).collect(Collectors.toSet());
     }
 
-    private void convertValuePredicateCopyForAttr(ValuePredicate valuePredicate, String attribute, FTSQuery query) {
+    private void convertValuePredicateCopyForAttr(ValuePredicate valuePredicate,
+                                                  String attribute,
+                                                  FTSQuery query,
+                                                  PredToFtsContext context) {
+
         ValuePredicate predicateCopy = valuePredicate.copy();
         predicateCopy.setAttribute(attribute);
-        delegator.delegate(predicateCopy, query);
+        delegator.delegate(predicateCopy, query, context);
     }
 
     private String getActorByValue(String value) {
@@ -384,8 +399,11 @@ public class ValuePredicateToFtsConverter implements PredicateToFtsConverter {
         return null;
     }
 
-    private void processDefaultAttribute(FTSQuery query, ValuePredicate valuePredicate) {
+    private void processDefaultAttribute(FTSQuery query, ValuePredicate valuePredicate, PredToFtsContext context) {
+
         String attribute = valuePredicate.getAttribute();
+        attribute = context.getAttsMapping().getOrDefault(attribute, attribute);
+
         Object objectPredicateValue = valuePredicate.getValue();
         String predicateValue = objectPredicateValue.toString().replaceAll("\"", "\\\\\"");
 
@@ -400,7 +418,7 @@ public class ValuePredicateToFtsConverter implements PredicateToFtsConverter {
         ComposedPredicate composedPredicate = getAdvantageComposedPredicate(valuePredType,
                                                                             predicateValue, attribute, attDef);
         if (composedPredicate != null) {
-            delegator.delegate(composedPredicate, query);
+            delegator.delegate(composedPredicate, query, context);
             return;
         }
 

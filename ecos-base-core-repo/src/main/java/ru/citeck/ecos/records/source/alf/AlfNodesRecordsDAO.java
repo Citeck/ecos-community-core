@@ -17,6 +17,7 @@ import ru.citeck.ecos.action.group.GroupActionConfig;
 import ru.citeck.ecos.action.group.GroupActionService;
 import ru.citeck.ecos.commons.data.DataValue;
 import ru.citeck.ecos.commons.data.ObjectData;
+import ru.citeck.ecos.domain.model.alf.service.AlfAutoModelService;
 import ru.citeck.ecos.model.EcosModel;
 import ru.citeck.ecos.model.EcosTypeModel;
 import ru.citeck.ecos.model.InvariantsModel;
@@ -93,6 +94,7 @@ public class AlfNodesRecordsDAO extends LocalRecordsDao
     private TypesManager typeInfoProvider;
     private ServiceRegistry serviceRegistry;
     private RecordsTemplateService recordsTemplateService;
+    private AlfAutoModelService alfAutoModelService;
 
     private final Map<QName, NodeRef> defaultParentByType = new ConcurrentHashMap<>();
 
@@ -129,6 +131,7 @@ public class AlfNodesRecordsDAO extends LocalRecordsDao
         }
 
         ObjectData attributes = record.getAttributes();
+        ObjectData finalAtts = attributes;
 
         // if we get "att_add_someAtt" and "someAtt", then ignore "att_add_*"
         attributes.forEach((name, value) -> {
@@ -142,7 +145,7 @@ public class AlfNodesRecordsDAO extends LocalRecordsDao
                     attrNameWithoutPrefix = name.replaceFirst(REMOVE_CMD_PREFIX, StringUtils.EMPTY);
                 }
 
-                if (attributes.has(attrNameWithoutPrefix) && value.isNotNull()) {
+                if (finalAtts.has(attrNameWithoutPrefix) && value.isNotNull()) {
                     String actualName = extractActualAttName(name);
                     attsToIgnore.put(name, actualName);
                 }
@@ -152,6 +155,18 @@ public class AlfNodesRecordsDAO extends LocalRecordsDao
         handleContentAttribute(attributes);
         RecordRef ecosTypeRef = handleETypeAttribute(attributes, props);
         TypeDto typeDto = ecosTypeRef != null ? typeInfoProvider.getType(ecosTypeRef) : null;
+
+        if (ecosTypeRef != null && alfAutoModelService != null) {
+
+            Map<String, String> propsMapping
+                = alfAutoModelService.getPropsMapping(ecosTypeRef, attributes.fieldNamesList(), true);
+
+            if (!propsMapping.isEmpty()) {
+                Map<String, Object> newAttributes = new HashMap<>();
+                attributes.forEach((k, v) -> newAttributes.put(propsMapping.getOrDefault(k, k), v));
+                attributes = ObjectData.create(newAttributes);
+            }
+        }
 
         AlfNodeInfo nodeInfo = nodeRef != null ? new AlfNodeInfoImpl(nodeRef, serviceRegistry) : null;
 
@@ -737,6 +752,11 @@ public class AlfNodesRecordsDAO extends LocalRecordsDao
     @Autowired
     public void setNodeUtils(NodeUtils nodeUtils) {
         this.nodeUtils = nodeUtils;
+    }
+
+    @Autowired(required = false)
+    public void setAlfAutoModelService(AlfAutoModelService alfAutoModelService) {
+        this.alfAutoModelService = alfAutoModelService;
     }
 
     public void register(AlfNodesSearch alfNodesSearch) {

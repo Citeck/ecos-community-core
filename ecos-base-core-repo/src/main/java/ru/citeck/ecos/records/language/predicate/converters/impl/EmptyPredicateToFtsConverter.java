@@ -7,6 +7,7 @@ import org.alfresco.service.cmr.dictionary.PropertyDefinition;
 import org.alfresco.service.namespace.QName;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import ru.citeck.ecos.records.language.predicate.converters.PredToFtsContext;
 import ru.citeck.ecos.records.language.predicate.converters.PredicateToFtsConverter;
 import ru.citeck.ecos.records2.predicate.model.EmptyPredicate;
 import ru.citeck.ecos.records2.predicate.model.Predicate;
@@ -24,7 +25,7 @@ public class EmptyPredicateToFtsConverter implements PredicateToFtsConverter {
     private AssociationIndexPropertyRegistry associationIndexPropertyRegistry;
 
     @Override
-    public void convert(Predicate predicate, FTSQuery query) {
+    public void convert(Predicate predicate, FTSQuery query, PredToFtsContext context) {
         String attribute = ((EmptyPredicate) predicate).getAttribute();
         ClassAttributeDefinition attDef = dictUtils.getAttDefinition(attribute);
 
