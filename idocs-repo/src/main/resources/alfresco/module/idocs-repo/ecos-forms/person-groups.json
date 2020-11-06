@@ -13,10 +13,10 @@
   "width": "default",
   "i18n": {
     "ru": {
-      "Loading": "Загрузка..."
+      "loading": "Загрузка..."
     },
     "en": {
-      "Loading": "Loading..."
+      "loading": "Loading..."
     }
   },
   "definition": {
@@ -26,21 +26,21 @@
         "hideLabel": true,
         "disabled": true,
         "defaultValue": "",
-        "customDefaultValue": "value = instance.t('Loading');",
-        "calculateValue": "const { parentData } = data || {};\nconst { groups } = parentData || {};\nif (_.isArray(groups)){\n  value = groups.join(\"\\n\");\n}",
+        "customDefaultValue": "value = instance.t('loading');",
+        "calculateValue": "const { groupData } = data || {};\nconst { groups } = groupData || {};\n\nif (_.isArray(groups) && groups.length){\n  value = groups.join(';\\n') + '.';\n}",
         "key": "personGroups",
         "rows": 16,
         "type": "textarea",
         "input": true
       },
       {
-        "label": "parentData",
+        "label": "groupData",
         "source": {
           "type": "record",
           "record": {
             "id": "{{recordId}}",
             "attributes": {
-              "groups": "authorities.list[]?str"
+              "groups": "assoc_src_cm:member[]?disp"
             }
           },
           "forceLoad": false
@@ -48,7 +48,7 @@
         "update": {
           "type": "once"
         },
-        "key": "parentData",
+        "key": "groupData",
         "type": "asyncData",
         "input": true,
         "conditional": {
