@@ -17,7 +17,7 @@ import ru.citeck.ecos.model.lib.type.service.TypeDefService;
 import ru.citeck.ecos.node.EcosTypeService;
 import ru.citeck.ecos.records.type.TypeDto;
 import ru.citeck.ecos.records2.RecordRef;
-import ru.citeck.ecos.records2.RecordsServiceFactory;
+import ru.citeck.ecos.records3.RecordsServiceFactory;
 import ru.citeck.ecos.records2.source.dao.local.RemoteSyncRecordsDao;
 
 import java.util.List;
@@ -64,7 +64,7 @@ public class ModelServiceFactoryConfig extends ModelServiceFactory {
             @Nullable
             @Override
             public TypeDef getTypeDef(@NotNull RecordRef recordRef) {
-                TypeDto typeDto = typeRecords.getRecord(recordRef).orElse(null);
+                TypeDto typeDto = typeRecords.getRecord(recordRef.getId()).orElse(null);
                 if (typeDto == null || typeDto.getId() == null) {
                     return null;
                 }

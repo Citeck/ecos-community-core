@@ -17,6 +17,7 @@ import ru.citeck.ecos.records2.predicate.RecordElement;
 import ru.citeck.ecos.records2.predicate.RecordElements;
 import ru.citeck.ecos.records2.request.query.RecordsQuery;
 import ru.citeck.ecos.records2.request.result.RecordsResult;
+import ru.citeck.ecos.records3.RecordsServiceFactory;
 import ru.citeck.ecos.search.*;
 
 import java.util.*;

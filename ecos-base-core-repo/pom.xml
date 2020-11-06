@@ -58,7 +58,7 @@
         </dependency>
 
         <dependency>
-            <groupId>${project.groupId}</groupId>
+            <groupId>ru.citeck.ecos.records</groupId>
             <artifactId>ecos-records</artifactId>
             <version>${ecos.records.version}</version>
         </dependency>

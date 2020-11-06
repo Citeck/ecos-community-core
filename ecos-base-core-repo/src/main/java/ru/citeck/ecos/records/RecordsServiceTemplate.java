@@ -1,13 +1,13 @@
 package ru.citeck.ecos.records;
 
 import org.alfresco.repo.template.BaseTemplateProcessorExtension;
-import ru.citeck.ecos.records2.request.result.RecordsResult;
+import ru.citeck.ecos.records3.record.op.query.dto.RecsQueryRes;
 
 public class RecordsServiceTemplate extends BaseTemplateProcessorExtension {
 
     private RecordsServiceJS recordsService;
 
-    public RecordsResult<?> getRecordsForClass(Object recordsQuery, String schemaClass) {
+    public RecsQueryRes<?> getRecordsForClass(Object recordsQuery, String schemaClass) {
         return recordsService.getRecords(recordsQuery, getClass(schemaClass));
     }
 

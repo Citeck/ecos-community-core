@@ -7,7 +7,6 @@ import org.alfresco.service.cmr.module.ModuleDetails;
 import org.alfresco.service.cmr.module.ModuleService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import ru.citeck.ecos.records2.graphql.meta.value.MetaField;
 import ru.citeck.ecos.records2.graphql.meta.value.MetaValue;
 import ru.citeck.ecos.records2.source.dao.local.meta.MetaAttributesSupplier;
 import ru.citeck.ecos.records2.source.dao.local.meta.MetaRecordsDaoAttsProvider;
@@ -46,7 +45,7 @@ public class AlfMetaRecordsDaoAttsProvider implements MetaAttributesSupplier {
     }
 
     @Override
-    public Object getAttribute(String name, MetaField metaField) {
+    public Object getAttribute(String name) {
         return attsCache.getUnchecked(name).orElse(null);
     }
 

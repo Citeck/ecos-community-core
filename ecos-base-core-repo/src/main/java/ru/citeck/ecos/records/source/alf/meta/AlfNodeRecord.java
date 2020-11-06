@@ -474,7 +474,7 @@ public class AlfNodeRecord implements MetaValue {
 
     private MetaValue toMetaValue(Attribute att, Object value, MetaField field) {
         MetaValue metaValue;
-        if (value instanceof NodeRef) {
+        if (value instanceof NodeRef || value instanceof String && NodeRef.isNodeRef((String) value)) {
             metaValue = new AlfNodeRecord(RecordRef.valueOf(value.toString()));
         } else if (value instanceof MLText) {
             metaValue = new MLTextValue((MLText) value);

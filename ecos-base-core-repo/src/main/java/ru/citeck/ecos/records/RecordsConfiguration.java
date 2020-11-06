@@ -1,7 +1,10 @@
 package ru.citeck.ecos.records;
 
 import com.netflix.appinfo.InstanceInfo;
+import kotlin.jvm.functions.Function0;
 import org.alfresco.service.ServiceRegistry;
+import org.alfresco.service.transaction.TransactionService;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
@@ -19,23 +22,25 @@ import ru.citeck.ecos.eureka.EcosEurekaClient;
 import ru.citeck.ecos.eureka.EurekaContextConfig;
 import ru.citeck.ecos.graphql.AlfGqlContext;
 import ru.citeck.ecos.records.type.TypesManager;
-import ru.citeck.ecos.records2.RecordsProperties;
+import ru.citeck.ecos.records3.RecordsProperties;
 import ru.citeck.ecos.records2.evaluator.RecordEvaluatorService;
 import ru.citeck.ecos.records2.meta.RecordsTemplateService;
 import ru.citeck.ecos.records2.predicate.PredicateService;
 import ru.citeck.ecos.records2.querylang.QueryLangService;
 import ru.citeck.ecos.records2.QueryContext;
 import ru.citeck.ecos.records2.RecordsService;
-import ru.citeck.ecos.records2.RecordsServiceFactory;
+import ru.citeck.ecos.records3.RecordsServiceFactory;
 import ru.citeck.ecos.records2.graphql.RecordsMetaGql;
 import ru.citeck.ecos.records2.graphql.meta.value.MetaValuesConverter;
 import ru.citeck.ecos.records2.meta.RecordsMetaService;
 import ru.citeck.ecos.records2.request.rest.RestHandler;
-import ru.citeck.ecos.records2.resolver.RecordsResolver;
-import ru.citeck.ecos.records2.resolver.RemoteRecordsResolver;
+import ru.citeck.ecos.records3.record.resolver.LocalRecordsResolver;
+import ru.citeck.ecos.records3.record.resolver.RemoteRecordsResolver;
 import ru.citeck.ecos.records2.rest.*;
 import ru.citeck.ecos.records2.source.dao.local.meta.MetaRecordsDaoAttsProvider;
 import ru.citeck.ecos.records2.type.RecordTypeService;
+import ru.citeck.ecos.records3.rest.RestHandlerAdapter;
+import ru.citeck.ecos.records3.txn.RecordsTxnService;
 
 import java.util.function.Supplier;
 
@@ -58,6 +63,8 @@ public class RecordsConfiguration extends RecordsServiceFactory {
     private RecordsResolverWrapper resolverWrapper;
     @Autowired(required = false)
     private TypesManager typeInfoProvider;
+    @Autowired
+    private TransactionService transactionService;
 
     @Autowired
     @Qualifier(EurekaContextConfig.REST_TEMPLATE_ID)
@@ -69,19 +76,33 @@ public class RecordsConfiguration extends RecordsServiceFactory {
         return super.createRecordsService();
     }
 
+    @Bean
+    @NotNull
     @Override
-    protected Class<? extends RecordsService> getRecordsServiceType() {
-        return RecordsServiceImpl.class;
+    protected ru.citeck.ecos.records3.RecordsService createRecordsServiceV1() {
+        return super.createRecordsServiceV1();
+    }
+
+    @NotNull
+    @Override
+    protected RecordsTxnService createRecordsTxnService() {
+        return new RecordsTxnService() {
+            @Override
+            public <T> T doInTransaction(boolean readOnly, @NotNull Function0<? extends T> action) {
+                return transactionService.getRetryingTransactionHelper()
+                    .doInTransaction(action::invoke, readOnly, true);
+            }
+        };
     }
 
     @Bean
     @Override
-    protected RecordsResolver createRecordsResolver() {
+    protected LocalRecordsResolver createLocalRecordsResolver() {
         if (Boolean.parseBoolean(isAdminActionsLogEnabled) && resolverWrapper != null) {
-            resolverWrapper.setRecordsResolver(super.createRecordsResolver());
+            resolverWrapper.setRecordsResolver(super.createLocalRecordsResolver());
             return resolverWrapper;
         } else {
-            return super.createRecordsResolver();
+            return super.createLocalRecordsResolver();
         }
     }
 
@@ -173,32 +194,44 @@ public class RecordsConfiguration extends RecordsServiceFactory {
         return super.createMetaValuesConverter();
     }
 
+    @NotNull
     @Override
     protected Supplier<? extends QueryContext> createQueryContextSupplier() {
         return () -> new AlfGqlContext(serviceRegistry);
     }
 
+    @NotNull
     @Override
     protected RecordsMetaGql createRecordsMetaGql() {
         return super.createRecordsMetaGql();
     }
 
     @Bean
+    @NotNull
     @Override
     protected MetaRecordsDaoAttsProvider createMetaRecordsDaoAttsProvider() {
         return super.createMetaRecordsDaoAttsProvider();
     }
 
     @Bean
+    @NotNull
     @Override
     protected RecordTypeService createRecordTypeService() {
         return new RecordsTypeServiceImpl(typeInfoProvider);
     }
 
     @Bean
+    @NotNull
     @Override
     protected RecordsTemplateService createRecordsTemplateService() {
         return super.createRecordsTemplateService();
+    }
+
+    @Bean
+    @NotNull
+    @Override
+    protected RestHandlerAdapter createRestHandlerAdapter() {
+        return super.createRestHandlerAdapter();
     }
 
     @Component

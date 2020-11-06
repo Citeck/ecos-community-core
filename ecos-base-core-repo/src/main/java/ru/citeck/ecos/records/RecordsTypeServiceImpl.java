@@ -1,12 +1,11 @@
 package ru.citeck.ecos.records;
 
-import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
 import ru.citeck.ecos.records.type.TypeDto;
 import ru.citeck.ecos.records.type.TypesManager;
 import ru.citeck.ecos.records2.RecordRef;
-import ru.citeck.ecos.records2.type.ComputedAttribute;
+import ru.citeck.ecos.records2.type.ComputedAtt;
 import ru.citeck.ecos.records2.type.RecordTypeService;
 
 import java.util.Collections;
@@ -25,29 +24,26 @@ public class RecordsTypeServiceImpl implements RecordTypeService {
         }
     }
 
+
     @NotNull
     @Override
-    public List<ComputedAttribute> getComputedAttributes(RecordRef type) {
+    public List<ComputedAtt> getComputedAtts(@NotNull RecordRef typeRef) {
 
-        if (typeInfoProvider == null || RecordRef.isEmpty(type)) {
+        if (typeInfoProvider == null || RecordRef.isEmpty(typeRef)) {
             return Collections.emptyList();
         }
 
-        TypeDto typeDto = typeInfoProvider.getType(type);
+        TypeDto typeDto = typeInfoProvider.getType(typeRef);
 
         if (typeDto == null) {
             return Collections.emptyList();
         }
-        List<ComputedAttribute> attributes = typeDto.getComputedAttributes();
+        //List<ComputedAttribute> attributes = typeDto.getComputedAttributes();
 
-        if (attributes == null) {
+        /*if (attributes == null) {
             return Collections.emptyList();
         }
-        return attributes;
-    }
-
-    @Data
-    public static class Attributes {
-        private List<ComputedAttribute> computedAttributes;
+        return attributes;*/
+        return Collections.emptyList();
     }
 }

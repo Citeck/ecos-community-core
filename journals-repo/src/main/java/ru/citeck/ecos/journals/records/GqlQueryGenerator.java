@@ -8,7 +8,7 @@ import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import ru.citeck.ecos.journals.JournalType;
 import ru.citeck.ecos.model.AttributeModel;
-import ru.citeck.ecos.records2.RecordsService;
+import ru.citeck.ecos.records3.RecordsService;
 import ru.citeck.ecos.records2.utils.RecordsUtils;
 
 import java.util.*;

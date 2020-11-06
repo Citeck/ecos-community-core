@@ -28,7 +28,7 @@ public class RecordsGroupActionPost extends AbstractWebScript {
     private static final Log logger = LogFactory.getLog(RecordsGroupActionPost.class);
 
     private ObjectMapper objectMapper = new ObjectMapper();
-    private RecordsServiceImpl recordsService;
+    private RecordGroupActionsService recordsService;
     private TransactionService transactionService;
 
     @PostConstruct
@@ -80,7 +80,7 @@ public class RecordsGroupActionPost extends AbstractWebScript {
     }
 
     @Autowired
-    public void setRecordsService(RecordsServiceImpl recordsService) {
+    public void setRecordsService(RecordGroupActionsService recordsService) {
         this.recordsService = recordsService;
     }
 

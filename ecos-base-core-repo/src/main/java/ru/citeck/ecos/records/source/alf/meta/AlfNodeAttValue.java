@@ -24,6 +24,7 @@ import ru.citeck.ecos.records.source.common.MLTextValue;
 import ru.citeck.ecos.records2.QueryContext;
 import ru.citeck.ecos.records2.graphql.meta.value.MetaField;
 import ru.citeck.ecos.records2.graphql.meta.value.MetaValue;
+import ru.citeck.ecos.records3.record.request.RequestContext;
 import ru.citeck.ecos.utils.DictUtils;
 
 import java.io.Serializable;
@@ -133,7 +134,8 @@ public class AlfNodeAttValue implements MetaValue {
         }
         if (rawValue instanceof Number) {
 
-            DecimalFormat format = context.getOrPutData("DecimalFormat", DecimalFormat.class, () -> {
+            DecimalFormat format = RequestContext.getCurrentNotNull()
+                    .getOrPutVar("DecimalFormat", DecimalFormat.class, () -> {
 
                 DecimalFormatSymbols locale = DecimalFormatSymbols.getInstance(Locale.ENGLISH);
                 DecimalFormat fmt = new DecimalFormat("0", locale);
