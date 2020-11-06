@@ -1,13 +1,12 @@
 package ru.citeck.ecos.records.rest;
 
+import ecos.com.fasterxml.jackson210.databind.JsonNode;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.extensions.surf.util.I18NUtil;
 import org.springframework.extensions.webscripts.*;
 import ru.citeck.ecos.commons.utils.ExceptionUtils;
-import ru.citeck.ecos.records2.QueryContext;
-import ru.citeck.ecos.records2.RecordsServiceFactory;
-import ru.citeck.ecos.records2.request.rest.QueryBody;
-import ru.citeck.ecos.records2.request.rest.RestHandler;
+import ru.citeck.ecos.records3.RecordsServiceFactory;
+import ru.citeck.ecos.records3.record.request.RequestContext;
+import ru.citeck.ecos.records3.rest.RestHandlerAdapter;
 
 import java.io.IOException;
 
@@ -17,16 +16,16 @@ import java.io.IOException;
 public class RecordsQueryPost extends AbstractWebScript {
 
     private RecordsRestUtils utils;
-    private RestHandler restHandler;
     private RecordsServiceFactory recordsServiceFactory;
+    private RestHandlerAdapter restHandlerAdapter;
 
     @Override
     public void execute(WebScriptRequest req, WebScriptResponse res) throws IOException {
-        QueryContext.withContext(recordsServiceFactory, () -> {
-            QueryContext.getCurrent().setLocale(I18NUtil.getLocale());
+        RequestContext.doWithCtxJ(recordsServiceFactory, utils::prepareCtxData, ctx -> {
             try {
-                QueryBody request = utils.readBody(req, QueryBody.class);
-                utils.writeResp(res, restHandler.queryRecords(request));
+                JsonNode queryBody = utils.readBody(req, JsonNode.class);
+                Object result = restHandlerAdapter.queryRecords(queryBody);
+                utils.writeResp(res, result);
             } catch (IOException e) {
                 ExceptionUtils.throwException(e);
             }
@@ -37,11 +36,7 @@ public class RecordsQueryPost extends AbstractWebScript {
     @Autowired
     public void setRecordsServiceFactory(RecordsServiceFactory recordsServiceFactory) {
         this.recordsServiceFactory = recordsServiceFactory;
-    }
-
-    @Autowired
-    public void setRestQueryHandler(RestHandler restHandler) {
-        this.restHandler = restHandler;
+        restHandlerAdapter = recordsServiceFactory.getRestHandlerAdapter();
     }
 
     @Autowired

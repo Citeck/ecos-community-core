@@ -6,12 +6,13 @@ import ru.citeck.ecos.action.group.ActionResult;
 import ru.citeck.ecos.action.group.ActionResults;
 import ru.citeck.ecos.action.group.GroupActionConfig;
 import ru.citeck.ecos.records2.IterableRecords;
-import ru.citeck.ecos.records2.RecordMeta;
 import ru.citeck.ecos.records2.RecordRef;
-import ru.citeck.ecos.records2.request.query.RecordsQuery;
 import ru.citeck.ecos.records2.request.rest.QueryBody;
 import ru.citeck.ecos.records2.request.rest.RestHandler;
-import ru.citeck.ecos.records2.request.result.RecordsResult;
+import ru.citeck.ecos.records3.RecordsService;
+import ru.citeck.ecos.records3.record.op.atts.dto.RecordAtts;
+import ru.citeck.ecos.records3.record.op.query.dto.RecsQueryRes;
+import ru.citeck.ecos.records3.record.op.query.dto.query.RecordsQuery;
 import ru.citeck.ecos.utils.AlfrescoScopableProcessorExtension;
 import ru.citeck.ecos.utils.JsUtils;
 
@@ -21,8 +22,10 @@ public class RecordsServiceJS extends AlfrescoScopableProcessorExtension {
 
     private static final String TMP_ATT_NAME = "a";
 
-    @Autowired
-    private RecordsServiceImpl recordsService;
+    private RecordGroupActionsService groupActionsService;
+    private RecordsService recordsServiceV1;
+    private ru.citeck.ecos.records2.RecordsService recordsServiceV0;
+
     @Autowired
     private RestHandler restHandler;
 
@@ -33,14 +36,14 @@ public class RecordsServiceJS extends AlfrescoScopableProcessorExtension {
         List<RecordRef> records = jsUtils.getList(nodes, jsUtils::getRecordRef);
         GroupActionConfig actionConfig = jsUtils.toJava(config, GroupActionConfig.class);
 
-        return toArray(recordsService.executeAction(records, actionConfig));
+        return toArray(groupActionsService.executeAction(records, actionConfig));
     }
 
     public String getAttribute(Object record, String attribute) {
         Map<String, String> attributesMap = new HashMap<>();
         attributesMap.put(TMP_ATT_NAME, attribute);
-        RecordMeta meta = recordsService.getAttributes(jsUtils.getRecordRef(record), attributesMap);
-        return meta.getAttribute(TMP_ATT_NAME, "");
+        RecordAtts meta = recordsServiceV1.getAtts(jsUtils.getRecordRef(record), attributesMap);
+        return meta.getAtt(TMP_ATT_NAME, "");
     }
 
     public Object getAttributes(Object records, Object attributes) {
@@ -61,9 +64,9 @@ public class RecordsServiceJS extends AlfrescoScopableProcessorExtension {
     private Object getRecordAttributes(RecordRef recordRef, Object attributes) {
 
         if (attributes instanceof Collection) {
-            return recordsService.getAttributes(recordRef, (Collection<String>) attributes);
+            return recordsServiceV1.getAtts(recordRef, (Collection<String>) attributes);
         } else if (attributes instanceof Map) {
-            return recordsService.getAttributes(recordRef, (Map<String, String>) attributes);
+            return recordsServiceV1.getAtts(recordRef, (Map<String, String>) attributes);
         }
 
         throwIncorrectAttributesType(attributes);
@@ -73,9 +76,9 @@ public class RecordsServiceJS extends AlfrescoScopableProcessorExtension {
     private Object getRecordsAttributes(Collection<RecordRef> records, Object attributes) {
 
         if (attributes instanceof Collection) {
-            return recordsService.getAttributes(records, (Collection<String>) attributes);
+            return recordsServiceV1.getAtts(records, (Collection<String>) attributes);
         } else if (attributes instanceof Map) {
-            return recordsService.getAttributes(records, (Map<String, String>) attributes);
+            return recordsServiceV1.getAtts(records, (Map<String, String>) attributes);
         }
 
         throwIncorrectAttributesType(attributes);
@@ -91,18 +94,19 @@ public class RecordsServiceJS extends AlfrescoScopableProcessorExtension {
         return restHandler.queryRecords(request);
     }
 
-    public <T> RecordsResult<T> getRecords(Object recordsQuery, Class<T> schemaClass) {
+    public <T> RecsQueryRes<T> getRecords(Object recordsQuery, Class<T> schemaClass) {
         return queryRecords(recordsQuery, schemaClass);
     }
 
-    public <T> RecordsResult<T> queryRecords(Object recordsQuery, Class<T> schemaClass) {
+    public <T> RecsQueryRes<T> queryRecords(Object recordsQuery, Class<T> schemaClass) {
         RecordsQuery convertedQuery = jsUtils.toJava(recordsQuery, RecordsQuery.class);
-        return recordsService.queryRecords(convertedQuery, schemaClass);
+        return recordsServiceV1.query(convertedQuery, schemaClass);
     }
 
     public Iterable<RecordRef> getIterableRecords(Object recordsQuery) {
-        RecordsQuery convertedQuery = jsUtils.toJava(recordsQuery, RecordsQuery.class);
-        return new IterableRecords(recordsService, convertedQuery);
+        ru.citeck.ecos.records2.request.query.RecordsQuery convertedQuery
+            = jsUtils.toJava(recordsQuery, ru.citeck.ecos.records2.request.query.RecordsQuery.class);
+        return new IterableRecords(recordsServiceV0, convertedQuery);
     }
 
     private static <T> ActionResult<T>[] toArray(ActionResults<T> results) {
@@ -122,7 +126,17 @@ public class RecordsServiceJS extends AlfrescoScopableProcessorExtension {
     }
 
     @Autowired
-    public void setRecordsService(RecordsServiceImpl recordsService) {
-        this.recordsService = recordsService;
+    public void setGroupActionsService(RecordGroupActionsService groupActionsService) {
+        this.groupActionsService = groupActionsService;
+    }
+
+    @Autowired
+    public void setRecordsServiceV1(RecordsService recordsServiceV1) {
+        this.recordsServiceV1 = recordsServiceV1;
+    }
+
+    @Autowired
+    public void setRecordsServiceV0(ru.citeck.ecos.records2.RecordsService recordsServiceV0) {
+        this.recordsServiceV0 = recordsServiceV0;
     }
 }

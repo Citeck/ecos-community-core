@@ -10,7 +10,6 @@ import ru.citeck.ecos.commons.data.ObjectData;
 import ru.citeck.ecos.model.lib.type.dto.TypeModelDef;
 import ru.citeck.ecos.records2.RecordRef;
 import ru.citeck.ecos.records2.graphql.meta.annotation.MetaAtt;
-import ru.citeck.ecos.records2.type.ComputedAttribute;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -43,7 +42,6 @@ public class TypeDto {
     private List<RecordRef> actions = new ArrayList<>();
     private List<AssociationDto> associations = new ArrayList<>();
     private List<CreateVariantDto> createVariants = new ArrayList<>();
-    private List<ComputedAttribute> computedAttributes = new ArrayList<>();
 
     private ObjectData attributes = ObjectData.create();
 
@@ -53,10 +51,10 @@ public class TypeDto {
     @MetaAtt("model?json")
     private TypeModelDef model;
 
-    @MetaAtt(".type{id}")
+    @MetaAtt("_type?id")
     private RecordRef ecosType;
 
-    @MetaAtt(".type")
+    @MetaAtt("_type")
     public RecordRef getEcosType() {
         return ecosType;
     }

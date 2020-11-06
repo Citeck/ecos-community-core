@@ -43,11 +43,11 @@ public class TypesSyncConfiguration {
 
             @Override
             public TypeDto getType(RecordRef typeRef) {
-                return typesDao.getRecord(typeRef).orElse(null);
+                return typesDao.getRecord(typeRef.getId()).orElse(null);
             }
             @Override
             public NumTemplateDto getNumTemplate(RecordRef templateRef) {
-                return numTemplatesDao.getRecord(templateRef).orElse(null);
+                return numTemplatesDao.getRecord(templateRef.getId()).orElse(null);
             }
 
             @Override

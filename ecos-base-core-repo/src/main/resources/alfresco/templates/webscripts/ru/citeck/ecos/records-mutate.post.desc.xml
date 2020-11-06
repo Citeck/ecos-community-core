@@ -6,4 +6,5 @@
     <authentication>user</authentication>
     <lifecycle>public_api</lifecycle>
     <formdata multipart-processing="false" />
+    <transaction>none</transaction>
 </webscript>
