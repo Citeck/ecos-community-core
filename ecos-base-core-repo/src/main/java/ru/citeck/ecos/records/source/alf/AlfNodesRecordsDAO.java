@@ -154,6 +154,11 @@ public class AlfNodesRecordsDAO extends LocalRecordsDao
 
         handleContentAttribute(attributes);
         RecordRef ecosTypeRef = handleETypeAttribute(attributes, props);
+        if (RecordRef.isEmpty(ecosTypeRef) && record.getId().getId().startsWith("workspace")) {
+            ecosTypeRef = RecordRef.valueOf(
+                recordsService.getAtt(record.getId(), RecordConstants.ATT_TYPE + "?id").asText());
+        }
+
         TypeDto typeDto = ecosTypeRef != null ? typeInfoProvider.getType(ecosTypeRef) : null;
 
         if (ecosTypeRef != null && alfAutoModelService != null) {
