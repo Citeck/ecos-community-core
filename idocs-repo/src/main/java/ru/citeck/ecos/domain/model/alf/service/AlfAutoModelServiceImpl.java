@@ -15,8 +15,8 @@ import ru.citeck.ecos.domain.model.alf.dao.AlfAutoModelsDao;
 import ru.citeck.ecos.domain.model.alf.dao.TypeModelInfo;
 import ru.citeck.ecos.model.lib.attributes.dto.AttributeDef;
 import ru.citeck.ecos.model.lib.attributes.dto.AttributeType;
-import ru.citeck.ecos.model.lib.type.dto.TypeDef;
 import ru.citeck.ecos.model.lib.type.repo.TypesRepo;
+import ru.citeck.ecos.model.lib.type.service.TypeDefService;
 import ru.citeck.ecos.model.lib.type.service.utils.TypeUtils;
 import ru.citeck.ecos.records2.RecordRef;
 
@@ -32,16 +32,19 @@ public class AlfAutoModelServiceImpl implements AlfAutoModelService {
     private final DictionaryDAO dictionaryDao;
     private final AlfAutoModelsDao alfAutoModelsDao;
     private final NamespaceService namespaceService;
+    private final TypeDefService typeDefService;
 
     @Autowired
     public AlfAutoModelServiceImpl(@Qualifier("dictionaryDAO")
                                    DictionaryDAO dictionaryDao,
                                    TypesRepo typesRepo,
                                    AlfAutoModelsDao alfAutoModelsDao,
-                                   NamespaceService namespaceService) {
+                                   NamespaceService namespaceService,
+                                   TypeDefService typeDefService) {
 
         this.alfAutoModelsDao = alfAutoModelsDao;
         this.namespaceService = namespaceService;
+        this.typeDefService = typeDefService;
         this.dictionaryDao = dictionaryDao;
         this.typesRepo = typesRepo;
     }
@@ -53,12 +56,13 @@ public class AlfAutoModelServiceImpl implements AlfAutoModelService {
             return Collections.emptyMap();
         }
 
-        TypeDef typeDef = typesRepo.getTypeDef(typeRef);
-        if (typeDef == null) {
-            return Collections.emptyMap();
-        }
-        return getPropsMapping(typeDef, typeDef.getModel()
-            .getAttributes()
+        List<AttributeDef> fullAttributes = new ArrayList<>();
+        typeDefService.forEachAsc(typeRef, typeDef -> {
+            fullAttributes.addAll(typeDef.getModel().getAttributes());
+            return false;
+        });
+
+        return getPropsMapping(typeRef, fullAttributes
             .stream()
             .map(AttributeDef::getId)
             .collect(Collectors.toList()), false);
@@ -70,81 +74,87 @@ public class AlfAutoModelServiceImpl implements AlfAutoModelService {
         if (RecordRef.isEmpty(typeRef)) {
             return Collections.emptyMap();
         }
-
-        TypeDef typeDef = typesRepo.getTypeDef(typeRef);
-
-        return getPropsMapping(typeDef, attributes, isWriteMode);
-    }
-
-    private Map<String, String> getPropsMapping(TypeDef typeDef, Collection<String> attributes, boolean isWriteMode) {
-
-        if (typeDef == null || typeDef.getModel().getAttributes().isEmpty()) {
-            return Collections.emptyMap();
-        }
-
         Set<String> attsSet = new HashSet<>(attributes);
-        List<AttributeDef> attributeDefs = typeDef.getModel()
-            .getAttributes()
-            .stream()
-            .filter(att -> StringUtils.isNotBlank(att.getId()) && !att.getId().contains("."))
-            .filter(att -> attsSet.contains(att.getId()))
-            .filter(att -> !isRegisteredAtt(att.getId()))
-            .collect(Collectors.toList());
 
-        if (attributeDefs.isEmpty()) {
+        Map<RecordRef, List<AttributeDef>> attsByType = new HashMap<>();
+        typeDefService.forEachAsc(typeRef, typeDef -> {
+
+            List<AttributeDef> attributeDefs = typeDef.getModel()
+                .getAttributes()
+                .stream()
+                .filter(att -> StringUtils.isNotBlank(att.getId()) && !att.getId().contains("."))
+                .filter(att -> attsSet.contains(att.getId()))
+                .filter(att -> !isRegisteredAtt(att.getId()))
+                .collect(Collectors.toList());
+
+            if (!attributeDefs.isEmpty()) {
+                attsByType.put(TypeUtils.getTypeRef(typeDef.getId()), attributeDefs);
+            }
+            return false;
+        });
+
+        if (attsByType.isEmpty()) {
             return Collections.emptyMap();
         }
 
-        RecordRef typeRef = TypeUtils.getTypeRef(typeDef.getId());
-        QName modelQName = alfAutoModelsDao.getModelQNameByType(typeRef);
-
-        List<AttributeDef> attributesToGenerate = new ArrayList<>();
+        Map<RecordRef, List<AttributeDef>> attributesToGenerate = new HashMap<>();
         Map<String, String> resultMapping = new HashMap<>();
 
-        for (AttributeDef att : attributeDefs) {
-            QName attQName = QName.createQName(modelQName.getNamespaceURI(), att.getId());
-            PropertyDefinition property = dictionaryDao.getProperty(attQName);
-            if (property != null) {
-                if (isWriteMode) {
-                    String propType = property.getDataType().getName().toPrefixString(namespaceService);
-                    if (!getModelPropType(att).equals(propType)) {
-                        attributesToGenerate.add(att);
-                    } else {
-                        resultMapping.put(att.getId(), modelQName.getLocalName() + ":" + att.getId());
+        attsByType.forEach((attsTypeRef, attributeDefs) -> {
+
+            QName modelQName = alfAutoModelsDao.getModelQNameByType(attsTypeRef);
+
+            if (modelQName != null || isWriteMode) {
+
+                for (AttributeDef att : attributeDefs) {
+
+                    PropertyDefinition property = null;
+                    if (modelQName != null) {
+                        QName attQName = QName.createQName(modelQName.getNamespaceURI(), att.getId());
+                        property = dictionaryDao.getProperty(attQName);
                     }
-                } else {
-                    resultMapping.put(att.getId(), modelQName.getLocalName() + ":" + att.getId());
+                    if (property != null) {
+                        if (isWriteMode) {
+                            String propType = property.getDataType().getName().toPrefixString(namespaceService);
+                            if (!getModelPropType(att).equals(propType)) {
+                                attributesToGenerate.computeIfAbsent(attsTypeRef, t -> new ArrayList<>()).add(att);
+                            } else {
+                                resultMapping.put(att.getId(), modelQName.getLocalName() + ":" + att.getId());
+                            }
+                        } else {
+                            resultMapping.put(att.getId(), modelQName.getLocalName() + ":" + att.getId());
+                        }
+                    } else {
+                        attributesToGenerate.computeIfAbsent(attsTypeRef, t -> new ArrayList<>()).add(att);
+                    }
                 }
-            } else {
-                attributesToGenerate.add(att);
             }
-        }
+        });
 
         if (!isWriteMode || attributesToGenerate.isEmpty()) {
             return resultMapping;
         }
 
-        TypeModelInfo modelInfo = alfAutoModelsDao.getModelByTypeRef(typeRef);
-        if (modelInfo == null) {
-            throw new IllegalStateException("Model info is undefined. Type: " + typeDef.getId());
-        }
+        attributesToGenerate.forEach((attsTypeRef, attributeDefs) -> {
 
-        ModelDef modelDef = new ModelDef(modelQName, modelInfo.getModel(), false);
+            TypeModelInfo modelInfo = alfAutoModelsDao.getOrCreateModelByTypeRef(attsTypeRef);
+            ModelDef modelDef = new ModelDef(modelInfo, false);
 
-        M2Aspect aspect = getOrCreateAspect(modelDef, modelQName.getLocalName() + ":" + ASPECT_LOCAL_NAME);
-        for (AttributeDef att : attributesToGenerate) {
-            updateOrCreateProp(aspect, att, modelDef);
-        }
+            M2Aspect aspect = getOrCreateAspect(modelDef, modelInfo.getModelPrefix() + ":" + ASPECT_LOCAL_NAME);
+            for (AttributeDef att : attributeDefs) {
+                updateOrCreateProp(aspect, att, modelDef);
+            }
 
-        dictionaryDao.putModel(modelDef.getModel());
+            dictionaryDao.putModel(modelDef.info.getModel());
 
-        if (modelDef.wasChanged) {
-            alfAutoModelsDao.save(modelInfo.withModel(modelDef.getModel()));
-        }
+            if (modelDef.wasChanged) {
+                alfAutoModelsDao.save(modelInfo.withModel(modelDef.info.getModel()));
+            }
 
-        for (AttributeDef att : attributesToGenerate) {
-            resultMapping.put(att.getId(), modelQName.getLocalName() + ":" + att.getId());
-        }
+            for (AttributeDef att : attributeDefs) {
+                resultMapping.put(att.getId(), modelDef.info.getModelPrefix() + ":" + att.getId());
+            }
+        });
 
         return resultMapping;
     }
@@ -176,7 +186,7 @@ public class AlfAutoModelServiceImpl implements AlfAutoModelService {
 
     private void updateOrCreateProp(M2Aspect aspect, AttributeDef propDef, ModelDef modelDef) {
 
-        String name = modelDef.getModelQName().getLocalName() + ":" + propDef.getId();
+        String name = modelDef.info.getModelPrefix() + ":" + propDef.getId();
 
         M2Property property = aspect.getProperty(name);
 
@@ -221,9 +231,9 @@ public class AlfAutoModelServiceImpl implements AlfAutoModelService {
     }
 
     private M2Aspect getOrCreateAspect(ModelDef modelDef, String name) {
-        M2Aspect aspect = modelDef.getModel().getAspect(name);
+        M2Aspect aspect = modelDef.info.getModel().getAspect(name);
         if (aspect == null) {
-            aspect = modelDef.getModel().createAspect(name);
+            aspect = modelDef.info.getModel().createAspect(name);
             modelDef.wasChanged = true;
         }
         return aspect;
@@ -232,8 +242,7 @@ public class AlfAutoModelServiceImpl implements AlfAutoModelService {
     @Data
     @AllArgsConstructor
     private static class ModelDef {
-        private QName modelQName;
-        private final M2Model model;
+        private TypeModelInfo info;
         private boolean wasChanged;
     }
 }

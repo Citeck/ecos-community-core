@@ -54,7 +54,7 @@ public class AlfAutoModelsDao {
     private final TransactionService transactionService;
     private final JobLockService jobLockService;
 
-    private final LoadingCache<RecordRef, QName> modelQNameByTypeName;
+    private final LoadingCache<RecordRef, Optional<QName>> modelQNameByTypeRefCache;
 
     @Autowired
     public AlfAutoModelsDao(
@@ -72,71 +72,25 @@ public class AlfAutoModelsDao {
         this.jobLockService = jobLockService;
         this.transactionService = transactionService;
 
-        modelQNameByTypeName = CacheBuilder.newBuilder()
+        modelQNameByTypeRefCache = CacheBuilder.newBuilder()
             .maximumSize(100)
-            .expireAfterWrite(30, TimeUnit.MINUTES)
+            .expireAfterWrite(10, TimeUnit.SECONDS)
             .build(CacheLoader.from(this::getModelQNameByTypeImpl));
     }
 
+    @Nullable
     public QName getModelQNameByType(RecordRef typeRef) {
-        return modelQNameByTypeName.getUnchecked(typeRef);
+        return modelQNameByTypeRefCache.getUnchecked(typeRef).orElse(null);
     }
 
-    private QName getModelQNameByTypeImpl(RecordRef typeRef) {
-
-        return AuthenticationUtil.runAsSystem(() -> {
-
-            String typeRefStr = typeRef.toString();
-            NodeRef modelConfigRef = getModelRefByTypeRef(typeRef);
-
-            String modelPrefix;
-            String modelUri;
-
-            if (modelConfigRef == null) {
-
-                Digest digest = DigestUtils.getDigest(typeRefStr.getBytes(StandardCharsets.UTF_8), DigestAlgorithm.MD5);
-                modelPrefix = "p-" + digest.getHash().substring(0, 4).toLowerCase() + "-" + getModelsCounterValue();
-
-                NodeRef parentRef = nodeUtils.getNodeRef(MODELS_ROOT);
-                Map<QName, Serializable> props = new HashMap<>();
-
-                String validNodeName = NameUtils.escape(typeRefStr);
-                props.put(ContentModel.PROP_NAME, validNodeName + ".xml");
-                props.put(EcosAutoModel.PROP_ECOS_TYPE_REF, typeRefStr);
-                props.put(EcosAutoModel.PROP_MODEL_PREFIX, modelPrefix);
-
-                QName assocName = QName.createQNameWithValidLocalName(
-                    NamespaceService.CONTENT_MODEL_1_0_URI, validNodeName);
-
-                NodeRef nodeRef = nodeService.createNode(
-                    parentRef,
-                    ContentModel.ASSOC_CONTAINS,
-                    assocName,
-                    EcosAutoModel.TYPE_MODEL_DEF,
-                    props
-                ).getChildRef();
-
-                modelUri = String.format(MODEL_URI, modelPrefix);
-                M2Model model = M2Model.createModel(modelPrefix + ":model");
-                model.createNamespace(modelUri, modelPrefix);
-                model.createImport(NamespaceService.DICTIONARY_MODEL_1_0_URI, "d");
-                saveModelInfo(nodeRef, model);
-
-                AlfrescoTransactionSupport.bindListener(new TransactionListenerAdapter() {
-                    @Override
-                    public void afterRollback() {
-                        modelQNameByTypeName.invalidate(typeRef);
-                    }
-                });
-
-            } else {
-
-                modelPrefix = nodeUtils.getProperty(modelConfigRef, EcosAutoModel.PROP_MODEL_PREFIX);
-                modelUri = String.format(MODEL_URI, modelPrefix);
-            }
-
-            return QName.createQName(modelUri, modelPrefix);
-        });
+    private Optional<QName> getModelQNameByTypeImpl(RecordRef typeRef) {
+        NodeRef nodeRef = getModelRefByTypeRef(typeRef);
+        if (nodeRef == null) {
+            return Optional.empty();
+        }
+        String modelPrefix = nodeUtils.getProperty(nodeRef, EcosAutoModel.PROP_MODEL_PREFIX);
+        String modelUri = String.format(MODEL_URI, modelPrefix);
+        return Optional.of(QName.createQName(modelUri, modelPrefix));
     }
 
     private synchronized long getModelsCounterValue() {
@@ -181,9 +135,13 @@ public class AlfAutoModelsDao {
 
     private Optional<TypeModelInfo> readModel(NodeRef nodeRef) {
 
+        if (nodeRef == null) {
+            return Optional.empty();
+        }
+
         return AuthenticationUtil.runAsSystem(() -> {
 
-            if (nodeRef == null || !nodeService.exists(nodeRef)) {
+            if (!nodeService.exists(nodeRef)) {
                 return Optional.empty();
             }
 
@@ -209,17 +167,61 @@ public class AlfAutoModelsDao {
         });
     }
 
-    @Nullable
-    public TypeModelInfo getModelByTypeRef(@NotNull RecordRef typeRef) {
+    @NotNull
+    public TypeModelInfo getOrCreateModelByTypeRef(@NotNull RecordRef typeRef) {
+
         NodeRef modelRef = getModelRefByTypeRef(typeRef);
+
         if (modelRef == null) {
-            return null;
+
+            String typeRefStr = typeRef.toString();
+            Digest digest = DigestUtils.getDigest(typeRefStr.getBytes(StandardCharsets.UTF_8), DigestAlgorithm.MD5);
+            String modelPrefix = "p-" + digest.getHash().substring(0, 4).toLowerCase() + "-" + getModelsCounterValue();
+
+            NodeRef parentRef = nodeUtils.getNodeRef(MODELS_ROOT);
+            Map<QName, Serializable> props = new HashMap<>();
+
+            String validNodeName = NameUtils.escape(typeRefStr);
+            props.put(ContentModel.PROP_NAME, validNodeName + ".xml");
+            props.put(EcosAutoModel.PROP_ECOS_TYPE_REF, typeRefStr);
+            props.put(EcosAutoModel.PROP_MODEL_PREFIX, modelPrefix);
+
+            QName assocName = QName.createQNameWithValidLocalName(
+                NamespaceService.CONTENT_MODEL_1_0_URI, validNodeName);
+
+            modelRef = nodeService.createNode(
+                parentRef,
+                ContentModel.ASSOC_CONTAINS,
+                assocName,
+                EcosAutoModel.TYPE_MODEL_DEF,
+                props
+            ).getChildRef();
+
+            String modelUri = String.format(MODEL_URI, modelPrefix);
+            M2Model model = M2Model.createModel(modelPrefix + ":model");
+            model.createNamespace(modelUri, modelPrefix);
+            model.createImport(NamespaceService.DICTIONARY_MODEL_1_0_URI, "d");
+            saveModelInfo(modelRef, model);
+
+            AlfrescoTransactionSupport.bindListener(new TransactionListenerAdapter() {
+                @Override
+                public void afterCommit() {
+                    modelQNameByTypeRefCache.invalidate(typeRef);
+                }
+            });
+
+            modelQNameByTypeRefCache.invalidate(typeRef);
         }
-        return readModel(modelRef).orElse(null);
+
+        NodeRef finalModelRef = modelRef;
+
+        return readModel(modelRef)
+            .orElseThrow(() -> new IllegalStateException(
+                "Model read failed for type " + typeRef + " ModelRef: " + finalModelRef));
     }
 
     @Nullable
-    private NodeRef getModelRefByTypeRef(@NotNull RecordRef typeRef) {
+    private NodeRef getModelRefByTypeRef(RecordRef typeRef) {
         return AuthenticationUtil.runAsSystem(() -> FTSQuery.create()
             .type(EcosAutoModel.TYPE_MODEL_DEF).and()
             .exact(EcosAutoModel.PROP_ECOS_TYPE_REF, typeRef.toString())
@@ -242,9 +244,5 @@ public class AlfAutoModelsDao {
         } catch (Exception e) {
             ExceptionUtils.throwException(e);
         }
-    }
-
-    public void resetCache() {
-        modelQNameByTypeName.invalidateAll();
     }
 }
