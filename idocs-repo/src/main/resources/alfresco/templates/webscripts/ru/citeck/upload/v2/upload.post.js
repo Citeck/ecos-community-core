@@ -237,7 +237,7 @@ function main() {
             // Update the working copy content
             updateNode.properties.content.write(content, false, true);
             updateNode.properties.content.guessMimetype(filename);
-            updateNode.name = formdata.fields[1].value;
+            //updateNode.name = formdata.fields[1].value;
             // check it in again, with supplied version history note
 
             // Extract the metadata
