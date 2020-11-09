@@ -426,7 +426,7 @@ public class ValuePredicateToFtsConverter implements PredicateToFtsConverter {
             predicateValue = toValidNodeRef(predicateValue);
         }
 
-        predicateValue = evalPredicateValue(predicateValue);
+        predicateValue = evalPredicateValue(predicateValue, attDef);
         String predValue = getPredicateValue(objectPredicateValue, predicateValue, attDef);
         switch (valuePredType) {
             case EQ: {
@@ -564,9 +564,16 @@ public class ValuePredicateToFtsConverter implements PredicateToFtsConverter {
         return newDate;
     }
 
-    private String evalPredicateValue(String predicateValue) {
-        predicateValue = evalConstants(predicateValue);
-        predicateValue = evalDuration(predicateValue);
+    private String evalPredicateValue(String predicateValue, ClassAttributeDefinition attDef) {
+
+        DataTypeDefinition dataTypeDefinition = ((PropertyDefinition) attDef).getDataType();
+        boolean isDateTime = DataTypeDefinition.DATETIME.equals(dataTypeDefinition.getName());
+        boolean isDate = DataTypeDefinition.DATE.equals(dataTypeDefinition.getName());
+
+        if (isDateTime || isDate) {
+            predicateValue = evalConstants(predicateValue);
+            predicateValue = evalDuration(predicateValue);
+        }
 
         return predicateValue;
     }

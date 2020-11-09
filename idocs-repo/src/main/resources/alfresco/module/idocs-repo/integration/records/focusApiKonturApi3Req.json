@@ -1,0 +1,9 @@
+{
+  "id": "focusApiKonturApi3Req",
+  "name": "Запрос на получение контрагента из Контура",
+  "querySource": "datasource@focus-api-kontur-ru-api3-req",
+  "queryParams": {
+    "inn": "{inn:}",
+    "key": "Ключ необходимо проставить через патч"
+  }
+}
