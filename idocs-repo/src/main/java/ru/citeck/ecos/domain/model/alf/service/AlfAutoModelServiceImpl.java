@@ -226,6 +226,10 @@ public class AlfAutoModelServiceImpl implements AlfAutoModelService {
                 return "d:boolean";
             case NUMBER:
                 return "d:double";
+            case DATE:
+                return "d:date";
+            case DATETIME:
+                return "d:datetime";
         }
         return "d:text";
     }
