@@ -458,6 +458,14 @@ public class AlfNodesRecordsDAO extends LocalRecordsDao
             dispName = Collections.emptyMap();
         }
 
+        Map<Locale, String> notBlankDispNames = new HashMap<>();
+        dispName.forEach((k, v) -> {
+            if (StringUtils.isNotBlank(v)) {
+                notBlankDispNames.put(k, v);
+            }
+        });
+        dispName = notBlankDispNames;
+
         if (!dispName.isEmpty()) {
 
             DataValue resolvedTemplate = recordsTemplateService.resolve(DataValue.create(dispName), recordRef);
