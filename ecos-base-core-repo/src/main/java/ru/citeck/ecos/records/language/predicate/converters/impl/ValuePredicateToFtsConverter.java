@@ -14,6 +14,7 @@ import org.alfresco.util.Pair;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import ru.citeck.ecos.commons.data.DataValue;
 import ru.citeck.ecos.config.EcosConfigService;
 import ru.citeck.ecos.model.EcosTypeModel;
 import ru.citeck.ecos.node.EcosTypeService;
@@ -63,8 +64,8 @@ public class ValuePredicateToFtsConverter implements PredicateToFtsConverter {
         ValuePredicate valuePredicate = (ValuePredicate) predicate;
         String attribute = valuePredicate.getAttribute();
 
-        Object objectPredicateValue = valuePredicate.getValue();
-        String predicateValue = objectPredicateValue.toString();
+        DataValue objectPredicateValue = valuePredicate.getValue();
+        String predicateValue = objectPredicateValue.asText();
 
         switch (attribute) {
             case ALL: {
@@ -404,8 +405,8 @@ public class ValuePredicateToFtsConverter implements PredicateToFtsConverter {
         String attribute = valuePredicate.getAttribute();
         attribute = context.getAttsMapping().getOrDefault(attribute, attribute);
 
-        Object objectPredicateValue = valuePredicate.getValue();
-        String predicateValue = objectPredicateValue.toString().replaceAll("\"", "\\\\\"");
+        DataValue objectPredicateValue = valuePredicate.getValue();
+        String predicateValue = objectPredicateValue.asText().replaceAll("\"", "\\\\\"");
 
         ClassAttributeDefinition attDef = dictUtils.getAttDefinition(attribute);
         QName field = getQueryField(attDef);

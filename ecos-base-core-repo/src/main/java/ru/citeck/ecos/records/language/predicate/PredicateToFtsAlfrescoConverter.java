@@ -64,7 +64,7 @@ public class PredicateToFtsAlfrescoConverter implements QueryLangConverter<Predi
 
         PredicateUtils.mapValuePredicates(predicate, valuePred -> {
             if (RecordConstants.ATT_TYPE.equals(valuePred.getAttribute())) {
-                typesInPredicates.add("" + valuePred.getValue());
+                typesInPredicates.add(valuePred.getValue().asText());
             }
             return valuePred;
         }, true);

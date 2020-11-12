@@ -65,7 +65,8 @@ public class ExactCriteriaRecordsDao extends FilteredRecordsDao implements Servi
 
             Predicate predicate = query.getQuery(Predicate.class);
             Optional<Predicate> predicateOpt = PredicateUtils.filterValuePredicates(predicate, p ->
-                    filteredFields.contains(p.getValue().toString()) && (p.getAttribute().equals("ISUNSET") || p.getAttribute().equals("ISNULL"))
+                    filteredFields.contains(p.getValue().asText())
+                        && (p.getAttribute().equals("ISUNSET") || p.getAttribute().equals("ISNULL"))
             );
 
             if (predicateOpt.isPresent()) {
