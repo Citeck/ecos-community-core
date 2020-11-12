@@ -22,16 +22,43 @@
   "definition": {
     "components": [
       {
-        "label": "personGroups",
-        "hideLabel": true,
-        "disabled": true,
-        "defaultValue": "",
-        "customDefaultValue": "value = instance.t('loading');",
-        "calculateValue": "const { groupData } = data || {};\nconst { groups } = groupData || {};\n\nif (_.isArray(groups) && groups.length){\n  value = groups.join(';\\n') + '.';\n}",
-        "key": "personGroups",
-        "rows": 16,
-        "type": "textarea",
-        "input": true
+        "labelPosition": "bottom",
+        "scrollableContent": true,
+        "disableInlineEdit": true,
+        "customClass": "p-0 m-0",
+        "key": "panel2",
+        "type": "panel",
+        "input": false,
+        "components": [
+          {
+            "hideLabel": true,
+            "noColHeaders": true,
+            "disableInlineEdit": true,
+            "customClass": "p-0",
+            "persistent": false,
+            "disabled": true,
+            "source": {
+              "type": "custom",
+              "custom": {
+                "columns": [
+                  {
+                    "name": "id",
+                    "formatter": "value = {\r\n\tname: 'AssocFormatter'\r\n};",
+                    "setAttributesManually": false
+                  }
+                ],
+                "record": null,
+                "attribute": null
+              }
+            },
+            "refreshOn": "groupData",
+            "calculateValue": "value = _.get(data, 'groupData.groups') || [];",
+            "key": "tableForm2",
+            "displayElementsJS": "value = {view: false, edit: false, delete: false, clone: false, preview: false}",
+            "type": "tableForm",
+            "input": true
+          }
+        ]
       },
       {
         "label": "groupData",
@@ -40,7 +67,7 @@
           "record": {
             "id": "{{recordId}}",
             "attributes": {
-              "groups": "assoc_src_cm:member[]?disp"
+              "groups": "assoc_src_cm:member[]?id"
             }
           },
           "forceLoad": false
