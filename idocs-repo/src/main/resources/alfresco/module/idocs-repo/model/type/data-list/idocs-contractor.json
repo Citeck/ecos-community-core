@@ -1,0 +1,37 @@
+{
+  "id": "idocs-contractor",
+  "name": {
+    "ru": "Контрагент",
+    "en": "Contractor"
+  },
+  "description": {
+    "en": ""
+  },
+  "parentRef": "emodel/type@base",
+  "formRef": "",
+  "journalRef": "",
+  "system": false,
+  "inheritActions": false,
+  "inheritForm": true,
+  "dispNameTemplate": {
+    "ru": "",
+    "en": ""
+  },
+  "numTemplateRef": "",
+  "inheritNumTemplate": false,
+  "createVariants": [
+    {
+      "id": "",
+      "name": {
+        "ru": "",
+        "en": ""
+      },
+      "formRef": "",
+      "recordRef": "",
+      "attributes": {}
+    }
+  ],
+  "attributes": {},
+  "configFormRef": "",
+  "config": {}
+}

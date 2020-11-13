@@ -66,6 +66,7 @@
             <header key="idocs:fax" />
             <header key="idocs:email" />
             <header key="idocs:CEOname" default="true" />
+            <header key="icase:caseStatusAssoc" default="true" />
         </headers>
     </journal>
     <journal id="files-nomenclature">

@@ -1,0 +1,92 @@
+{
+  "id": "02347243-639c-4da4-b261-8b47cbca2363",
+  "formKey": "alf_idocs:contractor",
+  "title": {
+    "ru": "Статус",
+    "en": "Status"
+  },
+  "description": {
+    "en": "Форма для отображения статуса контрагнета"
+  },
+  "customModule": null,
+  "typeRef": "emodel/type@idocs-contractor",
+  "width": "default",
+  "i18n": {
+    "ru": {
+      "green": "Зеленый",
+      "yellow": "Желтый",
+      "red": "Красный",
+      "State is empty": "Статус пуст",
+      "link-to-korus": "Ссылка на Контур.Фокус"
+    },
+    "en": {
+      "green": "Green",
+      "yellow": "Yellow",
+      "red": "Red",
+      "State is empty": "Status is empty",
+      "link-to-korus": "Link to Kontur.Focus"
+    }
+  },
+  "definition": {
+    "components": [
+      {
+        "className": "",
+        "content": "<br>\r\n<div class=\"alert alert-{{data.customDataForm.state.class}}\" role=\"alert\">\r\n  {{data.customDataForm.state.text}}\r\n</div>",
+        "refreshOnChange": true,
+        "key": "html",
+        "type": "htmlelement",
+        "input": false
+      },
+      {
+        "className": "",
+        "content": "<a target=\"_blank\" href=\"{{data.customDataForm.href}}\">{{data.customDataForm.hrefText}}</a>",
+        "refreshOnChange": true,
+        "key": "html2",
+        "type": "htmlelement",
+        "input": false
+      },
+      {
+        "label": "Async Data - customDataForm",
+        "source": {
+          "type": "custom",
+          "custom": {
+            "syncData": "const { \r\n  icase_caseStatusAssoc_name: state, \r\n  idocs_konturLink: link\r\n} = data || {};\r\n\r\nlet customState = {text: instance.t('State is empty'), class: 'dark'};\r\nif (_.isString(state)) {\r\n  switch (state) {\r\n    case 'idocs-contractor-green':\r\n      customState = {text: instance.t('green'), class: 'success'};\r\n      break;\r\n    case 'idocs-contractor-yellow':\r\n      customState = {text: instance.t('yellow'), class: 'warning'};\r\n      break;\r\n    case 'idocs-contractor-red':\r\n      customState = {text: instance.t('red'), class: 'danger'};\r\n      break;\r\n  }\r\n}\r\n\r\nvalue = {\r\n  state: customState,\r\n  href: !!link ? link : '',\r\n  hrefText: !!link ? instance.t('link-to-korus') : ''\r\n}",
+            "asyncData": "value = data;"
+          },
+          "forceLoad": false
+        },
+        "update": {
+          "type": "any-change"
+        },
+        "key": "customDataForm",
+        "type": "asyncData",
+        "input": true
+      },
+      {
+        "label": "idocs:konturLink",
+        "clearOnHide": false,
+        "hidden": true,
+        "refreshOn": "data",
+        "key": "idocs_konturLink",
+        "properties": {
+          "attribute": "idocs:konturLink"
+        },
+        "type": "hidden",
+        "input": true
+      },
+      {
+        "label": "icase_caseStatusAssoc_name",
+        "clearOnHide": false,
+        "hidden": true,
+        "defaultValue": [],
+        "key": "icase_caseStatusAssoc_name",
+        "properties": {
+          "attribute": "icase:caseStatusAssoc.cm:name"
+        },
+        "type": "hidden",
+        "input": true
+      }
+    ]
+  },
+  "attributes": {}
+}

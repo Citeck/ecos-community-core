@@ -8,7 +8,7 @@
     "en": ""
   },
   "customModule": null,
-  "typeRef": "",
+  "typeRef": "emodel/type@idocs-contractor",
   "width": "default",
   "i18n": {
     "ru": {
@@ -878,6 +878,13 @@
                               "show": null,
                               "when": null
                             }
+                          },
+                          {
+                            "index": 3,
+                            "type": "column",
+                            "input": false,
+                            "key": "column",
+                            "components": []
                           }
                         ],
                         "key": "columns15",
@@ -1512,9 +1519,42 @@
         "input": false
       },
       {
-        "hideLabel": true,
         "columns": [
           {
+            "components": [
+              {
+                "label": "Cancel",
+                "removeIndents": true,
+                "action": "event",
+                "state": "",
+                "showValidations": false,
+                "event": "cancel",
+                "block": true,
+                "clearOnHide": false,
+                "key": "Cancel2",
+                "type": "button",
+                "input": true
+              }
+            ],
+            "md": 3,
+            "type": "column",
+            "input": false,
+            "key": "column",
+            "label": "Column",
+            "index": 0,
+            "clearOnHide": true,
+            "conditional": {
+              "show": null,
+              "when": null
+            }
+          },
+          {
+            "md": 3,
+            "type": "column",
+            "input": false,
+            "key": "column",
+            "label": "Column",
+            "index": 1,
             "components": [
               {
                 "source": {
@@ -1540,102 +1580,6 @@
                 }
               }
             ],
-            "width": 3,
-            "type": "column",
-            "input": false,
-            "key": "column1",
-            "md": 3,
-            "index": 0,
-            "clearOnHide": true,
-            "conditional": {
-              "show": null,
-              "when": null
-            }
-          },
-          {
-            "components": [],
-            "width": 3,
-            "type": "column",
-            "input": false,
-            "key": "column2",
-            "index": 1,
-            "md": 3,
-            "clearOnHide": true,
-            "conditional": {
-              "show": null,
-              "when": null
-            }
-          },
-          {
-            "width": 3,
-            "type": "column",
-            "input": false,
-            "key": "column3",
-            "components": [],
-            "index": 2,
-            "md": 3,
-            "clearOnHide": true,
-            "conditional": {
-              "show": null,
-              "when": null
-            }
-          },
-          {
-            "width": 3,
-            "type": "column",
-            "input": false,
-            "key": "column4",
-            "components": [],
-            "index": 3,
-            "md": 3,
-            "clearOnHide": true,
-            "conditional": {
-              "show": null,
-              "when": null
-            }
-          }
-        ],
-        "autoAdjust": true,
-        "key": "columns",
-        "type": "columns",
-        "input": false
-      },
-      {
-        "columns": [
-          {
-            "components": [],
-            "md": 3,
-            "type": "column",
-            "input": false,
-            "key": "column",
-            "label": "Column",
-            "index": 0,
-            "clearOnHide": true,
-            "conditional": {
-              "show": null,
-              "when": null
-            }
-          },
-          {
-            "md": 3,
-            "type": "column",
-            "input": false,
-            "key": "column",
-            "label": "Column",
-            "index": 1,
-            "components": [
-              {
-                "label": "Cancel",
-                "action": "event",
-                "state": "",
-                "showValidations": false,
-                "event": "cancel",
-                "block": true,
-                "key": "Cancel",
-                "type": "button",
-                "input": true
-              }
-            ],
             "clearOnHide": true,
             "conditional": {
               "show": null,
@@ -1649,18 +1593,7 @@
             "key": "column",
             "label": "Column",
             "index": 2,
-            "components": [
-              {
-                "label": "Create",
-                "state": "",
-                "theme": "primary",
-                "block": true,
-                "disableOnInvalid": true,
-                "key": "Create",
-                "type": "button",
-                "input": true
-              }
-            ],
+            "components": [],
             "clearOnHide": true,
             "conditional": {
               "show": null,
@@ -1674,94 +1607,41 @@
             "key": "column",
             "label": "Column",
             "index": 3,
-            "components": [],
-            "clearOnHide": true,
-            "conditional": {
-              "show": null,
-              "when": null
-            }
-          }
-        ],
-        "key": "columns9",
-        "customConditional": "var isDraftStatus = false;\r\nif (data.caseStatus) {\r\n  isDraftStatus = data.caseStatus.status === \"draft\";\r\n}\r\nvar isCreateMode = instance.options.formMode === 'CREATE';\r\nshow = isDraftStatus || isCreateMode;\r\n",
-        "type": "columns",
-        "input": false
-      },
-      {
-        "columns": [
-          {
-            "components": [],
-            "md": 3,
-            "type": "column",
-            "input": false,
-            "key": "column",
-            "label": "Column",
-            "index": 0,
-            "clearOnHide": true,
-            "conditional": {
-              "show": null,
-              "when": null
-            }
-          },
-          {
-            "md": 3,
-            "type": "column",
-            "input": false,
-            "key": "column",
-            "label": "Column",
-            "index": 1,
-            "components": [
-              {
-                "label": "Cancel",
-                "action": "event",
-                "state": "",
-                "showValidations": false,
-                "event": "cancel",
-                "block": true,
-                "key": "Cancel2",
-                "type": "button",
-                "input": true
-              }
-            ],
-            "clearOnHide": true,
-            "conditional": {
-              "show": null,
-              "when": null
-            }
-          },
-          {
-            "md": 3,
-            "type": "column",
-            "input": false,
-            "key": "column",
-            "label": "Column",
-            "index": 2,
             "components": [
               {
                 "label": "Save",
+                "removeIndents": true,
                 "state": "",
                 "theme": "primary",
                 "block": true,
                 "disableOnInvalid": true,
+                "clearOnHide": false,
                 "key": "Create2",
+                "logic": [
+                  {
+                    "name": "Label Create",
+                    "trigger": {
+                      "type": "javascript",
+                      "javascript": "const { options } = instance || {};\r\nconst { formMode } = options || {};\r\nconst { caseStatus } = data || {};\r\nconst { 'status': statusStr } = data || {};\r\n\r\nconst isDraftStatus = statusStr === \"draft\";\r\nconst isCreateMode = formMode === 'CREATE';\r\n \r\nresult = isDraftStatus || isCreateMode;"
+                    },
+                    "actions": [
+                      {
+                        "name": "Label Create",
+                        "type": "property",
+                        "property": {
+                          "label": "Label",
+                          "value": "label",
+                          "type": "string"
+                        },
+                        "text": "Create"
+                      }
+                    ]
+                  }
+                ],
                 "type": "button",
                 "input": true
               }
             ],
-            "clearOnHide": true,
-            "conditional": {
-              "show": null,
-              "when": null
-            }
-          },
-          {
-            "md": 3,
-            "type": "column",
-            "input": false,
-            "key": "column",
-            "label": "Column",
-            "index": 3,
-            "components": [],
             "clearOnHide": true,
             "conditional": {
               "show": null,
@@ -1770,7 +1650,7 @@
           }
         ],
         "key": "columns10",
-        "customConditional": "var isDraftStatus = false;\r\nif (data.caseStatus) {\r\n  isDraftStatus = data.caseStatus.status === \"draft\";\r\n}\r\nvar isCreateMode = instance.options.formMode === 'CREATE';\r\nshow = !isDraftStatus && !isCreateMode;",
+        "customConditional": "",
         "type": "columns",
         "input": false
       }
