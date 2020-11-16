@@ -24,8 +24,8 @@ public class TypesSyncConfiguration {
     }
 
     @Bean(name = "remoteTypePermsSyncRecordsDao")
-    public RemoteSyncRecordsDao<TypePermsDef.Mutable> createRemoteTypePermsSyncRecordsDao() {
-        return new RemoteSyncRecordsDao<>("emodel/perms", TypePermsDef.Mutable.class);
+    public RemoteSyncRecordsDao<TypePermsDef> createRemoteTypePermsSyncRecordsDao() {
+        return new RemoteSyncRecordsDao<>("emodel/perms", TypePermsDef.class);
     }
 
     @Bean(name = "remoteNumTemplatesSyncRecordsDao")

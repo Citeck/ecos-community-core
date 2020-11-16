@@ -25,7 +25,7 @@ import java.util.List;
 @Configuration
 public class ModelServiceFactoryConfig extends ModelServiceFactory {
 
-    private RemoteSyncRecordsDao<TypePermsDef.Mutable> typePermsRecords;
+    private RemoteSyncRecordsDao<TypePermsDef> typePermsRecords;
     private EcosTypeService typeService;
     private RemoteSyncRecordsDao<TypeDto> typeRecords;
 
@@ -38,7 +38,6 @@ public class ModelServiceFactoryConfig extends ModelServiceFactory {
             .stream()
             .filter(it -> recordRef.equals(it.getTypeRef()))
             .findFirst()
-            .map(TypePermsDef.Mutable::toDef)
             .orElse(null);
     }
 
@@ -99,7 +98,7 @@ public class ModelServiceFactoryConfig extends ModelServiceFactory {
 
     @Autowired
     @Qualifier("remoteTypePermsSyncRecordsDao")
-    public void setTypePermsRecords(RemoteSyncRecordsDao<TypePermsDef.Mutable> typePermsRecords) {
+    public void setTypePermsRecords(RemoteSyncRecordsDao<TypePermsDef> typePermsRecords) {
         this.typePermsRecords = typePermsRecords;
     }
 
