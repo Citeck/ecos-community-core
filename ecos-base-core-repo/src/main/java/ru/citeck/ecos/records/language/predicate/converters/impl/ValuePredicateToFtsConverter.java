@@ -567,6 +567,10 @@ public class ValuePredicateToFtsConverter implements PredicateToFtsConverter {
 
     private String evalPredicateValue(String predicateValue, ClassAttributeDefinition attDef) {
 
+        if (!(attDef instanceof PropertyDefinition)) {
+            return predicateValue;
+        }
+
         DataTypeDefinition dataTypeDefinition = ((PropertyDefinition) attDef).getDataType();
         boolean isDateTime = DataTypeDefinition.DATETIME.equals(dataTypeDefinition.getName());
         boolean isDate = DataTypeDefinition.DATE.equals(dataTypeDefinition.getName());
