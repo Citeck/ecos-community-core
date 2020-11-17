@@ -2,12 +2,12 @@
 <!DOCTYPE beans PUBLIC "-//SPRING//DTD BEAN 2.0//EN" "http://www.springframework.org/dtd/spring-beans-2.0.dtd">
 <beans>
 
-	<!-- 
+	<!--
 	  - Invariant Service
 	 -->
 
 	<bean id="invariantsParser" class="ru.citeck.ecos.invariants.InvariantsParser" />
-	
+
 	<bean id="invariantsFilter" class="ru.citeck.ecos.invariants.InvariantsFilter">
 		<property name="dictionaryService" ref="dictionaryService" />
 		<property name="nodeAttributeService" ref="nodeAttributeService" />
@@ -15,16 +15,16 @@
 		<property name="prefixResolver" ref="ecosNsPrefixResolver"/>
 		<property name="attributesPermissionService" value="#{getObject('attributesPermissionService')}"/>
 	</bean>
-	
+
 	<bean id="invariantsRuntime" class="ru.citeck.ecos.invariants.InvariantsRuntime">
 		<property name="nodeAttributeService" ref="nodeAttributeService" />
 		<property name="attributeTypesRegistry" ref="invariantAttributeTypesRegistry" />
 		<property name="languagesRegistry" ref="invariantLanguagesRegistry" />
 	</bean>
-	
+
 	<bean id="invariantLanguagesRegistry" class="java.util.HashMap" />
 	<bean id="invariantAttributeTypesRegistry" class="java.util.HashMap" />
-	
+
 	<bean id="invariantService" class="ru.citeck.ecos.invariants.InvariantServiceImpl">
 		<property name="nodeService" ref="nodeService" />
 		<property name="dictionaryService" ref="dictionaryService" />
@@ -34,16 +34,16 @@
 		<property name="attributeTypesRegistry" ref="invariantAttributeTypesRegistry" />
 		<property name="languagesRegistry" ref="invariantLanguagesRegistry" />
 	</bean>
-	
+
 	<bean id="invariantsDeployer" class="ru.citeck.ecos.invariants.InvariantsDeployer" abstract="true">
 		<property name="invariantService" ref="invariantService" />
 		<!-- should be set in descendant beans -->
-		<!-- 
+		<!--
 			<property name="location" value="alfresco/module/.../invariants/invariants.xml" />
 			<property name="priority" value="MODULE" />
 		-->
 	</bean>
-	
+
 	<!-- invariant attribute types support-->
 	<bean id="invariants.attribute-type.abstract" class="ru.citeck.ecos.invariants.AbstractInvariantAttributeType" abstract="true" init-method="init">
 		<property name="registry" ref="invariantAttributeTypesRegistry" />
@@ -52,18 +52,18 @@
 		<property name="messageLookup" ref="messageService" />
 		<property name="nodeAttributeService" ref="nodeAttributeService" />
 	</bean>
-	
+
 	<bean parent="invariants.attribute-type.abstract" class="ru.citeck.ecos.invariants.attr.VirtualAttributeType" />
 	<bean parent="invariants.attribute-type.abstract" class="ru.citeck.ecos.invariants.attr.PropertiesAttributeType" />
 	<bean parent="invariants.attribute-type.abstract" class="ru.citeck.ecos.invariants.attr.TargetAssocsAttributeType" />
 	<bean parent="invariants.attribute-type.abstract" class="ru.citeck.ecos.invariants.attr.ChildAssocsAttributeType" />
-	
+
 	<!-- invariant languages support -->
 	<bean id="invariants.language.abstract" class="ru.citeck.ecos.invariants.AbstractInvariantLanguage" abstract="true" init-method="init">
 		<property name="registry" ref="invariantLanguagesRegistry" />
 		<property name="serviceRegistry" ref="ServiceRegistry" />
 	</bean>
-	
+
 	<bean parent="invariants.language.abstract" class="ru.citeck.ecos.invariants.lang.JavaScriptLanguage">
 		<property name="scriptService" ref="scriptService" />
 	</bean>
@@ -76,7 +76,7 @@
 		<property name="templateService" ref="templateService" />
 	</bean>
 	<bean parent="invariants.language.abstract" class="ru.citeck.ecos.invariants.lang.ExplicitLanguage" />
-	
+
 	<!-- common invariants -->
 	<bean id="invariants.autoDeployer.common" parent="invariantsDeployer">
 		<property name="locations">
@@ -91,7 +91,7 @@
 		</property>
 		<property name="priority" value="COMMON" />
 	</bean>
-	
+
 	<!-- module invariants -->
 	<bean id="invariants.autoDeployer.module" parent="invariantsDeployer">
 		<property name="locations">
@@ -105,7 +105,7 @@
 		</property>
 		<property name="priority" value="MODULE" />
 	</bean>
-	
+
 	<!-- extension invariants -->
 	<bean id="invariants.autoDeployer.extend" parent="invariantsDeployer">
 		<property name="locations">
@@ -119,23 +119,23 @@
 		</property>
 		<property name="priority" value="EXTEND" />
 	</bean>
-	
+
 	<bean id="webscript.ru.citeck.invariants.invariants.get" parent="webscript" class="ru.citeck.ecos.webscripts.invariants.InvariantsGet">
 		<property name="invariantService" ref="invariantService" />
 		<property name="prefixResolver" ref="ecosNsPrefixResolver" />
 		<property name="serviceRegistry" ref="ServiceRegistry" />
 	</bean>
-	
-	<!-- 
+
+	<!--
 	  - Invariants View Service
 	 -->
 
 	<bean id="nodeViewsParser" class="ru.citeck.ecos.invariants.view.NodeViewsParser" />
-	
+
 	<bean id="nodeViewsFilter" class="ru.citeck.ecos.invariants.view.NodeViewsFilter">
 		<property name="dictionaryService" ref="dictionaryService" />
 	</bean>
-	
+
 	<bean id="nodeViewService" class="ru.citeck.ecos.invariants.view.NodeViewServiceImpl">
 		<property name="nodeService" ref="nodeService" />
 		<property name="dictionaryService" ref="dictionaryService" />
@@ -144,7 +144,7 @@
 		<property name="parser" ref="nodeViewsParser" />
 		<property name="filter" ref="nodeViewsFilter" />
 	</bean>
-	
+
 	<bean id="nodeViewServiceJS" class="ru.citeck.ecos.invariants.view.NodeViewServiceJS" parent="baseJavaScriptExtension">
 		<property name="extensionName" value="nodeViews" />
 		<property name="impl" ref="nodeViewService" />
@@ -154,11 +154,11 @@
 	<bean id="nodeViewsDeployer" class="ru.citeck.ecos.invariants.view.NodeViewsDeployer" abstract="true">
 		<property name="nodeViewService" ref="nodeViewService" />
 		<!-- should be set in descendant beans -->
-		<!-- 
+		<!--
 			<property name="location" value="alfresco/module/.../invariants/invariants.xml" />
 		-->
 	</bean>
-	
+
 	<!-- automatic views deployment -->
 	<bean id="nodeViews.autoDeployer" parent="nodeViewsDeployer">
 		<property name="locations">
@@ -174,7 +174,7 @@
 			</bean>
 		</property>
 	</bean>
-	
+
 	<bean id="webscript.ru.citeck.invariants.view.get" parent="webscript" class="ru.citeck.ecos.webscripts.invariants.NodeViewGet">
 		<property name="nodeService" ref="nodeService" />
 		<property name="nodeViewService" ref="nodeViewService" />
@@ -182,16 +182,16 @@
 		<property name="namespaceService" ref="namespaceService" />
 		<property name="nodeAttributeService" ref="NodeAttributeService" />
 	</bean>
-	
+
 	<bean id="webscript.ru.citeck.invariants.view.post" parent="webscript" class="ru.citeck.ecos.webscripts.invariants.NodeViewPost">
 		<property name="nodeViewService" ref="nodeViewService" />
 		<property name="prefixResolver" ref="namespaceService" />
 	</bean>
-	
+
 	<bean id="webscript.ru.citeck.invariants.create-views.get" parent="webscript" class="ru.citeck.ecos.webscripts.invariants.CreateViewsGet">
 		<property name="dictionaryService" ref="dictionaryService" />
 		<property name="nodeViewService" ref="nodeViewService" />
 		<property name="prefixResolver" ref="namespaceService" />
 	</bean>
-	
+
 </beans>

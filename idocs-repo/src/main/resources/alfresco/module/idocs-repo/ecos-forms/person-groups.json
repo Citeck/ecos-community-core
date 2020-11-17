@@ -1,280 +1,89 @@
 {
-    "id": "cm_person_user_groups",
-    "formKey": "alf_cm:person",
-    "title": {
-        "en": "Groups",
-        "ru": "Группы"
+  "id": "cm_person_user_groups",
+  "formKey": "alf_cm:person",
+  "title": {
+    "en": "Groups",
+    "ru": "Группы"
+  },
+  "description": {
+    "en": ""
+  },
+  "customModule": null,
+  "typeRef": "emodel/type@person",
+  "width": "default",
+  "i18n": {
+    "ru": {
+      "loading": "Загрузка..."
     },
-    "description": {
-        "en": ""
-    },
-    "customModule": null,
-    "typeRef": "emodel/type@person",
-    "width": "default",
-    "i18n": {},
-    "definition": {
+    "en": {
+      "loading": "Loading..."
+    }
+  },
+  "definition": {
+    "components": [
+      {
+        "labelPosition": "bottom",
+        "scrollableContent": true,
+        "disableInlineEdit": true,
+        "customClass": "p-0 m-0",
+        "key": "panel2",
+        "type": "panel",
+        "input": false,
         "components": [
-            {
-                "label": "personGroups",
-                "hideLabel": true,
-                "autoExpand": false,
-                "isUploadEnabled": false,
-                "showWordCount": false,
-                "showCharCount": false,
-                "disabled": true,
-                "tableView": true,
-                "alwaysEnabled": false,
-                "defaultValue": "",
-                "inputFormat": "plain",
-                "calculateValue": "console.log(data);\nconst {groups} = data.parentData || [];\nif (groups != null){\n  let groupsName = [];\n  for(var i = 0; i < groups.length; i++){\n    groupsName[i] = groups[i];\n  }\n  value = groupsName.join(\"\\n\");\n}\nconsole.log(value);",
-                "encrypted": false,
-                "validate": {
-                    "customMessage": "",
-                    "json": "",
-                    "required": false,
-                    "custom": "",
-                    "customPrivate": false,
-                    "minLength": "",
-                    "maxLength": "",
-                    "minWords": "",
-                    "maxWords": "",
-                    "pattern": ""
-                },
-                "key": "personGroups",
-                "properties": {},
-                "conditional": {
-                    "show": "",
-                    "when": "",
-                    "json": "",
-                    "eq": ""
-                },
-                "customConditional": "",
-                "logic": [],
-                "attributes": {},
-                "rows": 16,
-                "type": "textarea",
-                "input": true,
-                "tags": [],
-                "placeholder": "",
-                "prefix": "",
-                "customClass": "",
-                "suffix": "",
-                "multiple": false,
-                "protected": false,
-                "unique": false,
-                "persistent": true,
-                "hidden": false,
-                "clearOnHide": true,
-                "dataGridLabel": false,
-                "labelPosition": "top",
-                "labelWidth": 30,
-                "labelMargin": 3,
-                "description": "",
-                "errorLabel": "",
-                "tooltip": "",
-                "tabindex": "",
-                "autofocus": false,
-                "dbIndex": false,
-                "customDefaultValue": "",
-                "allowCalculateOverride": false,
-                "widget": {
-                    "format": "yyyy-MM-dd hh:mm a",
-                    "dateFormat": "yyyy-MM-dd hh:mm a",
-                    "saveAs": "text"
-                },
-                "refreshOn": "",
-                "clearOnRefresh": false,
-                "validateOn": "change",
-                "mask": false,
-                "inputType": "text",
-                "inputMask": "",
-                "wysiwyg": false,
-                "editor": "",
-                "id": "eq3kot7"
+          {
+            "hideLabel": true,
+            "noColHeaders": true,
+            "disableInlineEdit": true,
+            "customClass": "p-0",
+            "persistent": false,
+            "disabled": true,
+            "source": {
+              "type": "custom",
+              "custom": {
+                "columns": [
+                  {
+                    "name": "id",
+                    "formatter": "value = {\r\n\tname: 'AssocFormatter'\r\n};",
+                    "setAttributesManually": false
+                  }
+                ],
+                "record": null,
+                "attribute": null
+              }
             },
-            {
-                "label": "userName",
-                "source": {
-                    "type": "recordsQuery",
-                    "recordsQuery": {
-                        "attributes": {
-                            "user": "cm:userName"
-                        },
-                        "query": "var value = {\n  query: 'cm:userName:' + user,\n  language: 'fts-alfresco'\n}",
-                        "isSingle": false
-                    },
-                    "ajax": {
-                        "method": "GET",
-                        "url": "",
-                        "data": "",
-                        "mapping": ""
-                    },
-                    "record": {
-                        "id": "",
-                        "attributes": {}
-                    },
-                    "recordsArray": {
-                        "id": "",
-                        "attributes": {}
-                    },
-                    "recordsScript": {
-                        "script": "",
-                        "attributes": {}
-                    },
-                    "custom": {
-                        "syncData": {},
-                        "asyncData": {}
-                    }
-                },
-                "update": {
-                    "type": "any-change",
-                    "event": "",
-                    "rate": 100,
-                    "force": false
-                },
-                "refreshOn": [],
-                "key": "userName",
-                "type": "asyncData",
-                "input": true,
-                "tableView": true,
-                "tags": [],
-                "placeholder": "",
-                "prefix": "",
-                "customClass": "",
-                "suffix": "",
-                "multiple": false,
-                "defaultValue": null,
-                "protected": false,
-                "unique": false,
-                "persistent": true,
-                "hidden": false,
-                "clearOnHide": true,
-                "dataGridLabel": false,
-                "labelPosition": "top",
-                "labelWidth": 30,
-                "labelMargin": 3,
-                "description": "",
-                "errorLabel": "",
-                "tooltip": "",
-                "hideLabel": false,
-                "tabindex": "",
-                "disabled": false,
-                "autofocus": false,
-                "dbIndex": false,
-                "customDefaultValue": "",
-                "calculateValue": "",
-                "allowCalculateOverride": false,
-                "widget": null,
-                "clearOnRefresh": false,
-                "validateOn": "change",
-                "validate": {
-                    "required": false,
-                    "custom": "",
-                    "customPrivate": false
-                },
-                "conditional": {
-                    "show": null,
-                    "when": null,
-                    "eq": ""
-                },
-                "mask": false,
-                "inputType": "asyncData",
-                "eventName": "",
-                "executionCondition": "",
-                "id": "e6911ta"
-            },
-            {
-                "label": "parentData",
-                "source": {
-                    "type": "record",
-                    "record": {
-                        "id": "people@{{user}}",
-                        "attributes": {
-                            "groups": "authorities.list[]?str"
-                        }
-                    },
-                    "ajax": {
-                        "method": "GET",
-                        "url": "",
-                        "data": "",
-                        "mapping": ""
-                    },
-                    "recordsArray": {
-                        "id": "",
-                        "attributes": {}
-                    },
-                    "recordsScript": {
-                        "script": "",
-                        "attributes": {}
-                    },
-                    "recordsQuery": {
-                        "query": "",
-                        "attributes": {},
-                        "isSingle": false
-                    },
-                    "custom": {
-                        "syncData": {},
-                        "asyncData": {}
-                    }
-                },
-                "update": {
-                    "type": "any-change",
-                    "event": "",
-                    "rate": 100,
-                    "force": false
-                },
-                "refreshOn": [],
-                "key": "parentData",
-                "type": "asyncData",
-                "input": true,
-                "tableView": true,
-                "tags": [],
-                "placeholder": "",
-                "prefix": "",
-                "customClass": "",
-                "suffix": "",
-                "multiple": false,
-                "defaultValue": null,
-                "protected": false,
-                "unique": false,
-                "persistent": true,
-                "hidden": false,
-                "clearOnHide": true,
-                "dataGridLabel": false,
-                "labelPosition": "top",
-                "labelWidth": 30,
-                "labelMargin": 3,
-                "description": "",
-                "errorLabel": "",
-                "tooltip": "",
-                "hideLabel": false,
-                "tabindex": "",
-                "disabled": false,
-                "autofocus": false,
-                "dbIndex": false,
-                "customDefaultValue": "",
-                "calculateValue": "",
-                "allowCalculateOverride": false,
-                "widget": null,
-                "clearOnRefresh": false,
-                "validateOn": "change",
-                "validate": {
-                    "required": false,
-                    "custom": "",
-                    "customPrivate": false
-                },
-                "conditional": {
-                    "show": null,
-                    "when": null,
-                    "eq": ""
-                },
-                "mask": false,
-                "inputType": "asyncData",
-                "eventName": "",
-                "executionCondition": "",
-                "id": "ejajuf9"
-            }
+            "refreshOn": "groupData",
+            "calculateValue": "value = _.get(data, 'groupData.groups') || [];",
+            "key": "tableForm2",
+            "displayElementsJS": "value = {view: false, edit: false, delete: false, clone: false, preview: false}",
+            "type": "tableForm",
+            "input": true
+          }
         ]
-    },
-    "attributes": {}
+      },
+      {
+        "label": "groupData",
+        "source": {
+          "type": "record",
+          "record": {
+            "id": "{{recordId}}",
+            "attributes": {
+              "groups": "assoc_src_cm:member[]?id"
+            }
+          },
+          "forceLoad": false
+        },
+        "update": {
+          "type": "once"
+        },
+        "key": "groupData",
+        "type": "asyncData",
+        "input": true,
+        "conditional": {
+          "show": null,
+          "when": null
+        }
+      }
+    ]
+  },
+  "attributes": {}
 }

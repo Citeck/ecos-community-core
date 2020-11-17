@@ -1003,5 +1003,7 @@
         <property name="order" value="400" />
     </bean>
 
+    <bean id="invalidateCacheBehaviour" class="ru.citeck.ecos.behavior.InvalidateCacheBehaviour"/>
+
 </beans>
 

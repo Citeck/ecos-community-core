@@ -110,6 +110,10 @@ public class AlfNodeRecord implements MetaValue {
     @Override
     public boolean has(String name) {
 
+        if (!context.getEcosPermissionService().isAttVisible(new NodeInfo(), name)) {
+            return false;
+        }
+
         if (RecordConstants.ATT_DOC_NUM.equals(name)) {
             name = EcosModel.PROP_DOC_NUM.toPrefixString(context.getNamespaceService());
         }
@@ -164,6 +168,10 @@ public class AlfNodeRecord implements MetaValue {
             return Collections.emptyList();
         }
 
+        if (!context.getEcosPermissionService().isAttVisible(new NodeInfo(), name)) {
+            return Collections.emptyList();
+        }
+
         List<? extends MetaValue> attribute = null;
 
         if (StringUtils.equals(name, CONTENT_ATTRIBUTE_NAME)) {
@@ -184,10 +192,11 @@ public class AlfNodeRecord implements MetaValue {
             case ATTR_UI_TYPE:
 
                 NewUIUtils utils = context.getService(NewUIUtils.QNAME);
-                attribute = Collections.singletonList(new AlfNodeAttValue(utils.getUITypeForRecord(recordRef)));
+                attribute = Collections.singletonList(new AlfNodeAttValue(utils.getUITypeForRecordAndUser(recordRef)));
                 break;
 
             case RecordConstants.ATT_MODIFIER: {
+
                 NodeRef nodeRef = new NodeRef(node.nodeRef());
                 String propertyValue = (String) context.getNodeService().getProperty(nodeRef,
                     ContentModel.PROP_MODIFIER);

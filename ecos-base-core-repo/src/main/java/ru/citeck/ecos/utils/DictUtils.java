@@ -41,8 +41,8 @@ public class DictUtils {
         namespaceService = serviceRegistry.getNamespaceService();
 
         this.cachedDisplayNameMappingWithChildren = CacheBuilder.newBuilder()
-                .expireAfterWrite(CACHE_AGE_SECONDS, TimeUnit.SECONDS)
-                .build(CacheLoader.from(this::configureCacheDisplayNameMapping));
+            .expireAfterWrite(CACHE_AGE_SECONDS, TimeUnit.SECONDS)
+            .build(CacheLoader.from(this::configureCacheDisplayNameMapping));
     }
 
     private Map<String, String> configureCacheDisplayNameMapping(Pair<QName, QName> key) {
@@ -63,7 +63,7 @@ public class DictUtils {
             }
             ClassDefinition classDefinition = propertyDefinition.getContainerClass();
             if (classDefinition == null) {
-                log.warn("Return empty mapping because 'classDefinition' was null. 'field' value: "+ field);
+                log.warn("Return empty mapping because 'classDefinition' was null. 'field' value: " + field);
                 return Collections.emptyMap();
             } else {
                 container = classDefinition.getName();
@@ -105,7 +105,7 @@ public class DictUtils {
      * Search property definition in specified container or associated default aspects
      *
      * @param containerName aspect or type name. If null then default property definition will be returned
-     * @param propertyName property name. Must be not null
+     * @param propertyName  property name. Must be not null
      * @return property definition or null if definition not found
      */
     public PropertyDefinition getPropDef(QName containerName, QName propertyName) {
@@ -213,7 +213,7 @@ public class DictUtils {
             return cachedDisplayNameMappingWithChildren.get(new Pair<>(container, field));
         } catch (ExecutionException e) {
             log.error("Cannot get cached 'displayName' mapping. \n" +
-                    "Args: 'container': " + container + " 'field': " + field, e);
+                "Args: 'container': " + container + " 'field': " + field, e);
             return Collections.emptyMap();
         }
     }

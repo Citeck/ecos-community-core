@@ -20,17 +20,19 @@ define([
     'lib/knockout',
     'citeck/utils/knockout.utils',
     'ecosui!menu-api',
+    'ecosui!journalsApi',
     'ecosui!user-in-groups-list-helper',
     'underscore',
     'citeck/components/invariants/invariants',
     'citeck/components/dynamic-tree/cell-formatters',
     'citeck/components/dynamic-tree/action-renderer'
-], function(ko, koutils, MenuApi, checkFunctionalAvailabilityHelper, _) {
+], function(ko, koutils, MenuApi, JournalsApi, checkFunctionalAvailabilityHelper, _) {
 
     if (!Citeck) Citeck = {};
     if (!Citeck.constants) Citeck.constants = {};
 
     var menuApi = new MenuApi();
+    var journalsApi = JournalsApi;
 
 var logger = Alfresco.logger,
         noneActionGroupId = "none",
@@ -328,7 +330,7 @@ CreateVariant
             }
         })
 
-        .method('filterOptions', function(criteria, pagination, paramJournalType) {
+        .method('filterOptions', function(criteria, pagination, paramJournalType, allowedFilterValues) {
 
             if (!this.cache) this.cache = {};
             if (!this.cache.result) {
@@ -357,11 +359,19 @@ CreateVariant
                 if (pagination.skipCount) query.skipCount = pagination.skipCount;
             }
 
+            var lastIndex = 1;
             _.each(criteria, function(criterion, index) {
                 query['field_' + (index + 2)] = criterion.attribute;
                 query['predicate_' + (index + 2)] = criterion.predicate;
                 query['value_' + (index + 2)] = criterion.value;
+                lastIndex = index + 2;
             });
+
+            if (allowedFilterValues && allowedFilterValues[paramJournalType]) {
+                query['field_' + (lastIndex + 1)] = allowedFilterValues[paramJournalType].field;
+                query['predicate_' + (lastIndex + 1)] = allowedFilterValues[paramJournalType].predicate;
+                query['value_' + (lastIndex + 1)] = allowedFilterValues[paramJournalType].values.join(',');
+            }
 
             if(this.cache.query) {
                 if(_.isEqual(query, this.cache.query)) return this.cache.result();
@@ -929,10 +939,12 @@ Record
         return aspectList;
     })
     .computed('isDocument', function() {
-        return ((this.attributes()['attr:isDocument'] || [])[0] || {str: 'false'}).str == 'true';
+        var attr = this.attributes()['attr:isDocument'];
+        return attr === true || ((attr || [])[0] || {str: 'false'}).str == 'true';
     })
     .computed('isContainer', function() {
-        return ((this.attributes()['attr:isContainer'] || [])[0] || {str: 'false'}).str == 'true';
+        var attr = this.attributes()['attr:isContainer'];
+        return attr === true || ((attr || [])[0] || {str: 'false'}).str == 'true';
     })
     .property('selected', b)
     .load('selected', function() { this.selected(false) })
@@ -1492,10 +1504,11 @@ JournalsWidget
     })
 
     .property('newJournalsPageEnable', b)
-
+    .property('uiType', o)
     .computed('fullscreenLink', function() {
         var self = this;
         var newJournalsPageEnable = this.newJournalsPageEnable();
+        var uiType = this.uiType() || {};
 
         var journalsList = this.journalsList(),
             journalId = this.journalId(),
@@ -1503,6 +1516,7 @@ JournalsWidget
             settingsId = this.settingsId(),
             prefix = '',
             postfix = '',
+            site = '',
             tokens = {
                 journal: this.journalId(),
                 filter: this.filterId(),
@@ -1515,7 +1529,8 @@ JournalsWidget
             }).join('&');
         if(journalsList != null) {
             if(journalsList.scope() != 'global') {
-                prefix = journalsList.scope() + '/' + journalsList.scopeId() + '/';
+            	site = journalsList.scopeId();
+                prefix = journalsList.scope() + '/' + site + '/';
             }
             postfix = '/list/' + journalsList.listId();
         }
@@ -1526,6 +1541,25 @@ JournalsWidget
             postfix: postfix,
             hash: hash
         });
+
+        var uiTypeKey = !!journalId ? journalId : site;
+        if (uiType.key != uiTypeKey) {
+            var promice = !!journalId
+                ? journalsApi.getJournalUIType(journalId)
+                : MenuApi.getSiteUiType(site);
+
+            promice.then(function (type) {
+                self.uiType({
+                    key: uiTypeKey,
+                    type: type
+                });
+            })
+        }
+
+        switch (uiType.type) {
+            case 'share': newJournalsPageEnable = false; break;
+            case 'react': newJournalsPageEnable = true; break;
+        }
 
         if (newJournalsPageEnable === null) {
             self.newJournalsPageEnable(false);
@@ -2256,6 +2290,10 @@ JournalsWidget
                             var att = atts[i];
                             attributes[att.name()] = att.name() + "[]";
                         }
+
+                        attributes['attr:isDocument'] = 'attr:isDocument?bool';
+                        attributes['attr:isContainer'] = 'attr:isContainer?bool';
+
                         body.attributes = attributes;
                     }
 

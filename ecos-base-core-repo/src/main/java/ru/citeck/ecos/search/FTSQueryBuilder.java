@@ -98,8 +98,10 @@ public class FTSQueryBuilder implements SearchQueryBuilder {
             case ASSOC_NOT_EMPTY:
             case FLOAT_NOT_EMPTY:
             case INT_NOT_EMPTY:
-            case STRING_NOT_EMPTY:
                 term = buildEmptyCheckTerm(field, false);
+                break;
+            case STRING_NOT_EMPTY:
+                term = buildEmptyStringTerm(field, false);
                 break;
             case DATE_EMPTY:
             case BOOLEAN_EMPTY:
@@ -108,7 +110,7 @@ public class FTSQueryBuilder implements SearchQueryBuilder {
                 term = buildNullCheckTerm(field, true);
                 break;
             case STRING_EMPTY:
-                term = buildEmptyCheckTerm(field, true);
+                term = buildEmptyStringTerm(field, true);
                 break;
             case NUMBER_LESS_THAN:
                 term = buildLessThanTerm(field, value, false);
@@ -243,6 +245,18 @@ public class FTSQueryBuilder implements SearchQueryBuilder {
         term.append(isEmpty ? " OR " : " AND NOT ");
         term.append(buildEqualsTerm(field, ""));
         term.append(')');
+
+        return term.toString();
+    }
+
+    private String buildEmptyStringTerm(String field, boolean isEmpty) {
+
+        StringBuilder term = new StringBuilder();
+        if (isEmpty) {
+            term.append("NOT ");
+        }
+        term.append(field)
+            .append(":[\"\" TO *]");
 
         return term.toString();
     }

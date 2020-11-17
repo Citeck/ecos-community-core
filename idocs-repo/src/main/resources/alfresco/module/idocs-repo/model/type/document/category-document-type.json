@@ -2,5 +2,9 @@
     "id": "category-document-type",
     "name": "Документ",
     "parent": "emodel/type@user-base",
-    "inheritActions": true
+    "inheritActions": true,
+    "actions": [
+        "uiserv/action@view-content-in-browser",
+        "uiserv/action@delete"
+    ]
 }

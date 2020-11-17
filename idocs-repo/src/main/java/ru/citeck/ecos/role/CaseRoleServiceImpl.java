@@ -1,5 +1,6 @@
 package ru.citeck.ecos.role;
 
+import org.alfresco.model.ContentModel;
 import org.alfresco.repo.policy.ClassPolicyDelegate;
 import org.alfresco.repo.policy.PolicyComponent;
 import org.alfresco.repo.security.authentication.AuthenticationUtil;
@@ -78,6 +79,41 @@ public class CaseRoleServiceImpl implements CaseRoleService {
             }
         }
         return null;
+    }
+
+    @Override
+    public List<String> getUserRoles(NodeRef caseRef, String userName) {
+        ParameterCheck.mandatoryString("userName", userName);
+
+        List<String> userRoleRefs = new ArrayList<>();
+        List<NodeRef> roles = getRoles(caseRef);
+        for (NodeRef roleRef : roles) {
+            List<NodeRef> assigneesRefs = RepoUtils.getTargetNodeRefs(roleRef, ICaseRoleModel.ASSOC_ASSIGNEES,
+                    nodeService);
+            if (assigneesRefs != null) {
+                for (NodeRef assigneesRef : assigneesRefs) {
+                    String authorityName = RepoUtils.getAuthorityName(assigneesRef, nodeService, dictionaryService);
+                    QName type = nodeService.getType(assigneesRef);
+                    if (dictionaryService.isSubClass(type, ContentModel.TYPE_AUTHORITY_CONTAINER)) {
+                        Set<String> groupAuthorities = authorityService.getContainedAuthorities(
+                                AuthorityType.USER, authorityName, false);
+                        for (String groupAuthority : groupAuthorities) {
+                            if (userName.equals(groupAuthority)) {
+                                String userRoleId = (String) nodeService.getProperty(roleRef, ICaseRoleModel.PROP_VARNAME);
+                                userRoleRefs.add(userRoleId);
+                            }
+                        }
+                    } else if (authorityName.equals(userName)) {
+                        String userRoleId = (String) nodeService.getProperty(roleRef, ICaseRoleModel.PROP_VARNAME);
+                        userRoleRefs.add(userRoleId);
+                    }
+                }
+            }
+        }
+        if (logger.isDebugEnabled()) {
+            logger.debug("User roles: " + userRoleRefs);
+        }
+        return userRoleRefs;
     }
 
     @Override

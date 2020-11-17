@@ -1,0 +1,11 @@
+{
+  "id": "personal-documents",
+  "name": {
+    "ru": "Личное дело",
+    "en": "Personal documents"
+  },
+  "description": null,
+  "tenant": null,
+  "types": [],
+  "attributes": {}
+}

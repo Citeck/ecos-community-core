@@ -4,6 +4,8 @@ import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.alfresco.error.AlfrescoRuntimeException;
 import org.alfresco.repo.security.authentication.AuthenticationUtil;
+import org.alfresco.service.cmr.repository.NodeRef;
+import org.alfresco.service.cmr.repository.NodeService;
 import org.alfresco.util.ParameterCheck;
 import org.apache.commons.lang.StringUtils;
 import org.mozilla.javascript.JavaScriptException;
@@ -12,7 +14,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.extensions.surf.util.I18NUtil;
 import org.springframework.stereotype.Service;
 import ru.citeck.ecos.locks.LockUtils;
+import ru.citeck.ecos.model.CiteckWorkflowModel;
 import ru.citeck.ecos.props.EcosPropertiesService;
+import ru.citeck.ecos.records2.RecordRef;
 import ru.citeck.ecos.workflow.owner.OwnerAction;
 import ru.citeck.ecos.workflow.owner.OwnerService;
 
@@ -40,6 +44,9 @@ public class EcosTaskService {
 
     @Autowired
     private EcosPropertiesService ecosProperties;
+
+    @Autowired
+    private NodeService nodeService;
 
     public void endTask(String taskId, Map<String, Object> variables) {
         endTask(taskId, null, variables, null);
@@ -94,8 +101,23 @@ public class EcosTaskService {
             lockUtils.doWithLock(String.format(TASKS_PREFIX, taskId), () -> {
                 taskService.endTask(task.getLocalId(), transition, finalVariables, finalTransientVariables);
             });
+            AuthenticationUtil.runAsSystem(() -> {
+                addLastCompletedTaskDate(taskInfo.getDocument());
+                return null;
+            });
         } catch (RuntimeException exception) {
             unwrapJsExceptionAndThrow(exception);
+        }
+    }
+
+    private void addLastCompletedTaskDate(RecordRef documentRef) {
+        if (RecordRef.isEmpty(documentRef)) {
+            return;
+        }
+        String nodeRefStr = documentRef.getId();
+        if (NodeRef.isNodeRef(nodeRefStr)) {
+            NodeRef nodeRef = new NodeRef(nodeRefStr);
+            nodeService.setProperty(nodeRef, CiteckWorkflowModel.PROP_LAST_COMPLETED_TASK_DATE, new Date());
         }
     }
 

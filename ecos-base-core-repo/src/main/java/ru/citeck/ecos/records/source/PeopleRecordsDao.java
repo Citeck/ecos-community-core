@@ -7,6 +7,7 @@ import org.alfresco.service.cmr.search.SearchService;
 import org.alfresco.service.cmr.security.AuthorityService;
 import org.alfresco.service.cmr.security.MutableAuthenticationService;
 import org.apache.commons.lang.StringUtils;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import ru.citeck.ecos.commons.data.DataValue;
@@ -16,6 +17,8 @@ import ru.citeck.ecos.records.source.alf.meta.AlfNodeRecord;
 import ru.citeck.ecos.records2.QueryContext;
 import ru.citeck.ecos.records2.RecordMeta;
 import ru.citeck.ecos.records2.RecordRef;
+import ru.citeck.ecos.records2.graphql.meta.value.EmptyValue;
+import ru.citeck.ecos.records2.graphql.meta.value.MetaEdge;
 import ru.citeck.ecos.records2.graphql.meta.value.MetaField;
 import ru.citeck.ecos.records2.graphql.meta.value.MetaValue;
 import ru.citeck.ecos.records2.request.delete.RecordsDelResult;
@@ -38,7 +41,7 @@ import java.util.stream.Collectors;
 @Component
 public class PeopleRecordsDao extends LocalRecordsDao
     implements LocalRecordsQueryWithMetaDao<PeopleRecordsDao.UserValue>,
-    LocalRecordsMetaDao<PeopleRecordsDao.UserValue>,
+    LocalRecordsMetaDao<Object>,
     MutableRecordsDao {
 
     public static final String ID = "people";
@@ -140,9 +143,16 @@ public class PeopleRecordsDao extends LocalRecordsDao
     }
 
     @Override
-    public List<UserValue> getLocalRecordsMeta(List<RecordRef> records, MetaField metaField) {
+    public List<Object> getLocalRecordsMeta(List<RecordRef> records, MetaField metaField) {
         return records.stream()
-            .map(r -> new UserValue(r.toString()))
+            .map(r -> {
+                String authName = r.toString();
+                if (authorityService.authorityExists(authName)) {
+                    return new UserValue(authName);
+                } else {
+                    return EmptyValue.INSTANCE;
+                }
+            })
             .collect(Collectors.toList());
     }
 
@@ -211,6 +221,14 @@ public class PeopleRecordsDao extends LocalRecordsDao
                     userName = "";
                 }
             }
+        }
+
+        @Override
+        public MetaEdge getEdge(@NotNull String name, @NotNull MetaField field) {
+            if (alfNode == null) {
+                return null;
+            }
+            return alfNode.getEdge(name, field);
         }
 
         @Override

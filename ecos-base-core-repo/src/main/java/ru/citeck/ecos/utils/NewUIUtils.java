@@ -3,6 +3,8 @@ package ru.citeck.ecos.utils;
 import ecos.com.google.common.cache.CacheBuilder;
 import ecos.com.google.common.cache.CacheLoader;
 import ecos.com.google.common.cache.LoadingCache;
+import lombok.AllArgsConstructor;
+import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.alfresco.service.cmr.repository.NodeRef;
 import org.alfresco.service.cmr.security.AuthenticationService;
@@ -18,10 +20,7 @@ import ru.citeck.ecos.node.EcosTypeService;
 import ru.citeck.ecos.records2.RecordRef;
 import ru.citeck.ecos.records2.RecordsService;
 
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -50,8 +49,8 @@ public class NewUIUtils {
     private final RecordsService recordsService;
     private final EcosTypeService ecosTypeService;
 
-    private LoadingCache<RecordRef, String> uiTypeByRecord;
-    private LoadingCache<String, Boolean> isNewUIEnabledCache;
+    private final LoadingCache<RecordRef, String> uiTypeByRecord;
+    private final LoadingCache<String, Boolean> isNewUIEnabledForUserCache;
 
     @Autowired
     public NewUIUtils(@Qualifier("ecosConfigService") EcosConfigService ecosConfigService,
@@ -66,7 +65,7 @@ public class NewUIUtils {
         this.ecosTypeService = ecosTypeService;
         this.recordsService = recordsService;
 
-        isNewUIEnabledCache = CacheBuilder.newBuilder()
+        isNewUIEnabledForUserCache = CacheBuilder.newBuilder()
             .expireAfterWrite(1, TimeUnit.MINUTES)
             .maximumSize(100)
             .build(CacheLoader.from(this::isNewUIEnabledForUserImpl));
@@ -77,16 +76,28 @@ public class NewUIUtils {
             .build(CacheLoader.from(this::getUITypeByRecord));
     }
 
+    public void invalidateCache() {
+        uiTypeByRecord.invalidateAll();
+        isNewUIEnabledForUserCache.invalidateAll();
+    }
+
+    public void invalidateCacheForUser(String username) {
+        isNewUIEnabledForUserCache.invalidate(username);
+    }
+
     public boolean isNewUIEnabled() {
         return isNewUIEnabledForUser(authenticationService.getCurrentUserName());
     }
 
     public boolean isNewUIEnabledForUser(String username) {
-        return isNewUIEnabledCache.getUnchecked(username);
+        return isNewUIEnabledForUserCache.getUnchecked(username);
     }
 
     public boolean isOldCardDetailsRequired(RecordRef recordRef) {
-        return getUITypeByRecord(recordRef).equals(UI_TYPE_SHARE);
+        return getUITypeForRecordAndUser(
+            recordRef,
+            authenticationService.getCurrentUserName()
+        ).equals(UI_TYPE_SHARE);
     }
 
     public String getNewUIRedirectUrl() {
@@ -107,13 +118,29 @@ public class NewUIUtils {
         }
     }
 
+    public String getUITypeForRecordAndUser(RecordRef recordRef) {
+        return getUITypeForRecordAndUser(recordRef, authenticationService.getCurrentUserName());
+    }
+
+    public String getUITypeForRecordAndUser(RecordRef recordRef, String userName) {
+        String uiType = getUITypeForRecord(recordRef);
+
+        String resStr = uiType;
+        if (StringUtils.isBlank(uiType)) {
+            resStr = isNewUIEnabledForUser(userName) ? UI_TYPE_REACT : UI_TYPE_SHARE;
+        }
+
+        return resStr;
+    }
+
     private boolean isNewUIEnabledForUserImpl(String username) {
         Object objValue = ecosConfigService.getParamValue(NEW_UI_REDIRECT_ENABLED);
         boolean isNewUIRedirectEnabled = String.valueOf(objValue).equals(Boolean.TRUE.toString());
-        return isNewUIRedirectEnabled || isNewJournalsGroupMember(username);
+        return isNewUIRedirectEnabled || isNewJournalsGroupMember(username) || isNewJournalsEnabledForUser(username);
     }
 
     private String getUITypeByRecord(RecordRef recordRef) {
+
         String att;
         if (recordRef.getSourceId().equals("site")) {
             att = UI_TYPE_FROM_SECTION_ATT;
@@ -136,13 +163,15 @@ public class NewUIUtils {
 
         String resStr;
         if (res.isNull() || StringUtils.isBlank(res.asText())) {
-            resStr = isNewUIEnabled() ? UI_TYPE_REACT : UI_TYPE_SHARE;
+            resStr = "";
         } else {
             resStr = res.asText();
+
             if (!UI_TYPE_SHARE.equals(resStr) && !UI_TYPE_REACT.equals(resStr)) {
-                resStr = isNewUIEnabled() ? UI_TYPE_REACT : UI_TYPE_SHARE;
+                resStr = "";
             }
         }
+
         return resStr;
     }
 
@@ -173,5 +202,18 @@ public class NewUIUtils {
         Set<String> avalibleGroups = new HashSet<>(Arrays.asList(groupsInString.split(",")));
         Set<String> userGroups = authorityService.getAuthoritiesForUser(username);
         return !Collections.disjoint(avalibleGroups, userGroups);
+    }
+
+    private boolean isNewJournalsEnabledForUser(String username) {
+        RecordRef recordRef = RecordRef.create("people", username);
+        DataValue att = recordsService.getAtt(recordRef, "ecos:newJournalsEnabled");
+        return att.asBoolean();
+    }
+
+    @Data
+    @AllArgsConstructor
+    private static class RecordRefUserKey {
+        private RecordRef recordRef;
+        private String userName;
     }
 }

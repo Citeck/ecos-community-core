@@ -20,6 +20,8 @@ import ru.citeck.ecos.commons.data.ObjectData;
 import ru.citeck.ecos.model.EcosModel;
 import ru.citeck.ecos.model.EcosTypeModel;
 import ru.citeck.ecos.model.InvariantsModel;
+import ru.citeck.ecos.node.AlfNodeInfo;
+import ru.citeck.ecos.node.AlfNodeInfoImpl;
 import ru.citeck.ecos.node.EcosTypeService;
 import ru.citeck.ecos.records.source.alf.file.AlfNodeContentFileHelper;
 import ru.citeck.ecos.records.source.alf.meta.AlfNodeRecord;
@@ -89,6 +91,7 @@ public class AlfNodesRecordsDAO extends LocalRecordsDao
     private AlfNodeContentFileHelper contentFileHelper;
     private EcosPermissionService ecosPermissionService;
     private TypesManager typeInfoProvider;
+    private ServiceRegistry serviceRegistry;
     private RecordsTemplateService recordsTemplateService;
 
     private final Map<QName, NodeRef> defaultParentByType = new ConcurrentHashMap<>();
@@ -150,6 +153,8 @@ public class AlfNodesRecordsDAO extends LocalRecordsDao
         RecordRef ecosTypeRef = handleETypeAttribute(attributes, props);
         TypeDto typeDto = ecosTypeRef != null ? typeInfoProvider.getType(ecosTypeRef) : null;
 
+        AlfNodeInfo nodeInfo = nodeRef != null ? new AlfNodeInfoImpl(nodeRef, serviceRegistry) : null;
+
         Iterator<String> names = attributes.fieldNames();
         while (names.hasNext()) {
 
@@ -185,7 +190,7 @@ public class AlfNodesRecordsDAO extends LocalRecordsDao
                 }
             }
 
-            if (ecosPermissionService.isAttributeProtected(nodeRef, name)) {
+            if (ecosPermissionService.isAttProtected(nodeInfo, name)) {
                 log.warn("You can't change '" + name +
                     "' attribute of '" + nodeRef +
                     "' because it is protected! Value: " + fieldRawValue);
@@ -453,6 +458,14 @@ public class AlfNodesRecordsDAO extends LocalRecordsDao
             dispName = Collections.emptyMap();
         }
 
+        Map<Locale, String> notBlankDispNames = new HashMap<>();
+        dispName.forEach((k, v) -> {
+            if (StringUtils.isNotBlank(v)) {
+                notBlankDispNames.put(k, v);
+            }
+        });
+        dispName = notBlankDispNames;
+
         if (!dispName.isEmpty()) {
 
             DataValue resolvedTemplate = recordsTemplateService.resolve(DataValue.create(dispName), recordRef);
@@ -706,6 +719,7 @@ public class AlfNodesRecordsDAO extends LocalRecordsDao
         this.namespaceService = serviceRegistry.getNamespaceService();
         this.searchService = serviceRegistry.getSearchService();
         this.nodeService = serviceRegistry.getNodeService();
+        this.serviceRegistry = serviceRegistry;
     }
 
     @Autowired

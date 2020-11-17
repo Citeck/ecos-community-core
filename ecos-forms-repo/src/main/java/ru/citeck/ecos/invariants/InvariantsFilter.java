@@ -40,7 +40,7 @@ class InvariantsFilter {
     // according to CompareToBuilder.append javadocs, null is less than any other object
     private static QName FIRST_NAME = null;
 
-    // '~' == '\u007E' is almost the biggest ASCII character 
+    // '~' == '\u007E' is almost the biggest ASCII character
     // and should be greater than any other characters, used in qname
     private static QName LAST_NAME = QName.createQName("~", "~");
 
@@ -216,6 +216,7 @@ class InvariantsFilter {
                 addInvariants(
                         attributeType.getDefaultInvariants(attributeName, allInvolvedClasses),
                         invariants);
+
 
                 // Check current user permissions for attribute
                 if (attributesPermissionService != null) {
@@ -478,7 +479,5 @@ class InvariantsFilter {
 
             return 0;
         }
-
     }
-
 }
