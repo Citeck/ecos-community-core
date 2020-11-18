@@ -21,6 +21,8 @@ import ru.citeck.ecos.model.ClassificationModel;
 import ru.citeck.ecos.model.EcosTypeModel;
 import ru.citeck.ecos.utils.RepoUtils;
 
+import javax.xml.bind.DatatypeConverter;
+import java.io.ByteArrayInputStream;
 import java.io.Serializable;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
@@ -83,6 +85,14 @@ public class AlfNodeContentFileHelper {
             } else {
                 writer.setEncoding(StandardCharsets.UTF_8.name());
             }
+
+            DataValue base64Content = jsonNode.get(MODEL_BASE64_CONTENT);
+            if (base64Content.isTextual()) {
+                byte[] content = DatatypeConverter.parseBase64Binary(base64Content.asText());
+                writer.putContent(new ByteArrayInputStream(content));
+                return;
+            }
+
             DataValue content = jsonNode.get(MODEL_CONTENT);
             if (content.isTextual()) {
                 writer.putContent(content.asText());
