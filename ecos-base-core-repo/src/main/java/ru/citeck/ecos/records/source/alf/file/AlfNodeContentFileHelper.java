@@ -211,7 +211,11 @@ public class AlfNodeContentFileHelper {
 
                 } else {
 
-                    nodeService.addChild(baseNodeRef, attachment.documentRef, assocType, childAssocQName);
+                    QName attachmentType = nodeService.getType(attachment.documentRef);
+                    if (!dictionaryService.isSubClass(attachmentType, assocTargetType)) {
+                        nodeService.setType(attachment.documentRef, assocTargetType);
+                    }
+                    nodeService.moveNode(attachment.documentRef, baseNodeRef, assocType, childAssocQName);
                 }
             }
 
