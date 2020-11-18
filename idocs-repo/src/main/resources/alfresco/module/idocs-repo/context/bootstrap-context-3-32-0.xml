@@ -26,4 +26,10 @@
         <property name="bootstrapScript" value="alfresco/module/idocs-repo/bootstrap/scripts/contractor-statuses.js"/>
     </bean>
 
+    <bean id="idocs.module-component.script.clean-deprecated-nodes-3-32-0" parent="idocs.import-scripts.3-32-0">
+        <property name="name" value="clean-deprecated-nodes.js" />
+        <property name="description" value="clean-deprecated-nodes.js" />
+        <property name="bootstrapScript" value="alfresco/module/idocs-repo/bootstrap/scripts/clean-deprecated-nodes.js"/>
+    </bean>
+
 </beans>

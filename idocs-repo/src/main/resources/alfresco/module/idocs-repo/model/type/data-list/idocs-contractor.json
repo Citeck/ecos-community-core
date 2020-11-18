@@ -8,7 +8,7 @@
     "en": ""
   },
   "parentRef": "emodel/type@base",
-  "formRef": "",
+  "formRef": "uiserv/eform@02347243-639c-4da4-b261-8b47cbca2362",
   "journalRef": "",
   "system": false,
   "inheritActions": false,
@@ -21,13 +21,13 @@
   "inheritNumTemplate": false,
   "createVariants": [
     {
-      "id": "",
+      "id": "main-form",
       "name": {
-        "ru": "",
-        "en": ""
+        "ru": "Main form",
+        "en": "Main form"
       },
-      "formRef": "",
-      "recordRef": "",
+      "formRef": "uiserv/eform@02347243-639c-4da4-b261-8b47cbca2362",
+      "recordRef": "dict@idocs:contractor",
       "attributes": {}
     }
   ],

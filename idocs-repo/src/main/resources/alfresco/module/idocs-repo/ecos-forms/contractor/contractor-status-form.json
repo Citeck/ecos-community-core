@@ -50,7 +50,7 @@
         "source": {
           "type": "custom",
           "custom": {
-            "syncData": "const { \r\n  icase_caseStatusAssoc_name: state, \r\n  idocs_konturLink: link\r\n} = data || {};\r\n\r\nlet customState = {text: instance.t('State is empty'), class: 'dark'};\r\nif (_.isString(state)) {\r\n  switch (state) {\r\n    case 'idocs-contractor-green':\r\n      customState = {text: instance.t('green'), class: 'success'};\r\n      break;\r\n    case 'idocs-contractor-yellow':\r\n      customState = {text: instance.t('yellow'), class: 'warning'};\r\n      break;\r\n    case 'idocs-contractor-red':\r\n      customState = {text: instance.t('red'), class: 'danger'};\r\n      break;\r\n  }\r\n}\r\n\r\nvalue = {\r\n  state: customState,\r\n  href: !!link ? link : '',\r\n  hrefText: !!link ? instance.t('link-to-korus') : ''\r\n}",
+            "syncData": "const { \r\n  icase_caseStatusAssoc_name: statusName,\r\n  icase_caseStatusAssoc_title: statusTitle,\r\n  idocs_ogrn\r\n} = data || {};\r\n\r\nconst link = \"https://focus.kontur.ru/entity?query=\" + idocs_ogrn;\r\n\r\nlet customState = {text: instance.t('State is empty'), class: 'dark'};\r\nif (_.isString(statusName)) {\r\n  switch (statusName) {\r\n    case 'contractor-green':\r\n      customState = {text: statusTitle, class: 'success'};\r\n      break;\r\n    case 'contractor-yellow':\r\n      customState = {text: statusTitle, class: 'warning'};\r\n      break;\r\n    case 'contractor-red':\r\n      customState = {text: statusTitle, class: 'danger'};\r\n      break;\r\n  }\r\n}\r\n\r\nvalue = {\r\n  state: customState,\r\n  href: !!statusName && idocs_ogrn ? link : '',\r\n  hrefText: !!statusName && idocs_ogrn ? instance.t('link-to-korus') : ''\r\n}",
             "asyncData": "value = data;"
           },
           "forceLoad": false
@@ -63,18 +63,6 @@
         "input": true
       },
       {
-        "label": "idocs:konturLink",
-        "clearOnHide": false,
-        "hidden": true,
-        "refreshOn": "data",
-        "key": "idocs_konturLink",
-        "properties": {
-          "attribute": "idocs:konturLink"
-        },
-        "type": "hidden",
-        "input": true
-      },
-      {
         "label": "icase_caseStatusAssoc_name",
         "clearOnHide": false,
         "hidden": true,
@@ -82,6 +70,29 @@
         "key": "icase_caseStatusAssoc_name",
         "properties": {
           "attribute": "icase:caseStatusAssoc.cm:name"
+        },
+        "type": "hidden",
+        "input": true
+      },
+      {
+        "label": "icase_caseStatusAssoc_disp",
+        "clearOnHide": false,
+        "hidden": true,
+        "defaultValue": [],
+        "key": "icase_caseStatusAssoc_title",
+        "properties": {
+          "attribute": "icase:caseStatusAssoc.cm:title"
+        },
+        "type": "hidden",
+        "input": true
+      },
+      {
+        "label": "idocs:ogrn",
+        "clearOnHide": false,
+        "hidden": true,
+        "key": "idocs_ogrn",
+        "properties": {
+          "attribute": "idocs:ogrn"
         },
         "type": "hidden",
         "input": true

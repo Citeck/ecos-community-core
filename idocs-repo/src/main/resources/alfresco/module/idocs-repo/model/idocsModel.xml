@@ -1701,14 +1701,6 @@
             </properties>
         </aspect>
 
-        <aspect name="idocs:hasKonturLink">
-            <properties>
-                <property name="idocs:konturLink">
-                    <type>d:text</type>
-                </property>
-            </properties>
-        </aspect>
-
     </aspects>
 
 </model>

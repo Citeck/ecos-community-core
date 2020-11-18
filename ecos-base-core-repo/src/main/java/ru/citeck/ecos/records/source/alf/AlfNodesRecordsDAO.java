@@ -356,6 +356,7 @@ public class AlfNodesRecordsDAO extends LocalRecordsDao
             qName, jsonNodes, finalNodeRef, false));
 
         updateNodeDispName(resultRecord.getId());
+        replaceCaseStatusAssoc(resultRecord);
 
         return resultRecord;
     }
@@ -498,6 +499,14 @@ public class AlfNodesRecordsDAO extends LocalRecordsDao
             nodeService.setProperty(nodeRef, ContentModel.PROP_NAME, getValidNameForNode(nodeRef, newName));
         }
         return true;
+    }
+
+    private void replaceCaseStatusAssoc(RecordMeta resultRecord) {
+        DataValue caseStatus = resultRecord.get("_caseStatus");
+
+        if (caseStatus.isNotNull()) {
+            resultRecord.set("icase:caseStatusAssoc", caseStatus);
+        }
     }
 
     private String getValidNameForNode(NodeRef nodeRef, String name) {
