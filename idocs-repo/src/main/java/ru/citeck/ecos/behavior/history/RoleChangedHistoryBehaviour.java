@@ -7,10 +7,12 @@ import org.alfresco.repo.policy.PolicyComponent;
 import org.alfresco.service.cmr.repository.NodeRef;
 import org.alfresco.service.cmr.repository.NodeService;
 import org.alfresco.service.namespace.QName;
+import org.springframework.beans.factory.annotation.Autowired;
 import ru.citeck.ecos.history.HistoryService;
 import ru.citeck.ecos.model.HistoryModel;
 import ru.citeck.ecos.model.ICaseRoleModel;
 import ru.citeck.ecos.role.CaseRolePolicies;
+import ru.citeck.ecos.role.CaseRoleService;
 
 import java.io.Serializable;
 import java.util.HashMap;
@@ -27,13 +29,13 @@ public class RoleChangedHistoryBehaviour implements CaseRolePolicies.OnRoleAssig
     private HistoryService historyService;
     private NodeService nodeService;
     private PolicyComponent policyComponent;
+    private CaseRoleService caseRoleService;
 
     private QName documentQName;
     private String documentNamespace;
     private String documentType;
 
     private Map<String, Map<String, String>> roleMapping;
-
 
     public void init() {
         this.documentQName = QName.createQName(documentNamespace, documentType);
@@ -51,13 +53,13 @@ public class RoleChangedHistoryBehaviour implements CaseRolePolicies.OnRoleAssig
             return;
         }
 
-        NodeRef documentRef = nodeService.getPrimaryParent(roleRef).getParentRef();
+        NodeRef documentRef = caseRoleService.getRoleCaseRef(roleRef);
         QName parentDocumentQName = nodeService.getType(documentRef);
         if (!documentQName.equals(parentDocumentQName)) {
             return;
         }
 
-        String roleVarName = (String) nodeService.getProperty(roleRef, ICaseRoleModel.PROP_VARNAME);
+        String roleVarName = caseRoleService.getRoleId(roleRef);
 
         String messageTemplateForCreate = getMessageTemplateByAction(CREATED_ROLES_KEY, roleVarName);
         if (messageTemplateForCreate != null) {
@@ -98,14 +100,13 @@ public class RoleChangedHistoryBehaviour implements CaseRolePolicies.OnRoleAssig
         if (mappedRoles == null || mappedRoles.isEmpty()) {
             return null;
         }
-
-        String messageTemplate = mappedRoles.get(roleVarName);
-        if (messageTemplate == null) {
-            return null;
-        }
-        return messageTemplate;
+        return mappedRoles.get(roleVarName);
     }
 
+    @Autowired
+    public void setCaseRoleService(CaseRoleService caseRoleService) {
+        this.caseRoleService = caseRoleService;
+    }
 
     public void setHistoryService(HistoryService historyService) {
         this.historyService = historyService;

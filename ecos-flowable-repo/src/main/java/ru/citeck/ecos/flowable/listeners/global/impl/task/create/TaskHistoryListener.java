@@ -30,6 +30,7 @@ import ru.citeck.ecos.flowable.utils.FlowableUtils;
 import ru.citeck.ecos.history.HistoryEventType;
 import ru.citeck.ecos.history.HistoryService;
 import ru.citeck.ecos.model.*;
+import ru.citeck.ecos.role.CaseRoleAssocsDao;
 import ru.citeck.ecos.role.CaseRoleService;
 import ru.citeck.ecos.workflow.listeners.TaskDataListenerUtils;
 
@@ -72,6 +73,7 @@ public class TaskHistoryListener implements GlobalCreateTaskListener, GlobalAssi
     private FlowableCustomCommentService flowableCustomCommentService;
     private TaskService taskService;
     private TaskDataListenerUtils taskDataListenerUtils;
+    private CaseRoleAssocsDao caseRoleAssocsDao;
 
     /**
      * Property names
@@ -80,7 +82,6 @@ public class TaskHistoryListener implements GlobalCreateTaskListener, GlobalAssi
     private String VAR_COMMENT;
     private String VAR_LAST_COMMENT;
     private String VAR_DESCRIPTION;
-
 
     /**
      * Init
@@ -150,7 +151,7 @@ public class TaskHistoryListener implements GlobalCreateTaskListener, GlobalAssi
 
         String roleName;
         if (panelOfAuthorized != null && assignee != null && !panelOfAuthorized.isEmpty()) {
-            List<NodeRef> listRoles = getListRoles(document);
+            List<NodeRef> listRoles = caseRoleService.getRoles(document);
             roleName = getAuthorizedName(panelOfAuthorized, listRoles, assignee) != null ?
                 getAuthorizedName(panelOfAuthorized, listRoles, assignee) :
                 getRoleName(packageAssocs, assignee, delegateTask.getId());
@@ -251,25 +252,6 @@ public class TaskHistoryListener implements GlobalCreateTaskListener, GlobalAssi
     }
 
     /**
-     * Get list of roles
-     *
-     * @param document Document node reference
-     * @return List of role nodes
-     */
-    private List<NodeRef> getListRoles(NodeRef document) {
-        if (document == null) {
-            return Collections.emptyList();
-        }
-        List<ChildAssociationRef> childsAssocRefs = nodeService.getChildAssocs(document, ICaseRoleModel.ASSOC_ROLES,
-            RegexQNamePattern.MATCH_ALL);
-        List<NodeRef> roles = new ArrayList<>();
-        for (ChildAssociationRef childAssociationRef : childsAssocRefs) {
-            roles.add(childAssociationRef.getChildRef());
-        }
-        return roles;
-    }
-
-    /**
      * Get authorized name
      *
      * @param varNameRoles Role names
@@ -279,9 +261,10 @@ public class TaskHistoryListener implements GlobalCreateTaskListener, GlobalAssi
      */
     private String getAuthorizedName(List<String> varNameRoles, List<NodeRef> listRoles, String assignee) {
         for (NodeRef role : listRoles) {
-            if (varNameRoles.contains(nodeService.getProperty(role, ICaseRoleModel.PROP_VARNAME))) {
+            String roleId = caseRoleService.getRoleId(role);
+            if (varNameRoles.contains(roleId)) {
                 for (String varNameRole : varNameRoles) {
-                    if (varNameRole.equals(nodeService.getProperty(role, ICaseRoleModel.PROP_VARNAME))) {
+                    if (varNameRole.equals(roleId)) {
                         Map<NodeRef, NodeRef> delegates = caseRoleService.getDelegates(role);
                         for (Map.Entry<NodeRef, NodeRef> entry : delegates.entrySet()) {
                             if (authorityService.getAuthorityNodeRef(assignee).equals(entry.getValue())) {
@@ -304,29 +287,30 @@ public class TaskHistoryListener implements GlobalCreateTaskListener, GlobalAssi
      * @return Role name
      */
     private String getRoleName(List<AssociationRef> packageAssocs, String assignee, String taskId) {
+
         String roleName = "";
+
         if (taskId != null) {
             WorkflowTask task = workflowService.getTaskById(ENGINE_PREFIX + taskId);
             if (task != null) {
                 Map<QName, Serializable> properties = task.getProperties();
-                if (properties.get(CasePerformModel.ASSOC_CASE_ROLE) != null) {
-                    NodeRef role = (NodeRef) properties.get(CasePerformModel.ASSOC_CASE_ROLE);
-                    if (role != null && nodeService.exists(role)
-                        && nodeService.getProperty(role, ContentModel.PROP_NAME) != null) {
-                        roleName = (String) nodeService.getProperty(role, ContentModel.PROP_NAME);
-                    }
+                List<NodeRef> roleRefs = caseRoleAssocsDao.getRolesByAssoc(properties, CasePerformModel.ASSOC_CASE_ROLE);
+                if (!roleRefs.isEmpty()) {
+                    roleName = caseRoleService.getRoleDispName(roleRefs.get(0));
                 }
             }
         }
 
-        if (roleName == null || roleName.equals("")) {
+        if (StringUtils.isBlank(roleName)) {
             if (!packageAssocs.isEmpty()) {
+
                 NodeRef currentTask = packageAssocs.get(0).getSourceRef();
-                List<AssociationRef> performerRoles = nodeService.getTargetAssocs(currentTask,
+                List<NodeRef> performerRoles = caseRoleAssocsDao.getRolesByAssoc(currentTask,
                     CasePerformModel.ASSOC_PERFORMERS_ROLES);
-                if (performerRoles != null && !performerRoles.isEmpty()) {
-                    NodeRef firstRole = performerRoles.get(0).getTargetRef();
-                    roleName = (String) nodeService.getProperty(firstRole, ContentModel.PROP_NAME);
+
+                if (!performerRoles.isEmpty()) {
+                    NodeRef firstRole = performerRoles.get(0);
+                    roleName = caseRoleService.getRoleDispName(firstRole);
                 }
             }
             if (StringUtils.isBlank(roleName)) {
@@ -391,6 +375,11 @@ public class TaskHistoryListener implements GlobalCreateTaskListener, GlobalAssi
 
     public void setTaskService(TaskService taskService) {
         this.taskService = taskService;
+    }
+
+    @Autowired
+    public void setCaseRoleAssocsDao(CaseRoleAssocsDao caseRoleAssocsDao) {
+        this.caseRoleAssocsDao = caseRoleAssocsDao;
     }
 
     @Autowired

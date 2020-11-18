@@ -1165,7 +1165,7 @@
                                 "label": "idocs:doNotSendContractToEdiFlag",
                                 "key": "idocs_doNotSendContractToEdiFlag",
                                 "properties": {
-                                  "attribute": "idocs:doNotSendContractToEdiFlag?bool"
+                                  "attribute": "idocs:doNotSendContractToEdiFlag"
                                 },
                                 "type": "checkbox",
                                 "input": true
@@ -1450,7 +1450,7 @@
                             "labelPosition": "left-left",
                             "key": "idocs_currencyEnabled",
                             "properties": {
-                              "attribute": "idocs:currencyEnabled?bool",
+                              "attribute": "idocs:currencyEnabled",
                               "dummy": "dummy"
                             },
                             "labelMargin": 15,

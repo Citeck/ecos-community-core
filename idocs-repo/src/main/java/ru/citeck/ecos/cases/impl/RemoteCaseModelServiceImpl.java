@@ -25,6 +25,7 @@ import org.springframework.web.util.UriComponentsBuilder;
 import ru.citeck.ecos.cases.RemoteCaseModelService;
 import ru.citeck.ecos.dto.*;
 import ru.citeck.ecos.model.*;
+import ru.citeck.ecos.role.CaseRoleService;
 
 import java.io.IOException;
 import java.io.Serializable;
@@ -117,6 +118,8 @@ public class RemoteCaseModelServiceImpl implements RemoteCaseModelService {
      */
     private LockService lockService;
 
+    @Autowired
+    private CaseRoleService caseRoleService;
 
     /**
      * Global properties
@@ -475,18 +478,35 @@ public class RemoteCaseModelServiceImpl implements RemoteCaseModelService {
      * @param objectNode Object node
      */
     private void fillAdditionalUserActionEventInfo(NodeRef eventNodeRef, ObjectNode objectNode) {
+
         objectNode.put("additionalDataType", (String) nodeService.getProperty(eventNodeRef, EventModel.PROP_ADDITIONAL_DATA_TYPE));
         objectNode.put("confirmationMessage", (String) nodeService.getProperty(eventNodeRef, EventModel.PROP_CONFIRMATION_MESSAGE));
         objectNode.put("successMessage", (String) nodeService.getProperty(eventNodeRef, EventModel.PROP_SUCCESS_MESSAGE));
         objectNode.put("successMessageSpanClass", (String) nodeService.getProperty(eventNodeRef, EventModel.PROP_SUCCESS_MESSAGE_SPAN_CLASS));
+
         /* Roles */
         ArrayNode rolesNode = objectMapper.createArrayNode();
+
+        List<NodeRef> rolesAssocsList = new ArrayList<>();
         List<AssociationRef> rolesAssocs = nodeService.getTargetAssocs(eventNodeRef, EventModel.ASSOC_AUTHORIZED_ROLES);
         for (AssociationRef associationRef : rolesAssocs) {
+            rolesAssocsList.add(associationRef.getTargetRef());
+        }
+        @SuppressWarnings("unchecked")
+        List<String> rolesPropList = (List<String>) nodeService.getProperty(eventNodeRef, EventModel.ASSOC_AUTHORIZED_ROLES_PROP);
+        if (rolesPropList != null) {
+            for (String roleProp : rolesPropList) {
+                if (org.apache.commons.lang3.StringUtils.isNotBlank(roleProp)) {
+                    rolesAssocsList.add(new NodeRef(roleProp));
+                }
+            }
+        }
+
+        for (NodeRef associationRef : rolesAssocsList) {
             ObjectNode roleNode = objectMapper.createObjectNode();
-            fillBaseNodeInfo(associationRef.getTargetRef(), roleNode);
-            roleNode.put("varName", (String) nodeService.getProperty(associationRef.getTargetRef(), ICaseRoleModel.PROP_VARNAME));
-            roleNode.put("isReferenceRole", (Boolean) nodeService.getProperty(associationRef.getTargetRef(), ICaseRoleModel.PROP_IS_REFERENCE_ROLE));
+            fillBaseNodeInfo(associationRef, roleNode);
+            roleNode.put("varName", caseRoleService.getRoleId(associationRef));
+            roleNode.put("isReferenceRole", true);
             rolesNode.add(roleNode);
         }
         objectNode.put("roles", rolesNode);

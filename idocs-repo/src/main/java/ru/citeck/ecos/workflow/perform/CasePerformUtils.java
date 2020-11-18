@@ -31,6 +31,7 @@ import ru.citeck.ecos.model.BpmPackageModel;
 import ru.citeck.ecos.model.CasePerformModel;
 import ru.citeck.ecos.model.EcosProcessModel;
 import ru.citeck.ecos.model.ICaseTaskModel;
+import ru.citeck.ecos.role.CaseRoleAssocsDao;
 import ru.citeck.ecos.role.CaseRoleService;
 import ru.citeck.ecos.utils.RepoUtils;
 import ru.citeck.ecos.workflow.variable.type.*;
@@ -90,8 +91,9 @@ public class CasePerformUtils {
     private Repository repositoryHelper;
     private CaseRoleService caseRoleService;
     private EProcActivityService eprocActivityService;
+    private CaseRoleAssocsDao caseRoleAssocsDao;
 
-    private ObjectMapper objectMapper = new ObjectMapper();
+    private final ObjectMapper objectMapper = new ObjectMapper();
 
     boolean isCommentMandatory(PerformExecution execution, PerformTask task) {
         return isInSplitString(execution, CasePerformModel.PROP_OUTCOMES_WITH_MANDATORY_COMMENT,
@@ -318,7 +320,10 @@ public class CasePerformUtils {
     void setPerformer(PerformTask task, final NodeRef performer) {
 
         final NodeRef currentPerformer = getFirstPerformer(task);
-        final NodeRef caseRoleRef = (NodeRef) task.getVariable(toString(CasePerformModel.ASSOC_CASE_ROLE));
+        final NodeRef caseRoleRef = caseRoleAssocsDao.getRolesByAssoc(task, CasePerformModel.ASSOC_CASE_ROLE)
+            .stream()
+            .findFirst()
+            .orElse(null);
 
         if (caseRoleRef != null) {
 
@@ -506,6 +511,11 @@ public class CasePerformUtils {
     @Autowired
     public void setEprocActivityService(EProcActivityService eprocActivityService) {
         this.eprocActivityService = eprocActivityService;
+    }
+
+    @Autowired
+    public void setCaseRoleAssocsDao(CaseRoleAssocsDao caseRoleAssocsDao) {
+        this.caseRoleAssocsDao = caseRoleAssocsDao;
     }
 
     public ObjectMapper getObjectMapper() {

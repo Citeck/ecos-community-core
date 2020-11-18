@@ -74,6 +74,10 @@
                 <property name="iEvent:successMessageSpanClass">
                     <type>d:text</type>
                 </property>
+                <property name="iEvent:authorizedRoles-prop">
+                    <type>d:text</type>
+                    <multiple>true</multiple>
+                </property>
             </properties>
             <associations>
                 <association name="iEvent:authorizedRoles">

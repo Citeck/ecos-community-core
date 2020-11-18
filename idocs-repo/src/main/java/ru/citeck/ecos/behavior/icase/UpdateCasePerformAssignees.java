@@ -30,6 +30,7 @@ import ru.citeck.ecos.model.ICaseRoleModel;
 import ru.citeck.ecos.model.ICaseTaskModel;
 import ru.citeck.ecos.records2.RecordRef;
 import ru.citeck.ecos.role.CaseRolePolicies;
+import ru.citeck.ecos.role.CaseRoleService;
 import ru.citeck.ecos.service.AlfrescoServices;
 import ru.citeck.ecos.service.CiteckServices;
 import ru.citeck.ecos.utils.AlfActivityUtils;
@@ -59,11 +60,13 @@ public class UpdateCasePerformAssignees implements CaseRolePolicies.OnRoleAssign
     private AlfActivityUtils alfActivityUtils;
     private ActivityCommonService activityCommonService;
     private EProcActivityService eprocActivityService;
+    private CaseRoleService caseRoleService;
 
     @Autowired
     public UpdateCasePerformAssignees(ServiceRegistry serviceRegistry,
                                       ActivityCommonService activityCommonService,
-                                      EProcActivityService eprocActivityService) {
+                                      EProcActivityService eprocActivityService,
+                                      CaseRoleService caseRoleService) {
         this.serviceRegistry = serviceRegistry;
         this.nodeService = serviceRegistry.getNodeService();
         this.runtimeService = (RuntimeService) serviceRegistry.getService(AlfrescoServices.ACTIVITI_RUNTIME_SERVICE);
@@ -72,6 +75,7 @@ public class UpdateCasePerformAssignees implements CaseRolePolicies.OnRoleAssign
         this.alfActivityUtils = (AlfActivityUtils) serviceRegistry.getService(CiteckServices.ALF_ACTIVITY_UTILS);
         this.activityCommonService = activityCommonService;
         this.eprocActivityService = eprocActivityService;
+        this.caseRoleService = caseRoleService;
     }
 
     @PostConstruct
@@ -226,7 +230,7 @@ public class UpdateCasePerformAssignees implements CaseRolePolicies.OnRoleAssign
 
         OptimizedProcessDefinition optimizedProcessDefinition = optimizedDefinitionWithRevisionId.getSecond();
 
-        String varName = (String) nodeService.getProperty(roleRef, ICaseRoleModel.PROP_VARNAME);
+        String varName = caseRoleService.getRoleId(roleRef);
 
         Map<String, Set<ActivityDefinition>> cache = optimizedProcessDefinition.getRoleVarNameToTaskDefinitionCache();
         if (cache == null) {

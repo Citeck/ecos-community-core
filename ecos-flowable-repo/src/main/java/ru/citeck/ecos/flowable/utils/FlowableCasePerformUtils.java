@@ -17,8 +17,11 @@ import org.flowable.engine.impl.persistence.entity.ExecutionEntity;
 import org.flowable.identitylink.api.IdentityLink;
 import org.flowable.task.service.impl.persistence.entity.TaskEntity;
 import org.flowable.variable.api.delegate.VariableScope;
+import org.springframework.beans.factory.annotation.Autowired;
+import ru.citeck.ecos.flowable.activiti.delegates.FlowableVariableScopeDelegate;
 import ru.citeck.ecos.model.CasePerformModel;
 import ru.citeck.ecos.model.ICaseTaskModel;
+import ru.citeck.ecos.role.CaseRoleAssocsDao;
 import ru.citeck.ecos.role.CaseRoleService;
 import ru.citeck.ecos.utils.RepoUtils;
 import ru.citeck.ecos.workflow.perform.CasePerformUtils;
@@ -80,6 +83,7 @@ public class FlowableCasePerformUtils {
     private DictionaryService dictionaryService;
     private Repository repositoryHelper;
     private CaseRoleService caseRoleService;
+    private CaseRoleAssocsDao caseRoleAssocsDao;
 
     /**
      * Check - is comment mandatory
@@ -382,11 +386,16 @@ public class FlowableCasePerformUtils {
      * @param performer Performer
      */
     public void setPerformer(TaskEntity task, final NodeRef performer) {
-        String performerKey = toString(CasePerformModel.ASSOC_PERFORMER);
-        final NodeRef currentPerformer = (NodeRef) task.getVariable(performerKey);
-        final NodeRef caseRoleRef = (NodeRef) task.getVariable(toString(CasePerformModel.ASSOC_CASE_ROLE));
 
-        if (caseRoleRef != null) {
+        String performerKey = toString(CasePerformModel.ASSOC_PERFORMER);
+
+        final NodeRef currentPerformer = (NodeRef) task.getVariable(performerKey);
+        List<NodeRef> caseRoleRefs = caseRoleAssocsDao.getRolesByAssoc(
+            new FlowableVariableScopeDelegate(task), CasePerformModel.ASSOC_CASE_ROLE);
+
+        if (!caseRoleRefs.isEmpty()) {
+
+            NodeRef caseRoleRef = caseRoleRefs.get(0);
 
             AuthenticationUtil.runAsSystem(() -> {
                 caseRoleService.setDelegate(caseRoleRef, currentPerformer, performer);
@@ -525,6 +534,11 @@ public class FlowableCasePerformUtils {
 
     public void setCaseRoleService(CaseRoleService caseRoleService) {
         this.caseRoleService = caseRoleService;
+    }
+
+    @Autowired
+    public void setCaseRoleAssocsDao(CaseRoleAssocsDao caseRoleAssocsDao) {
+        this.caseRoleAssocsDao = caseRoleAssocsDao;
     }
 
     private static class DummyComparator implements Serializable, Comparator<Object> {

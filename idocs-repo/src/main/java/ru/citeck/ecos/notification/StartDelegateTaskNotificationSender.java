@@ -18,6 +18,7 @@
  */
 package ru.citeck.ecos.notification;
 
+import lombok.extern.slf4j.Slf4j;
 import org.activiti.engine.delegate.DelegateTask;
 import org.activiti.engine.impl.persistence.entity.ExecutionEntity;
 import org.activiti.engine.impl.persistence.entity.IdentityLinkEntity;
@@ -41,9 +42,9 @@ import org.alfresco.service.cmr.security.PersonService;
 import org.alfresco.service.cmr.workflow.WorkflowInstance;
 import org.alfresco.service.cmr.workflow.WorkflowTask;
 import org.alfresco.service.namespace.QName;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import ru.citeck.ecos.notification.utils.RecipientsUtils;
+import ru.citeck.ecos.role.CaseRoleService;
 import ru.citeck.ecos.security.NodeOwnerDAO;
 
 import java.io.Serializable;
@@ -74,6 +75,7 @@ import java.util.*;
  * }
  * - notification recipients - provided as parameters
  */
+@Slf4j
 class StartDelegateTaskNotificationSender extends AbstractNotificationSender<DelegateTask> {
 
     // template argument names:
@@ -96,6 +98,7 @@ class StartDelegateTaskNotificationSender extends AbstractNotificationSender<Del
     protected PersonService personService;
     protected AuthenticationService authenticationService;
     protected AuthorityService authorityService;
+    protected CaseRoleService caseRoleService;
     protected boolean sendToOwner;
     protected boolean mandatoryFieldsFilled = true;
     private NodeOwnerDAO nodeOwnerDAO;
@@ -108,8 +111,6 @@ class StartDelegateTaskNotificationSender extends AbstractNotificationSender<Del
     private TemplateService templateService;
     private String nodeVariable;
     private String templateEngine = "freemarker";
-
-    private static Log logger = LogFactory.getLog(StartDelegateTaskNotificationSender.class);
 
     @Override
     public void setServiceRegistry(ServiceRegistry serviceRegistry) {
@@ -139,6 +140,7 @@ class StartDelegateTaskNotificationSender extends AbstractNotificationSender<Del
     }
 
     private Serializable getTaskInfo(DelegateTask task) {
+
         HashMap<String, Object> taskInfo = new HashMap<>();
         taskInfo.put(ARG_TASK_ID, task.getId());
         taskInfo.put(ARG_TASK_NAME, task.getName());
@@ -213,8 +215,8 @@ class StartDelegateTaskNotificationSender extends AbstractNotificationSender<Del
 
 
     private void send(DelegateTask task) {
-        if (logger.isDebugEnabled()) {
-            logger.debug("Method send start..."
+        if (log.isDebugEnabled()) {
+            log.debug("Method send start..."
                     + "\ntask: " + task
                     + "\ninstance: " + toString());
         }
@@ -244,8 +246,8 @@ class StartDelegateTaskNotificationSender extends AbstractNotificationSender<Del
         if (scriptNode != null) {
             workflowPackage = scriptNode.getNodeRef();
         }
-        if (logger.isDebugEnabled()) {
-            logger.debug("workflowPackage: " + workflowPackage
+        if (log.isDebugEnabled()) {
+            log.debug("workflowPackage: " + workflowPackage
                     + "\nsendBasedOnUser:" + sendBasedOnUser);
         }
         if (workflowPackage != null && sendBasedOnUser) {
@@ -264,15 +266,15 @@ class StartDelegateTaskNotificationSender extends AbstractNotificationSender<Del
                     }
                 }
             }
-            if (logger.isDebugEnabled()) {
-                logger.debug("docsInfo: " + getDocsInfo());
+            if (log.isDebugEnabled()) {
+                log.debug("docsInfo: " + getDocsInfo());
             }
             if (getDocsInfo() != null && nodeService.exists(getDocsInfo())) {
                 NotificationContext notificationContext = new NotificationContext();
                 Set<String> recipients = new HashSet<>();
 
-                if (logger.isDebugEnabled()) {
-                    logger.debug("additionRecipients: " + additionRecipients);
+                if (log.isDebugEnabled()) {
+                    log.debug("additionRecipients: " + additionRecipients);
                 }
 
                 if (additionRecipients != null) {
@@ -284,7 +286,7 @@ class StartDelegateTaskNotificationSender extends AbstractNotificationSender<Del
                     List<String> recipientsFromRole = additionRecipients.get(ARG_RECIPIENTS_FROM_ROLE);
                     if (recipientsFromRole != null && recipientsFromRole.size() > 0) {
                         Set<String> roleRecipients = RecipientsUtils.getRecipientsFromRole(recipientsFromRole,
-                                getDocsInfo(), nodeService, dictionaryService);
+                                getDocsInfo(), nodeService, dictionaryService, caseRoleService);
                         if (!roleRecipients.isEmpty()) {
                             recipients.addAll(roleRecipients);
                         }
@@ -295,8 +297,8 @@ class StartDelegateTaskNotificationSender extends AbstractNotificationSender<Del
                 NodeRef template = getNotificationTemplate(task);
                 String notificationProviderName = EMailNotificationProvider.NAME;
 
-                if (logger.isDebugEnabled()) {
-                    logger.debug("template: " + template);
+                if (log.isDebugEnabled()) {
+                    log.debug("template: " + template);
                 }
 
                 if (template != null && nodeService.exists(template)) {
@@ -309,8 +311,8 @@ class StartDelegateTaskNotificationSender extends AbstractNotificationSender<Del
                 notificationContext.setTemplateArgs(getNotificationArgs(task));
                 notificationContext.setAsyncNotification(getAsyncNotification());
 
-                if (logger.isDebugEnabled()) {
-                    logger.debug("recipients:" + recipients);
+                if (log.isDebugEnabled()) {
+                    log.debug("recipients:" + recipients);
                 }
 
                 if (!recipients.isEmpty()) {
@@ -321,8 +323,8 @@ class StartDelegateTaskNotificationSender extends AbstractNotificationSender<Del
 
                 // send
                 if (mandatoryFieldsFilled) {
-                    if (logger.isDebugEnabled()) {
-                        logger.debug("Notification send"
+                    if (log.isDebugEnabled()) {
+                        log.debug("Notification send"
                                 + "\ndocsInfo: " + getDocsInfo()
                                 + "\nnotificationContext: " + notificationContext
                         );
@@ -353,8 +355,8 @@ class StartDelegateTaskNotificationSender extends AbstractNotificationSender<Del
             }
         }
 
-        if (logger.isDebugEnabled()) {
-            logger.debug("getSubject"
+        if (log.isDebugEnabled()) {
+            log.debug("getSubject"
                     + "\ntask: " + task
                     + "\ntemplate: " + template
                     + "\ndocsInfo: " + getDocsInfo()
@@ -497,5 +499,10 @@ class StartDelegateTaskNotificationSender extends AbstractNotificationSender<Del
 
     private NodeRef getDocsInfo() {
         return AlfrescoTransactionSupport.getResource(DOCS_INFO_KEY);
+    }
+
+    @Autowired
+    public void setCaseRoleService(CaseRoleService caseRoleService) {
+        this.caseRoleService = caseRoleService;
     }
 }
