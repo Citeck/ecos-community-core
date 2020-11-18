@@ -213,6 +213,11 @@ public class AlfAutoModelServiceImpl implements AlfAutoModelService {
                 property.setType(propType);
                 modelDef.wasChanged = true;
             }
+
+            if (property.isMultiValued() != propDef.getMultiple()) {
+                property.setMultiValued(propDef.getMultiple());
+                modelDef.wasChanged = true;
+            }
         }
     }
 
