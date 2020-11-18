@@ -197,6 +197,10 @@ public class AlfNodesRecordsDAO extends LocalRecordsDao
                 continue;
             }
 
+            if (name.equals("_caseStatus")) {
+                name = "icase:caseStatusAssoc";
+            }
+
             QName fieldName = QName.resolveToQName(namespaceService, name);
             if (fieldName == null) {
                 continue;
@@ -284,6 +288,7 @@ public class AlfNodesRecordsDAO extends LocalRecordsDao
             }
         }
 
+        replaceCaseStatusAssoc(record);
         if (record.getId() == RecordRef.EMPTY) {
 
             if (!props.containsKey(InvariantsModel.PROP_IS_DRAFT)) {
@@ -356,7 +361,6 @@ public class AlfNodesRecordsDAO extends LocalRecordsDao
             qName, jsonNodes, finalNodeRef, false));
 
         updateNodeDispName(resultRecord.getId());
-        replaceCaseStatusAssoc(resultRecord);
 
         return resultRecord;
     }
@@ -433,6 +437,14 @@ public class AlfNodesRecordsDAO extends LocalRecordsDao
         }
     }
 
+    private void replaceCaseStatusAssoc(RecordMeta record) {
+        DataValue caseStatus = record.get("_caseStatus");
+
+        if (caseStatus.isNotNull()) {
+            record.set("icase:caseStatusAssoc", caseStatus);
+        }
+    }
+
     public boolean updateNodeDispName(RecordRef recordRef) {
 
         if (RecordRef.isEmpty(recordRef) || !NodeRef.isNodeRef(recordRef.getId())) {
@@ -499,14 +511,6 @@ public class AlfNodesRecordsDAO extends LocalRecordsDao
             nodeService.setProperty(nodeRef, ContentModel.PROP_NAME, getValidNameForNode(nodeRef, newName));
         }
         return true;
-    }
-
-    private void replaceCaseStatusAssoc(RecordMeta resultRecord) {
-        DataValue caseStatus = resultRecord.get("_caseStatus");
-
-        if (caseStatus.isNotNull()) {
-            resultRecord.set("icase:caseStatusAssoc", caseStatus);
-        }
     }
 
     private String getValidNameForNode(NodeRef nodeRef, String name) {
