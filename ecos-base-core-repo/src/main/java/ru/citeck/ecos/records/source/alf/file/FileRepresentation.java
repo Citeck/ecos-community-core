@@ -30,6 +30,7 @@ public class FileRepresentation {
     static final String MODEL_FILE_NAME = "filename";
     static final String MODEL_ENCODING = "encoding";
     static final String MODEL_CONTENT = "content";
+    static final String MODEL_BASE64_CONTENT = "base64content";
     static final String MODEL_DATA = "data";
     static final String MODEL_NODE_REF = "nodeRef";
     static final String MODEL_URL = "url";
