@@ -13,16 +13,10 @@
   "width": "default",
   "i18n": {
     "ru": {
-      "green": "Зеленый",
-      "yellow": "Желтый",
-      "red": "Красный",
       "State is empty": "Статус пуст",
       "link-to-korus": "Ссылка на Контур.Фокус"
     },
     "en": {
-      "green": "Green",
-      "yellow": "Yellow",
-      "red": "Red",
       "State is empty": "Status is empty",
       "link-to-korus": "Link to Kontur.Focus"
     }
@@ -56,8 +50,9 @@
           "forceLoad": false
         },
         "update": {
-          "type": "any-change"
+          "type": "once"
         },
+        "executionCondition": "const { icase_caseStatusAssoc_name: statusName } = data || {};\nvalue = !!statusName;",
         "key": "customDataForm",
         "type": "asyncData",
         "input": true
