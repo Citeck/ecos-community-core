@@ -57,6 +57,8 @@ public class ValuePredicateToFtsConverter implements PredicateToFtsConverter {
     private DictUtils dictUtils;
     private AuthorityUtils authorityUtils;
 
+    private final static QName TYPE_D_CATEGORY = QName.createQName("http://www.alfresco.org/model/dictionary/1.0", "category");
+
     @Override
     public void convert(Predicate predicate, FTSQuery query) {
         ValuePredicate valuePredicate = (ValuePredicate) predicate;
@@ -302,7 +304,12 @@ public class ValuePredicateToFtsConverter implements PredicateToFtsConverter {
 
         if (targetTypeName != null) {
 
-            innerQuery.type(targetTypeName);
+            innerQuery.open().type(targetTypeName);
+            if (targetTypeName.equals(TYPE_D_CATEGORY)) {
+                // `d:category` is not inherited from the `cm:category`
+                innerQuery.or().type(ContentModel.TYPE_CATEGORY);
+            }
+            innerQuery.close();
 
             if (targetTypeName.equals(ContentModel.TYPE_PERSON)) {
                 attributes.put(ContentModel.PROP_USERNAME, assocVal);
