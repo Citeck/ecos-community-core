@@ -288,7 +288,6 @@ public class AlfNodesRecordsDAO extends LocalRecordsDao
             }
         }
 
-        replaceCaseStatusAssoc(record);
         if (record.getId() == RecordRef.EMPTY) {
 
             if (!props.containsKey(InvariantsModel.PROP_IS_DRAFT)) {
@@ -434,14 +433,6 @@ public class AlfNodesRecordsDAO extends LocalRecordsDao
             return name.substring(REMOVE_CMD_PREFIX.length());
         } else {
             return name;
-        }
-    }
-
-    private void replaceCaseStatusAssoc(RecordMeta record) {
-        DataValue caseStatus = record.get("_caseStatus");
-
-        if (caseStatus.isNotNull()) {
-            record.set("icase:caseStatusAssoc", caseStatus);
         }
     }
 
