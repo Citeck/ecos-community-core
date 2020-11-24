@@ -302,7 +302,7 @@ public class ValuePredicateToFtsConverter implements PredicateToFtsConverter {
 
         if (targetTypeName != null) {
 
-            innerQuery.open().type(targetTypeName);
+            innerQuery.type(targetTypeName);
 
             if (targetTypeName.equals(ContentModel.TYPE_PERSON)) {
                 attributes.put(ContentModel.PROP_USERNAME, assocVal);
