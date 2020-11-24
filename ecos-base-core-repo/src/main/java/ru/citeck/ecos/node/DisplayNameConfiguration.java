@@ -2,6 +2,7 @@ package ru.citeck.ecos.node;
 
 import org.alfresco.model.ContentModel;
 import org.alfresco.service.cmr.repository.MLText;
+import org.alfresco.service.cmr.security.AuthorityType;
 import org.alfresco.service.namespace.QName;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -60,8 +61,11 @@ public class DisplayNameConfiguration {
 
         String displayName = (String) props.get(ContentModel.PROP_AUTHORITY_DISPLAY_NAME);
         String authorityName = (String) props.get(ContentModel.PROP_AUTHORITY_NAME);
-
-        return StringUtils.isNotBlank(displayName) ? displayName : authorityName;
+        String authNameWithoutPrefix = "";
+        if (authorityName != null) {
+            authNameWithoutPrefix = authorityName.replaceFirst(AuthorityType.GROUP.getPrefixString(), "");
+        }
+        return StringUtils.isNotBlank(displayName) ? displayName : authNameWithoutPrefix;
     }
 
     public String evalDefaultDisplayName(AlfNodeInfo info) {
