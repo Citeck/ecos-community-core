@@ -303,11 +303,6 @@ public class ValuePredicateToFtsConverter implements PredicateToFtsConverter {
         if (targetTypeName != null) {
 
             innerQuery.open().type(targetTypeName);
-            if (targetTypeName.equals(DataTypeDefinition.CATEGORY)) {
-                // `d:category` is not inherited from the `cm:category`
-                innerQuery.or().type(ContentModel.TYPE_CATEGORY);
-            }
-            innerQuery.close();
 
             if (targetTypeName.equals(ContentModel.TYPE_PERSON)) {
                 attributes.put(ContentModel.PROP_USERNAME, assocVal);
@@ -613,7 +608,7 @@ public class ValuePredicateToFtsConverter implements PredicateToFtsConverter {
                 return;
             }
             if (DataTypeDefinition.CATEGORY.equals(typeName)) {
-                addNodeRefSearchTerms(query, field, DataTypeDefinition.CATEGORY, predicateValue);
+                addNodeRefSearchTerms(query, field, ContentModel.TYPE_CATEGORY, predicateValue);
                 return;
             }
             if (DataTypeDefinition.NODE_REF.equals(typeName)) {
