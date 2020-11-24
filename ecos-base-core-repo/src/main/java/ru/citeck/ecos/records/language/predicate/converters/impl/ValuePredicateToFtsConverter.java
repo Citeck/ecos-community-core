@@ -608,7 +608,7 @@ public class ValuePredicateToFtsConverter implements PredicateToFtsConverter {
                 return;
             }
             if (DataTypeDefinition.CATEGORY.equals(typeName)) {
-                addNodeRefSearchTerms(query, field, DataTypeDefinition.CATEGORY, predicateValue);
+                addNodeRefSearchTerms(query, field, ContentModel.TYPE_CATEGORY, predicateValue);
                 return;
             }
             if (DataTypeDefinition.NODE_REF.equals(typeName)) {
