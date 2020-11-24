@@ -345,7 +345,7 @@ public class FlowableTaskServiceImpl implements FlowableTaskService, EngineTaskS
 
         @Override
         public WorkflowInstance getWorkflow() {
-            WorkflowTask wfTask = workflowService.getTaskById(this.getId());
+            WorkflowTask wfTask = workflowService.getTaskById("flowable$" + this.getId());
             WorkflowPath wfPath = wfTask.getPath();
             return wfPath.getInstance();
         }
