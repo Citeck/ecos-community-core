@@ -15,11 +15,14 @@ import org.alfresco.service.cmr.site.SiteVisibility;
 import org.alfresco.service.namespace.NamespaceService;
 import org.alfresco.service.namespace.QName;
 import org.apache.commons.lang.StringUtils;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import ru.citeck.ecos.commons.data.ObjectData;
 import ru.citeck.ecos.model.EcosTypeModel;
+import ru.citeck.ecos.model.lib.ModelServiceFactory;
 import ru.citeck.ecos.records.type.NumTemplateDto;
 import ru.citeck.ecos.records.type.TypeDto;
 import ru.citeck.ecos.records.type.TypesManager;
@@ -33,7 +36,6 @@ import ru.citeck.ecos.search.ftsquery.FTSQuery;
 
 import java.io.Serializable;
 import java.util.*;
-import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Function;
 
 @Service("ecosTypeService")
@@ -47,6 +49,7 @@ public class EcosTypeService {
 
     private EvaluatorsByAlfNode<RecordRef> evaluators;
     private PermissionService permissionService;
+    private ModelServiceFactory modelServices;
     private RecordsService recordsService;
     private SearchService searchService;
     private SiteService siteService;
@@ -108,42 +111,54 @@ public class EcosTypeService {
     }
 
     @Nullable
-    public Long getNumberForDocument(RecordRef docRef) {
+    public Long getNumberForDocument(@NotNull RecordRef docRef) {
+        return getNumberForDocument(docRef, null);
+    }
 
-        RecordRef typeRef = recordsService.getAttribute(docRef, "_etype?id").getAs(RecordRef.class);
+    @Nullable
+    public Long getNumberForDocument(@NotNull RecordRef docRef, @Nullable RecordRef numTemplateRef) {
 
-        if (typesManager == null || RecordRef.isEmpty(typeRef) || RecordRef.isEmpty(docRef)) {
-            return null;
+        if (typesManager == null) {
+            throw new IllegalStateException("typesManager is null");
         }
 
-        AtomicReference<Long> result = new AtomicReference<>();
-
-        forEachAsc(typeRef, typeDto -> {
-
-            RecordRef numTemplateRef = typeDto.getNumTemplateRef();
-
-            if (RecordRef.isNotEmpty(numTemplateRef)) {
-
-                NumTemplateDto numTemplate = typesManager.getNumTemplate(numTemplateRef);
-
-                if (numTemplate != null) {
-
-                    ObjectData model;
-                    if (numTemplate.getModelAttributes() != null) {
-                        model = recordsService.getAttributes(docRef, numTemplate.getModelAttributes()).getAttributes();
-                    } else {
-                        model = ObjectData.create();
-                    }
-
-                    result.set(typesManager.getNextNumber(numTemplateRef, model));
-                    return true;
-                }
+        if (numTemplateRef == null) {
+            numTemplateRef = getNumTemplateByRecord(docRef);
+            if (RecordRef.isEmpty(numTemplateRef)) {
+                return null;
             }
+        }
 
-            return !typeDto.isInheritNumTemplate();
-        });
+        NumTemplateDto numTemplate = typesManager.getNumTemplate(numTemplateRef);
+        if (numTemplate == null) {
+            throw new IllegalStateException("Number template is not found for ref: '" + numTemplateRef + "'");
+        }
 
-        return result.get();
+        ObjectData model;
+        if (numTemplate.getModelAttributes() != null) {
+            model = recordsService.getAttributes(docRef, numTemplate.getModelAttributes()).getAttributes();
+        } else {
+            model = ObjectData.create();
+        }
+
+        return typesManager.getNextNumber(numTemplateRef, model);
+    }
+
+    @Nullable
+    public RecordRef getNumTemplateByTypeRef(@Nullable RecordRef typeRef) {
+        if (typeRef == null || RecordRef.isEmpty(typeRef)) {
+            return null;
+        }
+        return modelServices.getTypeDefService().getNumTemplate(typeRef);
+    }
+
+    @Nullable
+    private RecordRef getNumTemplateByRecord(RecordRef recordRef) {
+        if (RecordRef.isEmpty(recordRef)) {
+            return null;
+        }
+        RecordRef typeRef = recordsService.getAttribute(recordRef, "_type?id").getAs(RecordRef.class);
+        return getNumTemplateByTypeRef(typeRef);
     }
 
     public void forEachDesc(RecordRef typeRef, Function<TypeDto, Boolean> action) {
@@ -331,6 +346,12 @@ public class EcosTypeService {
         return expectedProps.entrySet()
             .stream()
             .allMatch(it -> Objects.equals(it.getValue(), baseProps.get(it.getKey())));
+    }
+
+    @Lazy
+    @Autowired
+    public void setModelServices(ModelServiceFactory modelServices) {
+        this.modelServices = modelServices;
     }
 
     @Autowired(required = false)

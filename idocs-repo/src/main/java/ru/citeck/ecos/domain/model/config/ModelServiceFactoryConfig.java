@@ -75,7 +75,13 @@ public class ModelServiceFactoryConfig extends ModelServiceFactory {
                 if (typeDto == null || typeDto.getId() == null) {
                     return null;
                 }
-                return new TypeDef(typeDto.getId(), typeDto.getParentRef(), typeDto.getModel());
+                return new TypeDef(
+                    typeDto.getId(),
+                    typeDto.getParentRef(),
+                    typeDto.getModel(),
+                    typeDto.getNumTemplateRef(),
+                    typeDto.isInheritNumTemplate()
+                );
             }
 
             @NotNull
