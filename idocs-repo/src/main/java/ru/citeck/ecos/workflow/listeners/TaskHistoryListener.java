@@ -41,7 +41,7 @@ import ru.citeck.ecos.history.TaskHistoryUtils;
 import ru.citeck.ecos.model.CiteckWorkflowModel;
 import ru.citeck.ecos.model.HistoryModel;
 import ru.citeck.ecos.model.ICaseTaskModel;
-import ru.citeck.ecos.records2.RecordsService;
+import ru.citeck.ecos.role.CaseRoleService;
 import ru.citeck.ecos.service.CiteckServices;
 
 import java.io.Serializable;
@@ -77,6 +77,7 @@ public class TaskHistoryListener extends AbstractTaskListener {
     private DeputyService deputyService;
     private TaskDataListenerUtils taskDataListenerUtils;
     private List<String> panelOfAuthorized; //группа уполномоченных
+    private CaseRoleService caseRoleService;
 
     private WorkflowQNameConverter qNameConverter;
     private String VAR_OUTCOME_PROPERTY_NAME;
@@ -141,7 +142,7 @@ public class TaskHistoryListener extends AbstractTaskListener {
 
         String roleName;
         if (assignee != null && CollectionUtils.isNotEmpty(panelOfAuthorized)) {
-            List<NodeRef> listRoles = taskHistoryUtils.getListRoles(document);
+            List<NodeRef> listRoles = caseRoleService.getRoles(document);
             String authorizedName = taskHistoryUtils.getAuthorizedName(panelOfAuthorized, listRoles, assignee);
             roleName = StringUtils.isNoneBlank(authorizedName) ? authorizedName : taskHistoryUtils.getRoleName(
                 packageAssocs, assignee, task.getId(), ActivitiConstants.ENGINE_ID);
@@ -252,6 +253,11 @@ public class TaskHistoryListener extends AbstractTaskListener {
 
     public void setPanelOfAuthorized(List<String> panelOfAuthorized) {
         this.panelOfAuthorized = panelOfAuthorized;
+    }
+
+    @Autowired
+    public void setCaseRoleService(CaseRoleService caseRoleService) {
+        this.caseRoleService = caseRoleService;
     }
 
     @Autowired

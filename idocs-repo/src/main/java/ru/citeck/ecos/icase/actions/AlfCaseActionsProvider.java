@@ -4,7 +4,6 @@ import org.alfresco.model.ContentModel;
 import org.alfresco.repo.model.Repository;
 import org.alfresco.service.ServiceRegistry;
 import org.alfresco.service.cmr.dictionary.DictionaryService;
-import org.alfresco.service.cmr.repository.AssociationRef;
 import org.alfresco.service.cmr.repository.NodeRef;
 import org.alfresco.service.cmr.repository.NodeService;
 import org.alfresco.service.cmr.security.AuthorityService;
@@ -23,8 +22,9 @@ import ru.citeck.ecos.icase.activity.dto.CaseServiceType;
 import ru.citeck.ecos.icase.activity.dto.EventRef;
 import ru.citeck.ecos.icase.activity.service.CaseActivityEventService;
 import ru.citeck.ecos.model.EventModel;
-import ru.citeck.ecos.model.ICaseRoleModel;
 import ru.citeck.ecos.records2.RecordRef;
+import ru.citeck.ecos.role.CaseRoleAssocsDao;
+import ru.citeck.ecos.role.CaseRoleService;
 import ru.citeck.ecos.service.CiteckServices;
 import ru.citeck.ecos.utils.RepoUtils;
 
@@ -38,16 +38,20 @@ public class AlfCaseActionsProvider implements CaseActionsProvider {
 
     private static final String FIRE_EVENT_URL_TEMPLATE = "citeck/event/fire-event?eventRef=%s";
 
-    private CaseActivityEventService caseActivityEventService;
-    private NodeService nodeService;
-    private DictionaryService dictionaryService;
-    private AuthorityService authorityService;
-    private NamespaceService namespaceService;
-    private Repository repositoryHelper;
+    private final CaseActivityEventService caseActivityEventService;
+    private final NodeService nodeService;
+    private final DictionaryService dictionaryService;
+    private final AuthorityService authorityService;
+    private final NamespaceService namespaceService;
+    private final Repository repositoryHelper;
+    private final CaseRoleService caseRoleService;
+    private final CaseRoleAssocsDao caseRoleAssocsDao;
 
     @Autowired
     public AlfCaseActionsProvider(ServiceRegistry serviceRegistry,
-                                  @Qualifier("repositoryHelper") Repository repositoryHelper) {
+                                  @Qualifier("repositoryHelper") Repository repositoryHelper,
+                                  CaseRoleService caseRoleService,
+                                  CaseRoleAssocsDao caseRoleAssocsDao) {
 
         this.caseActivityEventService = (CaseActivityEventService) serviceRegistry
                 .getService(CiteckServices.CASE_ACTIVITY_EVENT_SERVICE);
@@ -56,6 +60,8 @@ public class AlfCaseActionsProvider implements CaseActionsProvider {
         this.authorityService = serviceRegistry.getAuthorityService();
         this.namespaceService = serviceRegistry.getNamespaceService();
         this.repositoryHelper = repositoryHelper;
+        this.caseRoleService = caseRoleService;
+        this.caseRoleAssocsDao = caseRoleAssocsDao;
     }
 
     @Override
@@ -119,14 +125,14 @@ public class AlfCaseActionsProvider implements CaseActionsProvider {
 
     private boolean checkRoles(NodeRef eventNodeRef) {
 
-        List<AssociationRef> roleAssocList = nodeService.getTargetAssocs(eventNodeRef, EventModel.ASSOC_AUTHORIZED_ROLES);
-        if (roleAssocList == null || roleAssocList.isEmpty()) {
+        List<NodeRef> roleAssocList = caseRoleAssocsDao.getRolesByAssoc(eventNodeRef, EventModel.ASSOC_AUTHORIZED_ROLES);
+        if (roleAssocList.isEmpty()) {
             return true;
         }
 
         Set<String> authorizedAuthorities = new HashSet<>();
-        for (AssociationRef ref : roleAssocList) {
-            List<NodeRef> assignees = RepoUtils.getTargetAssoc(ref.getTargetRef(), ICaseRoleModel.ASSOC_ASSIGNEES, nodeService);
+        for (NodeRef ref : roleAssocList) {
+            Set<NodeRef> assignees = caseRoleService.getAssignees(ref);
             for (NodeRef assignee : assignees) {
                 authorizedAuthorities.add(RepoUtils.getAuthorityName(assignee, nodeService, dictionaryService));
             }

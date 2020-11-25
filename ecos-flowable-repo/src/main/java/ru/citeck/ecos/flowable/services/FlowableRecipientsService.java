@@ -18,7 +18,7 @@ public interface FlowableRecipientsService {
      * Email addresses must be comma {@code EMAIL_SEPARATOR} separated.
      *
      * @param document     nodeRef of document
-     * @param caseRoleName name {@code ICaseRoleModel.PROP_VARNAME} of case role
+     * @param caseRoleName name of case role
      * @return emails comma {@code EMAIL_SEPARATOR} separated from case role
      */
     String getRoleEmails(NodeRef document, String caseRoleName);
@@ -45,7 +45,7 @@ public interface FlowableRecipientsService {
      * its usually uses in recipients groups in user task.
      *
      * @param document     nodeRef of document
-     * @param caseRoleName name {@code ICaseRoleModel.PROP_VARNAME} of case role
+     * @param caseRoleName name of case role
      * @return groups names from case role
      */
     Set<String> getRoleGroups(NodeRef document, String caseRoleName);

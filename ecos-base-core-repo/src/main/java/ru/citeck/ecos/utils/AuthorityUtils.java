@@ -99,6 +99,12 @@ public class AuthorityUtils {
     }
 
     public NodeRef getNodeRef(String authority) {
+        if (authority == null) {
+            return null;
+        }
+        if (authority.startsWith("workspace://SpacesStore/")) {
+            return new NodeRef(authority);
+        }
         return authorityService.getAuthorityNodeRef(authority);
     }
 

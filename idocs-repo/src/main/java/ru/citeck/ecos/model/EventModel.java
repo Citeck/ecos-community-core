@@ -31,6 +31,7 @@ public class EventModel {
     public static final QName ASSOC_EVENT_SOURCE = QName.createQName(NAMESPACE, "eventSource");
     public static final QName ASSOC_CONDITIONS = QName.createQName(NAMESPACE, "conditions");
     public static final QName ASSOC_AUTHORIZED_ROLES = QName.createQName(NAMESPACE, "authorizedRoles");
+    public static final QName ASSOC_AUTHORIZED_ROLES_PROP = QName.createQName(NAMESPACE, "authorizedRoles_prop");
     public static final QName ASSOC_ADDITIONAL_DATA_ITEMS = QName.createQName(NAMESPACE, "additionalDataItems");
     public static final QName ASSOC_CONFIRMER = QName.createQName(NAMESPACE, "confirmer");
     public static final QName ASSOC_PERFORMERS = QName.createQName(NAMESPACE, "performers");

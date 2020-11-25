@@ -269,7 +269,6 @@ public class CaseDocumentRecordsDao extends LocalRecordsDao implements LocalReco
         RecordRef recordRef = RecordRef.valueOf(recordRefStr);
 
         if (!NodeRef.isNodeRef(recordRef.getId())) {
-            log.warn("'" + recordRefStr + "' can't be converted to NodeRef");
             result.setRecords(Collections.emptyList());
             return result;
         }

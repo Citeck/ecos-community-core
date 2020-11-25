@@ -21,6 +21,7 @@ import ru.citeck.ecos.domain.model.alf.service.AlfAutoModelService;
 import ru.citeck.ecos.model.EcosModel;
 import ru.citeck.ecos.model.EcosTypeModel;
 import ru.citeck.ecos.model.InvariantsModel;
+import ru.citeck.ecos.model.lib.type.service.TypeDefService;
 import ru.citeck.ecos.node.AlfNodeInfo;
 import ru.citeck.ecos.node.AlfNodeInfoImpl;
 import ru.citeck.ecos.node.EcosTypeService;
@@ -48,6 +49,8 @@ import ru.citeck.ecos.records2.source.dao.RecordsQueryDao;
 import ru.citeck.ecos.records2.source.dao.local.LocalRecordsDao;
 import ru.citeck.ecos.records2.source.dao.local.v2.LocalRecordsMetaDao;
 import ru.citeck.ecos.records2.source.dao.local.v2.LocalRecordsQueryWithMetaDao;
+import ru.citeck.ecos.records3.record.op.atts.service.computed.ComputedAtt;
+import ru.citeck.ecos.records3.record.op.atts.service.computed.ComputedAttType;
 import ru.citeck.ecos.security.EcosPermissionService;
 import ru.citeck.ecos.utils.NodeUtils;
 
@@ -92,6 +95,7 @@ public class AlfNodesRecordsDAO extends LocalRecordsDao
     private AlfNodeContentFileHelper contentFileHelper;
     private EcosPermissionService ecosPermissionService;
     private TypesManager typeInfoProvider;
+    private TypeDefService typeDefService;
     private ServiceRegistry serviceRegistry;
     private RecordsTemplateService recordsTemplateService;
     private AlfAutoModelService alfAutoModelService;
@@ -304,7 +308,11 @@ public class AlfNodesRecordsDAO extends LocalRecordsDao
             }
         }
 
+        boolean isNewNode = false;
+
         if (record.getId() == RecordRef.EMPTY) {
+
+            isNewNode = true;
 
             if (!props.containsKey(InvariantsModel.PROP_IS_DRAFT)) {
                 props.put(InvariantsModel.PROP_IS_DRAFT, false);
@@ -343,11 +351,6 @@ public class AlfNodesRecordsDAO extends LocalRecordsDao
 
             resultRecord = new RecordMeta(RecordRef.valueOf(nodeRef.toString()));
 
-            Long number = ecosTypeService.getNumberForDocument(RecordRef.valueOf(nodeRef.toString()));
-            if (number != null) {
-                nodeService.setProperty(nodeRef, EcosModel.PROP_DOC_NUM, number);
-            }
-
         } else {
 
             Map<QName, Serializable> currentProps = nodeService.getProperties(nodeRef);
@@ -375,9 +378,64 @@ public class AlfNodesRecordsDAO extends LocalRecordsDao
         attachmentAssocEformFiles.forEach((qName, jsonNodes) -> contentFileHelper.processAssocFilesContent(
             qName, jsonNodes, finalNodeRef, false));
 
+        if (isNewNode) {
+            Map<String, Long> counterProps = getCounterProps(nodeRef);
+            if (!counterProps.isEmpty()) {
+                RecordMeta meta = new RecordMeta(
+                    RecordRef.valueOf(nodeRef.toString()),
+                    ObjectData.create(counterProps)
+                );
+                processSingleRecord(meta);
+            }
+        }
+
         updateNodeDispName(resultRecord.getId());
 
         return resultRecord;
+    }
+
+    private Map<String, Long> getCounterProps(NodeRef nodeRef) {
+
+        RecordRef documentRef = RecordRef.valueOf(nodeRef.toString());
+        RecordRef documentTypeRef = ecosTypeService.getEcosType(nodeRef);
+
+        if (RecordRef.isEmpty(documentTypeRef)) {
+            return Collections.emptyMap();
+        }
+
+        Map<String, Long> counterProps = new HashMap<>();
+
+        RecordRef docNumTemplateRef = ecosTypeService.getNumTemplateByTypeRef(documentTypeRef);
+        Long number = ecosTypeService.getNumberForDocument(
+            RecordRef.valueOf(nodeRef.toString()),
+            docNumTemplateRef
+        );
+        if (number != null) {
+            counterProps.put(EcosModel.PROP_DOC_NUM.toPrefixString(namespaceService), number);
+        }
+
+        List<ComputedAtt> computedAtts = typeDefService.getComputedAtts(documentTypeRef);
+
+        for (ComputedAtt att : computedAtts) {
+
+            if (att.getDef().getType() != ComputedAttType.COUNTER) {
+                continue;
+            }
+
+            String numTemplateRefStr = att.getDef().getConfig().get("numTemplateRef").asText();
+            RecordRef numTemplateRef = RecordRef.valueOf(numTemplateRefStr);
+            if (RecordRef.isEmpty(numTemplateRef)) {
+                log.error("Computed attribute with type COUNTER and without numTemplateRef: " + att);
+            } else {
+                Long attNumber = ecosTypeService.getNumberForDocument(
+                    documentRef,
+                    numTemplateRef
+                );
+                counterProps.put(att.getId(), attNumber);
+            }
+        }
+
+        return counterProps;
     }
 
     private RecordRef handleETypeAttribute(ObjectData attributes, Map<QName, Serializable> props) {
@@ -740,6 +798,11 @@ public class AlfNodesRecordsDAO extends LocalRecordsDao
         this.searchService = serviceRegistry.getSearchService();
         this.nodeService = serviceRegistry.getNodeService();
         this.serviceRegistry = serviceRegistry;
+    }
+
+    @Autowired
+    public void setTypeDefService(TypeDefService typeDefService) {
+        this.typeDefService = typeDefService;
     }
 
     @Autowired

@@ -114,7 +114,7 @@ public class CommentRecords extends LocalRecordsCrudDao<CommentDTO> {
 
         String id = query.record.getId();
         if (!NodeRef.isNodeRef(id)) {
-            throw new IllegalArgumentException("Record id should be NodeRef format");
+            return new RecordsQueryResult<>();
         }
 
         NodeRef recordRef = new NodeRef(id);

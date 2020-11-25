@@ -1,14 +1,14 @@
 package ru.citeck.ecos.notification;
 
-
+import lombok.extern.slf4j.Slf4j;
 import org.alfresco.service.cmr.repository.*;
 import org.alfresco.service.namespace.NamespaceService;
 import org.alfresco.service.namespace.QName;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.extensions.surf.util.I18NUtil;
 import ru.citeck.ecos.icase.CaseStatusService;
 import ru.citeck.ecos.notification.utils.RecipientsUtils;
+import ru.citeck.ecos.role.CaseRoleService;
 
 import java.io.Serializable;
 import java.util.*;
@@ -16,12 +16,14 @@ import java.util.*;
 /**
  * @author Roman Makarskiy
  */
+@Slf4j
 public class ICaseDocumentNotificationSender extends DocumentNotificationSender {
 
     protected NodeService nodeService;
     private NamespaceService namespaceService;
     private TemplateService templateService;
     private CaseStatusService caseStatusService;
+    private CaseRoleService caseRoleService;
 
     private String nodeVariable;
     private String templateEngine;
@@ -41,8 +43,6 @@ public class ICaseDocumentNotificationSender extends DocumentNotificationSender 
     private static final String INCLUDE_KEY = "include";
     private static final String EXCLUDE_KEY = "exclude";
 
-    private static Log logger = LogFactory.getLog(ICaseDocumentNotificationSender.class);
-
     @Override
     protected Collection<String> getNotificationRecipients(NodeRef item) {
         List<QName> assocRecipients = convertStringToQNameList(recipients.get(ASSOC_RECIPIENTS_KEY));
@@ -59,8 +59,13 @@ public class ICaseDocumentNotificationSender extends DocumentNotificationSender 
         }
 
         if (assocRecipientsFromICaseRole != null) {
-            Set<String> roleRecipients = RecipientsUtils.getRecipientsFromRole(assocRecipientsFromICaseRole, item,
-                                                                               nodeService, dictionaryService);
+            Set<String> roleRecipients = RecipientsUtils.getRecipientsFromRole(
+                assocRecipientsFromICaseRole,
+                item,
+                nodeService,
+                dictionaryService,
+                caseRoleService
+            );
             if (!roleRecipients.isEmpty()) {
                 finalRecipients.addAll(roleRecipients);
             }
@@ -105,8 +110,8 @@ public class ICaseDocumentNotificationSender extends DocumentNotificationSender 
         this.subjectTemplate = subjectTemplate;
         super.sendNotification(sourceRef, afterCommit);
 
-        if (logger.isDebugEnabled()) {
-            logger.debug("\nSend notification - "
+        if (log.isDebugEnabled()) {
+            log.debug("\nSend notification - "
                     + "\nsource nodeRef: " + sourceRef
                     + "\ntarget nodeRef: " + targetRef
                     + "\nrecipients: " + recipients
@@ -146,7 +151,7 @@ public class ICaseDocumentNotificationSender extends DocumentNotificationSender 
             return true;
         }
         if (!nodeService.exists(iCase)) {
-            logger.error("Cannot check aspect condition, because node: " + iCase + " doesn't exists");
+            log.error("Cannot check aspect condition, because node: " + iCase + " doesn't exists");
             return false;
         }
 
@@ -156,8 +161,8 @@ public class ICaseDocumentNotificationSender extends DocumentNotificationSender 
         if (includeAspects != null && !includeAspects.isEmpty()) {
             for (QName aspect : includeAspects) {
                 if (!nodeService.hasAspect(iCase, aspect)) {
-                    if (logger.isDebugEnabled()) {
-                        logger.debug("Aspect condition failed. iCase: " + iCase + " don`t have aspect: " + aspect);
+                    if (log.isDebugEnabled()) {
+                        log.debug("Aspect condition failed. iCase: " + iCase + " don`t have aspect: " + aspect);
                     }
                     return false;
                 }
@@ -168,8 +173,8 @@ public class ICaseDocumentNotificationSender extends DocumentNotificationSender 
         if (excludeAspects != null && !excludeAspects.isEmpty()) {
             for (QName aspect : excludeAspects) {
                 if (nodeService.hasAspect(iCase, aspect)) {
-                    if (logger.isDebugEnabled()) {
-                        logger.debug("Aspect condition failed. iCase: " + iCase + " have aspect: " + aspect);
+                    if (log.isDebugEnabled()) {
+                        log.debug("Aspect condition failed. iCase: " + iCase + " have aspect: " + aspect);
                     }
                     return false;
                 }
@@ -181,7 +186,7 @@ public class ICaseDocumentNotificationSender extends DocumentNotificationSender 
 
     private boolean existExcludeStatus(NodeRef iCase) {
         if (!nodeService.exists(iCase)) {
-            logger.error("Cannot check exclude statuses, because node: " + iCase + " doesn't exists");
+            log.error("Cannot check exclude statuses, because node: " + iCase + " doesn't exists");
             return false;
         }
         String status = caseStatusService.getStatus(iCase);
@@ -226,5 +231,10 @@ public class ICaseDocumentNotificationSender extends DocumentNotificationSender 
 
     public void setPriorityLocale(Locale priorityLocale) {
         this.priorityLocale = priorityLocale;
+    }
+
+    @Autowired
+    public void setCaseRoleService(CaseRoleService caseRoleService) {
+        this.caseRoleService = caseRoleService;
     }
 }

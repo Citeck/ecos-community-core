@@ -14,8 +14,8 @@ import ru.citeck.ecos.icase.activity.service.eproc.EProcUtils;
 import ru.citeck.ecos.icase.activity.service.eproc.importer.parser.CmmnDefinitionConstants;
 import ru.citeck.ecos.model.CasePerformModel;
 import ru.citeck.ecos.model.RouteModel;
+import ru.citeck.ecos.role.CaseRoleAssocsDao;
 import ru.citeck.ecos.role.CaseRoleService;
-import ru.citeck.ecos.utils.NodeUtils;
 import ru.citeck.ecos.utils.RepoUtils;
 import ru.citeck.ecos.workflow.confirm.PrecedenceToJsonListener;
 import ru.citeck.ecos.workflow.variable.type.TaskConfig;
@@ -30,14 +30,15 @@ public class CasePerformAttributesConverter implements CaseTaskAttributesConvert
 
     private DictionaryService dictionaryService;
     private CaseRoleService caseRoleService;
+    private CaseRoleAssocsDao caseRoleAssocsDao;
     private NodeService nodeService;
-    private NodeUtils nodeUtils;
 
     private CasePerformUtils utils;
 
     @Override
     public Map<QName, Serializable> convert(Map<QName, Serializable> properties, NodeRef taskRef) {
-        List<NodeRef> performersRoles = nodeUtils.getAssocTargets(taskRef, CasePerformModel.ASSOC_PERFORMERS_ROLES);
+        List<NodeRef> performersRoles =
+            caseRoleAssocsDao.getRolesByAssoc(taskRef, CasePerformModel.ASSOC_PERFORMERS_ROLES);
         return convertImpl(properties, performersRoles);
     }
 
@@ -55,6 +56,7 @@ public class CasePerformAttributesConverter implements CaseTaskAttributesConvert
     }
 
     private Map<QName, Serializable> convertImpl(Map<QName, Serializable> properties, List<NodeRef> performersRoles) {
+
         Map<QName, Serializable> result = new HashMap<>(properties);
 
         TaskStages stages = new TaskStages();
@@ -67,7 +69,8 @@ public class CasePerformAttributesConverter implements CaseTaskAttributesConvert
 
             caseRoleService.updateRole(roleRef);
 
-            if (nodeService.hasAspect(roleRef, RouteModel.ASPECT_HAS_PRECEDENCE)) {
+            if (caseRoleService.isAlfRole(roleRef)
+                    && nodeService.hasAspect(roleRef, RouteModel.ASPECT_HAS_PRECEDENCE)) {
 
                 String precedence = (String) nodeService.getProperty(roleRef, RouteModel.PROP_PRECEDENCE);
 
@@ -163,7 +166,7 @@ public class CasePerformAttributesConverter implements CaseTaskAttributesConvert
     }
 
     @Autowired
-    public void setNodeUtils(NodeUtils nodeUtils) {
-        this.nodeUtils = nodeUtils;
+    public void setCaseRoleAssocsDao(CaseRoleAssocsDao caseRoleAssocsDao) {
+        this.caseRoleAssocsDao = caseRoleAssocsDao;
     }
 }

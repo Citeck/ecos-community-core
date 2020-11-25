@@ -38,7 +38,6 @@ import ru.citeck.ecos.records3.record.resolver.LocalRecordsResolver;
 import ru.citeck.ecos.records3.record.resolver.RemoteRecordsResolver;
 import ru.citeck.ecos.records2.rest.*;
 import ru.citeck.ecos.records2.source.dao.local.meta.MetaRecordsDaoAttsProvider;
-import ru.citeck.ecos.records2.type.RecordTypeService;
 import ru.citeck.ecos.records3.rest.RestHandlerAdapter;
 import ru.citeck.ecos.records3.txn.RecordsTxnService;
 
@@ -211,13 +210,6 @@ public class RecordsConfiguration extends RecordsServiceFactory {
     @Override
     protected MetaRecordsDaoAttsProvider createMetaRecordsDaoAttsProvider() {
         return super.createMetaRecordsDaoAttsProvider();
-    }
-
-    @Bean
-    @NotNull
-    @Override
-    protected RecordTypeService createRecordTypeService() {
-        return new RecordsTypeServiceImpl(typeInfoProvider);
     }
 
     @Bean

@@ -19,6 +19,10 @@
 package ru.citeck.ecos.role;
 
 import org.alfresco.service.cmr.repository.NodeRef;
+import org.alfresco.service.namespace.QName;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+import ru.citeck.ecos.model.lib.role.dto.RoleDef;
 
 import java.util.Collection;
 import java.util.List;
@@ -31,18 +35,36 @@ import java.util.Set;
  */
 public interface CaseRoleService {
 
+    QName QNAME = QName.createQName("", "caseRoleService");
+
     /**
      * Get all roles in specified case or empty list if caseRef is null or not exists
      * @return list of roles
      */
     List<NodeRef> getRoles(NodeRef caseRef);
 
+    List<RoleDef> getRolesDef(NodeRef caseRef);
+
     /**
      * Get role by name in specified case
      * @return role or null if role not found
      * @throws IllegalArgumentException if name is null or empty
      */
+    @Nullable
     NodeRef getRole(NodeRef caseRef, String name);
+
+    @NotNull
+    String getRoleId(NodeRef roleRef);
+
+    @NotNull
+    String getRoleDispName(NodeRef roleRef);
+
+    @NotNull
+    NodeRef getRoleCaseRef(NodeRef roleRef);
+
+    boolean isAlfRole(NodeRef roleRef);
+
+    RoleDef getRoleDef(NodeRef roleRef);
 
     /**
      * Get roles by user in specified case

@@ -61,6 +61,12 @@
 
     <aspects>
         <aspect name="icaseRole:hasRoles">
+            <properties>
+                <property name="icaseRole:roles-prop">
+                    <type>d:text</type>
+                    <multiple>true</multiple>
+                </property>
+            </properties>
             <associations>
                 <child-association name="icaseRole:roles">
                     <source>
@@ -78,6 +84,12 @@
         </aspect>
 
         <aspect name="icaseRole:referenceRole">
+            <properties>
+                <property name="icaseRole:referenceRoleAssoc-prop">
+                    <type>d:text</type>
+                    <multiple>true</multiple>
+                </property>
+            </properties>
             <associations>
                 <association name="icaseRole:referenceRoleAssoc">
                     <source>
@@ -92,7 +104,7 @@
                 </association>
             </associations>
         </aspect>
-        
+
         <aspect name="icaseRole:hasDelegates">
             <properties>
                 <property name="icaseRole:delegates">

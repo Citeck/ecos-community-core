@@ -200,7 +200,7 @@ public class VersionRecords extends LocalRecordsCrudDao<VersionDTO> {
 
         String id = recordRef.getId();
         if (!NodeRef.isNodeRef(id)) {
-            throw new IllegalArgumentException("Record id should be NodeRef format");
+            return new RecordsQueryResult<>();
         }
 
         RecordsQueryResult<VersionDTO> result = new RecordsQueryResult<>();

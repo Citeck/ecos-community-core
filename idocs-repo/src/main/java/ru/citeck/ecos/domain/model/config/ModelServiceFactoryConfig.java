@@ -10,6 +10,7 @@ import ru.citeck.ecos.model.lib.ModelServiceFactory;
 import ru.citeck.ecos.model.lib.permissions.repo.PermissionsRepo;
 import ru.citeck.ecos.model.lib.permissions.service.PermsEvaluator;
 import ru.citeck.ecos.model.lib.permissions.service.RecordPermsService;
+import ru.citeck.ecos.model.lib.role.service.RoleService;
 import ru.citeck.ecos.model.lib.type.dto.TypeDef;
 import ru.citeck.ecos.model.lib.type.dto.TypePermsDef;
 import ru.citeck.ecos.model.lib.type.repo.TypesRepo;
@@ -58,6 +59,13 @@ public class ModelServiceFactoryConfig extends ModelServiceFactory {
     @Bean
     @NotNull
     @Override
+    protected RoleService createRoleService() {
+        return super.createRoleService();
+    }
+
+    @Bean
+    @NotNull
+    @Override
     protected TypesRepo createTypesRepo() {
         return new TypesRepo() {
             @Nullable
@@ -67,7 +75,13 @@ public class ModelServiceFactoryConfig extends ModelServiceFactory {
                 if (typeDto == null || typeDto.getId() == null) {
                     return null;
                 }
-                return new TypeDef(typeDto.getId(), typeDto.getParentRef(), typeDto.getModel());
+                return new TypeDef(
+                    typeDto.getId(),
+                    typeDto.getParentRef(),
+                    typeDto.getModel(),
+                    typeDto.getNumTemplateRef(),
+                    typeDto.isInheritNumTemplate()
+                );
             }
 
             @NotNull

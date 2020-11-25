@@ -4,14 +4,15 @@ import org.alfresco.repo.jscript.ScriptNode;
 import org.alfresco.repo.jscript.ValueConverter;
 import org.alfresco.service.cmr.repository.NodeRef;
 import org.alfresco.service.cmr.security.AuthorityService;
+import org.alfresco.service.namespace.QName;
 import org.springframework.extensions.surf.util.ParameterCheck;
+import ru.citeck.ecos.model.lib.role.dto.RoleDef;
+import ru.citeck.ecos.role.script.ScriptCaseRole;
 import ru.citeck.ecos.utils.AlfrescoScopableProcessorExtension;
 import ru.citeck.ecos.utils.JavaScriptImplUtils;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * @author Maxim Strizhov
@@ -19,20 +20,58 @@ import java.util.Set;
  */
 public class CaseRoleServiceJS extends AlfrescoScopableProcessorExtension {
 
+    public static final QName QNAME = QName.createQName("", "caseRoleServiceJS");
+
     private final ValueConverter converter = new ValueConverter();
 
     private CaseRoleService caseRoleService;
     private AuthorityService authorityService;
 
-    public ScriptNode getRole(Object document, String name) {
-        NodeRef docRef = JavaScriptImplUtils.getNodeRef(document);
-        return JavaScriptImplUtils.wrapNode(caseRoleService.getRole(docRef, name), this);
+    private ScriptCaseRole toScriptCaseRole(NodeRef roleRef) {
+        return new ScriptCaseRole(roleRef, serviceRegistry, caseRoleService, getScope());
+    };
+
+    private ScriptCaseRole[] toScriptCaseRole(Collection<NodeRef> rolesRef) {
+        return rolesRef.stream()
+            .map(this::toScriptCaseRole)
+            .toArray(ScriptCaseRole[]::new);
     }
 
-    public ScriptNode[] getRoles(Object document) {
+    public String getRoleId(Object role) {
+        NodeRef roleRef = JavaScriptImplUtils.getNodeRef(role);
+        return caseRoleService.getRoleId(roleRef);
+    }
+
+    public ScriptCaseRole getRoleByRef(Object role) {
+        return toScriptCaseRole(JavaScriptImplUtils.getNodeRef(role));
+    }
+
+    public ScriptCaseRole getRole(Object document, String name) {
+        NodeRef docRef = JavaScriptImplUtils.getNodeRef(document);
+        return toScriptCaseRole(caseRoleService.getRole(docRef, name));
+    }
+
+    public RoleDef getRoleDef(Object role) {
+        NodeRef roleRef = JavaScriptImplUtils.getNodeRef(role);
+        return caseRoleService.getRoleDef(roleRef);
+    }
+
+    public RoleDef[] getRolesDef(Object document) {
+        NodeRef docRef = JavaScriptImplUtils.getNodeRef(document);
+        return caseRoleService.getRolesDef(docRef).toArray(new RoleDef[0]);
+    }
+
+    public ScriptCaseRole[] getRoles(Object document) {
         NodeRef docRef = JavaScriptImplUtils.getNodeRef(document);
         List<NodeRef> roles = caseRoleService.getRoles(docRef);
-        return JavaScriptImplUtils.wrapNodes(roles, this);
+        return toScriptCaseRole(roles);
+    }
+
+    public ScriptCaseRole[] getAlfRoles(Object document) {
+        NodeRef docRef = JavaScriptImplUtils.getNodeRef(document);
+        List<NodeRef> roles = caseRoleService.getRoles(docRef);
+        roles = roles.stream().filter(caseRoleService::isAlfRole).collect(Collectors.toList());
+        return toScriptCaseRole(roles);
     }
 
     public void setAssignees(Object document, Object role, Object assignees) {
