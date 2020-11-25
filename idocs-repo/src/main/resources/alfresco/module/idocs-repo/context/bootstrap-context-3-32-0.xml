@@ -15,7 +15,7 @@
     </bean>
 
     <bean id="idocs.contractor.script.statuses" parent="idocs.import-scripts.3-32-0">
-        <property name="executeOnceOnly" value="false" />
+        <property name="executeOnceOnly" value="true" />
         <property name="name" value="add-idocs-contractor-statuses" />
         <property name="description" value="Create or update idocs:contractor statuses" />
         <property name="dependsOn">
