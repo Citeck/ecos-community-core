@@ -197,6 +197,10 @@ public class AlfNodesRecordsDAO extends LocalRecordsDao
                 continue;
             }
 
+            if (name.equals("_caseStatus")) {
+                name = "icase:caseStatusAssoc";
+            }
+
             QName fieldName = QName.resolveToQName(namespaceService, name);
             if (fieldName == null) {
                 continue;
