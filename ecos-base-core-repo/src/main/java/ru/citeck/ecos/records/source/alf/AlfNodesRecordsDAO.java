@@ -121,6 +121,8 @@ public class AlfNodesRecordsDAO extends LocalRecordsDao
 
     private RecordMeta processSingleRecord(RecordMeta record) {
 
+        ObjectData initialAtts = record.getAtts().deepCopy();
+
         RecordMeta resultRecord;
         Map<QName, Serializable> props = new HashMap<>();
         Map<QName, DataValue> contentProps = new HashMap<>();
@@ -379,7 +381,7 @@ public class AlfNodesRecordsDAO extends LocalRecordsDao
             qName, jsonNodes, finalNodeRef, false));
 
         if (isNewNode) {
-            Map<String, Long> counterProps = getCounterProps(nodeRef);
+            Map<String, Long> counterProps = getCounterProps(nodeRef, initialAtts);
             if (!counterProps.isEmpty()) {
                 RecordMeta meta = new RecordMeta(
                     RecordRef.valueOf(nodeRef.toString()),
@@ -394,7 +396,7 @@ public class AlfNodesRecordsDAO extends LocalRecordsDao
         return resultRecord;
     }
 
-    private Map<String, Long> getCounterProps(NodeRef nodeRef) {
+    private Map<String, Long> getCounterProps(NodeRef nodeRef, ObjectData mutateAtts) {
 
         RecordRef documentRef = RecordRef.valueOf(nodeRef.toString());
         RecordRef documentTypeRef = ecosTypeService.getEcosType(nodeRef);
@@ -427,11 +429,14 @@ public class AlfNodesRecordsDAO extends LocalRecordsDao
             if (RecordRef.isEmpty(numTemplateRef)) {
                 log.error("Computed attribute with type COUNTER and without numTemplateRef: " + att);
             } else {
-                Long attNumber = ecosTypeService.getNumberForDocument(
-                    documentRef,
-                    numTemplateRef
-                );
-                counterProps.put(att.getId(), attNumber);
+                String currentValue = mutateAtts.get(att.getId()).asText();
+                if (StringUtils.isBlank(currentValue)) {
+                    Long attNumber = ecosTypeService.getNumberForDocument(
+                        documentRef,
+                        numTemplateRef
+                    );
+                    counterProps.put(att.getId(), attNumber);
+                }
             }
         }
 
