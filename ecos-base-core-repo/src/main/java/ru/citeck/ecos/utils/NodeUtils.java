@@ -1,9 +1,11 @@
 package ru.citeck.ecos.utils;
 
 import org.alfresco.model.ContentModel;
+import org.alfresco.repo.jscript.ScriptNode;
 import org.alfresco.repo.transaction.AlfrescoTransactionSupport;
 import org.alfresco.repo.transaction.AlfrescoTransactionSupport.TxnReadState;
 import org.alfresco.repo.transaction.TransactionalResourceHelper;
+import org.alfresco.repo.workflow.activiti.ActivitiScriptNode;
 import org.alfresco.service.ServiceRegistry;
 import org.alfresco.service.cmr.dictionary.AssociationDefinition;
 import org.alfresco.service.cmr.dictionary.ChildAssociationDefinition;
@@ -369,6 +371,38 @@ public class NodeUtils {
             return assocsRefs.stream()
                              .map(r -> nodeIsSource ? r.getTargetRef() : r.getSourceRef())
                              .collect(Collectors.toList());
+        }
+    }
+
+    public void fillNodeRefsList(Object value, List<NodeRef> resultList) {
+        if (value == null) {
+            return;
+        }
+        if (value instanceof NodeRef) {
+            resultList.add((NodeRef) value);
+        } else if (value instanceof String) {
+            String strValue = (String) value;
+            if (StringUtils.isNotBlank(strValue)) {
+                resultList.add(new NodeRef(strValue));
+            }
+        } else if (value instanceof AssociationRef) {
+            resultList.add(((AssociationRef) value).getTargetRef());
+        } else if (value instanceof ChildAssociationRef) {
+            resultList.add(((ChildAssociationRef) value).getChildRef());
+        } else if (value instanceof Collection) {
+            for (Object item : (Collection<?>) value) {
+                fillNodeRefsList(item, resultList);
+            }
+        } else if (value instanceof ActivitiScriptNode) {
+            NodeRef nodeRef = ((ActivitiScriptNode) value).getNodeRef();
+            if (nodeRef != null) {
+                resultList.add(nodeRef);
+            }
+        } else if (value instanceof ScriptNode) {
+            NodeRef nodeRef = ((ScriptNode) value).getNodeRef();
+            if (nodeRef != null) {
+                resultList.add(nodeRef);
+            }
         }
     }
 

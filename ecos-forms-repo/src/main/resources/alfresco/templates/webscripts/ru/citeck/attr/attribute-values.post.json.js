@@ -1,5 +1,5 @@
 (function() {
-    
+
     var requests = json.get('requests'),
         nodes = {},
         values = [];
@@ -7,7 +7,7 @@
     for(var i = 0, ii = requests.length(); i < ii; i++) {
         var request = requests.get(i),
             nodeRef = request.get('nodeRef'),
-            node = (nodes[nodeRef] = nodes[nodeRef] || search.findNode(nodeRef)),
+            node = (nodes[nodeRef] = nodes[nodeRef] || attributes.getNodeRef(nodeRef)),
             attribute = request.get('attribute'),
             value = node ? attributes.get(node, attribute) : null;
 
@@ -26,9 +26,9 @@
             });
         }
     }
-    
+
     model.values = values;
-    
+
 })();
 
 function isEmptyValue(value) {

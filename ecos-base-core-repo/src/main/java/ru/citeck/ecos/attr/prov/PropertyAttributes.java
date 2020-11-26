@@ -19,11 +19,10 @@
 package ru.citeck.ecos.attr.prov;
 
 import java.io.Serializable;
-import java.util.Collections;
-import java.util.Date;
-import java.util.Set;
-import java.util.TimeZone;
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
+import java.util.function.BiFunction;
 
 import org.alfresco.service.cmr.dictionary.DataTypeDefinition;
 import org.alfresco.service.cmr.dictionary.PropertyDefinition;
@@ -40,6 +39,8 @@ import ru.citeck.ecos.utils.ConvertUtils;
 import ru.citeck.ecos.utils.DictionaryUtils;
 
 public class PropertyAttributes extends AbstractAttributeProvider {
+
+    private final Map<String, BiFunction<NodeRef, QName, Serializable>> attsResolvers = new ConcurrentHashMap<>();
 
     @Override
     public QNamePattern getAttributeNamePattern() {
@@ -76,6 +77,10 @@ public class PropertyAttributes extends AbstractAttributeProvider {
 
     @Override
     public Object getAttribute(NodeRef nodeRef, QName attributeName) {
+        BiFunction<NodeRef, QName, Serializable> resolver = attsResolvers.get(nodeRef.getStoreRef().getProtocol());
+        if (resolver != null) {
+            return resolver.apply(nodeRef, attributeName);
+        }
         return nodeService.getProperty(nodeRef, attributeName);
     }
 
@@ -134,9 +139,12 @@ public class PropertyAttributes extends AbstractAttributeProvider {
 
     private PropertyDefinition needDefinition(QName attributeName) {
         PropertyDefinition propDef = getDefinition(attributeName);
-        if(propDef == null) 
+        if(propDef == null)
             throw new IllegalArgumentException("Property " + attributeName + " does not exist");
         return propDef;
     }
 
+    public void registerAttsResolver(String protocol, BiFunction<NodeRef, QName, Serializable> resolver) {
+        this.attsResolvers.put(protocol, resolver);
+    }
 }

@@ -64,7 +64,6 @@ public class CaseRoleServiceImpl implements CaseRoleService {
     private DictionaryService dictionaryService;
     private RoleService roleService;
     private AuthorityUtils authorityUtils;
-    private NamespaceService namespaceService;
 
     private final Map<QName, RoleDAO> rolesDaoByType = new HashMap<>();
 
@@ -84,7 +83,7 @@ public class CaseRoleServiceImpl implements CaseRoleService {
     }
 
     private NodeRef ecosRoleToNodeRef(NodeRef parentRef, String roleId) {
-        return new NodeRef("et-role", parentRef.getId(), roleId);
+        return new NodeRef(CaseRoleService.ROLE_REF_PROTOCOL, parentRef.getId(), roleId);
     }
 
     @Override
@@ -441,6 +440,9 @@ public class CaseRoleServiceImpl implements CaseRoleService {
 
     @Override
     public void updateRole(final NodeRef roleRef) {
+        if (!isAlfRole(roleRef)) {
+            return;
+        }
         AuthenticationUtil.runAsSystem(() -> {
             NodeRef caseRef = nodeService.getPrimaryParent(roleRef).getParentRef();
             updateRoleImpl(caseRef, roleRef);
@@ -746,10 +748,5 @@ public class CaseRoleServiceImpl implements CaseRoleService {
     @Autowired
     public void setAuthorityUtils(AuthorityUtils authorityUtils) {
         this.authorityUtils = authorityUtils;
-    }
-
-    @Autowired
-    public void setNamespaceService(NamespaceService namespaceService) {
-        this.namespaceService = namespaceService;
     }
 }

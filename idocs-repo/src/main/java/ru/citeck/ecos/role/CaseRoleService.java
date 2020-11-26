@@ -35,6 +35,8 @@ import java.util.Set;
  */
 public interface CaseRoleService {
 
+    String ROLE_REF_PROTOCOL = "et-role";
+
     QName QNAME = QName.createQName("", "caseRoleService");
 
     /**
