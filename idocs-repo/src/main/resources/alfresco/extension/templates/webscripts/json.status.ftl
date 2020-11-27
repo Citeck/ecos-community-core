@@ -41,6 +41,7 @@
           ?replace("in <eval> at line number *[0-9]+ at column number *[0-9]+ *", "", 'r')
           ?replace(".*Exception while processing action '.*\\$.*%.*', exceptionMessage='", "", "r")
           ?replace("', exceptionType='.*'. StackTrace of root exception may be fount in logs", "", "r")
+          ?replace("^[0-9]+\s*Failed to execute script.*js':\s*", "", "r")
           ?replace("\\s*\\(classpath.*?\\)\\s*", "", "r")
 }"
 </#escape>
