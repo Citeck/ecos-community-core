@@ -34,6 +34,7 @@
           ?replace(" *[(]AlfrescoJS[#][0-9]+[)]", "", 'r')
           ?replace("^[0-9]+ Wrapped Exception \\(with status template\\): ([0-9]+ Failed to execute script '.*?': [0-9]+? )?", "", "r")
           ?replace("^[0-9]+ [0-9]+ ", "", 'r')
+          ?replace("^[0-9]+\\s*", "", 'r')
           ?replace("^Failed to execute supplied script: [0-9]+ ", "", "r")
           ?replace("^org.alfresco.error.AlfrescoRuntimeException: [0-9]+ ", "", "r")
           ?replace("^org.alfresco.error.AlfrescoRuntimeException: ", "", "r")
@@ -41,6 +42,7 @@
           ?replace("in <eval> at line number *[0-9]+ at column number *[0-9]+ *", "", 'r')
           ?replace(".*Exception while processing action '.*\\$.*%.*', exceptionMessage='", "", "r")
           ?replace("', exceptionType='.*'. StackTrace of root exception may be fount in logs", "", "r")
+          ?replace("^[0-9]+\\s*Failed to execute script.*js':\\s*", "", "r")
           ?replace("\\s*\\(classpath.*?\\)\\s*", "", "r")
 }"
 </#escape>
