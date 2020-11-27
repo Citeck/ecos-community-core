@@ -1,0 +1,183 @@
+id: idocs-contractor-v2
+label:
+  ru: Контрагенты
+  en: Contractors
+
+predicate:
+  t: eq
+  att: TYPE
+  val: idocs:contractor
+
+actions:
+  - uiserv/action@edit
+  - uiserv/action@view-dashboard
+  - uiserv/action@view-dashboard-in-background
+
+editable: false
+columns:
+  -   name: idocs_fullOrganizationName
+      label:
+        ru: 'Полное наименование'
+        en: 'Full name'
+      attribute: idocs:fullOrganizationName
+      type: text
+      searchable: true
+      sortable: true
+      groupable: false
+      editable: false
+      visible: true
+
+  -   name: idocs_shortOrganizationName
+      label:
+        ru: 'Альтернативное наименование'
+        en: 'Alternative name'
+      attribute: idocs:shortOrganizationName
+      type: text
+      searchable: true
+      sortable: true
+      groupable: false
+      editable: false
+      visible: false
+
+  -   name: idocs_contractorType
+      label:
+        ru: 'Тип контрагента'
+        en: 'Contractor type'
+      attribute: idocs:contractorType
+      type: text
+      searchable: true
+      sortable: true
+      groupable: false
+      editable: false
+      visible: true
+
+  -   name: idocs_inn
+      label:
+        ru: 'ИНН'
+        en: 'INN'
+      attribute: idocs:inn
+      type: text
+      searchable: true
+      sortable: true
+      groupable: false
+      editable: false
+      visible: true
+
+  -   name: idocs_kpp
+      label:
+        ru: 'КПП'
+        en: 'KPP'
+      attribute: idocs:kpp
+      type: text
+      searchable: true
+      sortable: true
+      groupable: false
+      editable: false
+      visible: true
+
+  -   name: idocs_ogrn
+      label:
+        ru: 'ОГРН'
+        en: 'OGRN'
+      attribute: idocs:ogrn
+      type: text
+      searchable: true
+      sortable: true
+      groupable: false
+      editable: false
+      visible: false
+
+  -   name: idocs_juridicalAddress
+      label:
+        ru: 'Юридический адрес'
+        en: 'Juridical address'
+      attribute: idocs:juridicalAddress
+      type: text
+      searchable: true
+      sortable: true
+      groupable: false
+      editable: false
+      visible: false
+
+  -   name: idocs_postAddress
+      label:
+        ru: 'Фактический адрес'
+        en: 'Post address'
+      attribute: idocs:postAddress
+      type: text
+      searchable: true
+      sortable: true
+      groupable: false
+      editable: false
+      visible: false
+
+  -   name: idocs_phone
+      label:
+        ru: 'Телефон'
+        en: 'Phone'
+      attribute: idocs:phone
+      type: text
+      searchable: true
+      sortable: true
+      groupable: false
+      editable: false
+      visible: false
+
+  -   name: idocs_fax
+      label:
+        ru: 'Мобильный телефон'
+        en: 'Mobile phone'
+      attribute: idocs:fax
+      type: text
+      searchable: true
+      sortable: true
+      groupable: false
+      editable: false
+      visible: false
+
+  -   name: idocs_email
+      label:
+        ru: 'Адрес электронной почты'
+        en: 'Email address'
+      attribute: idocs:email
+      type: text
+      searchable: true
+      sortable: true
+      groupable: false
+      editable: false
+      visible: false
+
+  -   name: idocs_CEOname
+      label:
+        ru: 'Генеральный директор'
+        en: 'CEO name'
+      attribute: idocs:CEOname
+      type: text
+      searchable: true
+      sortable: true
+      groupable: false
+      editable: false
+      visible: true
+
+  -   name: icase_caseStatusAssoc
+      label:
+        ru: 'Статус'
+        en: 'Status'
+      attribute: icase:caseStatusAssoc
+      type: assoc
+      searchable: true
+      sortable: false
+      groupable: false
+      editable: false
+      visible: true
+
+attributes:
+  journalsListId: global-main
+
+createVariants:
+  -   id: create-contractor
+      name:
+        ru: 'Создать контрагента'
+        en: 'Create contractor'
+      formRef: uiserv/eform@02347243-639c-4da4-b261-8b47cbca2362
+      recordRef: dict@idocs:contractor
