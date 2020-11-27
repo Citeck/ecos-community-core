@@ -26,4 +26,19 @@
         <property name="bootstrapScript" value="alfresco/module/idocs-repo/bootstrap/scripts/contractor-statuses.js"/>
     </bean>
 
+    <bean id="idocs.module-component.dev-tools-admin-group" parent="idocs.import-spaces.3-32-0">
+        <property name="name" value="dev-tools-admin-group" />
+        <property name="description" value="dev-tools-admin-group" />
+        <property name="bootstrapViews">
+            <list>
+                <props>
+                    <prop key="path">/</prop>
+                    <prop key="location">alfresco/templates/bootstrap/ru/citeck/common/group.xml</prop>
+                    <prop key="messages">alfresco/module/idocs-repo/bootstrap/groups/dev-tools-admin</prop>
+                    <prop key="encoding">UTF-8</prop>
+                </props>
+            </list>
+        </property>
+    </bean>
+
 </beans>
