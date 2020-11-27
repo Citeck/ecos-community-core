@@ -51,6 +51,8 @@ import ru.citeck.ecos.records2.source.dao.local.v2.LocalRecordsMetaDao;
 import ru.citeck.ecos.records2.source.dao.local.v2.LocalRecordsQueryWithMetaDao;
 import ru.citeck.ecos.records3.record.op.atts.service.computed.ComputedAtt;
 import ru.citeck.ecos.records3.record.op.atts.service.computed.ComputedAttType;
+import ru.citeck.ecos.records3.record.op.atts.service.computed.ComputedUtils;
+import ru.citeck.ecos.records3.record.op.atts.service.computed.StoringType;
 import ru.citeck.ecos.security.EcosPermissionService;
 import ru.citeck.ecos.utils.NodeUtils;
 
@@ -381,14 +383,10 @@ public class AlfNodesRecordsDAO extends LocalRecordsDao
             qName, jsonNodes, finalNodeRef, false));
 
         if (isNewNode) {
-            Map<String, Long> counterProps = getCounterProps(nodeRef, initialAtts);
-            if (!counterProps.isEmpty()) {
-                RecordMeta meta = new RecordMeta(
-                    RecordRef.valueOf(nodeRef.toString()),
-                    ObjectData.create(counterProps)
-                );
-                processSingleRecord(meta);
-            }
+            ComputedUtils.doWithNewRecordJ(() -> {
+                storeComputedAttsForNewNode(finalNodeRef, initialAtts);
+                return null;
+            });
         }
 
         updateNodeDispName(resultRecord.getId());
@@ -396,18 +394,56 @@ public class AlfNodesRecordsDAO extends LocalRecordsDao
         return resultRecord;
     }
 
-    private Map<String, Long> getCounterProps(NodeRef nodeRef, ObjectData mutateAtts) {
+    private void storeComputedAttsForNewNode(NodeRef nodeRef, ObjectData initialAtts) {
+
+        RecordRef typeRef = ecosTypeService.getEcosType(nodeRef);
+        Map<String, Long> counterProps = getCounterProps(nodeRef, initialAtts, typeRef);
+
+        if (!counterProps.isEmpty()) {
+            RecordMeta meta = new RecordMeta(
+                RecordRef.valueOf(nodeRef.toString()),
+                ObjectData.create(counterProps)
+            );
+            processSingleRecord(meta);
+        }
+
+        ObjectData storedProps = getStoredPropsForNewNode(nodeRef, initialAtts, typeRef);
+        if (storedProps.size() != 0) {
+            processSingleRecord(new RecordMeta(RecordRef.valueOf(nodeRef.toString()), storedProps));
+        }
+    }
+
+    private ObjectData getStoredPropsForNewNode(NodeRef nodeRef, ObjectData mutateAtts, RecordRef docTypeRef) {
+
+        if (RecordRef.isEmpty(docTypeRef)) {
+            return ObjectData.create();
+        }
+
+        List<ComputedAtt> computedAtts = typeDefService.getComputedAtts(docTypeRef);
+        Set<String> attsToStore = new HashSet<>();
+
+        for (ComputedAtt att : computedAtts) {
+            StoringType storingType = att.getDef().getStoringType();
+            if (StoringType.NONE.equals(storingType)) {
+                continue;
+            }
+            attsToStore.add(att.getId());
+        }
+
+        return recordsService.getAttributes(RecordRef.valueOf(nodeRef.toString()), attsToStore).getAttributes();
+    }
+
+    private Map<String, Long> getCounterProps(NodeRef nodeRef, ObjectData mutateAtts, RecordRef docTypeRef) {
 
         RecordRef documentRef = RecordRef.valueOf(nodeRef.toString());
-        RecordRef documentTypeRef = ecosTypeService.getEcosType(nodeRef);
 
-        if (RecordRef.isEmpty(documentTypeRef)) {
+        if (RecordRef.isEmpty(docTypeRef)) {
             return Collections.emptyMap();
         }
 
         Map<String, Long> counterProps = new HashMap<>();
 
-        RecordRef docNumTemplateRef = ecosTypeService.getNumTemplateByTypeRef(documentTypeRef);
+        RecordRef docNumTemplateRef = ecosTypeService.getNumTemplateByTypeRef(docTypeRef);
         Long number = ecosTypeService.getNumberForDocument(
             RecordRef.valueOf(nodeRef.toString()),
             docNumTemplateRef
@@ -416,7 +452,7 @@ public class AlfNodesRecordsDAO extends LocalRecordsDao
             counterProps.put(EcosModel.PROP_DOC_NUM.toPrefixString(namespaceService), number);
         }
 
-        List<ComputedAtt> computedAtts = typeDefService.getComputedAtts(documentTypeRef);
+        List<ComputedAtt> computedAtts = typeDefService.getComputedAtts(docTypeRef);
 
         for (ComputedAtt att : computedAtts) {
 
