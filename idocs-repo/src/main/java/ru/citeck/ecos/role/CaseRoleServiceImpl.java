@@ -351,11 +351,14 @@ public class CaseRoleServiceImpl implements CaseRoleService {
         }
 
         RecordRef caseRef = RecordRef.valueOf(String.valueOf(getRoleCaseRef(roleRef)));
-
-        return roleService.getAssignees(caseRef, roleRef.getId())
-            .stream()
-            .map(authorityUtils::getNodeRef)
-            .collect(Collectors.toSet());
+        NodeRef finalRoleRef = roleRef;
+        return AuthenticationUtil.runAsSystem(() ->
+            roleService.getAssignees(caseRef, finalRoleRef.getId())
+                .stream()
+                .map(authorityUtils::getNodeRef)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toSet())
+        );
     }
 
     @Override
