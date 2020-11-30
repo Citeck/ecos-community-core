@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import ru.citeck.ecos.node.AlfNodeInfo;
 import ru.citeck.ecos.node.AlfNodeInfoImpl;
+import ru.citeck.ecos.records3.record.request.RequestContext;
 
 import java.util.HashSet;
 import java.util.List;
@@ -19,7 +20,7 @@ public class EcosPermissionService {
 
     public static final QName QNAME = QName.createQName("", "ecosPermissionService");
 
-    private static final String EDIT_MODE = "edit";
+    private static final String IS_SYSTEM_CONTEXT_VAR = "ecos-permissions-is-system-context";
 
     private EcosPermissionComponent ecosPermissionComponent;
 
@@ -78,7 +79,12 @@ public class EcosPermissionService {
             return true;
         }
 
-        return ecosPermissionComponent.isAttVisible(info, attributeName);
+        RequestContext currentCtx = RequestContext.getCurrentNotNull();
+        if (Boolean.TRUE.equals(currentCtx.getVar(IS_SYSTEM_CONTEXT_VAR))) {
+            return true;
+        }
+        return Boolean.TRUE.equals(currentCtx.doWithVar(IS_SYSTEM_CONTEXT_VAR, true,
+            () -> ecosPermissionComponent.isAttVisible(info, attributeName)));
     }
 
     @Autowired(required = false)
