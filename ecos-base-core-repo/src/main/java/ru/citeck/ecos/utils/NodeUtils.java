@@ -110,9 +110,7 @@ public class NodeUtils {
     }
 
     public static String getValidName(String name) {
-        return name.replaceAll("[\"*\\\\><?/:|]", "_")
-            .trim()
-            .replaceAll("[.\\s]+$", "");
+        return name.replaceAll("[\"*\\\\><?/:|]", "_").replaceAll("[.\\s]+$", "");
     }
 
     public String getValidChildName(NodeRef parentRef, QName childAssoc, String name) {
