@@ -56,12 +56,13 @@ public class TempContentRecordsDao extends AbstractRecordsDao implements Mutable
         RecordsMutResult result = new RecordsMutResult();
 
         for (RecordMeta record : recordsMutation.getRecords()) {
-            DataValue value = record.getAttribute(ID);
-            if (value == null || DataValue.NULL.equals(value)) {
-                continue;
-            }
             String name = record.getAttribute(PARAM_NAME, "");
             String fileName = record.getAttribute(PARAM_FILE_NAME, "");
+            DataValue value = record.getAttribute(ID);
+            if (value == null || DataValue.NULL.equals(value)) {
+                log.info("Skip saving temp content with empty data: " + fileName);
+                continue;
+            }
             String mimetype = record.getAttribute(PARAM_MIMETYPE, MimetypeMap.MIMETYPE_BINARY);
             String encoding = record.getAttribute(PARAM_ENCODING, StandardCharsets.UTF_8.name());
             try {
