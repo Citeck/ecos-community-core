@@ -79,6 +79,7 @@ public class ModelServiceFactoryConfig extends ModelServiceFactory {
                     typeDto.getId(),
                     typeDto.getParentRef(),
                     typeDto.getModel(),
+                    typeDto.getDocLib(),
                     typeDto.getNumTemplateRef(),
                     typeDto.isInheritNumTemplate()
                 );

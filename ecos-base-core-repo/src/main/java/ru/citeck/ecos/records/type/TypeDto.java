@@ -7,6 +7,7 @@ import lombok.NoArgsConstructor;
 import org.jetbrains.annotations.NotNull;
 import ru.citeck.ecos.commons.data.MLText;
 import ru.citeck.ecos.commons.data.ObjectData;
+import ru.citeck.ecos.model.lib.type.dto.DocLibDef;
 import ru.citeck.ecos.model.lib.type.dto.TypeModelDef;
 import ru.citeck.ecos.records2.RecordRef;
 import ru.citeck.ecos.records2.graphql.meta.annotation.MetaAtt;
@@ -53,6 +54,9 @@ public class TypeDto {
 
     @MetaAtt("_type?id")
     private RecordRef ecosType;
+
+    @MetaAtt("docLib?json")
+    private DocLibDef docLib;
 
     @MetaAtt("_type")
     public RecordRef getEcosType() {
