@@ -235,6 +235,8 @@ public class AlfAutoModelServiceImpl implements AlfAutoModelService {
                 return "d:date";
             case DATETIME:
                 return "d:datetime";
+            case CONTENT:
+                return "d:content";
         }
         return "d:text";
     }
