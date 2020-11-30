@@ -735,7 +735,7 @@ public class WorkflowTaskRecords extends LocalRecordsDao
             }
             if (value instanceof String) {
                 String valueStr = (String) value;
-                if (valueStr.charAt(0) == 'w' && NodeRef.isNodeRef(valueStr)) {
+                if (!valueStr.isEmpty() && valueStr.charAt(0) == 'w' && NodeRef.isNodeRef(valueStr)) {
                     return RecordRef.valueOf(valueStr);
                 }
             }
