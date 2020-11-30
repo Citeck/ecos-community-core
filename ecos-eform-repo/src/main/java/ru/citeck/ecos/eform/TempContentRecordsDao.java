@@ -31,14 +31,15 @@ import ru.citeck.ecos.records2.source.dao.MutableRecordsDao;
 
 @Component
 @Slf4j
-public class ContentRecordsDao extends AbstractRecordsDao implements MutableRecordsDao {
+public class TempContentRecordsDao extends AbstractRecordsDao implements MutableRecordsDao {
 
-    public static final String ID = "content";
-    private static final String PARAM_NAME_ID = "name";
+    public static final String ID = "tempContent";
+
+    private static final NodeRef ROOT_NODE_REF = new NodeRef("workspace://SpacesStore/eform-files-temp-root");
+    private static final String PARAM_NAME = "name";
     private static final String PARAM_FILE_NAME = "fileName";
     private static final String PARAM_MIMETYPE = "mimetype";
     private static final String PARAM_ENCODING = "encoding";
-    private static final NodeRef ROOT_NODE_REF = new NodeRef("workspace://SpacesStore/eform-files-temp-root");
 
     @Autowired
     private NodeService nodeService;
@@ -59,7 +60,7 @@ public class ContentRecordsDao extends AbstractRecordsDao implements MutableReco
             if (value == null || DataValue.NULL.equals(value)) {
                 continue;
             }
-            String name = record.getAttribute(PARAM_NAME_ID, "");
+            String name = record.getAttribute(PARAM_NAME, "");
             String fileName = record.getAttribute(PARAM_FILE_NAME, "");
             String mimetype = record.getAttribute(PARAM_MIMETYPE, MimetypeMap.MIMETYPE_BINARY);
             String encoding = record.getAttribute(PARAM_ENCODING, StandardCharsets.UTF_8.name());
