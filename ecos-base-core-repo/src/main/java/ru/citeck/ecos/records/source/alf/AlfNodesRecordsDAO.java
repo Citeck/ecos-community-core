@@ -53,6 +53,7 @@ import ru.citeck.ecos.records3.record.op.atts.service.computed.ComputedAtt;
 import ru.citeck.ecos.records3.record.op.atts.service.computed.ComputedAttType;
 import ru.citeck.ecos.records3.record.op.atts.service.computed.ComputedUtils;
 import ru.citeck.ecos.records3.record.op.atts.service.computed.StoringType;
+import ru.citeck.ecos.records3.record.request.context.SystemContextUtil;
 import ru.citeck.ecos.security.EcosPermissionService;
 import ru.citeck.ecos.utils.NodeUtils;
 
@@ -386,14 +387,18 @@ public class AlfNodesRecordsDAO extends LocalRecordsDao
         attachmentAssocEformFiles.forEach((qName, jsonNodes) -> contentFileHelper.processAssocFilesContent(
             qName, jsonNodes, finalNodeRef, false));
 
-        if (isNewNode) {
-            ComputedUtils.doWithNewRecordJ(() -> {
-                storeComputedAttsForNewNode(finalNodeRef, initialAtts);
+        final boolean isNewNodeConst = isNewNode;
+        SystemContextUtil.doAsSystemJ(() -> {
+            if (isNewNodeConst) {
+                ComputedUtils.doWithNewRecordJ(() -> {
+                    storeComputedAttsForNewNode(finalNodeRef, initialAtts);
+                    return null;
+                });
                 return null;
-            });
-        }
-
-        updateNodeDispName(resultRecord.getId());
+            }
+            updateNodeDispName(resultRecord.getId());
+            return null;
+        });
 
         return resultRecord;
     }

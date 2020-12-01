@@ -9,7 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import ru.citeck.ecos.node.AlfNodeInfo;
 import ru.citeck.ecos.node.AlfNodeInfoImpl;
-import ru.citeck.ecos.records3.record.request.RequestContext;
+import ru.citeck.ecos.records3.record.request.context.SystemContextUtil;
 
 import java.util.HashSet;
 import java.util.List;
@@ -58,6 +58,9 @@ public class EcosPermissionService {
         }
 
         if (ecosPermissionComponent != null) {
+            if (SystemContextUtil.isSystemContext()) {
+                return false;
+            }
             return ecosPermissionComponent.isAttProtected(node, attributeName);
         }
 
@@ -79,12 +82,10 @@ public class EcosPermissionService {
             return true;
         }
 
-        RequestContext currentCtx = RequestContext.getCurrentNotNull();
-        if (Boolean.TRUE.equals(currentCtx.getVar(IS_SYSTEM_CONTEXT_VAR))) {
-            return true;
-        }
-        return Boolean.TRUE.equals(currentCtx.doWithVar(IS_SYSTEM_CONTEXT_VAR, true,
-            () -> ecosPermissionComponent.isAttVisible(info, attributeName)));
+        return SystemContextUtil.doAsSystemIfNotSystemContextJ(
+            () -> ecosPermissionComponent.isAttVisible(info, attributeName),
+            true
+        );
     }
 
     @Autowired(required = false)
