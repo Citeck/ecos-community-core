@@ -993,7 +993,7 @@
 
     <bean class="ru.citeck.ecos.behavior.EcosCasePermBehaviour" />
 
-    <bean id="ecos.ecos-type-docs.split-children" parent="ecos.splitChildrenBehaviour">
+<!--    <bean id="ecos.ecos-type-docs.split-children" parent="ecos.splitChildrenBehaviour">
         <property name="splitBehaviour">
             <bean class="ru.citeck.ecos.behavior.common.SplitChildrenBehaviour.UuidSplit" />
         </property>
@@ -1001,7 +1001,7 @@
         <property name="containerType" value="{http://www.alfresco.org/model/content/1.0}folder" />
         <property name="childAssocType" value="{http://www.alfresco.org/model/content/1.0}contains" />
         <property name="order" value="400" />
-    </bean>
+    </bean>-->
 
     <bean id="invalidateCacheBehaviour" class="ru.citeck.ecos.behavior.InvalidateCacheBehaviour"/>
 

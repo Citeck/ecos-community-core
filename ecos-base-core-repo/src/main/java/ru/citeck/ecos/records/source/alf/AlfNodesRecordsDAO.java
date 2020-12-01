@@ -693,7 +693,7 @@ public class AlfNodesRecordsDAO extends LocalRecordsDao
         }
 
         if (RecordRef.isNotEmpty(ecosType)) {
-            return ecosTypeService.getRootForType(ecosType);
+            return ecosTypeService.getRootForType(ecosType, true);
         }
 
         NodeRef parentRef = defaultParentByType.get(type);

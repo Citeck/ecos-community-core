@@ -96,8 +96,8 @@ public class EcosTypeService {
         return result;
     }
 
-    public NodeRef getRootForType(RecordRef typeRef) {
-        return AuthenticationUtil.runAsSystem(() -> getRootForTypeImpl(typeRef));
+    public NodeRef getRootForType(RecordRef typeRef, boolean createIfNotExists) {
+        return AuthenticationUtil.runAsSystem(() -> getRootForTypeImpl(typeRef, createIfNotExists));
     }
 
     public <T> T getEcosTypeConfig(RecordRef configRef, Class<T> configClass) {
@@ -220,7 +220,7 @@ public class EcosTypeService {
         }
     }
 
-    private NodeRef getRootForTypeImpl(RecordRef typeRef) {
+    private NodeRef getRootForTypeImpl(RecordRef typeRef, boolean createIfNotExists) {
 
         // todo: add tenant support
         String currentTenant = "";
@@ -232,7 +232,7 @@ public class EcosTypeService {
             .queryOne(searchService)
             .orElse(null);
 
-        if (rootRef != null) {
+        if (rootRef != null || !createIfNotExists) {
             return rootRef;
         }
 
