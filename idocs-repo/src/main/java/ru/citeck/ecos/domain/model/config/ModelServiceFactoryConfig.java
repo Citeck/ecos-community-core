@@ -1,5 +1,6 @@
 package ru.citeck.ecos.domain.model.config;
 
+import kotlin.Unit;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -75,14 +76,16 @@ public class ModelServiceFactoryConfig extends ModelServiceFactory {
                 if (typeDto == null || typeDto.getId() == null) {
                     return null;
                 }
-                return new TypeDef(
-                    typeDto.getId(),
-                    typeDto.getParentRef(),
-                    typeDto.getModel(),
-                    typeDto.getDocLib(),
-                    typeDto.getNumTemplateRef(),
-                    typeDto.isInheritNumTemplate()
-                );
+                return TypeDef.create(b -> {
+                    b.withId(typeDto.getId());
+                    b.withName(typeDto.getName());
+                    b.withParentRef(typeDto.getParentRef());
+                    b.withModel(typeDto.getModel());
+                    b.withDocLib(typeDto.getDocLib());
+                    b.withNumTemplateRef(typeDto.getNumTemplateRef());
+                    b.withInheritNumTemplate(typeDto.isInheritNumTemplate());
+                    return Unit.INSTANCE;
+                });
             }
 
             @NotNull
