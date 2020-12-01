@@ -231,10 +231,9 @@ public class CaseRoleServiceImpl implements CaseRoleService {
             Set<NodeRef> roleAssignees = getAssignees(roleRef);
             if (userAuthorities.stream().anyMatch(roleAssignees::contains)) {
                 String roleId = getRoleId(roleRef);
-                if (roleId.isEmpty()) {
+                if (!roleId.isEmpty()) {
                     userRoleIds.add(roleId);
                 }
-                break;
             }
         }
         if (log.isDebugEnabled()) {
