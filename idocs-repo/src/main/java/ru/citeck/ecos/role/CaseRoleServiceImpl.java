@@ -30,6 +30,8 @@ import ru.citeck.ecos.model.lib.role.service.RoleService;
 import ru.citeck.ecos.model.lib.type.service.TypeDefService;
 import ru.citeck.ecos.node.EcosTypeService;
 import ru.citeck.ecos.records2.RecordRef;
+import ru.citeck.ecos.records3.RecordsServiceFactory;
+import ru.citeck.ecos.records3.record.request.RequestContext;
 import ru.citeck.ecos.records3.record.request.context.SystemContextUtil;
 import ru.citeck.ecos.role.CaseRolePolicies.OnRoleAssigneesChangedPolicy;
 import ru.citeck.ecos.role.CaseRolePolicies.OnCaseRolesAssigneesChangedPolicy;
@@ -65,6 +67,7 @@ public class CaseRoleServiceImpl implements CaseRoleService {
     private DictionaryService dictionaryService;
     private RoleService roleService;
     private AuthorityUtils authorityUtils;
+    private RecordsServiceFactory recordsServiceFactory;
 
     private final Map<QName, RoleDAO> rolesDaoByType = new HashMap<>();
 
@@ -353,13 +356,16 @@ public class CaseRoleServiceImpl implements CaseRoleService {
         RecordRef caseRef = RecordRef.valueOf(String.valueOf(getRoleCaseRef(roleRef)));
         NodeRef finalRoleRef = roleRef;
 
-        return AuthenticationUtil.runAsSystem(() ->
-            SystemContextUtil.doAsSystemJ(() ->
-                roleService.getAssignees(caseRef, finalRoleRef.getId())
-                    .stream()
-                    .map(authorityUtils::getNodeRef)
-                    .filter(Objects::nonNull)
-                    .collect(Collectors.toSet())
+        return RequestContext.doWithCtx(recordsServiceFactory, requestContext ->
+            AuthenticationUtil.runAsSystem(() ->
+                SystemContextUtil.doAsSystemJ(() ->
+                    roleService.getAssignees(caseRef, finalRoleRef.getId())
+                        .stream()
+                        .map(authorityUtils::getNodeRef)
+                        .filter(Objects::nonNull)
+                        .collect(Collectors.toSet()),
+                    requestContext
+                )
             )
         );
     }
@@ -734,6 +740,11 @@ public class CaseRoleServiceImpl implements CaseRoleService {
 
     public void setDictionaryService(DictionaryService dictionaryService) {
         this.dictionaryService = dictionaryService;
+    }
+
+    @Autowired
+    public void setRecordsServiceFactory(RecordsServiceFactory recordsServiceFactory) {
+        this.recordsServiceFactory = recordsServiceFactory;
     }
 
     @Autowired
