@@ -14,7 +14,6 @@ import java.util.stream.Collectors;
 public class DocLibRecord {
 
     private final RecordRef recordRef;
-    private final RecordRef typeRef;
 
     private DocLibNodeInfo docLibNodeInfo;
 
@@ -22,15 +21,12 @@ public class DocLibRecord {
     private final DocLibRecords docLibRecords;
 
     public DocLibRecord(@NotNull DocLibNodeInfo info, @NotNull DocLibRecords docLibRecords) {
-        this(info.getRecordRef(), info.getTypeRef(), docLibRecords);
+        this(info.getRecordRef(), docLibRecords);
         this.docLibNodeInfo = info;
     }
 
-    public DocLibRecord(@NotNull RecordRef recordRef,
-                        @NotNull RecordRef typeRef,
-                        @NotNull DocLibRecords docLibRecords) {
+    public DocLibRecord(@NotNull RecordRef recordRef, @NotNull DocLibRecords docLibRecords) {
 
-        this.typeRef = typeRef;
         this.recordRef = recordRef;
 
         this.docLibRecords = docLibRecords;
@@ -52,12 +48,24 @@ public class DocLibRecord {
         query.setParentRef(recordRef);
         query.setRecursive(false);
         query.setNodeType(null);
-        query.setTypeRef(typeRef);
 
         return docLibService.getChildren(query, null).getRecords()
             .stream()
-            .map(rec -> new DocLibRecord(rec, typeRef, docLibRecords))
+            .map(rec -> new DocLibRecord(rec, docLibRecords))
             .collect(Collectors.toList());
+    }
+
+    @AttName("_type")
+    public RecordRef getTypeRef() {
+        return getDocLibNodeInfo().getTypeRef();
+    }
+
+    public RecordRef getDocLibTypeRef() {
+        return getDocLibNodeInfo().getDocLibTypeRef();
+    }
+
+    public Boolean getHasChildrenDirs() {
+        return docLibService.hasChildrenDirs(recordRef);
     }
 
     @AttName("?disp")
@@ -67,7 +75,7 @@ public class DocLibRecord {
 
     private DocLibNodeInfo getDocLibNodeInfo() {
         if (docLibNodeInfo == null) {
-            docLibNodeInfo = docLibService.getDocLibNodeInfo(recordRef, typeRef);
+            docLibNodeInfo = docLibService.getDocLibNodeInfo(recordRef);
         }
         return docLibNodeInfo;
     }

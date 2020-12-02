@@ -1,17 +1,16 @@
 package ru.citeck.ecos.doclib.api.records;
 
-import lombok.Data;
 import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import ru.citeck.ecos.doclib.service.DocLibChildrenQuery;
-import ru.citeck.ecos.doclib.service.DocLibNodeInfo;
 import ru.citeck.ecos.doclib.service.DocLibService;
 import ru.citeck.ecos.node.DisplayNameService;
 import ru.citeck.ecos.records2.RecordRef;
 import ru.citeck.ecos.records3.record.dao.AbstractRecordsDao;
+import ru.citeck.ecos.records3.record.op.atts.dao.RecordAttsDao;
 import ru.citeck.ecos.records3.record.op.atts.dto.LocalRecordAtts;
 import ru.citeck.ecos.records3.record.op.mutate.dao.RecordMutateDao;
 import ru.citeck.ecos.records3.record.op.query.dao.RecordsQueryDao;
@@ -23,12 +22,11 @@ import java.util.stream.Collectors;
 
 @Component
 public class DocLibRecords extends AbstractRecordsDao
-        implements RecordsQueryDao, RecordMutateDao/*, RecordAttsDao*/ {
+        implements RecordsQueryDao, RecordMutateDao, RecordAttsDao {
 
     public static final String SOURCE_ID = "doclib";
 
     private static final String LANG_CHILDREN = "children";
-    private static final String LANG_ROOT = "root";
 
     @Getter
     @NotNull
@@ -39,37 +37,35 @@ public class DocLibRecords extends AbstractRecordsDao
     @Autowired
     public DocLibRecords(@NotNull DocLibService docLibService,
                          DisplayNameService displayNameService) {
+
         this.docLibService = docLibService;
         this.displayNameService = displayNameService;
     }
-/*
+
     @Nullable
     @Override
-    public Object getRecordAtts(@NotNull String recordType) {
-        return docLibService.getDocLibNodeInfo(RecordRef.create(SOURCE_ID, recordType));
-    }*/
+    public Object getRecordAtts(@NotNull String recordId) {
+        return new DocLibRecord(RecordRef.create(SOURCE_ID, recordId), this);
+    }
 
     @NotNull
     @Override
     public String mutate(@NotNull LocalRecordAtts localRecordAtts) {
-        if (localRecordAtts.getId().isEmpty()) {
+        String id = localRecordAtts.getId();
+        if (id.lastIndexOf(DocLibService.TYPE_DELIM) == id.length() - 1) {
             return docLibService.createEntity(localRecordAtts.getAttributes()).getId();
         }
-        throw new IllegalArgumentException("Source with id '" + SOURCE_ID + "' can't mutate record with non-empty id");
+        throw new IllegalArgumentException("Source with id '" + SOURCE_ID
+            + "' can't mutate record with non-empty id: '" + id + "'");
     }
 
     @Nullable
     @Override
     public RecsQueryRes<?> queryRecords(@NotNull RecordsQuery recordsQuery) {
 
-        switch (recordsQuery.getLanguage()) {
-            case LANG_CHILDREN:
-                DocLibChildrenQuery childrenQuery = recordsQuery.getQuery(DocLibChildrenQuery.class);
-                return getChildren(childrenQuery, recordsQuery.getPage());
-            case LANG_ROOT:
-                RootQuery rootQuery = recordsQuery.getQuery(RootQuery.class);
-                DocLibNodeInfo rootForType = docLibService.getRootForType(rootQuery.getTypeRef(), false);
-                return RecsQueryRes.of(new DocLibRecord(rootForType, this));
+        if (LANG_CHILDREN.equals(recordsQuery.getLanguage())) {
+            DocLibChildrenQuery childrenQuery = recordsQuery.getQuery(DocLibChildrenQuery.class);
+            return getChildren(childrenQuery, recordsQuery.getPage());
         }
         return null;
     }
@@ -84,7 +80,7 @@ public class DocLibRecords extends AbstractRecordsDao
         RecsQueryRes<DocLibRecord> result = new RecsQueryRes<>();
         result.setRecords(childrenRes.getRecords()
             .stream()
-            .map(rec -> new DocLibRecord(rec, query.getTypeRef(), this))
+            .map(rec -> new DocLibRecord(rec, this))
             .collect(Collectors.toList())
         );
         result.setHasMore(childrenRes.getHasMore());
@@ -97,10 +93,5 @@ public class DocLibRecords extends AbstractRecordsDao
     @Override
     public String getId() {
         return SOURCE_ID;
-    }
-
-    @Data
-    public static class RootQuery {
-        private RecordRef typeRef;
     }
 }
