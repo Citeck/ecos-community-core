@@ -30,6 +30,7 @@ import ru.citeck.ecos.model.lib.role.service.RoleService;
 import ru.citeck.ecos.model.lib.type.service.TypeDefService;
 import ru.citeck.ecos.node.EcosTypeService;
 import ru.citeck.ecos.records2.RecordRef;
+import ru.citeck.ecos.records3.record.request.context.SystemContextUtil;
 import ru.citeck.ecos.role.CaseRolePolicies.OnRoleAssigneesChangedPolicy;
 import ru.citeck.ecos.role.CaseRolePolicies.OnCaseRolesAssigneesChangedPolicy;
 import ru.citeck.ecos.model.ICaseRoleModel;
@@ -351,12 +352,15 @@ public class CaseRoleServiceImpl implements CaseRoleService {
 
         RecordRef caseRef = RecordRef.valueOf(String.valueOf(getRoleCaseRef(roleRef)));
         NodeRef finalRoleRef = roleRef;
+
         return AuthenticationUtil.runAsSystem(() ->
-            roleService.getAssignees(caseRef, finalRoleRef.getId())
-                .stream()
-                .map(authorityUtils::getNodeRef)
-                .filter(Objects::nonNull)
-                .collect(Collectors.toSet())
+            SystemContextUtil.doAsSystemJ(() ->
+                roleService.getAssignees(caseRef, finalRoleRef.getId())
+                    .stream()
+                    .map(authorityUtils::getNodeRef)
+                    .filter(Objects::nonNull)
+                    .collect(Collectors.toSet())
+            )
         );
     }
 
