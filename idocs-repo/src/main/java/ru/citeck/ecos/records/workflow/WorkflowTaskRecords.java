@@ -140,7 +140,7 @@ public class WorkflowTaskRecords extends LocalRecordsDao
 
         String[] outcome = new String[1];
 
-        meta.forEach((n, v) -> {
+        meta.forEachJ((n, v) -> {
             if (n.startsWith(DOCUMENT_FIELD_PREFIX)) {
                 documentProps.set(getEcmFieldName(n), v);
             }

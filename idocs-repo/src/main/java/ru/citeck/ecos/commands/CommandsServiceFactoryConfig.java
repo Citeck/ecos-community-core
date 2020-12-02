@@ -1,6 +1,5 @@
 package ru.citeck.ecos.commands;
 
-import com.rabbitmq.client.ConnectionFactory;
 import lombok.extern.slf4j.Slf4j;
 import org.alfresco.repo.security.authentication.AuthenticationUtil;
 import org.alfresco.repo.transaction.RetryingTransactionHelper;
@@ -21,6 +20,10 @@ import ru.citeck.ecos.commands.rabbit.RabbitCommandsService;
 import ru.citeck.ecos.commands.remote.RemoteCommandsService;
 import ru.citeck.ecos.commands.transaction.TransactionManager;
 import ru.citeck.ecos.eureka.EurekaAlfInstanceConfig;
+import ru.citeck.ecos.rabbitmq.RabbitMqConn;
+import ru.citeck.ecos.rabbitmq.RabbitMqConnFactory;
+import ru.citeck.ecos.rabbitmq.RabbitMqConnProps;
+import ru.citeck.ecos.rabbitmq.RabbitMqConnProvider;
 
 import java.util.Properties;
 import java.util.concurrent.Callable;
@@ -65,23 +68,36 @@ public class CommandsServiceFactoryConfig extends CommandsServiceFactory {
     }
 
     @Bean
+    @NotNull
     @Override
     public RemoteCommandsService createRemoteCommandsService() {
+
+        RabbitMqConn connection = rabbitMqConnProvider().getConnection();
+        if (connection == null) {
+            log.warn("Rabbit mq host is null. Remote commands won't be available");
+            return super.createRemoteCommandsService();
+        }
+        return new RabbitCommandsService(this, connection);
+    }
+
+    @Bean
+    public RabbitMqConnProvider rabbitMqConnProvider() {
 
         String host = properties.getProperty(RABBIT_MQ_HOST);
         if (StringUtils.isBlank(host)) {
             log.warn("Rabbit mq host is null. Remote commands won't be available");
-            return super.createRemoteCommandsService();
+            return () -> null;
         }
 
-        ConnectionFactory connectionFactory = new ConnectionFactory();
-        connectionFactory.setAutomaticRecoveryEnabled(true);
-        connectionFactory.setHost(host);
-        connectionFactory.setPort(Integer.valueOf(properties.getProperty(RABBIT_MQ_PORT)));
-        connectionFactory.setUsername(properties.getProperty(RABBIT_MQ_USERNAME));
-        connectionFactory.setPassword(properties.getProperty(RABBIT_MQ_PASSWORD));
+        RabbitMqConnProps props = new RabbitMqConnProps();
+        props.setHost(host);
+        props.setUsername(properties.getProperty(RABBIT_MQ_USERNAME));
+        props.setPassword(properties.getProperty(RABBIT_MQ_PASSWORD));
+        props.setPort(Integer.valueOf(properties.getProperty(RABBIT_MQ_PORT)));
 
-        return new RabbitCommandsService(this, connectionFactory);
+        RabbitMqConn connection = new RabbitMqConnFactory().createConnection(props);
+
+        return () -> connection;
     }
 
     @NotNull
@@ -149,9 +165,8 @@ public class CommandsServiceFactoryConfig extends CommandsServiceFactory {
         protected void onBootstrap(ApplicationEvent event) {
 
             log.info("==================== Initialize Commands Rabbit Service ====================");
-
             try {
-                config.createRemoteCommandsService().init();
+                config.createRemoteCommandsService();
             } catch (Exception e) {
                 log.error("Commands remote service initialization failed", e);
             }

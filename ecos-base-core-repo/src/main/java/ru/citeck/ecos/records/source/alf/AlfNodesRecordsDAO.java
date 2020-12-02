@@ -143,7 +143,7 @@ public class AlfNodesRecordsDAO extends LocalRecordsDao
         ObjectData finalAtts = attributes;
 
         // if we get "att_add_someAtt" and "someAtt", then ignore "att_add_*"
-        attributes.forEach((name, value) -> {
+        attributes.forEachJ((name, value) -> {
 
             if (name.startsWith(ADD_CMD_PREFIX) || name.startsWith(REMOVE_CMD_PREFIX)) {
 
@@ -177,7 +177,7 @@ public class AlfNodesRecordsDAO extends LocalRecordsDao
 
             if (!propsMapping.isEmpty()) {
                 Map<String, Object> newAttributes = new HashMap<>();
-                attributes.forEach((k, v) -> newAttributes.put(propsMapping.getOrDefault(k, k), v));
+                attributes.forEachJ((k, v) -> newAttributes.put(propsMapping.getOrDefault(k, k), v));
                 attributes = ObjectData.create(newAttributes);
             }
         }
