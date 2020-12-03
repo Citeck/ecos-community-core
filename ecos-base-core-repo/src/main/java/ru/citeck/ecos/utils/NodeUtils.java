@@ -80,6 +80,10 @@ public class NodeUtils {
     @Nullable
     public NodeRef getNodeRefOrNull(String node) {
 
+        if (StringUtils.isBlank(node)) {
+            return null;
+        }
+
         if (node.charAt(0) == 'w' && NodeRef.isNodeRef(node)) {
             return new NodeRef(node);
         }
