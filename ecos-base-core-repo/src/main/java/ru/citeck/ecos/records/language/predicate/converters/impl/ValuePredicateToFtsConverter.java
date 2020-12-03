@@ -313,12 +313,6 @@ public class ValuePredicateToFtsConverter implements PredicateToFtsConverter {
 
             TypeDefinition targetType = dictUtils.getTypeDefinition(targetTypeName);
             if (targetType != null) {
-                QName targetTypeQName = targetType.getName();
-                String targetTypeLocalName = targetTypeQName.getLocalName();
-                if (CATEGORY_LOCAL_NAME.equals(targetTypeLocalName)) {
-                    innerQuery.type(ContentModel.TYPE_CATEGORY);
-                }
-
                 attributes.putAll(getTargetTypeAttributes(targetType, assocVal));
             }
         }
