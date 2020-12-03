@@ -222,11 +222,11 @@ public class CaseRoleServiceImpl implements CaseRoleService {
     }
 
     @Override
-    public List<String> getUserRoles(NodeRef caseRef, String userName) {
+    public List<NodeRef> getUserRoleRefs(NodeRef caseRef, String userName) {
 
         ParameterCheck.mandatoryString("userName", userName);
 
-        List<String> userRoleIds = new ArrayList<>();
+        List<NodeRef> userRoleRefs = new ArrayList<>();
         List<NodeRef> roles = getRoles(caseRef);
 
         Set<NodeRef> userAuthorities = authorityUtils.getUserAuthoritiesRefs();
@@ -234,16 +234,24 @@ public class CaseRoleServiceImpl implements CaseRoleService {
         for (NodeRef roleRef : roles) {
             Set<NodeRef> roleAssignees = getAssignees(roleRef);
             if (userAuthorities.stream().anyMatch(roleAssignees::contains)) {
-                String roleId = getRoleId(roleRef);
-                if (!roleId.isEmpty()) {
-                    userRoleIds.add(roleId);
-                }
+                userRoleRefs.add(roleRef);
             }
         }
         if (log.isDebugEnabled()) {
-            log.debug("User roles: " + userRoleIds);
+            log.debug("User roles: " + userRoleRefs);
         }
-        return userRoleIds;
+        return userRoleRefs;
+    }
+
+    @Override
+    public List<String> getUserRoles(NodeRef caseRef, String userName) {
+
+        List<NodeRef> userRoles = getUserRoleRefs(caseRef, userName);
+
+        return userRoles.stream()
+            .map(this::getRoleId)
+            .filter(StringUtils::isNotBlank)
+            .collect(Collectors.toList());
     }
 
     @Override

@@ -75,6 +75,8 @@ public interface CaseRoleService {
      */
     List<String> getUserRoles(NodeRef caseRef, String userName);
 
+    List<NodeRef> getUserRoleRefs(NodeRef caseRef, String userName);
+
     /**
      * Get role assignees by case reference and role name
      * @return role assignees
