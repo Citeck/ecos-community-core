@@ -204,12 +204,6 @@
                     <prop key="messages">alfresco/module/idocs-repo/bootstrap/journals/main/contractors</prop>
                     <prop key="encoding">UTF-8</prop>
                 </props>
-                <props>
-                    <prop key="path">/cm:IDocsRoot/journal:journalMetaRoot/cm:journalLists</prop>
-                    <prop key="location">alfresco/module/idocs-repo/bootstrap/journals/main/journal-in-list.xml</prop>
-                    <prop key="messages">alfresco/module/idocs-repo/bootstrap/journals/main/contractors</prop>
-                    <prop key="encoding">UTF-8</prop>
-                </props>
             </list>
         </property>
     </bean>
