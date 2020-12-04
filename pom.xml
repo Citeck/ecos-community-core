@@ -66,7 +66,7 @@
         <yuicompressor.compress.skip>false</yuicompressor.compress.skip>
 
         <ecos.flowable.version>2.0.5</ecos.flowable.version>
-        <ecos.records.version>3.6.0</ecos.records.version>
+        <ecos.records.version>3.7.4</ecos.records.version>
         <ecos.apps.lib.version>2.8.1</ecos.apps.lib.version>
         <ecos.jackson.version>2.10.4.3</ecos.jackson.version>
         <ecos.snakeyaml.version>2.1.3</ecos.snakeyaml.version>
