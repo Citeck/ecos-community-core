@@ -108,7 +108,11 @@ public class EcosTaskService {
             });
         } catch (RuntimeException exception) {
             if (isAssigneeEmpty) {
-                ownerService.changeOwner(taskId, OwnerAction.RELEASE, user);
+                try {
+                    ownerService.changeOwner(taskId, OwnerAction.RELEASE, user);
+                } catch (Exception changeOwnerException) {
+                    throw changeOwnerException;
+                }
             }
             unwrapJsExceptionAndThrow(exception);
         }
