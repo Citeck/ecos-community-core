@@ -111,7 +111,7 @@ public class EcosTaskService {
                 try {
                     ownerService.changeOwner(taskId, OwnerAction.RELEASE, user);
                 } catch (Exception changeOwnerException) {
-                    throw changeOwnerException;
+                    exception.addSuppressed(changeOwnerException);
                 }
             }
             unwrapJsExceptionAndThrow(exception);
