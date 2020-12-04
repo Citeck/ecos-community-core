@@ -170,6 +170,8 @@ columns:
       groupable: false
       editable: false
       visible: true
+      attributes:
+        journalTypeId: alf_icase:caseStatus
 
 attributes:
   journalsListId: global-main
