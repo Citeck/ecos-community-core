@@ -11,4 +11,5 @@ public class DocLibNodeInfo {
     private DocLibNodeType nodeType;
     private String displayName;
     private RecordRef typeRef;
+    private RecordRef docLibTypeRef;
 }

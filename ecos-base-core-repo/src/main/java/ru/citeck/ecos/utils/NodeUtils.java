@@ -80,6 +80,10 @@ public class NodeUtils {
     @Nullable
     public NodeRef getNodeRefOrNull(String node) {
 
+        if (StringUtils.isBlank(node)) {
+            return null;
+        }
+
         if (node.charAt(0) == 'w' && NodeRef.isNodeRef(node)) {
             return new NodeRef(node);
         }
@@ -129,9 +133,7 @@ public class NodeUtils {
     }
 
     public static String getValidName(String name) {
-        return name.replaceAll("[\"*\\\\><?/:|]", "_")
-            .trim()
-            .replaceAll("[.]+$", "");
+        return name.replaceAll("[\"*\\\\><?/:|]", "_").replaceAll("[.\\s]+$", "");
     }
 
     public String getValidChildName(NodeRef parentRef, QName childAssoc, String name) {
