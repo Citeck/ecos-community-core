@@ -1534,6 +1534,37 @@
                               "eq": ""
                             },
                             "id": "et6z58"
+                          },
+                          {
+                            "width": 4,
+                            "type": "column",
+                            "input": false,
+                            "key": "column888",
+                            "components": [
+                              {
+                                "label": "idocs:gln",
+                                "clearOnHide": false,
+                                "disabled": false,
+                                "defaultValue": "",
+                                "validate": {
+                                  "required": false,
+                                  "pattern": "^\\d{13}$|^$",
+                                  "customMessage": "Некорректный GLN"
+                                },
+                                "key": "idocs_gln",
+                                "properties": {
+                                  "attribute": "idocs:gln"
+                                },
+                                "type": "textfield",
+                                "input": true
+                              }
+                            ],
+                            "index": 6,
+                            "clearOnHide": false,
+                            "conditional": {
+                              "show": null,
+                              "when": null
+                            }
                           }
                         ],
                         "mask": false,

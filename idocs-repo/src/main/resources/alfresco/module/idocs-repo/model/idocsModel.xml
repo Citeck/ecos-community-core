@@ -1701,6 +1701,14 @@
             </properties>
         </aspect>
 
+        <aspect name="idocs:hasGln">
+            <properties>
+                <property name="idocs:gln">
+                    <type>d:text</type>
+                </property>
+            </properties>
+        </aspect>
+
     </aspects>
 
 </model>
