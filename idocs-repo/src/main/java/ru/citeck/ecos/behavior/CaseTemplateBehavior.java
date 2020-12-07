@@ -133,7 +133,7 @@ public class CaseTemplateBehavior implements NodeServicePolicies.OnCreateNodePol
 
         final CaseServiceType enabledCaseServiceType = getEnabledCaseServiceType();
 
-        if (enabledCaseServiceType == CaseServiceType.EPROC && eProcCaseImporter.eprocCaseCreationAllowed(caseNode)) {
+        if (enabledCaseServiceType == CaseServiceType.EPROC) {
             eprocCopyFromTemplateImpl(caseNode);
         } else {
             alfrescoCopyFromTemplateImpl(caseNode);

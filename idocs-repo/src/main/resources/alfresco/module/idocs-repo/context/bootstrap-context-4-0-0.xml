@@ -46,4 +46,21 @@
         </property>
     </bean>
 
+    <bean id="ecos-community.module-component.enable-eproc-cmmn" parent="idocs.import-scripts.4-0-0">
+        <property name="name" value="enable-eproc-cmmn"/>
+        <property name="description" value="enable-eproc-cmmn"/>
+        <property name="dependsOn">
+            <list>
+                <ref bean="idocs.module-component.defaultUIMainMenu"/>
+            </list>
+        </property>
+        <property name="bootstrapScript" value="alfresco/module/idocs-repo/bootstrap/scripts/set-ecos-config.js"/>
+        <property name="args">
+            <map>
+                <entry key="key" value="ecos-case-process-type" />
+                <entry key="value" value="eproc" />
+            </map>
+        </property>
+    </bean>
+
 </beans>
