@@ -1,0 +1,18 @@
+{
+  "id": "idocs-messages",
+  "order": 0,
+  "locales": [
+    "en",
+    "ru"
+  ],
+  "messages": {
+    "case.action.start-approval": [
+      "Submit for approval",
+      "Отправить на согласование"
+    ],
+    "case.action.close-case": [
+      "Close case",
+      "Закрыть кейс"
+    ]
+  }
+}

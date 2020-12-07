@@ -197,6 +197,10 @@ public class AlfNodesRecordsDAO extends LocalRecordsDao
                 continue;
             }
 
+            if (name.equals("_caseStatus")) {
+                name = "icase:caseStatusAssoc";
+            }
+
             QName fieldName = QName.resolveToQName(namespaceService, name);
             if (fieldName == null) {
                 continue;
@@ -457,6 +461,14 @@ public class AlfNodesRecordsDAO extends LocalRecordsDao
         } else {
             dispName = Collections.emptyMap();
         }
+
+        Map<Locale, String> notBlankDispNames = new HashMap<>();
+        dispName.forEach((k, v) -> {
+            if (StringUtils.isNotBlank(v)) {
+                notBlankDispNames.put(k, v);
+            }
+        });
+        dispName = notBlankDispNames;
 
         if (!dispName.isEmpty()) {
 

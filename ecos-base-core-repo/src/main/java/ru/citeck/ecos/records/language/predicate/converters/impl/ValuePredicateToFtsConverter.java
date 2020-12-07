@@ -313,12 +313,6 @@ public class ValuePredicateToFtsConverter implements PredicateToFtsConverter {
 
             TypeDefinition targetType = dictUtils.getTypeDefinition(targetTypeName);
             if (targetType != null) {
-                QName targetTypeQName = targetType.getName();
-                String targetTypeLocalName = targetTypeQName.getLocalName();
-                if (CATEGORY_LOCAL_NAME.equals(targetTypeLocalName)) {
-                    innerQuery.type(ContentModel.TYPE_CATEGORY);
-                }
-
                 attributes.putAll(getTargetTypeAttributes(targetType, assocVal));
             }
         }
@@ -608,7 +602,7 @@ public class ValuePredicateToFtsConverter implements PredicateToFtsConverter {
                 return;
             }
             if (DataTypeDefinition.CATEGORY.equals(typeName)) {
-                addNodeRefSearchTerms(query, field, DataTypeDefinition.CATEGORY, predicateValue);
+                addNodeRefSearchTerms(query, field, ContentModel.TYPE_CATEGORY, predicateValue);
                 return;
             }
             if (DataTypeDefinition.NODE_REF.equals(typeName)) {

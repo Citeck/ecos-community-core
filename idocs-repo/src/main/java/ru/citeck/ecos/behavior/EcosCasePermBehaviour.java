@@ -20,6 +20,7 @@ import ru.citeck.ecos.utils.NodeUtils;
 import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 
 public class EcosCasePermBehaviour extends AbstractBehaviour implements NodeServicePolicies.OnCreateNodePolicy {
 
@@ -86,7 +87,16 @@ public class EcosCasePermBehaviour extends AbstractBehaviour implements NodeServ
         }
 
         String caseName = (String) caseProps.get(ContentModel.PROP_NAME);
-        QName assocQName = QName.createQName(EcosModel.ECOS_NAMESPACE, caseName);
+        String newCaseName;
+        if (StringUtils.isNotBlank(caseName)) {
+            newCaseName = nodeUtils.getValidChildName(creatorFolder, caseName);
+        } else {
+            newCaseName = UUID.randomUUID().toString();
+        }
+        if (!newCaseName.equals(caseName)) {
+            nodeService.setProperty(caseRef, ContentModel.PROP_NAME, newCaseName);
+        }
+        QName assocQName = QName.createQName(EcosModel.ECOS_NAMESPACE, newCaseName);
         nodeService.moveNode(caseRef, creatorFolder, ContentModel.ASSOC_CONTAINS, assocQName);
     }
 

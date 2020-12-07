@@ -67,7 +67,7 @@
           "record": {
             "id": "{{recordId}}",
             "attributes": {
-              "groups": "assoc_src_cm:member[]?id"
+              "groups": "groups[]?disp"
             }
           },
           "forceLoad": false
