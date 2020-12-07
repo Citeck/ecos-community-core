@@ -3,10 +3,17 @@ label:
   ru: Контрагенты
   en: Contractors
 
+typeRef: emodel/type@idocs-contractor
+
 predicate:
-  t: eq
-  att: TYPE
-  val: idocs:contractor
+  t: and
+  val:
+    -   t: eq
+        att: TYPE
+        val: idocs:contractor
+    -   t: eq
+        att: _type
+        val: ''
 
 actions:
   - uiserv/action@edit
@@ -44,7 +51,7 @@ columns:
         ru: 'Тип контрагента'
         en: 'Contractor type'
       attribute: idocs:contractorType
-      type: text
+      type: options
       searchable: true
       sortable: true
       groupable: false
