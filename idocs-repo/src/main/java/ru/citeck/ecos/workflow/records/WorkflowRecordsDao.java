@@ -6,7 +6,6 @@ import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.alfresco.repo.content.MimetypeMap;
 import org.alfresco.service.cmr.dictionary.DictionaryService;
-import org.alfresco.service.cmr.repository.ChildAssociationRef;
 import org.alfresco.service.cmr.repository.NodeRef;
 import org.alfresco.service.cmr.repository.NodeService;
 import org.alfresco.service.cmr.workflow.WorkflowDefinition;
@@ -165,34 +164,13 @@ public class WorkflowRecordsDao extends LocalRecordsDao
             if (cancel) {
                 WorkflowInstance mutatedInstance = ecosWorkflowService.cancelWorkflowInstance(meta.getId().getId());
                 meta.setId(mutatedInstance.getId());
-            } else {
-                cancelRootWorkflow(meta);
             }
         }
-        return meta;
-    }
-
-    private RecordMeta cancelRootWorkflow(RecordMeta meta) {
         if (meta.hasAttribute("cancel-root")) {
-            boolean cancelRoot = meta.getAttribute("cancel-root").asBoolean();
-            if (cancelRoot) {
-                NodeRef instanceRefByTaskName = ecosWorkflowService.getInstanceById(
-                    StringUtils.substringAfter(meta.getId().toString(), "@")).getWorkflowPackage();
-                String childrenTaskAssocRef = StringUtils.substringBetween(
-                    nodeService.getChildAssocs((instanceRefByTaskName)).get(0).toString(), "|", "|");
-                List<ChildAssociationRef> parentAssocRefs = nodeService.
-                    getParentAssocs(new NodeRef(childrenTaskAssocRef));
-                for (ChildAssociationRef parentAssocRef :
-                    parentAssocRefs) {
-                    if (parentAssocRef.getTypeQName()
-                        .toString().equals("{http://www.alfresco.org/model/bpm/1.0}packageContains")) {
-                        NodeRef rootTaskRef = parentAssocRef.getParentRef();
-                        QName workflowInstanceId = QName.createQName("http://www.alfresco.org/model/bpm/1.0", "workflowInstanceId");
-                        String workflowId = nodeService.getProperty(rootTaskRef, workflowInstanceId).toString();
-                        WorkflowInstance mutatedInstance = ecosWorkflowService.cancelWorkflowInstance(workflowId);
-                        meta.setId(mutatedInstance.getId());
-                    }
-                }
+            boolean cancel = meta.getAttribute("cancel-root").asBoolean();
+            if (cancel) {
+                WorkflowInstance mutatedInstance = ecosWorkflowService.cancelWorkflowRootInstance(meta.getId().getId());
+                meta.setId(mutatedInstance.getId());
             }
         }
         return meta;
