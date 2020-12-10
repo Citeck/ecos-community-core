@@ -1160,6 +1160,25 @@
                                 "type": "selectOrgstruct",
                                 "input": true,
                                 "allUsersGroup": "all"
+                              },
+                              {
+                                "label": "idocs:responsibilities",
+                                "multiple": true,
+                                "clearOnHide": false,
+                                "currentUserByDefault": true,
+                                "validate": {
+                                  "required": true
+                                },
+                                "key": "idocs_responsibilities",
+                                "properties": {
+                                  "attribute": "idocs:responsibilities",
+                                  "dummy": "dummy"
+                                },
+                                "type": "selectOrgstruct",
+                                "input": true,
+                                "allUsersGroup": "all",
+                                "defaultValue": "",
+                                "reorder": false
                               }
                             ],
                             "type": "column",
@@ -1240,6 +1259,58 @@
                           }
                         ],
                         "key": "columns11",
+                        "type": "columns",
+                        "input": false
+                      },
+                      {
+                        "columns": [
+                          {
+                            "components": [
+                              {
+                                "label": "eint:ediProviderInfoAssoc",
+                                "multiple": true,
+                                "clearOnHide": false,
+                                "source": {
+                                  "type": "custom",
+                                  "custom": {
+                                    "columns": [
+                                      {
+                                        "name": "eint:ediProviderBoxId",
+                                        "formatter": "",
+                                        "setAttributesManually": false
+                                      },
+                                      {
+                                        "name": "eint:ediProviderType",
+                                        "formatter": "",
+                                        "setAttributesManually": false
+                                      },
+                                      {
+                                        "name": "eint:ediProviderInfoIsActive",
+                                        "formatter": "",
+                                        "setAttributesManually": false
+                                      }
+                                    ],
+                                    "record": null,
+                                    "attribute": null
+                                  }
+                                },
+                                "key": "eint_ediProviderInfoAssoc",
+                                "properties": {
+                                  "attribute": "eint:ediProviderInfoAssoc"
+                                },
+                                "type": "tableForm",
+                                "input": true,
+                                "reorder": false
+                              }
+                            ],
+                            "md": 12,
+                            "type": "column",
+                            "input": false,
+                            "key": "column",
+                            "index": 0
+                          }
+                        ],
+                        "key": "columns8",
                         "type": "columns",
                         "input": false
                       }
