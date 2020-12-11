@@ -6,6 +6,7 @@ import org.alfresco.error.AlfrescoRuntimeException;
 import org.alfresco.model.ContentModel;
 import org.alfresco.service.cmr.repository.*;
 import org.alfresco.service.namespace.QName;
+import org.apache.commons.lang.StringUtils;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -53,7 +54,11 @@ public class FileRepresentation {
 
         obj.put(MODEL_DATA, data);
         obj.put(MODEL_URL, String.format(URL_PATTERN, alfNode.nodeRef()));
-        obj.put(MODEL_NAME, (String) properties.get(ContentModel.PROP_NAME));
+        Serializable dispName = properties.get(ContentModel.PROP_TITLE);
+        if (!(dispName instanceof String) || StringUtils.isBlank((String) dispName)) {
+            dispName = properties.get(ContentModel.PROP_NAME);
+        }
+        obj.put(MODEL_NAME, (String) dispName);
         obj.put(MODEL_SIZE, reader.getSize());
 
         String typeKind = "";
