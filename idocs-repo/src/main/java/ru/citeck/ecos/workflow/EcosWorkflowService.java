@@ -102,18 +102,20 @@ public class EcosWorkflowService {
     }
 
     public WorkflowInstance cancelWorkflowRootInstance(String workflowId) {
-        NodeRef instanceRefByTaskName = getInstanceById(workflowId).getWorkflowPackage();
-        if (instanceRefByTaskName != null) {
-            NodeRef childrenTaskAssocRef = nodeService.getChildAssocs((instanceRefByTaskName)).get(0).getChildRef();
-            List<ChildAssociationRef> parentAssocRefs = nodeService
-                .getParentAssocs(childrenTaskAssocRef, WorkflowModel.ASSOC_PACKAGE_CONTAINS,
-                    RegexQNamePattern.MATCH_ALL);
-            for (ChildAssociationRef parentAssocRef : parentAssocRefs) {
-                NodeRef rootWorkflowPackage = parentAssocRef.getParentRef();
-                String rootWorkflowId = (String) nodeService.getProperty(
-                    rootWorkflowPackage, WorkflowModel.PROP_WORKFLOW_INSTANCE_ID);
-                if (rootWorkflowId != null) {
-                    return cancelWorkflowInstance(rootWorkflowId);
+        if (getInstanceById(workflowId) != null) {
+            NodeRef instanceRefByTaskName = getInstanceById(workflowId).getWorkflowPackage();
+            if (instanceRefByTaskName != null && !nodeService.getChildAssocs(instanceRefByTaskName).isEmpty()) {
+                NodeRef childrenTaskAssocRef = nodeService.getChildAssocs(instanceRefByTaskName).get(0).getChildRef();
+                List<ChildAssociationRef> parentAssocRefs = nodeService
+                    .getParentAssocs(childrenTaskAssocRef, WorkflowModel.ASSOC_PACKAGE_CONTAINS,
+                        RegexQNamePattern.MATCH_ALL);
+                for (ChildAssociationRef parentAssocRef : parentAssocRefs) {
+                    NodeRef rootWorkflowPackage = parentAssocRef.getParentRef();
+                    String rootWorkflowId = (String) nodeService.getProperty(
+                        rootWorkflowPackage, WorkflowModel.PROP_WORKFLOW_INSTANCE_ID);
+                    if (rootWorkflowId != null) {
+                        return cancelWorkflowInstance(rootWorkflowId);
+                    }
                 }
             }
         }
