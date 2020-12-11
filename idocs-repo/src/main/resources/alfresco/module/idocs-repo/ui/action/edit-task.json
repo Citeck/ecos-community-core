@@ -8,5 +8,11 @@
   "type": "edit",
   "config": {
     "mode": "task"
+  },
+  "evaluator": {
+    "type": "has-permission",
+    "config": {
+      "permission": "Write"
+    }
   }
 }
