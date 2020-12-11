@@ -103,24 +103,27 @@ public class EcosWorkflowService {
 
     public WorkflowInstance cancelWorkflowRootInstance(String workflowId) {
         WorkflowInstance instanceById = getInstanceById(workflowId);
-        if (instanceById != null) {
-            NodeRef instanceRefByTaskName = instanceById.getWorkflowPackage();
-            if (instanceRefByTaskName != null) {
-                List<ChildAssociationRef> childrenTaskAssocRefs = nodeService.getChildAssocs(instanceRefByTaskName);
-                if (!childrenTaskAssocRefs.isEmpty()) {
-                    NodeRef childrenTaskAssocRef = childrenTaskAssocRefs.get(0).getChildRef();
-                    List<ChildAssociationRef> parentAssocRefs = nodeService
-                        .getParentAssocs(childrenTaskAssocRef, WorkflowModel.ASSOC_PACKAGE_CONTAINS,
-                            RegexQNamePattern.MATCH_ALL);
-                    for (ChildAssociationRef parentAssocRef : parentAssocRefs) {
-                        NodeRef rootWorkflowPackage = parentAssocRef.getParentRef();
-                        String rootWorkflowId = (String) nodeService.getProperty(
-                            rootWorkflowPackage, WorkflowModel.PROP_WORKFLOW_INSTANCE_ID);
-                        if (rootWorkflowId != null) {
-                            return cancelWorkflowInstance(rootWorkflowId);
-                        }
-                    }
-                }
+        if (instanceById == null) {
+            return cancelWorkflowInstance(workflowId);
+        }
+        NodeRef instanceRefByTaskName = instanceById.getWorkflowPackage();
+        if (instanceRefByTaskName == null) {
+            return cancelWorkflowInstance(workflowId);
+        }
+        List<ChildAssociationRef> childrenTaskAssocRefs = nodeService.getChildAssocs(instanceRefByTaskName);
+        if (childrenTaskAssocRefs.isEmpty()) {
+            return cancelWorkflowInstance(workflowId);
+        }
+        NodeRef childrenTaskAssocRef = childrenTaskAssocRefs.get(0).getChildRef();
+        List<ChildAssociationRef> parentAssocRefs = nodeService
+            .getParentAssocs(childrenTaskAssocRef, WorkflowModel.ASSOC_PACKAGE_CONTAINS,
+                RegexQNamePattern.MATCH_ALL);
+        for (ChildAssociationRef parentAssocRef : parentAssocRefs) {
+            NodeRef rootWorkflowPackage = parentAssocRef.getParentRef();
+            String rootWorkflowId = (String) nodeService.getProperty(
+                rootWorkflowPackage, WorkflowModel.PROP_WORKFLOW_INSTANCE_ID);
+            if (rootWorkflowId != null) {
+                return cancelWorkflowInstance(rootWorkflowId);
             }
         }
         return cancelWorkflowInstance(workflowId);
