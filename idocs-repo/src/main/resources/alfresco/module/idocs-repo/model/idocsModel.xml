@@ -1716,7 +1716,7 @@
                         <many>true</many>
                     </source>
                     <target>
-                        <class>cm:authorityContainer</class>
+                        <class>cm:authority</class>
                         <many>true</many>
                     </target>
                 </association>
