@@ -102,9 +102,9 @@ public class EcosWorkflowService {
     }
 
     public WorkflowInstance cancelWorkflowRootInstance(String workflowId) {
-        WorkflowInstance InstanceById = getInstanceById(workflowId);
-        if (InstanceById != null) {
-            NodeRef instanceRefByTaskName = getInstanceById(workflowId).getWorkflowPackage();
+        WorkflowInstance instanceById = getInstanceById(workflowId);
+        if (instanceById != null) {
+            NodeRef instanceRefByTaskName = instanceById.getWorkflowPackage();
             if (instanceRefByTaskName != null) {
                 List<ChildAssociationRef> childrenTaskAssocRefs = nodeService.getChildAssocs(instanceRefByTaskName);
                 if (!childrenTaskAssocRefs.isEmpty()) {
