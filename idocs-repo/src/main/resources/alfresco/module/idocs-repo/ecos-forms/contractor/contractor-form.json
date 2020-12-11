@@ -1157,25 +1157,6 @@
                                 "type": "selectOrgstruct",
                                 "input": true,
                                 "allUsersGroup": "all"
-                              },
-                              {
-                                "label": "idocs:responsibilities",
-                                "multiple": true,
-                                "clearOnHide": false,
-                                "currentUserByDefault": true,
-                                "validate": {
-                                  "required": true
-                                },
-                                "key": "idocs_responsibilities",
-                                "properties": {
-                                  "attribute": "idocs:responsibilities",
-                                  "dummy": "dummy"
-                                },
-                                "type": "selectOrgstruct",
-                                "input": true,
-                                "allUsersGroup": "all",
-                                "defaultValue": "",
-                                "reorder": false
                               }
                             ],
                             "type": "column",
@@ -1244,14 +1225,23 @@
                             "label": "Column",
                             "components": [
                               {
-                                "label": "idocs:diadocBoxId",
-                                "defaultValue": "",
-                                "key": "idocs_diadocBoxId",
-                                "properties": {
-                                  "attribute": "idocs:diadocBoxId"
+                                "label": "idocs:responsibilities",
+                                "multiple": true,
+                                "clearOnHide": false,
+                                "currentUserByDefault": true,
+                                "validate": {
+                                  "required": true
                                 },
-                                "type": "textfield",
-                                "input": true
+                                "key": "idocs_responsibilities",
+                                "properties": {
+                                  "attribute": "idocs:responsibilities",
+                                  "dummy": "dummy"
+                                },
+                                "type": "selectOrgstruct",
+                                "input": true,
+                                "allUsersGroup": "all",
+                                "defaultValue": "",
+                                "reorder": false
                               }
                             ],
                             "clearOnHide": true,
