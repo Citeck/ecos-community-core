@@ -856,10 +856,8 @@
                               {
                                 "label": "idocs:gln",
                                 "clearOnHide": false,
-                                "disabled": false,
                                 "defaultValue": "",
                                 "validate": {
-                                  "required": false,
                                   "pattern": "^\\d{13}$|^$",
                                   "customMessage": "Некорректный GLN"
                                 },
@@ -872,7 +870,6 @@
                               }
                             ],
                             "index": 6,
-                            "clearOnHide": false,
                             "conditional": {
                               "show": null,
                               "when": null
@@ -1203,7 +1200,13 @@
                   },
                   {
                     "title": "Конфигурация",
+                    "refreshOn": "isEdiEnabled",
                     "key": "panel8",
+                    "conditional": {
+                      "show": "true",
+                      "when": "isEdiEnabled",
+                      "eq": "true"
+                    },
                     "type": "panel",
                     "input": false,
                     "components": [
@@ -1742,7 +1745,28 @@
             "key": "column",
             "label": "Column",
             "index": 2,
-            "components": [],
+            "components": [
+              {
+                "label": "isEdiEnabled",
+                "source": {
+                  "type": "ajax",
+                  "ajax": {
+                    "url": "/citeck/ecosConfig/ecos-config-value",
+                    "data": "value = {'configName': 'electronic-document-management'};",
+                    "mapping": "const { value: val } = data || {};\nvalue = val;",
+                    "method": "GET"
+                  },
+                  "forceLoad": false
+                },
+                "update": {
+                  "type": "once",
+                  "rate": 200
+                },
+                "key": "isEdiEnabled",
+                "type": "asyncData",
+                "input": true
+              }
+            ],
             "clearOnHide": true,
             "conditional": {
               "show": null,
