@@ -90,7 +90,8 @@ public class EcosTaskService {
             }
         }
 
-        if (StringUtils.isBlank(assignee)) {
+        boolean isAssigneeEmpty = StringUtils.isBlank(assignee);
+        if (isAssigneeEmpty) {
             ownerService.changeOwner(taskId, OwnerAction.CLAIM, user);
         }
 
@@ -106,6 +107,13 @@ public class EcosTaskService {
                 return null;
             });
         } catch (RuntimeException exception) {
+            if (isAssigneeEmpty) {
+                try {
+                    ownerService.changeOwner(taskId, OwnerAction.RELEASE, user);
+                } catch (Exception changeOwnerException) {
+                    log.error("Cannot release task with id: " + taskId, changeOwnerException);
+                }
+            }
             unwrapJsExceptionAndThrow(exception);
         }
     }
