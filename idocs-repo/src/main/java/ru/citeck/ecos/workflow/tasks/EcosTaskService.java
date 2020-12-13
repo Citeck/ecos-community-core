@@ -111,7 +111,7 @@ public class EcosTaskService {
                 try {
                     ownerService.changeOwner(taskId, OwnerAction.RELEASE, user);
                 } catch (Exception changeOwnerException) {
-                    changeOwnerException.printStackTrace();
+                    log.error("Cannot release task with id: " + taskId, changeOwnerException);
                 }
             }
             unwrapJsExceptionAndThrow(exception);
