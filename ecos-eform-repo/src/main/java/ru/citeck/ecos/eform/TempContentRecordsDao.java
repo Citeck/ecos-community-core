@@ -6,6 +6,7 @@ import java.io.Serializable;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
+import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.alfresco.model.ContentModel;
 import org.alfresco.repo.content.MimetypeMap;
@@ -22,16 +23,18 @@ import org.springframework.stereotype.Component;
 import ru.citeck.ecos.commons.data.DataValue;
 import ru.citeck.ecos.eform.model.EcosEformFileModel;
 import ru.citeck.ecos.records2.RecordMeta;
+import ru.citeck.ecos.records2.predicate.PredicateUtils;
+import ru.citeck.ecos.records2.predicate.model.Predicates;
 import ru.citeck.ecos.records2.request.delete.RecordsDelResult;
 import ru.citeck.ecos.records2.request.delete.RecordsDeletion;
 import ru.citeck.ecos.records2.request.mutation.RecordsMutResult;
 import ru.citeck.ecos.records2.request.mutation.RecordsMutation;
-import ru.citeck.ecos.records2.source.dao.AbstractRecordsDao;
 import ru.citeck.ecos.records2.source.dao.MutableRecordsDao;
+import ru.citeck.ecos.records3.record.dao.RecordsDao;
 
 @Component
 @Slf4j
-public class TempContentRecordsDao extends AbstractRecordsDao implements MutableRecordsDao {
+public class TempContentRecordsDao implements RecordsDao, MutableRecordsDao {
 
     public static final String ID = "tempContent";
 
@@ -40,6 +43,7 @@ public class TempContentRecordsDao extends AbstractRecordsDao implements Mutable
     private static final String PARAM_FILE_NAME = "fileName";
     private static final String PARAM_MIMETYPE = "mimetype";
     private static final String PARAM_ENCODING = "encoding";
+    private static final String PARAM_CONTENT = "content";
 
     @Autowired
     private NodeService nodeService;
@@ -58,7 +62,7 @@ public class TempContentRecordsDao extends AbstractRecordsDao implements Mutable
         for (RecordMeta record : recordsMutation.getRecords()) {
             String name = record.getAttribute(PARAM_NAME, "");
             String fileName = record.getAttribute(PARAM_FILE_NAME, "");
-            DataValue value = record.getAttribute(ID);
+            DataValue value = record.getAttribute(PARAM_CONTENT);
             if (value == null || DataValue.NULL.equals(value)) {
                 log.info("Skip saving temp content with empty data: " + fileName);
                 continue;

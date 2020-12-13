@@ -1709,6 +1709,20 @@
             </properties>
         </aspect>
 
+        <aspect name="idocs:hasResponsibilities">
+            <associations>
+                <association name="idocs:responsibilities">
+                    <source>
+                        <many>true</many>
+                    </source>
+                    <target>
+                        <class>cm:authority</class>
+                        <many>true</many>
+                    </target>
+                </association>
+            </associations>
+        </aspect>
+
     </aspects>
 
 </model>
