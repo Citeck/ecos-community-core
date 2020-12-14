@@ -138,6 +138,17 @@ public class AlfNodeMetaEdge extends SimpleMetaEdge {
     }
 
     @Override
+    public boolean isUnreadable() {
+
+        NodeRef nodeRef = getNodeRef();
+        if (nodeRef == null || ecosPermissionService == null) {
+            return false;
+        }
+
+        return !ecosPermissionService.isAttributeVisible(nodeRef, getName());
+    }
+
+    @Override
     public boolean isMultiple() {
 
         ClassAttributeDefinition definition = getDefinition();
