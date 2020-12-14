@@ -28,8 +28,11 @@ import ru.citeck.ecos.records2.RecordConstants;
 import ru.citeck.ecos.records2.RecordMeta;
 import ru.citeck.ecos.records2.RecordRef;
 import ru.citeck.ecos.records2.predicate.PredicateService;
+import ru.citeck.ecos.records2.predicate.PredicateUtils;
 import ru.citeck.ecos.records2.predicate.model.OrPredicate;
+import ru.citeck.ecos.records2.predicate.model.Predicate;
 import ru.citeck.ecos.records2.predicate.model.Predicates;
+import ru.citeck.ecos.records2.predicate.model.VoidPredicate;
 import ru.citeck.ecos.records2.request.mutation.RecordsMutResult;
 import ru.citeck.ecos.records2.request.mutation.RecordsMutation;
 import ru.citeck.ecos.records3.RecordsService;
@@ -38,9 +41,7 @@ import ru.citeck.ecos.records3.record.op.query.dto.RecsQueryRes;
 import ru.citeck.ecos.records3.record.op.query.dto.query.QueryPage;
 import ru.citeck.ecos.records3.record.op.query.dto.query.RecordsQuery;
 
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -143,6 +144,48 @@ public class DocLibService {
             docLibTypeRef.getId() + TYPE_DELIM + result.getRecords().get(0).getId());
     }
 
+    public List<DocLibNodeInfo> getPath(RecordRef docLibRef) {
+
+        List<DocLibNodeInfo> path = new ArrayList<>();
+        path.add(getDocLibNodeInfo(docLibRef));
+
+        EntityId entityId = getEntityId(docLibRef);
+
+        if (RecordRef.isEmpty(entityId.getTypeRef())
+                || entityId.getLocalId().isEmpty()
+                || !NodeRef.isNodeRef(entityId.getLocalId())) {
+
+            return path;
+        }
+
+        NodeRef rootNodeRef = ecosTypeService.getRootForType(entityId.getTypeRef(), false);
+        if (rootNodeRef == null) {
+            return path;
+        }
+        String rootNodeRefStr = rootNodeRef.toString();
+
+        String entityNodeRefStr = entityId.getLocalId();
+        if (rootNodeRefStr.equals(entityNodeRefStr)) {
+            return path;
+        }
+
+        String parentRefStr = recordsService.getAtt(RecordRef.valueOf(entityId.getLocalId()), "_parent?id").asText();
+        while (NodeRef.isNodeRef(parentRefStr) && !rootNodeRefStr.equals(parentRefStr)) {
+            DocLibNodeInfo nodeInfo = getDocLibNodeInfo(getEntityRef(entityId.getTypeRef(), parentRefStr));
+            if (RecordRef.isEmpty(nodeInfo.getTypeRef())) {
+                break;
+            }
+            path.add(nodeInfo);
+            parentRefStr = recordsService.getAtt(RecordRef.valueOf(parentRefStr), "_parent?id").asText();
+        }
+
+        List<DocLibNodeInfo> result = new ArrayList<>();
+        for (int i = path.size() - 1; i >= 0; i--) {
+            result.add(path.get(i));
+        }
+        return result;
+    }
+
     public boolean hasChildrenDirs(RecordRef docLibRef) {
 
         DocLibChildrenQuery query = new DocLibChildrenQuery();
@@ -243,12 +286,28 @@ public class DocLibService {
             }
         }
 
+        Predicate parentPred;
+        if (query.isRecursive()) {
+            String path = nodeService.getPath(parentNodeRef).toPrefixString(namespaceService) + "//*";
+            parentPred = Predicates.eq("PATH", path);
+        } else {
+            parentPred = Predicates.eq("PARENT", parentNodeRef.toString());
+        }
+
+        Predicate filterPred = VoidPredicate.INSTANCE;
+        if (query.getFilter() != null && query.getFilter() != VoidPredicate.INSTANCE) {
+            filterPred = PredicateUtils.mapValuePredicates(query.getFilter(), pred -> {
+                if (pred.getAttribute().equals("ALL")) {
+                    pred = pred.copy();
+                    pred.setAttribute("cm:title");
+                }
+                return pred;
+            });
+        }
+
         RecordsQuery recordsQuery = RecordsQuery.create()
             .withLanguage(PredicateService.LANGUAGE_PREDICATE)
-            .withQuery(Predicates.and(
-                Predicates.eq("PARENT", parentNodeRef.toString()),
-                typesPredicate
-            ))
+            .withQuery(Predicates.and(parentPred, typesPredicate, filterPred))
             .withPage(page)
             .build();
 
@@ -256,8 +315,7 @@ public class DocLibService {
 
         List<RecordRef> children = childrenQueryRes.getRecords()
             .stream()
-            .map(r -> RecordRef.create(DocLibRecords.SOURCE_ID,
-                entityId.getTypeRef().getId() + TYPE_DELIM + r.getId()))
+            .map(r -> getEntityRef(entityId.getTypeRef(), r.getId()))
             .collect(Collectors.toList());
 
         RecsQueryRes<RecordRef> res = new RecsQueryRes<>();
@@ -266,6 +324,10 @@ public class DocLibService {
         res.setTotalCount(childrenQueryRes.getTotalCount());
 
         return res;
+    }
+
+    private RecordRef getEntityRef(RecordRef typeRef, String localId) {
+        return RecordRef.create(DocLibRecords.SOURCE_ID, typeRef.getId() + TYPE_DELIM + localId);
     }
 
     @NotNull
