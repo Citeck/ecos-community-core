@@ -10,6 +10,7 @@ import org.apache.commons.lang.StringUtils;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.springframework.extensions.surf.util.I18NUtil;
 import ru.citeck.ecos.graphql.AlfGqlContext;
 import ru.citeck.ecos.graphql.node.Attribute;
 import ru.citeck.ecos.graphql.node.GqlAlfNode;
@@ -55,6 +56,9 @@ public class FileRepresentation {
         obj.put(MODEL_DATA, data);
         obj.put(MODEL_URL, String.format(URL_PATTERN, alfNode.nodeRef()));
         Serializable dispName = properties.get(ContentModel.PROP_TITLE);
+        if (dispName instanceof MLText) {
+            dispName = ((MLText) dispName).getClosestValue(I18NUtil.getLocale());
+        }
         if (!(dispName instanceof String) || StringUtils.isBlank((String) dispName)) {
             dispName = properties.get(ContentModel.PROP_NAME);
         }
