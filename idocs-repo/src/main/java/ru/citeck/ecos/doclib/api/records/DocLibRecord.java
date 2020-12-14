@@ -55,6 +55,13 @@ public class DocLibRecord {
             .collect(Collectors.toList());
     }
 
+    public List<DocLibRecord> getPath() {
+        return docLibService.getPath(recordRef)
+            .stream()
+            .map(rec -> new DocLibRecord(rec, docLibRecords))
+            .collect(Collectors.toList());
+    }
+
     @AttName("_type")
     public RecordRef getTypeRef() {
         return getDocLibNodeInfo().getTypeRef();
@@ -78,5 +85,10 @@ public class DocLibRecord {
             docLibNodeInfo = docLibService.getDocLibNodeInfo(recordRef);
         }
         return docLibNodeInfo;
+    }
+
+    @AttName("?json")
+    public DocLibNodeInfo getJson() {
+        return getDocLibNodeInfo();
     }
 }
