@@ -19,6 +19,7 @@ import ru.citeck.ecos.commons.data.DataValue;
 import ru.citeck.ecos.commons.json.Json;
 import ru.citeck.ecos.model.ClassificationModel;
 import ru.citeck.ecos.model.EcosTypeModel;
+import ru.citeck.ecos.records2.RecordRef;
 import ru.citeck.ecos.utils.RepoUtils;
 
 import javax.xml.bind.DatatypeConverter;
@@ -280,17 +281,24 @@ public class AlfNodeContentFileHelper {
 
     private void processTypeKind(AttachmentDto attachmentDto, NodeRef nodeRef) {
 
-        if (attachmentDto.getTypeRef() == null) {
-            return;
-        }
         Map<QName, Serializable> props = new HashMap<>();
-        props.put(ClassificationModel.PROP_DOCUMENT_TYPE, attachmentDto.getTypeRef());
-        props.put(ClassificationModel.PROP_DOCUMENT_KIND, attachmentDto.getKindRef());
-        if (StringUtils.isNotBlank(attachmentDto.getEcosType())) {
-            props.put(EcosTypeModel.PROP_TYPE, attachmentDto.getEcosType());
+
+        if (attachmentDto.getTypeRef() != null) {
+            props.put(ClassificationModel.PROP_DOCUMENT_TYPE, attachmentDto.getTypeRef());
+            props.put(ClassificationModel.PROP_DOCUMENT_KIND, attachmentDto.getKindRef());
         }
 
-        nodeService.addProperties(nodeRef, props);
+        String ecosType = attachmentDto.getEcosType();
+        if (StringUtils.isNotBlank(ecosType)) {
+            if (ecosType.startsWith("emodel/type@")) {
+                ecosType = RecordRef.valueOf(ecosType).getId();
+            }
+            props.put(EcosTypeModel.PROP_TYPE, ecosType);
+        }
+
+        if (!props.isEmpty()) {
+            nodeService.addProperties(nodeRef, props);
+        }
     }
 
     private List<AttachmentDto> parseAttachments(DataValue jsonNode) {
