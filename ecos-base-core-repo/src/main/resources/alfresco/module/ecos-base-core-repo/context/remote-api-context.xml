@@ -80,7 +80,7 @@
                     <property name="model">
                         <map>
                             <entry key="filename"
-                                   value="#{'$'}{companyhome.nodeByReference[args.nodeRef].properties['cm:title']}"/>
+                                   value="#{'$'}{(companyhome.nodeByReference[args.nodeRef].properties['cm:title']!companyhome.nodeByReference[args.nodeRef].properties['cm:name'])!'document'}"/>
                         </map>
                     </property>
                 </bean>
