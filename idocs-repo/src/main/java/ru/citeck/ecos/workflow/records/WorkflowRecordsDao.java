@@ -8,7 +8,10 @@ import org.alfresco.repo.content.MimetypeMap;
 import org.alfresco.service.cmr.dictionary.DictionaryService;
 import org.alfresco.service.cmr.repository.NodeRef;
 import org.alfresco.service.cmr.repository.NodeService;
-import org.alfresco.service.cmr.workflow.*;
+import org.alfresco.service.cmr.workflow.WorkflowDefinition;
+import org.alfresco.service.cmr.workflow.WorkflowInstance;
+import org.alfresco.service.cmr.workflow.WorkflowInstanceQuery;
+import org.alfresco.service.cmr.workflow.WorkflowTask;
 import org.alfresco.service.namespace.NamespaceService;
 import org.alfresco.service.namespace.QName;
 import org.apache.commons.lang.StringUtils;
@@ -160,6 +163,13 @@ public class WorkflowRecordsDao extends LocalRecordsDao
             boolean cancel = meta.getAttribute("cancel").asBoolean();
             if (cancel) {
                 WorkflowInstance mutatedInstance = ecosWorkflowService.cancelWorkflowInstance(meta.getId().getId());
+                meta.setId(mutatedInstance.getId());
+            }
+        }
+        if (meta.hasAttribute("cancel-root")) {
+            boolean cancel = meta.getAttribute("cancel-root").asBoolean();
+            if (cancel) {
+                WorkflowInstance mutatedInstance = ecosWorkflowService.cancelWorkflowRootInstance(meta.getId().getId());
                 meta.setId(mutatedInstance.getId());
             }
         }
