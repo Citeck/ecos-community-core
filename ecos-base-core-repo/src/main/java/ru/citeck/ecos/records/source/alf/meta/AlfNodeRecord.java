@@ -468,8 +468,9 @@ public class AlfNodeRecord implements MetaValue {
         if (node != null) {
             type = node.getType();
         }
+        String ecosModelName = name;
         name = attributesMapping.getOrDefault(name, name);
-        return new AlfNodeMetaEdge(context, type, name, this);
+        return new AlfNodeMetaEdge(context, type, name, ecosModelName, this);
     }
 
     private MetaValue toMetaValue(Attribute att, Object value, MetaField field) {

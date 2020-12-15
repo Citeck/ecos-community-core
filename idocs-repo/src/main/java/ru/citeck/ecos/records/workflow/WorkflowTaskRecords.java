@@ -758,7 +758,7 @@ public class WorkflowTaskRecords extends LocalRecordsDao
             if (!name.contains(":") && name.contains("_")) {
                 name = name.replaceFirst("_", ":");
             }
-            return new AlfNodeMetaEdge(context, null, name, this);
+            return new AlfNodeMetaEdge(context, null, name, name, this);
         }
 
         private RecordRef getDocumentRef() {

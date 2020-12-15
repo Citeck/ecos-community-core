@@ -37,6 +37,7 @@ public class AlfNodeMetaEdge extends SimpleMetaEdge {
     private final QName scopeType;
     private final MetaValue scope;
     private final AlfGqlContext context;
+    private final String ecosModelName;
 
     @Getter(lazy = true)
     private final NodeRef nodeRef = evalNodeRef();
@@ -47,11 +48,13 @@ public class AlfNodeMetaEdge extends SimpleMetaEdge {
     public AlfNodeMetaEdge(AlfGqlContext context,
                            QName scopeType,
                            String name,
+                           String ecosModelName,
                            MetaValue scope) {
         super(name, scope);
 
         this.scope = scope;
         this.context = context;
+        this.ecosModelName = ecosModelName;
 
         messageService = context.getMessageService();
         namespaceService = context.getNamespaceService();
@@ -134,7 +137,7 @@ public class AlfNodeMetaEdge extends SimpleMetaEdge {
             return false;
         }
 
-        return ecosPermissionService.isAttributeProtected(nodeRef, getName());
+        return ecosPermissionService.isAttributeProtected(nodeRef, ecosModelName);
     }
 
     @Override
@@ -145,7 +148,7 @@ public class AlfNodeMetaEdge extends SimpleMetaEdge {
             return false;
         }
 
-        return !ecosPermissionService.isAttributeVisible(nodeRef, getName());
+        return !ecosPermissionService.isAttributeVisible(nodeRef, ecosModelName);
     }
 
     @Override
