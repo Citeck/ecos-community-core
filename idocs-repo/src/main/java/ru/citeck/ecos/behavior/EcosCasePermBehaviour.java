@@ -3,6 +3,7 @@ package ru.citeck.ecos.behavior;
 import org.alfresco.model.ContentModel;
 import org.alfresco.repo.node.NodeServicePolicies;
 import org.alfresco.repo.policy.Behaviour;
+import org.alfresco.repo.security.authentication.AuthenticationUtil;
 import org.alfresco.service.cmr.repository.ChildAssociationRef;
 import org.alfresco.service.cmr.repository.NodeRef;
 import org.alfresco.service.cmr.security.PermissionService;
@@ -40,6 +41,13 @@ public class EcosCasePermBehaviour extends AbstractBehaviour implements NodeServ
     @PolicyMethod(policy = NodeServicePolicies.OnCreateNodePolicy.class,
                   frequency = Behaviour.NotificationFrequency.TRANSACTION_COMMIT)
     public void onCreateNode(ChildAssociationRef childAssociationRef) {
+        AuthenticationUtil.runAsSystem(() -> {
+            onCreateNodeAsAdmin(childAssociationRef);
+            return null;
+        });
+    }
+
+    private void onCreateNodeAsAdmin(ChildAssociationRef childAssociationRef) {
 
         Object paramValue = ecosConfigService.getParamValue(ENABLED_CONFIG_KEY);
         if (!"true".equals(paramValue)) {

@@ -2,6 +2,7 @@ package ru.citeck.ecos.utils;
 
 import org.alfresco.model.ContentModel;
 import org.alfresco.repo.jscript.ScriptNode;
+import org.alfresco.repo.security.authentication.AuthenticationUtil;
 import org.alfresco.repo.transaction.AlfrescoTransactionSupport;
 import org.alfresco.repo.transaction.AlfrescoTransactionSupport.TxnReadState;
 import org.alfresco.repo.transaction.TransactionalResourceHelper;
@@ -177,7 +178,8 @@ public class NodeUtils {
             name = GUID.generate();
         }
 
-        name = getValidChildName(parentRef, childAssoc, name);
+        String finalName = name;
+        name = AuthenticationUtil.runAsSystem(() -> getValidChildName(parentRef, childAssoc, finalName));
         props.put(ContentModel.PROP_NAME, name);
 
         QName assocName = QName.createQNameWithValidLocalName(childAssoc.getNamespaceURI(), name);

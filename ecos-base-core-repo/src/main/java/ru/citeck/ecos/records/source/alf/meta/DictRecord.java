@@ -57,7 +57,7 @@ public class DictRecord implements MetaValue {
 
     @Override
     public MetaEdge getEdge(String name, MetaField field) {
-        return new AlfNodeMetaEdge(context, fullName, name, this);
+        return new AlfNodeMetaEdge(context, fullName, name, name, this);
     }
 
     @Override
