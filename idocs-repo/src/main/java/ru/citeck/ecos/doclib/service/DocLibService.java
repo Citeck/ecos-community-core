@@ -54,7 +54,11 @@ public class DocLibService {
         DocLibNodeType.FILE,
         "",
         RecordRef.EMPTY,
-        RecordRef.EMPTY
+        RecordRef.EMPTY,
+        null,
+        null,
+        null,
+        null
     );
 
     private final EcosTypeService ecosTypeService;
@@ -146,28 +150,31 @@ public class DocLibService {
 
     public List<DocLibNodeInfo> getPath(RecordRef docLibRef) {
 
-        List<DocLibNodeInfo> path = new ArrayList<>();
-        path.add(getDocLibNodeInfo(docLibRef));
+        List<DocLibNodeInfo> resultPath = new ArrayList<>();
 
         EntityId entityId = getEntityId(docLibRef);
+        if (RecordRef.isEmpty(entityId.getTypeRef())) {
+            return resultPath;
+        }
 
-        if (RecordRef.isEmpty(entityId.getTypeRef())
-                || entityId.getLocalId().isEmpty()
-                || !NodeRef.isNodeRef(entityId.getLocalId())) {
+        resultPath.add(getDocLibNodeInfo(getEntityRef(entityId.getTypeRef(), "")));
 
-            return path;
+        if (entityId.getLocalId().isEmpty() || !NodeRef.isNodeRef(entityId.getLocalId())) {
+            return resultPath;
         }
 
         NodeRef rootNodeRef = ecosTypeService.getRootForType(entityId.getTypeRef(), false);
         if (rootNodeRef == null) {
-            return path;
+            return resultPath;
         }
         String rootNodeRefStr = rootNodeRef.toString();
 
         String entityNodeRefStr = entityId.getLocalId();
         if (rootNodeRefStr.equals(entityNodeRefStr)) {
-            return path;
+            return resultPath;
         }
+
+        List<DocLibNodeInfo> invPath = new ArrayList<>();
 
         String parentRefStr = recordsService.getAtt(RecordRef.valueOf(entityId.getLocalId()), "_parent?id").asText();
         while (NodeRef.isNodeRef(parentRefStr) && !rootNodeRefStr.equals(parentRefStr)) {
@@ -175,15 +182,14 @@ public class DocLibService {
             if (RecordRef.isEmpty(nodeInfo.getTypeRef())) {
                 break;
             }
-            path.add(nodeInfo);
+            invPath.add(nodeInfo);
             parentRefStr = recordsService.getAtt(RecordRef.valueOf(parentRefStr), "_parent?id").asText();
         }
 
-        List<DocLibNodeInfo> result = new ArrayList<>();
-        for (int i = path.size() - 1; i >= 0; i--) {
-            result.add(path.get(i));
+        for (int i = invPath.size() - 1; i >= 0; i--) {
+            resultPath.add(invPath.get(i));
         }
-        return result;
+        return resultPath;
     }
 
     public boolean hasChildrenDirs(RecordRef docLibRef) {
@@ -215,7 +221,17 @@ public class DocLibService {
 
             String name = MLText.getClosestValue(typeDef.getName(), I18NUtil.getLocale());
 
-            return new DocLibNodeInfo(docLibRef, DocLibNodeType.DIR, name, RecordRef.EMPTY, entityId.getTypeRef());
+            return new DocLibNodeInfo(
+                docLibRef,
+                DocLibNodeType.DIR,
+                name,
+                RecordRef.EMPTY,
+                entityId.getTypeRef(),
+                null,
+                null,
+                null,
+                null
+            );
         }
 
         String nodeRef = entityId.getLocalId();
@@ -243,7 +259,17 @@ public class DocLibService {
             return EMPTY_NODE;
         }
 
-        return new DocLibNodeInfo(docLibRef, nodeType, info.getDisplayName(), info.getTypeRef(), entityId.getTypeRef());
+        return new DocLibNodeInfo(
+            docLibRef,
+            nodeType,
+            info.getDisplayName(),
+            info.getTypeRef(),
+            entityId.getTypeRef(),
+            info.getModified(),
+            info.getCreated(),
+            info.getModifier(),
+            info.getCreator()
+        );
     }
 
     public RecsQueryRes<RecordRef> getChildren(DocLibChildrenQuery query, QueryPage page) {
@@ -366,6 +392,14 @@ public class DocLibService {
         private RecordRef typeRef;
         @AttName("?disp")
         private String displayName;
+        @AttName("cm:modified")
+        private Date modified;
+        @AttName("cm:modifier")
+        private String modifier;
+        @AttName("cm:created")
+        private Date created;
+        @AttName("cm:creator")
+        private String creator;
     }
 
     @Data
