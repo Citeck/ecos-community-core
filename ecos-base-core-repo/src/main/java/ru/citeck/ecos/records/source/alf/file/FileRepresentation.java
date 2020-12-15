@@ -14,7 +14,8 @@ import org.springframework.extensions.surf.util.I18NUtil;
 import ru.citeck.ecos.graphql.AlfGqlContext;
 import ru.citeck.ecos.graphql.node.Attribute;
 import ru.citeck.ecos.graphql.node.GqlAlfNode;
-import ru.citeck.ecos.model.ClassificationModel;
+import ru.citeck.ecos.records2.RecordConstants;
+import ru.citeck.ecos.records2.RecordRef;
 
 import java.io.Serializable;
 import java.util.Map;
@@ -65,20 +66,9 @@ public class FileRepresentation {
         obj.put(MODEL_NAME, (String) dispName);
         obj.put(MODEL_SIZE, reader.getSize());
 
-        String typeKind = "";
-        Serializable typeRaw = properties.get(ClassificationModel.PROP_DOCUMENT_TYPE);
-        if (typeRaw != null) {
-            NodeRef typeRef = (NodeRef) typeRaw;
-            typeKind = typeRef.getId();
-        }
-
-        Serializable kindRaw = properties.get(ClassificationModel.PROP_DOCUMENT_KIND);
-        if (kindRaw != null) {
-            NodeRef kindRef = (NodeRef) kindRaw;
-            typeKind += FILE_TYPE_DELIMITER + kindRef.getId();
-        }
-
-        obj.put(MODEL_FILE_TYPE, typeKind);
+        String ecosTypeRef = context.getRecordsService()
+            .getAtt(RecordRef.valueOf(alfNode.nodeRef()), RecordConstants.ATT_TYPE + "?id").asText();
+        obj.put(MODEL_FILE_TYPE, RecordRef.valueOf(ecosTypeRef).getId());
 
         return obj;
     }
