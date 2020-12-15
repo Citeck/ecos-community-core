@@ -76,6 +76,14 @@
                     <property name="nodeRef" value="${args.nodeRef}"/>
                 </bean>
                 <bean parent="dbp.transform.pdf"/>
+                <bean parent="dbp.model">
+                    <property name="model">
+                        <map>
+                            <entry key="filename"
+                                   value="#{'$'}{companyhome.nodeByReference[args.nodeRef].properties['cm:title']}"/>
+                        </map>
+                    </property>
+                </bean>
                 <bean parent="dbp.switch">
                     <property name="expression" value="${args.print!'false'}"/>
                     <property name="cases">
