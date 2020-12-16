@@ -18,6 +18,7 @@
  */
 package ru.citeck.ecos.notification;
 
+import lombok.Setter;
 import org.alfresco.model.ContentModel;
 import org.alfresco.repo.notification.EMailNotificationProvider;
 import org.alfresco.repo.security.authentication.AuthenticationUtil;
@@ -32,6 +33,8 @@ import org.alfresco.service.cmr.repository.NodeRef;
 import org.alfresco.service.cmr.repository.NodeService;
 import org.alfresco.service.cmr.repository.StoreRef;
 import org.alfresco.service.cmr.search.SearchService;
+import org.alfresco.service.cmr.security.AuthorityService;
+import org.alfresco.service.cmr.security.AuthorityType;
 import org.alfresco.service.namespace.NamespaceService;
 import org.alfresco.service.namespace.QName;
 import org.alfresco.service.transaction.TransactionService;
@@ -39,16 +42,29 @@ import org.alfresco.util.transaction.TransactionListenerAdapter;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import ru.citeck.ecos.model.DmsModel;
-import ru.citeck.ecos.search.ftsquery.BinOperator;
+import ru.citeck.ecos.notification.task.record.services.EcosExecutionsTaskService;
+import ru.citeck.ecos.notifications.lib.Notification;
+import ru.citeck.ecos.notifications.lib.NotificationType;
+import ru.citeck.ecos.notifications.lib.service.NotificationService;
+import ru.citeck.ecos.records2.RecordRef;
+import ru.citeck.ecos.records2.predicate.PredicateService;
+import ru.citeck.ecos.records2.predicate.model.*;
+import ru.citeck.ecos.records2.request.query.SortBy;
+import ru.citeck.ecos.records3.RecordsService;
+import ru.citeck.ecos.records3.record.op.atts.dto.RecordAtts;
+import ru.citeck.ecos.records3.record.op.query.dto.query.RecordsQuery;
 import ru.citeck.ecos.search.ftsquery.FTSQuery;
-import ru.citeck.ecos.search.ftsquery.OperatorExpected;
 import ru.citeck.ecos.utils.ReflectionUtils;
+import ru.citeck.ecos.utils.RepoUtils;
 import ru.citeck.ecos.utils.TransactionUtils;
+import ru.citeck.ecos.utils.UrlUtils;
 
 import java.io.Serializable;
 import java.util.*;
-import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 /**
  * Generic implementation of NotificationSender interface.
@@ -108,7 +124,20 @@ public abstract class AbstractNotificationSender<ItemType> implements Notificati
     protected SearchService searchService;
     protected NamespaceService namespaceService;
     protected DictionaryService dictionaryService;
+    protected AuthorityService authorityService;
     protected WorkflowQNameConverter qNameConverter;
+
+    @Autowired @Setter
+    protected RecordsService recordsService;
+
+    @Autowired @Qualifier("ecosNotificationService") @Setter
+    protected NotificationService notificationService;
+
+    @Autowired @Setter
+    protected EcosExecutionsTaskService executionsTaskService;
+
+    @Autowired @Setter
+    protected UrlUtils urlUtils;
 
     public void setServiceRegistry(ServiceRegistry serviceRegistry) {
         this.services = serviceRegistry;
@@ -116,6 +145,7 @@ public abstract class AbstractNotificationSender<ItemType> implements Notificati
         this.searchService = services.getSearchService();
         this.namespaceService = services.getNamespaceService();
         this.dictionaryService = services.getDictionaryService();
+        this.authorityService = services.getAuthorityService();
         this.qNameConverter = new WorkflowQNameConverter(namespaceService);
     }
 
@@ -180,16 +210,41 @@ public abstract class AbstractNotificationSender<ItemType> implements Notificati
     }
 
     public void sendNotification(final ItemType item, final boolean afterCommit) {
+        NodeRef template = getNotificationTemplate(item);
+
+        String notificationTemplate = null;
+        String subject = getNotificationSubject(item);
+        if (template != null) {
+            if (subject == null) {
+                subject = (String) nodeService.getProperty(template, ContentModel.PROP_TITLE);
+            }
+            notificationTemplate = (String) nodeService.getProperty(template, DmsModel.PROP_ECOS_NOTIFICATION_TEMPLATE);
+        }
+
+        String finalNotificationTemplate = notificationTemplate;
+        String finalSubject = subject;
         AuthenticationUtil.runAsSystem((RunAsWork<Void>) () -> {
-            sendNotification(
+            if (StringUtils.isNotBlank(finalNotificationTemplate)) {
+                sendEcosNotification(
                     getNotificationProviderName(item),
                     getNotificationFrom(item),
-                    getNotificationSubject(item),
-                    getNotificationTemplate(item),
+                    finalSubject,
+                    finalNotificationTemplate,
+                    getEcosNotificationArgs(item),
+                    getNotificationRecipients(item),
+                    afterCommit
+                );
+            } else {
+                sendNotification(
+                    getNotificationProviderName(item),
+                    getNotificationFrom(item),
+                    finalSubject,
+                    template,
                     getNotificationArgs(item),
                     getNotificationRecipients(item),
                     afterCommit
-            );
+                );
+            }
             return null;
         });
     }
@@ -236,6 +291,22 @@ public abstract class AbstractNotificationSender<ItemType> implements Notificati
     protected abstract Map<String, Serializable> getNotificationArgs(ItemType item);
 
     /**
+     * Get ECOS notification template arguments for specified item.
+     * Arguments must be support in recordsService.
+     * Argument '_record' will be used as main record in Ecos notification
+     * Set of item names is item-type specific.
+     *
+     * @param item
+     * @return
+     */
+    protected Map<String, Object> getEcosNotificationArgs(ItemType item){
+        Map<String, Object> args = new HashMap<>();
+        args.put("date", new Date());
+        args.put("web_url", urlUtils.getWebUrl());
+        return args;
+    };
+
+    /**
      * Get collection of notification recipients.
      * Recipient can be user name or group full name (e.g. GROUP_ALFRESCO_ADMINISTRATORS).
      *
@@ -276,87 +347,109 @@ public abstract class AbstractNotificationSender<ItemType> implements Notificati
     }
 
     protected NodeRef getNotificationTemplate(String wfkey, String tkey, boolean findNotSearchable) {
-
-        Map<QName, Serializable> fields = new HashMap<>();
-
-        fields.put(DmsModel.PROP_WORKFLOW_NAME, wfkey);
-        fields.put(DmsModel.PROP_TASK_NAME, tkey);
-
-        return getWFNotificationTemplate(fields, findNotSearchable).orElseGet(() ->
-            getTemplateNodeRef(this.defaultTemplate)
-        );
+        return getNotificationTemplateWithEtype(wfkey, tkey, null, findNotSearchable);
     }
 
     protected NodeRef getNotificationTemplate(String wfkey, String tkey, QName docType) {
-        return getNotificationTemplate(wfkey, tkey, docType, false);
+        return getNotificationTemplate(wfkey, tkey, docType,  false);
+    }
+
+    protected NodeRef getNotificationTemplate(String wfkey, String tkey, QName docType, String etype) {
+        return getNotificationTemplate(wfkey, tkey, docType, etype, false);
     }
 
     protected NodeRef getNotificationTemplate(String wfkey, String tkey, QName docType, boolean findNotSearchable) {
+        return getNotificationTemplate(wfkey, tkey, docType, null, findNotSearchable);
+    }
+
+    protected NodeRef getNotificationTemplateWithEtype(String wfkey, String tkey, String etype) {
+        return getNotificationTemplateWithEtype(wfkey, tkey, etype, false);
+    }
+
+    protected NodeRef getNotificationTemplate(String wfkey, String tkey, QName docType, String etype, boolean findNotSearchable) {
 
         Map<QName, Serializable> fields = new HashMap<>();
 
         fields.put(DmsModel.PROP_WORKFLOW_NAME, wfkey);
         fields.put(DmsModel.PROP_TASK_NAME, tkey);
         fields.put(DmsModel.PROP_DOC_TYPE, docType);
+        fields.put(DmsModel.PROP_ECOS_TYPE, etype);
 
         return getWFNotificationTemplate(fields, findNotSearchable).orElseGet(() ->
-            getNotificationTemplate(wfkey, tkey, findNotSearchable)
+            getNotificationTemplateWithEtype(wfkey, tkey, etype, findNotSearchable)
+        );
+    }
+
+    protected NodeRef getNotificationTemplateWithEtype(String wfkey, String tkey, String etype, boolean findNotSearchable) {
+
+        Map<QName, Serializable> fields = new HashMap<>();
+
+        fields.put(DmsModel.PROP_WORKFLOW_NAME, wfkey);
+        fields.put(DmsModel.PROP_TASK_NAME, tkey);
+        fields.put(DmsModel.PROP_ECOS_TYPE, etype);
+
+        return getWFNotificationTemplate(fields, findNotSearchable).orElseGet(() ->
+            getTemplateNodeRef(this.defaultTemplate)
         );
     }
 
     protected Optional<NodeRef> getWFNotificationTemplate(Map<QName, Serializable> props,
                                                           boolean findNotSearchable) {
 
-        Map<QName, Serializable> tempFields;
+        Map<QName, Serializable> propsTmp = new HashMap<>(props);
+        String wfkey = (String) propsTmp.get(DmsModel.PROP_WORKFLOW_NAME);
+        propsTmp.remove(DmsModel.PROP_WORKFLOW_NAME);
+        String tkey = (String) propsTmp.get(DmsModel.PROP_TASK_NAME);
+        propsTmp.remove(DmsModel.PROP_TASK_NAME);
+        String etype = (String) propsTmp.get(DmsModel.PROP_ECOS_TYPE);
+        propsTmp.remove(DmsModel.PROP_ECOS_TYPE);
 
-        Serializable wfkey = props.get(DmsModel.PROP_WORKFLOW_NAME);
-        Serializable tkey = props.get(DmsModel.PROP_TASK_NAME);
+        AndPredicate predicate = Predicates.and(
+            Predicates.eq("TYPE", DmsModel.TYPE_NOTIFICATION_TEMPLATE.toString()),
+            Predicates.eq(DmsModel.PROP_NOTIFICATION_TYPE.toString(), this.notificationType),
+            Predicates.or(
+                Predicates.empty(DmsModel.PROP_WORKFLOW_NAME.toString()),
+                !StringUtils.isBlank(wfkey) ? Predicates.eq(DmsModel.PROP_WORKFLOW_NAME.toString(), wfkey) : null
+            ),
+            Predicates.or(
+                Predicates.empty(DmsModel.PROP_TASK_NAME.toString()),
+                !StringUtils.isBlank(tkey) ? Predicates.eq(DmsModel.PROP_TASK_NAME.toString(), tkey) : null
+            ),
+            Predicates.or(
+                Predicates.empty(DmsModel.PROP_ECOS_TYPE.toString()),
+                !StringUtils.isBlank(etype) ? Predicates.eq(DmsModel.PROP_ECOS_TYPE.toString(), etype) : null
+            )
+        );
 
-        Optional<NodeRef> templateRef = searchTemplate(props, findNotSearchable);
+        propsTmp.forEach((att, value) -> {
+            boolean isNull = value == null || ((value instanceof String) && StringUtils.isBlank((String) value));
 
-        if (!templateRef.isPresent() && wfkey != null) {
-            tempFields = new HashMap<>(props);
-            tempFields.put(DmsModel.PROP_WORKFLOW_NAME, null);
-            templateRef = searchTemplate(tempFields, findNotSearchable);
+            predicate.addPredicate(isNull
+                ? Predicates.eq(att.toString(), value)
+                : Predicates.empty(att.toString()));
+        });
+
+        if (!findNotSearchable) {
+            predicate.addPredicate(Predicates.not(Predicates.eq(DmsModel.PROP_NOT_SEARCHABLE.toString(), true)));
         }
 
-        if (!templateRef.isPresent() && tkey != null) {
-            tempFields = new HashMap<>(props);
-            tempFields.put(DmsModel.PROP_TASK_NAME, null);
-            templateRef = searchTemplate(tempFields, findNotSearchable);
-        }
+        RecordsQuery query = RecordsQuery.create()
+            .withLanguage(PredicateService.LANGUAGE_PREDICATE)
+            .withQuery(predicate)
+            .withSortBy(Arrays.asList(
+                new SortBy(DmsModel.PROP_TASK_NAME.toString(), false),
+                new SortBy(DmsModel.PROP_WORKFLOW_NAME.toString(), false),
+                new SortBy(DmsModel.PROP_ECOS_TYPE.toString(), false)
+            )).build();
 
-        if (!templateRef.isPresent() && wfkey != null && tkey != null) {
-            tempFields = new HashMap<>(props);
-            tempFields.put(DmsModel.PROP_TASK_NAME, null);
-            tempFields.put(DmsModel.PROP_WORKFLOW_NAME, null);
-            templateRef = searchTemplate(tempFields, findNotSearchable);
-        }
-
-        return templateRef;
+        RecordRef recordRef = recordsService.queryOne(query);
+        NodeRef nodeRef = recordRef != null ? new NodeRef(recordRef.toString()) : null;
+        return Optional.ofNullable(getEnabledTemplate(nodeRef));
     }
 
-    private Optional<NodeRef> searchTemplate(Map<QName, Serializable> props, boolean findNotSearchable) {
-
-        Predicate<NodeRef> notSearchableFilter = ref -> {
-            Serializable notSearchable = nodeService.getProperty(ref, DmsModel.PROP_NOT_SEARCHABLE);
-            return findNotSearchable || !Boolean.TRUE.equals(notSearchable);
-        };
-
-        for (QName key : props.keySet()) {
-            props.putIfAbsent(key, "");
-        }
-
-        OperatorExpected query = FTSQuery.create()
-                                         .type(DmsModel.TYPE_NOTIFICATION_TEMPLATE).and()
-                                         .exact(DmsModel.PROP_NOTIFICATION_TYPE, this.notificationType).and()
-                                         .values(props, BinOperator.AND, true)
-                                         .transactionalIfPossible();
-
-        if (logger.isDebugEnabled()) {
-            logger.debug("Template searching. Query: " + query);
-        }
-        return query.queryOne(searchService, notSearchableFilter);
+    private NodeRef getEnabledTemplate(NodeRef nodeRef) {
+        Boolean isDisabled = (Boolean) nodeService.getProperty(nodeRef, DmsModel.PROP_NOTIFICATION_DISABLED);
+        return isDisabled ? null : nodeRef;
     }
 
     protected NodeRef getTemplateNodeRef(String templatePath) {
@@ -365,10 +458,10 @@ public abstract class AbstractNotificationSender<ItemType> implements Notificati
                 StoreRef.STORE_REF_WORKSPACE_SPACESSTORE,
                 SearchService.LANGUAGE_XPATH,
                 xpath).getNodeRefs();
-        if (results.size() > 0) {
-            return results.get(0);
+        if (results.isEmpty()) {
+            return null;
         }
-        return null;
+        return getEnabledTemplate(results.get(0));
     }
 
     /**
@@ -386,44 +479,75 @@ public abstract class AbstractNotificationSender<ItemType> implements Notificati
                                     NodeRef template, Map<String, Serializable> args, Collection<String> recipients,
                                     boolean afterCommit) {
 
-        if (template != null) {
-            // create notification context
-            final NotificationContext notificationContext = new NotificationContext();
-            // set necessary variables
-            if (subject == null) {
-                subject = (String) nodeService.getProperty(template, ContentModel.PROP_TITLE);
-            }
-            notificationContext.setSubject(subject);
-            setBodyTemplate(notificationContext, template);
-            notificationContext.setTemplateArgs(args);
-            for (String to : recipients) {
-                notificationContext.addTo(to);
-            }
-            notificationContext.setAsyncNotification(false);
-            logger.debug("sendNotification_asyncNotification: " + asyncNotification + " instance = " + toString());
-            if (null != from) {
-                notificationContext.setFrom(from);
-            }
+        if (template == null) {
+            return;
+        }
 
-            // send
-            if (asyncNotification) {
-                TransactionUtils.doAfterCommit(() -> {
-                    sendNotificationContext(notificationProviderName, notificationContext);
-                });
-            } else if (afterCommit) {
-                AlfrescoTransactionSupport.bindListener(new TransactionListenerAdapter() {
-                    @Override
-                    public void afterCommit() {
-                        RetryingTransactionHelper helper = transactionService.getRetryingTransactionHelper();
-                        helper.doInTransaction(() -> {
-                            sendNotificationContext(notificationProviderName, notificationContext);
-                            return null;
-                        }, false, true);
-                    }
-                });
-            } else {
-                sendNotificationContext(notificationProviderName, notificationContext);
-            }
+        // create notification context
+        final NotificationContext notificationContext = new NotificationContext();
+        notificationContext.setSubject(subject);
+        setBodyTemplate(notificationContext, template);
+        notificationContext.setTemplateArgs(args);
+        for (String to : recipients) {
+            notificationContext.addTo(to);
+        }
+        notificationContext.setAsyncNotification(false);
+        logger.debug("sendNotification_asyncNotification: " + asyncNotification + " instance = " + toString());
+        if (null != from) {
+            notificationContext.setFrom(from);
+        }
+
+        sendNotificationContext(() -> {
+            sendNotificationContext(notificationProviderName, notificationContext);
+        }, afterCommit);
+    }
+
+    protected void sendEcosNotification(final String notificationProviderName, String from, String subject,
+                                      String template, Map<String, Object> args, Collection<String> recipients,
+                                      boolean afterCommit) {
+
+        if (recipients == null || recipients.isEmpty()) {
+            return;
+        }
+
+        Object record = args.get("_record");
+        args.remove("_record");
+
+        args.put("subject", subject);
+
+        Notification notification = new Notification.Builder()
+            .record(record)
+            .templateRef(RecordRef.valueOf(template))
+            .notificationType(NotificationType.EMAIL_NOTIFICATION)
+            .recipients(getEmailFromAuthorityNames(recipients))
+            .additionalMeta(args)
+            .from(from)
+            .build();
+
+        sendNotificationContext(() -> {
+            notificationService.send(notification);
+        }, afterCommit);
+    }
+
+    private void sendNotificationContext(Runnable runnable, boolean afterCommit) {
+        // send
+        if (asyncNotification) {
+            TransactionUtils.doAfterCommit(() -> {
+                runnable.run();
+            });
+        } else if (afterCommit) {
+            AlfrescoTransactionSupport.bindListener(new TransactionListenerAdapter() {
+                @Override
+                public void afterCommit() {
+                    RetryingTransactionHelper helper = transactionService.getRetryingTransactionHelper();
+                    helper.doInTransaction(() -> {
+                        runnable.run();
+                        return null;
+                    }, false, true);
+                }
+            });
+        } else {
+            runnable.run();
         }
     }
 
@@ -486,6 +610,72 @@ public abstract class AbstractNotificationSender<ItemType> implements Notificati
     protected Boolean isSendToAssignee(NodeRef template) {
         return (Boolean) nodeService.getProperty(template,
                 qNameConverter.mapNameToQName("dms_sendToAssignee"));
+    }
+
+    protected String getFirstEtypeFromNodeRefs(List<NodeRef> nodeRefs) {
+        List<RecordRef> recordRefs = nodeRefs.stream()
+            .map(node -> RecordRef.valueOf(node.toString()))
+            .collect(Collectors.toList());
+
+        return getFirstEtypeFromRecordRefs(recordRefs);
+    }
+
+    protected String getFirstEtypeFromRecordRefs(List<RecordRef> recordRefs) {
+        List<RecordAtts> result = recordsService.getAtts(recordRefs, Collections.singletonMap("type", "_etype?id"));
+        for (RecordAtts att : result) {
+            String type = att.getAtt("type").asText();
+            if (StringUtils.isNotBlank(type)) {
+                return type;
+            }
+        }
+
+        return null;
+    }
+
+    protected Set<String> getEmailFromAuthorityNames(Collection<String> authorities) {
+        Set<Serializable> serializableSet = authorities.stream().map(item -> (Serializable) item)
+            .collect(Collectors.toSet());
+        List<NodeRef> authorityRefs = FTSQuery.create()
+            .open().type(ContentModel.TYPE_AUTHORITY).and()
+            .any(ContentModel.PROP_USERNAME, serializableSet)
+            .close()
+            .or()
+            .open().type(ContentModel.TYPE_AUTHORITY_CONTAINER).and()
+            .any(ContentModel.PROP_AUTHORITY_NAME, serializableSet)
+            .close()
+            .transactional()
+            .query(searchService);
+
+        return getEmailFromAuthorityRefs(authorityRefs);
+    }
+
+    protected Set<String> getEmailFromAuthorityRefs(Collection<NodeRef> authorityRefs) {
+        Set<String> result = new HashSet<>();
+        for (NodeRef ref : authorityRefs) {
+            if (!nodeService.exists(ref)) {
+                continue;
+            }
+
+            QName type = nodeService.getType(ref);
+            if (dictionaryService.isSubClass(type, ContentModel.TYPE_PERSON)) {
+                String email = RepoUtils.getProperty(ref, ContentModel.PROP_EMAIL, nodeService);
+                if (StringUtils.isNotBlank(email)) {
+                    result.add(email);
+                }
+            } else if (dictionaryService.isSubClass(type, ContentModel.TYPE_AUTHORITY_CONTAINER)) {
+                String groupName = (String) nodeService.getProperty(ref, ContentModel.PROP_AUTHORITY_NAME);
+                Set<String> authorities = authorityService.getContainedAuthorities(AuthorityType.USER, groupName, false);
+                for (String authority : authorities) {
+                    NodeRef authorityRef = authorityService.getAuthorityNodeRef(authority);
+                    String email = RepoUtils.getProperty(authorityRef, ContentModel.PROP_EMAIL, nodeService);
+                    if (StringUtils.isNotBlank(email)) {
+                        result.add(email);
+                    }
+                }
+            }
+        }
+
+        return result;
     }
 
     protected abstract void sendToAssignee(ItemType task, Set<String> authorities);

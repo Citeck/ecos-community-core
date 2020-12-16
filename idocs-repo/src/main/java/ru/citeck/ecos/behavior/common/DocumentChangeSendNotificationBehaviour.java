@@ -36,6 +36,7 @@ import org.apache.commons.logging.LogFactory;
 import ru.citeck.ecos.behavior.JavaBehaviour;
 import ru.citeck.ecos.notification.DocumentNotificationSender;
 import ru.citeck.ecos.processor.ProcessorHelper;
+import ru.citeck.ecos.records2.RecordRef;
 import ru.citeck.ecos.security.NodeOwnerDAO;
 import ru.citeck.ecos.service.AlfrescoServices;
 
@@ -96,8 +97,7 @@ public class DocumentChangeSendNotificationBehaviour implements NodeServicePolic
     }
 
     @Override
-    public void onUpdateProperties(final NodeRef nodeRef, Map<QName, Serializable> before, Map<QName, Serializable> after)
-    {
+    public void onUpdateProperties(final NodeRef nodeRef, Map<QName, Serializable> before, Map<QName, Serializable> after) {
         logger.debug("onUpdateProperties event");
         if (enabled && nodeService.exists(nodeRef)) {
             Map<QName, Serializable> properties = nodeService.getProperties(nodeRef);
@@ -111,7 +111,7 @@ public class DocumentChangeSendNotificationBehaviour implements NodeServicePolic
                 String propertyName = qNameConverter.mapQNameToName(entry.getKey());
                 boolean isContains = allowedProperties != null && allowedProperties.contains(propertyName);
                 if (propertiesMode == PropertiesMode.INCLUDE && isContains
-                        || propertiesMode == PropertiesMode.EXCLUDE && !isContains) {
+                    || propertiesMode == PropertiesMode.EXCLUDE && !isContains) {
 
                     if (!Objects.equals(propBefore, propAfter)) {
                         PropertyDefinition propDefinition = dictionaryService.getProperty(entry.getKey());
@@ -157,9 +157,9 @@ public class DocumentChangeSendNotificationBehaviour implements NodeServicePolic
                         if (propTitle == null) {
                             propTitle = entry.getKey().getLocalName();
                         }
-                        changedProperties.put("title",propTitle);
-                        changedProperties.put("before",propBefore);
-                        changedProperties.put("after",propAfter);
+                        changedProperties.put("title", propTitle);
+                        changedProperties.put("before", propBefore);
+                        changedProperties.put("after", propAfter);
                         listProperties.add(changedProperties);
                     }
                 }
@@ -167,12 +167,12 @@ public class DocumentChangeSendNotificationBehaviour implements NodeServicePolic
             //check if edit doc
             if (before.get(ContentModel.PROP_NODE_UUID) != null) {
                 logger.debug("onUpdateProperties edit mode");
-                addition.put("mode","edit_mode");
+                addition.put("mode", "edit_mode");
                 if (!listProperties.isEmpty()) {
-                    addition.put("properties",listProperties);
+                    addition.put("properties", listProperties);
                     if (sender != null) {
                         sender.setAdditionArgs(addition);
-                        sender.setDocumentSubscribers(selectSubscribers(nodeRef,"edit_assoc"));
+                        sender.setDocumentSubscribers(selectSubscribers(nodeRef, "edit_assoc"));
                         sender.setSubject("Документ изменен");
                         sender.sendNotification(nodeRef);
                     }
@@ -182,11 +182,11 @@ public class DocumentChangeSendNotificationBehaviour implements NodeServicePolic
                 logger.debug("created new document");
                 if (sendOnCreate) {
                     logger.debug("sendOnCreate enabled");
-                    addition.put("properties",listProperties);
-                    addition.put("mode","create_mode");
+                    addition.put("properties", listProperties);
+                    addition.put("mode", "create_mode");
                     if (sender != null) {
                         sender.setAdditionArgs(addition);
-                        sender.setDocumentSubscribers(selectSubscribers(nodeRef,"create"));
+                        sender.setDocumentSubscribers(selectSubscribers(nodeRef, "create"));
                         sender.setSubject("Создан документ");
                         sender.sendNotification(nodeRef);
                     }
@@ -203,31 +203,33 @@ public class DocumentChangeSendNotificationBehaviour implements NodeServicePolic
         String assocName = qNameConverter.mapQNameToName(nodeAssocRef.getTypeQName());
         boolean isContains = allowedProperties != null && allowedProperties.contains(assocName);
         if (enabled && (propertiesMode == PropertiesMode.INCLUDE && isContains
-                    || propertiesMode == PropertiesMode.EXCLUDE && !isContains)) {
+            || propertiesMode == PropertiesMode.EXCLUDE && !isContains)) {
 
             HashMap<String, Object> changedProperties = new HashMap<>();
-            changedProperties.put("event","added");
+            changedProperties.put("event", "added");
             ArrayList<Object> listProperties = new ArrayList<>();
             String propTitle = null;
             HashMap<String, Object> addition = new HashMap<>();
             if (assoc != null) {
                 propTitle = assoc.getTitle();
             }
-            changedProperties.put("type",propTitle);
+            changedProperties.put("type", propTitle);
             NodeRef nodeTarget = nodeAssocRef.getTargetRef();
             NodeRef nodeSource = nodeAssocRef.getSourceRef();
             if (nodeService.exists(nodeTarget)) {
-                changedProperties.put("target",nodeTarget);
+                changedProperties.put("target", nodeTarget);
+                changedProperties.put("targetRef", RecordRef.valueOf(nodeTarget.toString()));
             }
             if (nodeService.exists(nodeSource)) {
-                changedProperties.put("source",nodeSource);
+                changedProperties.put("source", nodeSource);
+                changedProperties.put("sourceRef", RecordRef.valueOf(nodeTarget.toString()));
                 listProperties.add(changedProperties);
                 if (!listProperties.isEmpty()) {
-                    addition.put("mode","edit_mode");
-                    addition.put("properties",listProperties);
+                    addition.put("mode", "edit_mode");
+                    addition.put("properties", listProperties);
                     if (sender != null && nodeService.exists(nodeSource)) {
                         sender.setAdditionArgs(addition);
-                        sender.setDocumentSubscribers(selectSubscribers(nodeSource,"edit_assoc"));
+                        sender.setDocumentSubscribers(selectSubscribers(nodeSource, "edit_assoc"));
                         sender.setSubject("Документ изменен");
                         sender.sendNotification(nodeSource);
                     }
@@ -243,13 +245,13 @@ public class DocumentChangeSendNotificationBehaviour implements NodeServicePolic
     public void onDeleteAssociation(AssociationRef nodeAssocRef) {
         logger.debug("onDeleteAssociation event");
         HashMap<String, Object> changedProperties = new HashMap<>();
-        changedProperties.put("event","deleted");
+        changedProperties.put("event", "deleted");
         AssociationDefinition assoc = dictionaryService.getAssociation(nodeAssocRef.getTypeQName());
 
         String assocName = qNameConverter.mapQNameToName(nodeAssocRef.getTypeQName());
         boolean isContains = allowedProperties != null && allowedProperties.contains(assocName);
         if (enabled && (propertiesMode == PropertiesMode.INCLUDE && isContains
-                    || propertiesMode == PropertiesMode.EXCLUDE && !isContains)) {
+            || propertiesMode == PropertiesMode.EXCLUDE && !isContains)) {
 
             ArrayList<Object> listProperties = new ArrayList<>();
             String propTitle = null;
@@ -257,21 +259,23 @@ public class DocumentChangeSendNotificationBehaviour implements NodeServicePolic
             if (assoc != null) {
                 propTitle = assoc.getTitle();
             }
-            changedProperties.put("type",propTitle);
+            changedProperties.put("type", propTitle);
             NodeRef nodeTarget = nodeAssocRef.getTargetRef();
             NodeRef nodeSource = nodeAssocRef.getSourceRef();
             if (nodeService.exists(nodeTarget)) {
-                changedProperties.put("target",nodeTarget);
+                changedProperties.put("target", nodeTarget);
+                changedProperties.put("targetRef", RecordRef.valueOf(nodeTarget.toString()));
             }
             if (nodeService.exists(nodeSource)) {
-                changedProperties.put("source",nodeSource);
+                changedProperties.put("source", nodeSource);
+                changedProperties.put("sourceRef", RecordRef.valueOf(nodeSource.toString()));
                 listProperties.add(changedProperties);
                 if (!listProperties.isEmpty()) {
-                    addition.put("mode","edit_mode");
-                    addition.put("properties",listProperties);
+                    addition.put("mode", "edit_mode");
+                    addition.put("properties", listProperties);
                     if (sender != null && nodeService.exists(nodeSource)) {
                         sender.setAdditionArgs(addition);
-                        sender.setDocumentSubscribers(selectSubscribers(nodeSource,"edit_assoc"));
+                        sender.setDocumentSubscribers(selectSubscribers(nodeSource, "edit_assoc"));
                         sender.setSubject("Документ изменен");
                         sender.sendNotification(nodeSource);
                     }
@@ -289,31 +293,33 @@ public class DocumentChangeSendNotificationBehaviour implements NodeServicePolic
         String assocName = qNameConverter.mapQNameToName(childAssociationRef.getTypeQName());
         boolean isContains = allowedProperties != null && allowedProperties.contains(assocName);
         if (enabled && (propertiesMode == PropertiesMode.INCLUDE && isContains
-                    || propertiesMode == PropertiesMode.EXCLUDE && !isContains)) {
+            || propertiesMode == PropertiesMode.EXCLUDE && !isContains)) {
 
             HashMap<String, Object> changedProperties = new HashMap<>();
-            changedProperties.put("event","added");
+            changedProperties.put("event", "added");
             ArrayList<Object> listProperties = new ArrayList<>();
             String propTitle = null;
             HashMap<String, Object> addition = new HashMap<>();
             if (assoc != null) {
                 propTitle = assoc.getName().getLocalName();
             }
-            changedProperties.put("type",propTitle);
+            changedProperties.put("type", propTitle);
             NodeRef nodeTarget = childAssociationRef.getChildRef();
             NodeRef nodeSource = childAssociationRef.getParentRef();
             if (nodeService.exists(nodeTarget)) {
-                changedProperties.put("target",nodeTarget);
+                changedProperties.put("target", nodeTarget);
+                changedProperties.put("targetRef", RecordRef.valueOf(nodeTarget.toString()));
             }
             if (nodeService.exists(nodeSource)) {
-                changedProperties.put("source",nodeSource);
+                changedProperties.put("source", nodeSource);
+                changedProperties.put("sourceRef", RecordRef.valueOf(nodeSource.toString()));
                 listProperties.add(changedProperties);
                 if (!listProperties.isEmpty()) {
-                    addition.put("mode","edit_mode");
-                    addition.put("properties",listProperties);
+                    addition.put("mode", "edit_mode");
+                    addition.put("properties", listProperties);
                     if (sender != null) {
                         sender.setAdditionArgs(addition);
-                        sender.setDocumentSubscribers(selectSubscribers(nodeSource,"edit_assoc"));
+                        sender.setDocumentSubscribers(selectSubscribers(nodeSource, "edit_assoc"));
                         sender.setSubject("Документ изменен");
                         sender.sendNotification(nodeSource);
                     }
@@ -331,31 +337,33 @@ public class DocumentChangeSendNotificationBehaviour implements NodeServicePolic
         String assocName = qNameConverter.mapQNameToName(childAssociationRef.getTypeQName());
         boolean isContains = allowedProperties != null && allowedProperties.contains(assocName);
         if (enabled && (propertiesMode == PropertiesMode.INCLUDE && isContains
-                    || propertiesMode == PropertiesMode.EXCLUDE && !isContains)) {
+            || propertiesMode == PropertiesMode.EXCLUDE && !isContains)) {
 
             HashMap<String, Object> changedProperties = new HashMap<>();
-            changedProperties.put("event","deleted");
+            changedProperties.put("event", "deleted");
             ArrayList<Object> listProperties = new ArrayList<>();
             String propTitle = null;
             HashMap<String, Object> addition = new HashMap<>();
             if (assoc != null) {
                 propTitle = assoc.getName().getLocalName();
             }
-            changedProperties.put("type",propTitle);
+            changedProperties.put("type", propTitle);
             NodeRef nodeTarget = childAssociationRef.getChildRef();
             NodeRef nodeSource = childAssociationRef.getParentRef();
             if (nodeService.exists(nodeTarget)) {
-                changedProperties.put("target",nodeTarget);
+                changedProperties.put("target", nodeTarget);
+                changedProperties.put("targetRef", RecordRef.valueOf(nodeTarget.toString()));
             }
             if (nodeService.exists(nodeSource)) {
-                changedProperties.put("source",nodeSource);
+                changedProperties.put("source", nodeSource);
+                changedProperties.put("sourceRef", RecordRef.valueOf(nodeTarget.toString()));
                 listProperties.add(changedProperties);
                 if (!listProperties.isEmpty()) {
-                    addition.put("mode","edit_mode");
-                    addition.put("properties",listProperties);
+                    addition.put("mode", "edit_mode");
+                    addition.put("properties", listProperties);
                     if (sender != null) {
                         sender.setAdditionArgs(addition);
-                        sender.setDocumentSubscribers(selectSubscribers(nodeSource,"edit_assoc"));
+                        sender.setDocumentSubscribers(selectSubscribers(nodeSource, "edit_assoc"));
                         sender.setSubject("Документ изменен");
                         sender.sendNotification(nodeSource);
                     }

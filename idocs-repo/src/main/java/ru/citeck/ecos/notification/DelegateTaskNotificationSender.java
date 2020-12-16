@@ -32,14 +32,20 @@ import org.alfresco.service.cmr.repository.*;
 import org.alfresco.service.cmr.search.ResultSet;
 import org.alfresco.service.namespace.QName;
 import org.alfresco.service.namespace.RegexQNamePattern;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import ru.citeck.ecos.model.DmsModel;
+import ru.citeck.ecos.notification.task.record.TaskExecutionRecord;
+import ru.citeck.ecos.notifications.lib.Notification;
+import ru.citeck.ecos.notifications.lib.NotificationType;
+import ru.citeck.ecos.records2.RecordRef;
 import ru.citeck.ecos.security.NodeOwnerDAO;
 import ru.citeck.ecos.server.utils.Utils;
 
 import java.io.Serializable;
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * Notification sender for tasks (ItemType = DelegateTask).
@@ -49,21 +55,20 @@ import java.util.*;
  * - template: retrieved by key = process-definition
  * - template args:
  * {
- * "task": {
- * "id": "task id",
- * "name": "task name",
- * "description": "task description",
- * "priority": "task priority",
- * "dueDate": "task dueDate",
- * }
+ *     "task": {
+ *         "id": "task id",
+ *         "name": "task name",
+ *         "description": "task description",
+ *         "priority": "task priority",
+ *         "dueDate": "task dueDate",
+ *     }
  * },
  * "workflow": {
- * "id": "workflow id",
- * "documents": [
- * "nodeRef1",
- * ...
- * ]
- * }
+ *     "id": "workflow id",
+ *     "documents": [
+ *         "nodeRef1",
+ *         ...
+ *     ]
  * }
  * - notification recipients - assignee or pooled actors, whichever present
  *
@@ -101,6 +106,18 @@ class DelegateTaskNotificationSender extends AbstractNotificationSender<Delegate
         return args;
     }
 
+    @Override
+    protected Map<String, Object> getEcosNotificationArgs(DelegateTask task) {
+        Map<String, Object> args = super.getEcosNotificationArgs(task);
+
+        TaskExecutionRecord taskExecutionRecord = executionsTaskService
+            .getExecutionRecord(DelegateTask.class, task)
+            .orElse(null);
+        args.put("_record", taskExecutionRecord);
+
+        return args;
+    }
+
     private Serializable getTaskInfo(DelegateTask task) {
         HashMap<String, Object> taskInfo = new HashMap<>();
         taskInfo.put(ARG_TASK_ID, task.getId());
@@ -133,8 +150,60 @@ class DelegateTaskNotificationSender extends AbstractNotificationSender<Delegate
     }
 
     public void sendNotification(DelegateTask task) {
-        NotificationContext notificationContext = new NotificationContext();
         NodeRef template = getNotificationTemplate(task);
+
+        if (template == null) {
+            return;
+        }
+
+        Set<String> recipients = getRecipients(task, template, null);
+        String notificationTemplate = (String) nodeService.getProperty(template, DmsModel.PROP_ECOS_NOTIFICATION_TEMPLATE);
+        if (StringUtils.isNotBlank(notificationTemplate)) {
+            send(task, notificationTemplate, recipients);
+        } else {
+            sendDeprecated(task, template, recipients);
+        }
+    }
+
+    private String getEtype(DelegateTask task) {
+        ExecutionEntity executionEntity = ((ExecutionEntity) task.getExecution()).getProcessInstance();
+        ActivitiScriptNode scriptNode = (ActivitiScriptNode) executionEntity.getVariable("bpm_package");
+        NodeRef workflowPackage = scriptNode != null ? scriptNode.getNodeRef() : null;
+        List<ChildAssociationRef> childAssocs = new LinkedList<>();
+        if (workflowPackage != null && nodeService.exists(workflowPackage)) {
+            childAssocs.addAll(nodeService.getChildAssocs(
+                workflowPackage, WorkflowModel.ASSOC_PACKAGE_CONTAINS, RegexQNamePattern.MATCH_ALL));
+            childAssocs.addAll(nodeService.getChildAssocs(
+                workflowPackage, ContentModel.ASSOC_CONTAINS, RegexQNamePattern.MATCH_ALL));
+        }
+
+        List<RecordRef> recordRefs = childAssocs.stream()
+            .map(childRef -> RecordRef.valueOf(childRef.getChildRef().toString()))
+            .collect(Collectors.toList());
+
+        return getFirstEtypeFromRecordRefs(recordRefs);
+    }
+
+    private void send(DelegateTask task, String template, Set<String> recipients) {
+        Map<String, Object> additionalMeta = getEcosNotificationArgs(task);
+
+        Object record = additionalMeta.get("_record");
+        additionalMeta.remove("_record");
+
+        Notification notification = new Notification.Builder()
+            .record(record)
+            .templateRef(RecordRef.valueOf(template))
+            .notificationType(NotificationType.EMAIL_NOTIFICATION)
+            .recipients(getEmailFromAuthorityNames(recipients))
+            .additionalMeta(additionalMeta)
+            .build();
+
+        notificationService.send(notification);
+    }
+
+    // TODO delete on full migration. This is deprecated code
+    private void sendDeprecated(DelegateTask task, NodeRef template, Set<String> recipients) {
+        NotificationContext notificationContext = new NotificationContext();
         notificationContext.setTemplateArgs(getNotificationArgs(task));
         String notificationProviderName = EMailNotificationProvider.NAME;
         String subject = null;
@@ -143,7 +212,7 @@ class DelegateTaskNotificationSender extends AbstractNotificationSender<Delegate
             setBodyTemplate(notificationContext, template);
             String taskFormKey = (String) task.getVariableLocal("taskFormKey");
             subject = getSubject(task, notificationContext.getTemplateArgs(), template, taskFormKey);
-            authorities.addAll(getRecipients(task, template, null));
+            authorities.addAll(recipients);
         }
         notificationContext.setSubject(subject);
         for (String to : authorities) {
@@ -169,8 +238,11 @@ class DelegateTaskNotificationSender extends AbstractNotificationSender<Delegate
                 subject = (String) nodeService.getProperty(template, ContentModel.PROP_TITLE);
 
                 subjectTemplate = Utils.restoreFreemarkerVariables(subjectTemplate);
-                String processedSubjectLine = services.getTemplateService().processTemplateString(templateEngine,
+                String processedSubjectLine = "";
+                if (StringUtils.isNotBlank(subjectTemplate)) {
+                    processedSubjectLine = services.getTemplateService().processTemplateString(templateEngine,
                         subjectTemplate, templateArgs);
+                }
 
                 if (subject == null) {
                     subject = processedSubjectLine;
@@ -229,7 +301,8 @@ class DelegateTaskNotificationSender extends AbstractNotificationSender<Delegate
         String processDef = task.getProcessDefinitionId();
         String wfkey = "activiti$" + processDef.substring(0, processDef.indexOf(':'));
         String tkey = (String) task.getVariableLocal("taskFormKey");
-        return getNotificationTemplate(wfkey, tkey);
+        String etype = getEtype(task);
+        return getNotificationTemplateWithEtype(wfkey, tkey, etype);
     }
 
     /* Properties for tasks provided as map: "task name"-{"property1"-"value1", ...}
@@ -284,6 +357,9 @@ class DelegateTaskNotificationSender extends AbstractNotificationSender<Delegate
 
     protected void sendToSubscribers(DelegateTask task, Set<String> authorities, List<String> taskSubscribers) {
         for (String subscriber : taskSubscribers) {
+            if (StringUtils.isBlank(subscriber)) {
+                continue;
+            }
             QName sub = qNameConverter.mapNameToQName(subscriber);
             NodeRef workflowPackage = null;
             ExecutionEntity executionEntity = ((ExecutionEntity) task.getExecution()).getProcessInstance();

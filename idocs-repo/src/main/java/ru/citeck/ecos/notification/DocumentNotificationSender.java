@@ -19,12 +19,7 @@
 package ru.citeck.ecos.notification;
 
 import java.io.Serializable;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
-import java.util.List;
+import java.util.*;
 
 import org.alfresco.model.ContentModel;
 import org.alfresco.service.ServiceRegistry;
@@ -33,20 +28,21 @@ import org.alfresco.service.cmr.security.AuthenticationService;
 import org.alfresco.service.cmr.security.OwnableService;
 import org.alfresco.service.cmr.security.PersonService;
 
+import ru.citeck.ecos.records2.RecordRef;
 import ru.citeck.ecos.security.NodeOwnerDAO;
 
 /**
  * Notification Sender for documents (ItemType = NodeRef).
- * 
- * The following implementation is used: 
+ *
+ * The following implementation is used:
  * - subject line: default
  * - template: retrieved by key = node type
- * - template args: 
+ * - template args:
  *   {
  *     "document": "nodeRef"
  *   }
  * - recipients: only a document owner receives notification
- * 
+ *
  * @author Sergey Tiunov
  */
 public class DocumentNotificationSender extends AbstractNotificationSender<NodeRef>
@@ -83,9 +79,31 @@ public class DocumentNotificationSender extends AbstractNotificationSender<NodeR
         args.put(ARG_ADDITION, add);
         String userName = authenticationService.getCurrentUserName();
         NodeRef person = personService.getPerson(userName);
-        String lastName = (String)nodeService.getProperty(person,ContentModel.PROP_FIRSTNAME);
-        String firstName = (String)nodeService.getProperty(person,ContentModel.PROP_LASTNAME);
-        args.put(ARG_MODIFIER, lastName +" "+ firstName);
+        String lastName = (String) nodeService.getProperty(person, ContentModel.PROP_FIRSTNAME);
+        String firstName = (String) nodeService.getProperty(person, ContentModel.PROP_LASTNAME);
+        args.put(ARG_MODIFIER, lastName + " " + firstName);
+        return args;
+    }
+
+    @Override
+    protected Map<String, Object> getEcosNotificationArgs(NodeRef item) {
+        Map<String, Object> args = super.getEcosNotificationArgs(item);
+
+        args.put("_record", RecordRef.valueOf(item.toString()));
+
+        Map<String, Object> addiction = new HashMap<>();
+        add.forEach((key, value) -> {
+            if (value instanceof NodeRef) {
+                addiction.put(key, RecordRef.valueOf(value.toString()));
+            } else {
+                addiction.put(key, value);
+            }
+        });
+        args.put(ARG_ADDITION, addiction);
+
+        String userName = authenticationService.getCurrentUserName();
+        args.put("person", RecordRef.valueOf("people@" + userName));
+
         return args;
     }
 
@@ -93,17 +111,17 @@ public class DocumentNotificationSender extends AbstractNotificationSender<NodeR
     protected Collection<String> getNotificationRecipients(NodeRef item) {
         Set<String> recipients = new HashSet<>();
         // add default recipients:
-        if(defaultRecipients != null) {
+        if (defaultRecipients != null) {
             recipients.addAll(defaultRecipients);
         }
-        if(documentSubscribers!=null)
+        if (documentSubscribers != null) {
             recipients.addAll(documentSubscribers);
+        }
         recipients.addAll(getRecipients(item, getNotificationTemplate(item), item));
         return recipients;
     }
 
-    public void setAdditionArgs(HashMap<String, Object> addition)
-    {
+    public void setAdditionArgs(HashMap<String, Object> addition) {
         this.add = addition;
     }
     /**
@@ -111,34 +129,34 @@ public class DocumentNotificationSender extends AbstractNotificationSender<NodeR
     * @param true or false
     */
     public void setSendToOwner(Boolean sendToOwner) {
-        this.sendToOwner = sendToOwner.booleanValue();
+        this.sendToOwner = sendToOwner;
     }
+
     /**
-    * Recipients provided as parameter documentSubscribers: "recepient field1", ...
-    * @param document subscribers
-    */
+     * Recipients provided as parameter documentSubscribers: "recepient field1", ...
+     * @param document subscribers
+     */
     public void setDocumentSubscribers(Set<String> documentSubscribers) {
         this.documentSubscribers = documentSubscribers;
     }
+
     public void setNodeOwnerDAO(NodeOwnerDAO nodeOwnerDAO) {
         this.nodeOwnerDAO = nodeOwnerDAO;
     }
-    
-    protected void sendToAssignee(NodeRef item, Set<String> authorities)
-    {
+
+    protected void sendToAssignee(NodeRef item, Set<String> authorities) {
+        // empty
     }
 
-    protected void sendToInitiator(NodeRef item, Set<String> authorities)
-    {
+    protected void sendToInitiator(NodeRef item, Set<String> authorities) {
+        // empty
     }
-    protected void sendToOwner(Set<String> authorities, NodeRef node)
-    {
+
+    protected void sendToOwner(Set<String> authorities, NodeRef node) {
         String owner = nodeOwnerDAO.getOwner(node);
         authorities.add(owner);
     }
 
-
-    protected void sendToSubscribers(NodeRef item, Set<String> authorities, List<String> taskSubscribers)
-    {
+    protected void sendToSubscribers(NodeRef item, Set<String> authorities, List<String> taskSubscribers) {
     }
 }
