@@ -1,0 +1,371 @@
+{
+  "id": "dms-notificationTemplate",
+  "formKey": "alf_dms:notificationTemplate",
+  "title": {
+    "en": "Notification template"
+  },
+  "description": {
+    "en": ""
+  },
+  "customModule": null,
+  "typeRef": "",
+  "width": "default",
+  "i18n": {
+    "ru": {
+      "general": "Основное",
+      "recipients": "Адресаты",
+      "search params": "Параметры поиска",
+      "template": "Шаблон",
+      "dms:notificationDisabled": "Уведомление отключено",
+      "dms:notSearchable": "Не участвует в поиске",
+      "dms:taskSubscribers": "Другие адресаты (Поле, строка для вычисления)"
+    },
+    "en": {
+      "general": "General",
+      "recipients": "Recipients",
+      "search params": "Search params",
+      "template": "Template",
+      "dms:notificationDisabled": "Notification disabled",
+      "dms:notSearchable": "Not searchable",
+      "dms:taskSubscribers": "Task subscribers (Field, calc string)"
+    }
+  },
+  "definition": {
+    "components": [
+      {
+        "scrollableContent": true,
+        "key": "panel2",
+        "type": "panel",
+        "input": false,
+        "components": [
+          {
+            "columns": [
+              {
+                "components": [
+                  {
+                    "title": "general",
+                    "key": "panel4",
+                    "type": "panel",
+                    "input": false,
+                    "components": [
+                      {
+                        "label": "cm:title",
+                        "clearOnHide": false,
+                        "defaultValue": "",
+                        "key": "cm_title",
+                        "properties": {
+                          "attribute": "cm:title"
+                        },
+                        "type": "textfield",
+                        "input": true
+                      },
+                      {
+                        "label": "cm:name",
+                        "defaultValue": "",
+                        "validate": {
+                          "required": true
+                        },
+                        "unique": true,
+                        "key": "cm_name",
+                        "properties": {
+                          "attribute": "cm:name"
+                        },
+                        "type": "textfield",
+                        "input": true
+                      }
+                    ]
+                  },
+                  {
+                    "title": "recipients",
+                    "key": "panel",
+                    "type": "panel",
+                    "input": false,
+                    "components": [
+                      {
+                        "label": "dms:sendToOwner",
+                        "labelPosition": "",
+                        "key": "dms_sendToOwner",
+                        "properties": {
+                          "attribute": "dms:sendToOwner"
+                        },
+                        "type": "checkbox",
+                        "input": true
+                      },
+                      {
+                        "label": "dms:sendToInitiator",
+                        "labelPosition": "",
+                        "clearOnHide": false,
+                        "key": "dms_sendToInitiator",
+                        "properties": {
+                          "attribute": "dms:sendToInitiator"
+                        },
+                        "type": "checkbox",
+                        "input": true
+                      },
+                      {
+                        "label": "dms:sendToAssignee",
+                        "labelPosition": "",
+                        "clearOnHide": false,
+                        "key": "dms_sendToAssignee",
+                        "properties": {
+                          "attribute": "dms:sendToAssignee"
+                        },
+                        "type": "checkbox",
+                        "input": true
+                      },
+                      {
+                        "label": "dms:taskSubscribers",
+                        "clearOnHide": false,
+                        "defaultValue": "",
+                        "key": "dms_taskSubscribers",
+                        "properties": {
+                          "attribute": "dms:taskSubscribers"
+                        },
+                        "type": "textfield",
+                        "input": true
+                      },
+                      {
+                        "label": "dms:additionRecipients",
+                        "clearOnHide": false,
+                        "defaultValue": "",
+                        "key": "dms_additionRecipients",
+                        "properties": {
+                          "attribute": "dms:additionRecipients"
+                        },
+                        "type": "textfield",
+                        "input": true
+                      }
+                    ]
+                  }
+                ],
+                "type": "column",
+                "input": false,
+                "key": "column",
+                "index": 0
+              },
+              {
+                "index": 1,
+                "type": "column",
+                "input": false,
+                "key": "column",
+                "components": [
+                  {
+                    "title": "search params",
+                    "key": "panel3",
+                    "type": "panel",
+                    "input": false,
+                    "components": [
+                      {
+                        "label": "dms:notificationType",
+                        "clearOnHide": false,
+                        "data": {
+                          "url": "/citeck/ecos/records/query"
+                        },
+                        "key": "dms_notificationType",
+                        "properties": {
+                          "attribute": "dms:notificationType"
+                        },
+                        "type": "ecosSelect",
+                        "input": true,
+                        "defaultValue": ""
+                      },
+                      {
+                        "label": "dms:ecosType",
+                        "clearOnHide": false,
+                        "journalId": "ecos-types",
+                        "key": "dms_ecosType",
+                        "properties": {
+                          "attribute": "dms:ecosType"
+                        },
+                        "type": "selectJournal",
+                        "input": true
+                      },
+                      {
+                        "label": "dms:workflowName",
+                        "clearOnHide": false,
+                        "defaultValue": "",
+                        "key": "dms_workflowName",
+                        "properties": {
+                          "attribute": "dms:workflowName"
+                        },
+                        "type": "textfield",
+                        "input": true
+                      },
+                      {
+                        "label": "dms:taskName",
+                        "defaultValue": "",
+                        "key": "dms_taskName",
+                        "properties": {
+                          "attribute": "dms:taskName"
+                        },
+                        "type": "textfield",
+                        "input": true
+                      },
+                      {
+                        "label": "dms:notSearchable",
+                        "labelPosition": "",
+                        "key": "dms_notSearchable",
+                        "properties": {
+                          "attribute": "dms:notSearchable"
+                        },
+                        "type": "checkbox",
+                        "input": true
+                      },
+                      {
+                        "label": "dms:notificationDisabled",
+                        "labelPosition": "",
+                        "clearOnHide": false,
+                        "key": "dms_notificationDisabled",
+                        "properties": {
+                          "attribute": "dms:notificationDisabled"
+                        },
+                        "type": "checkbox",
+                        "input": true
+                      }
+                    ]
+                  }
+                ]
+              }
+            ],
+            "key": "columns",
+            "type": "columns",
+            "input": false
+          },
+          {
+            "title": "template",
+            "key": "panel5",
+            "type": "panel",
+            "input": false,
+            "components": [
+              {
+                "label": "dms:subjectTemplate",
+                "clearOnHide": false,
+                "defaultValue": "",
+                "key": "dms_subjectTemplate",
+                "properties": {
+                  "attribute": "dms:subjectTemplate"
+                },
+                "type": "textarea",
+                "input": true
+              },
+              {
+                "columns": [
+                  {
+                    "components": [
+                      {
+                        "label": "cm:content",
+                        "storage": "url",
+                        "key": "cm_content",
+                        "properties": {
+                          "attribute": "cm:content"
+                        },
+                        "type": "file",
+                        "input": true,
+                        "url": "/share/proxy/alfresco/eform/file",
+                        "options": ""
+                      }
+                    ],
+                    "md": 8,
+                    "type": "column",
+                    "input": false,
+                    "key": "column",
+                    "index": 0
+                  },
+                  {
+                    "md": 4,
+                    "type": "column",
+                    "input": false,
+                    "key": "column",
+                    "index": 1,
+                    "components": [
+                      {
+                        "label": "dms:ecosNotificationTemplate",
+                        "clearOnHide": false,
+                        "journalId": "notification-templates",
+                        "key": "dms_ecosNotificationTemplate",
+                        "properties": {
+                          "attribute": "dms:ecosNotificationTemplate"
+                        },
+                        "type": "selectJournal",
+                        "input": true
+                      }
+                    ]
+                  }
+                ],
+                "key": "columns3",
+                "type": "columns",
+                "input": false
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "columns": [
+          {
+            "components": [
+              {
+                "label": "Cancel",
+                "removeIndents": true,
+                "action": "event",
+                "state": "",
+                "block": true,
+                "clearOnHide": false,
+                "key": "submit2",
+                "type": "button",
+                "input": true,
+                "showValidations": false,
+                "event": "cancel"
+              }
+            ],
+            "md": 3,
+            "type": "column",
+            "input": false,
+            "key": "column",
+            "index": 0
+          },
+          {
+            "md": 3,
+            "type": "column",
+            "input": false,
+            "key": "column",
+            "index": 1,
+            "components": []
+          },
+          {
+            "md": 3,
+            "type": "column",
+            "input": false,
+            "key": "column",
+            "index": 2,
+            "components": []
+          },
+          {
+            "md": 3,
+            "type": "column",
+            "input": false,
+            "key": "column",
+            "index": 3,
+            "components": [
+              {
+                "removeIndents": true,
+                "state": "",
+                "theme": "primary",
+                "block": true,
+                "disableOnInvalid": true,
+                "clearOnHide": false,
+                "key": "submit",
+                "type": "button",
+                "input": true
+              }
+            ]
+          }
+        ],
+        "key": "columns2",
+        "type": "columns",
+        "input": false
+      }
+    ]
+  },
+  "attributes": {}
+}
