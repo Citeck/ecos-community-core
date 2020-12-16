@@ -1,219 +1,239 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <model name="dms:dms" xmlns="http://www.alfresco.org/model/dictionary/1.0">
 
-	<!-- Definition of the model -->
-	<description>Document Management System</description>
-	<author>Citeck</author>
-	<version>1.0</version>
+    <!-- Definition of the model -->
+    <description>Document Management System</description>
+    <author>Citeck</author>
+    <version>1.0</version>
 
-	<imports>
-		<import uri="http://www.alfresco.org/model/dictionary/1.0"
-			prefix="d" />
-		<import uri="http://www.alfresco.org/model/content/1.0" prefix="cm" />
+    <imports>
+        <import uri="http://www.alfresco.org/model/dictionary/1.0"
+                prefix="d"/>
+        <import uri="http://www.alfresco.org/model/content/1.0" prefix="cm"/>
 
-		<import uri="http://www.citeck.ru/model/cdl/1.0" prefix="cdl" />
-		<import uri="http://www.citeck.ru/model/numeric/1.0" prefix="cn" />
-	</imports>
+        <import uri="http://www.citeck.ru/model/cdl/1.0" prefix="cdl"/>
+        <import uri="http://www.citeck.ru/model/numeric/1.0" prefix="cn"/>
+    </imports>
 
-	<!-- Introduction of new namespaces defined by this model -->
-	<namespaces>
+    <!-- Introduction of new namespaces defined by this model -->
+    <namespaces>
 
-		<!-- STARTMMLOOP -->
-		<namespace uri="http://www.citeck.ru/model/content/dms/1.0"
-			prefix="dms" />
-
-
-		<!-- ENDMMLOOP -->
-	</namespaces>
-
-	<constraints>
-		<constraint name="dms:constraint:natures" type="LIST">
-			<parameter name="allowedValues">
-				<list>
-					<value></value>
-					<value>sales</value>
-					<value>marketing</value>
-					<value>marketingOnTrade</value>
-					<value>marketingTrade</value>
-					<value>administrative</value>
-					<value>administrativeItManager</value>
-					<value>administrativeHrManager</value>
-					<value>logistics</value>
-					<value>inter-company</value>
-					<value>insurance</value>
-					<value>banking</value>
-				</list>
-			</parameter>
-		</constraint>
-		<constraint name="dms:constraint:types" type="LIST">
-			<parameter name="allowedValues">
-				<list>
-					<value></value>
-					<value>standard</value>
-					<value>non-standard</value>
-				</list>
-			</parameter>
-		</constraint>
-
-		<constraint name="dms:constraint:statuses" type="LIST">
-			<parameter name="allowedValues">
-				<list>
-					<value>payment_free_product</value>
-					<value>payment</value>
-					<value>free_product</value>
-				</list>
-			</parameter>
-		</constraint>
-
-		<constraint name="dms:constraint:approval_statuses" type="LIST">
-			<parameter name="allowedValues">
-				<list>
-					<value></value>
-					<value>new</value>
-					<value>on-approval</value>
-					<value>on-sign</value>
-					<value>on-correction</value>
-					<value>rejected</value>
-					<value>active</value>
-				</list>
-			</parameter>
-		</constraint>
-
-		<constraint name="dms:constraint:contractor_statuses" type="LIST">
-			<parameter name="allowedValues">
-				<list>
-					<value></value>
-					<value>rejected</value>
-					<value>active</value>
-				</list>
-			</parameter>
-		</constraint>
-
-		<constraint name="dms:constraint:mail" type="REGEX">
-			<parameter name="expression">
-				<value>^(|[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]+)$</value>
-			</parameter>
-			<parameter name="requiresMatch">
-				<value>true</value>
-			</parameter>
-		</constraint>
-		<!-- constraint name="dms:constraint:innkpp" type="REGEX"> <parameter name="expression"> 
-			<value>^(|[0-9]+/[0-9]+)$</value> </parameter> <parameter name="requiresMatch"> 
-			<value>true</value> </parameter> </constraint -->
-			
-			
-		<constraint name="dms:constraint:inn" type="REGEX">
-			<parameter name="expression">
-				<value>^\d{10}$|^\d{12}$</value>
-			</parameter>
-			<parameter name="requiresMatch">
-				<value>true</value>
-			</parameter>
-		</constraint>
-		
-		<constraint name="dms:constraint:inn:length" type="LENGTH">
-			<parameter name="minLength"><value>10</value></parameter>
-			<parameter name="maxLength"><value>12</value></parameter>
-		</constraint>
-
-		<constraint name="dms:constraint:kpp:length" type="LENGTH">
-			<parameter name="minLength"><value>9</value></parameter>
-			<parameter name="maxLength"><value>9</value></parameter>
-		</constraint>
-
-		<constraint name="dms:constraint:bik" type="REGEX">
-			<parameter name="expression">
-				<value>^04\d{7}$</value>
-			</parameter>
-			<parameter name="requiresMatch">
-				<value>true</value>
-			</parameter>
-		</constraint>
-
-		<constraint name="dms:constraint:bik:length" type="LENGTH">
-			<parameter name="minLength"><value>9</value></parameter>
-			<parameter name="maxLength"><value>9</value></parameter>
-		</constraint>
-
-		<constraint name="dms:constraint:currAcc:length" type="LENGTH">
-			<parameter name="minLength"><value>20</value></parameter>
-			<parameter name="maxLength"><value>20</value></parameter>
-		</constraint>
-
-		<constraint name="dms:constraint:corrAcc" type="REGEX">
-			<parameter name="expression">
-				<value>^301\d{17}$</value>
-			</parameter>
-			<parameter name="requiresMatch">
-				<value>true</value>
-			</parameter>
-		</constraint>
-
-		<constraint name="dms:constraint:corrAcc:length" type="LENGTH">
-			<parameter name="minLength"><value>20</value></parameter>
-			<parameter name="maxLength"><value>20</value></parameter>
-		</constraint>
-
-		<constraint name="dms:constraint:phone" type="REGEX">
-			<parameter name="expression">
-				<value>^(\+\d+)?[ -]?([(]\d+[)])?[\d -]+$</value>
-			</parameter>
-			<parameter name="requiresMatch">
-				<value>true</value>
-			</parameter>
-		</constraint>
-
-		<constraint name="dms:constraint:long" type="REGEX">
-			<parameter name="expression">
-				<value>^(|[0-9]+)$</value>
-			</parameter>
-			<parameter name="requiresMatch">
-				<value>true</value>
-			</parameter>
-		</constraint>
-		<constraint name="dms:constraint:double_with_two" type="REGEX">
-			<parameter name="expression">
-				<!-- value>^(|[0-9]+)(\.\d{1,2})?$</value -->
-				<value>^\d+(\.\d{1,2})?$</value>
-			</parameter>
-			<parameter name="requiresMatch">
-				<value>true</value>
-			</parameter>
-		</constraint>
-		
-		<constraint name="dms:constraint:notification_types" type="LIST">
-			<parameter name="allowedValues">
-				<list>
-					<value></value>
-					<value>start_task</value>
-					<value>complete_task</value>
-					<value>start_workflow</value>
-					<value>cancel_workflow</value>
-					<value>complete_workflow</value>
-					<value>overdue_task</value>
-					<value>overdue_workflow</value>
-					<value>assign_task</value>
-					<value>reassign_task</value>
-					<value>check_task</value>
-				</list>
-			</parameter>
-		</constraint>
-
-		<constraint name="dms:constraint:dmsTrueFalse" type="LIST">
-			<parameter name="allowedValues">
-				<list>
-					<value>true</value>
-					<value>false</value>
-				</list>
-			</parameter>
-		</constraint>
-	</constraints>
+        <!-- STARTMMLOOP -->
+        <namespace uri="http://www.citeck.ru/model/content/dms/1.0"
+                   prefix="dms"/>
 
 
-	<types>
+        <!-- ENDMMLOOP -->
+    </namespaces>
 
-		<type name="dms:doc">
-			<parent>cm:content</parent>
+    <constraints>
+        <constraint name="dms:constraint:natures" type="LIST">
+            <parameter name="allowedValues">
+                <list>
+                    <value></value>
+                    <value>sales</value>
+                    <value>marketing</value>
+                    <value>marketingOnTrade</value>
+                    <value>marketingTrade</value>
+                    <value>administrative</value>
+                    <value>administrativeItManager</value>
+                    <value>administrativeHrManager</value>
+                    <value>logistics</value>
+                    <value>inter-company</value>
+                    <value>insurance</value>
+                    <value>banking</value>
+                </list>
+            </parameter>
+        </constraint>
+        <constraint name="dms:constraint:types" type="LIST">
+            <parameter name="allowedValues">
+                <list>
+                    <value></value>
+                    <value>standard</value>
+                    <value>non-standard</value>
+                </list>
+            </parameter>
+        </constraint>
+
+        <constraint name="dms:constraint:statuses" type="LIST">
+            <parameter name="allowedValues">
+                <list>
+                    <value>payment_free_product</value>
+                    <value>payment</value>
+                    <value>free_product</value>
+                </list>
+            </parameter>
+        </constraint>
+
+        <constraint name="dms:constraint:approval_statuses" type="LIST">
+            <parameter name="allowedValues">
+                <list>
+                    <value></value>
+                    <value>new</value>
+                    <value>on-approval</value>
+                    <value>on-sign</value>
+                    <value>on-correction</value>
+                    <value>rejected</value>
+                    <value>active</value>
+                </list>
+            </parameter>
+        </constraint>
+
+        <constraint name="dms:constraint:contractor_statuses" type="LIST">
+            <parameter name="allowedValues">
+                <list>
+                    <value></value>
+                    <value>rejected</value>
+                    <value>active</value>
+                </list>
+            </parameter>
+        </constraint>
+
+        <constraint name="dms:constraint:mail" type="REGEX">
+            <parameter name="expression">
+                <value>^(|[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]+)$</value>
+            </parameter>
+            <parameter name="requiresMatch">
+                <value>true</value>
+            </parameter>
+        </constraint>
+        <!-- constraint name="dms:constraint:innkpp" type="REGEX"> <parameter name="expression">
+            <value>^(|[0-9]+/[0-9]+)$</value> </parameter> <parameter name="requiresMatch">
+            <value>true</value> </parameter> </constraint -->
+
+
+        <constraint name="dms:constraint:inn" type="REGEX">
+            <parameter name="expression">
+                <value>^\d{10}$|^\d{12}$</value>
+            </parameter>
+            <parameter name="requiresMatch">
+                <value>true</value>
+            </parameter>
+        </constraint>
+
+        <constraint name="dms:constraint:inn:length" type="LENGTH">
+            <parameter name="minLength">
+                <value>10</value>
+            </parameter>
+            <parameter name="maxLength">
+                <value>12</value>
+            </parameter>
+        </constraint>
+
+        <constraint name="dms:constraint:kpp:length" type="LENGTH">
+            <parameter name="minLength">
+                <value>9</value>
+            </parameter>
+            <parameter name="maxLength">
+                <value>9</value>
+            </parameter>
+        </constraint>
+
+        <constraint name="dms:constraint:bik" type="REGEX">
+            <parameter name="expression">
+                <value>^04\d{7}$</value>
+            </parameter>
+            <parameter name="requiresMatch">
+                <value>true</value>
+            </parameter>
+        </constraint>
+
+        <constraint name="dms:constraint:bik:length" type="LENGTH">
+            <parameter name="minLength">
+                <value>9</value>
+            </parameter>
+            <parameter name="maxLength">
+                <value>9</value>
+            </parameter>
+        </constraint>
+
+        <constraint name="dms:constraint:currAcc:length" type="LENGTH">
+            <parameter name="minLength">
+                <value>20</value>
+            </parameter>
+            <parameter name="maxLength">
+                <value>20</value>
+            </parameter>
+        </constraint>
+
+        <constraint name="dms:constraint:corrAcc" type="REGEX">
+            <parameter name="expression">
+                <value>^301\d{17}$</value>
+            </parameter>
+            <parameter name="requiresMatch">
+                <value>true</value>
+            </parameter>
+        </constraint>
+
+        <constraint name="dms:constraint:corrAcc:length" type="LENGTH">
+            <parameter name="minLength">
+                <value>20</value>
+            </parameter>
+            <parameter name="maxLength">
+                <value>20</value>
+            </parameter>
+        </constraint>
+
+        <constraint name="dms:constraint:phone" type="REGEX">
+            <parameter name="expression">
+                <value>^(\+\d+)?[ -]?([(]\d+[)])?[\d -]+$</value>
+            </parameter>
+            <parameter name="requiresMatch">
+                <value>true</value>
+            </parameter>
+        </constraint>
+
+        <constraint name="dms:constraint:long" type="REGEX">
+            <parameter name="expression">
+                <value>^(|[0-9]+)$</value>
+            </parameter>
+            <parameter name="requiresMatch">
+                <value>true</value>
+            </parameter>
+        </constraint>
+        <constraint name="dms:constraint:double_with_two" type="REGEX">
+            <parameter name="expression">
+                <!-- value>^(|[0-9]+)(\.\d{1,2})?$</value -->
+                <value>^\d+(\.\d{1,2})?$</value>
+            </parameter>
+            <parameter name="requiresMatch">
+                <value>true</value>
+            </parameter>
+        </constraint>
+
+        <constraint name="dms:constraint:notification_types" type="LIST">
+            <parameter name="allowedValues">
+                <list>
+                    <value></value>
+                    <value>start_task</value>
+                    <value>complete_task</value>
+                    <value>start_workflow</value>
+                    <value>cancel_workflow</value>
+                    <value>complete_workflow</value>
+                    <value>overdue_task</value>
+                    <value>overdue_workflow</value>
+                    <value>assign_task</value>
+                    <value>reassign_task</value>
+                    <value>check_task</value>
+                </list>
+            </parameter>
+        </constraint>
+
+        <constraint name="dms:constraint:dmsTrueFalse" type="LIST">
+            <parameter name="allowedValues">
+                <list>
+                    <value>true</value>
+                    <value>false</value>
+                </list>
+            </parameter>
+        </constraint>
+    </constraints>
+
+
+    <types>
+
+        <type name="dms:doc">
+            <parent>cm:content</parent>
             <associations>
                 <association name="dms:agreement_to_files">
                     <title>Supplementary Files</title>
@@ -228,333 +248,333 @@
                     </target>
                 </association>
             </associations>
-			<mandatory-aspects>
-				<aspect>cn:hasBigNumbers</aspect>
-			</mandatory-aspects>
-		</type>
+            <mandatory-aspects>
+                <aspect>cn:hasBigNumbers</aspect>
+            </mandatory-aspects>
+        </type>
 
-		<type name="dms:supplementaryAgreement">
-			<parent>dms:doc</parent>
-			<associations>
-				<association name="dms:supplementaryAgreement_to_agreement">
-					<title>Agreement</title>
-					<source>
-						<mandatory>false</mandatory>
-						<many>true</many>
-					</source>
-					<target>
-						<class>dms:agreement</class>
-						<mandatory>false</mandatory>
-						<many>false</many>
-					</target>
-				</association>
-			</associations>
-			<mandatory-aspects>
-				<aspect>dms:generalAgreement</aspect>
-			</mandatory-aspects>
-		</type>
+        <type name="dms:supplementaryAgreement">
+            <parent>dms:doc</parent>
+            <associations>
+                <association name="dms:supplementaryAgreement_to_agreement">
+                    <title>Agreement</title>
+                    <source>
+                        <mandatory>false</mandatory>
+                        <many>true</many>
+                    </source>
+                    <target>
+                        <class>dms:agreement</class>
+                        <mandatory>false</mandatory>
+                        <many>false</many>
+                    </target>
+                </association>
+            </associations>
+            <mandatory-aspects>
+                <aspect>dms:generalAgreement</aspect>
+            </mandatory-aspects>
+        </type>
 
-		<type name="dms:agreement">
-			<parent>dms:doc</parent>
-			<associations>
-				<association name="dms:agreement_to_contractor">
-					<title>Contractor</title>
-					<source>
-						<mandatory>false</mandatory>
-						<many>true</many>
-					</source>
-					<target>
-						<class>dms:generalContractor</class>
-						<mandatory>false</mandatory>
-						<many>false</many>
-					</target>
-				</association>
-			</associations>
-			<mandatory-aspects>
-				<aspect>dms:generalAgreement</aspect>
-			</mandatory-aspects>
-		</type>
+        <type name="dms:agreement">
+            <parent>dms:doc</parent>
+            <associations>
+                <association name="dms:agreement_to_contractor">
+                    <title>Contractor</title>
+                    <source>
+                        <mandatory>false</mandatory>
+                        <many>true</many>
+                    </source>
+                    <target>
+                        <class>dms:generalContractor</class>
+                        <mandatory>false</mandatory>
+                        <many>false</many>
+                    </target>
+                </association>
+            </associations>
+            <mandatory-aspects>
+                <aspect>dms:generalAgreement</aspect>
+            </mandatory-aspects>
+        </type>
 
-		<type name="dms:generalContractor">
-			<parent>dms:doc</parent>
-			<properties>
-				<property name="dms:classification">
-					<title>Classification</title>
-					<type>d:text</type>
+        <type name="dms:generalContractor">
+            <parent>dms:doc</parent>
+            <properties>
+                <property name="dms:classification">
+                    <title>Classification</title>
+                    <type>d:text</type>
                     <index enabled="true">
                         <atomic>true</atomic>
                         <stored>false</stored>
                         <tokenised>both</tokenised>
                     </index>
-				</property>
-				<property name="dms:juridicalTitle">
-					<!--<title>Juridical name</title>-->
-					<type>d:text</type>
+                </property>
+                <property name="dms:juridicalTitle">
+                    <!--<title>Juridical name</title>-->
+                    <type>d:text</type>
                     <index enabled="true">
                         <atomic>true</atomic>
                         <stored>false</stored>
                         <tokenised>both</tokenised>
                     </index>
-				</property>
-				<property name="dms:juridicalAddress">
-					<title>Juridical address</title>
-					<type>d:text</type>
+                </property>
+                <property name="dms:juridicalAddress">
+                    <title>Juridical address</title>
+                    <type>d:text</type>
                     <index enabled="true">
                         <atomic>true</atomic>
                         <stored>false</stored>
                         <tokenised>both</tokenised>
                     </index>
-				</property>
-				<property name="dms:postAddress">
-					<title>Post address</title>
-					<type>d:text</type>
+                </property>
+                <property name="dms:postAddress">
+                    <title>Post address</title>
+                    <type>d:text</type>
                     <index enabled="true">
                         <atomic>true</atomic>
                         <stored>false</stored>
                         <tokenised>both</tokenised>
                     </index>
-				</property>
-				<property name="dms:licenseNumber">
-					<title>License Number</title>
-					<type>d:text</type>
+                </property>
+                <property name="dms:licenseNumber">
+                    <title>License Number</title>
+                    <type>d:text</type>
                     <index enabled="true">
                         <atomic>true</atomic>
                         <stored>false</stored>
                         <tokenised>both</tokenised>
                     </index>
-				</property>
-				<property name="dms:bankTitle">
-					<title>Bank title</title>
-					<type>d:text</type>
+                </property>
+                <property name="dms:bankTitle">
+                    <title>Bank title</title>
+                    <type>d:text</type>
                     <index enabled="true">
                         <atomic>true</atomic>
                         <stored>false</stored>
                         <tokenised>both</tokenised>
                     </index>
-				</property>
-				<property name="dms:currentAccount">
-					<title>Current Account</title>
-					<type>d:text</type>
+                </property>
+                <property name="dms:currentAccount">
+                    <title>Current Account</title>
+                    <type>d:text</type>
                     <index enabled="true">
                         <atomic>true</atomic>
                         <stored>false</stored>
                         <tokenised>both</tokenised>
                     </index>
-				</property>
-				<property name="dms:correspondentAccount">
-					<title>Correspondent account</title>
-					<type>d:text</type>
+                </property>
+                <property name="dms:correspondentAccount">
+                    <title>Correspondent account</title>
+                    <type>d:text</type>
                     <index enabled="true">
                         <atomic>true</atomic>
                         <stored>false</stored>
                         <tokenised>both</tokenised>
                     </index>
-				</property>
-				<property name="dms:BIK">
-					<title>BIK</title>
-					<type>d:text</type>
-					<constraints>
-						<constraint ref="dms:constraint:long" />
-					</constraints>
-				</property>
-				<property name="dms:CEOname">
-					<title>CEO name</title>
-					<type>d:text</type>
+                </property>
+                <property name="dms:BIK">
+                    <title>BIK</title>
+                    <type>d:text</type>
+                    <constraints>
+                        <constraint ref="dms:constraint:long"/>
+                    </constraints>
+                </property>
+                <property name="dms:CEOname">
+                    <title>CEO name</title>
+                    <type>d:text</type>
                     <index enabled="true">
                         <atomic>true</atomic>
                         <stored>false</stored>
                         <tokenised>both</tokenised>
                     </index>
-				</property>
-				<property name="dms:chiefAccountantName">
-					<title>Chief accountant name</title>
-					<type>d:text</type>
+                </property>
+                <property name="dms:chiefAccountantName">
+                    <title>Chief accountant name</title>
+                    <type>d:text</type>
                     <index enabled="true">
                         <atomic>true</atomic>
                         <stored>false</stored>
                         <tokenised>both</tokenised>
                     </index>
-				</property>
-				<property name="dms:phonefax">
-					<title>Phone/fax</title>
-					<type>d:text</type>
+                </property>
+                <property name="dms:phonefax">
+                    <title>Phone/fax</title>
+                    <type>d:text</type>
                     <index enabled="true">
                         <atomic>true</atomic>
                         <stored>false</stored>
                         <tokenised>both</tokenised>
                     </index>
-				</property>
-				<property name="dms:email">
-					<title>Email address</title>
-					<type>d:text</type>
+                </property>
+                <property name="dms:email">
+                    <title>Email address</title>
+                    <type>d:text</type>
                     <index enabled="true">
                         <atomic>true</atomic>
                         <stored>false</stored>
                         <tokenised>both</tokenised>
                     </index>
-					<constraints>
-						<constraint ref="dms:constraint:mail" />
-					</constraints>
-				</property>
-				<property name="dms:daysCredit">
-					<title>Days Credit</title>
-					<type>d:long</type>
-					<constraints>
-						<constraint ref="dms:constraint:long" />
-					</constraints>
-				</property>
-				<property name="dms:moneyCreditLimit">
-					<title>Money credit limit</title>
-					<type>d:double</type>
-				</property>
-				<property name="dms:discounts">
-					<title>Discounts</title>
-					<type>d:text</type>
+                    <constraints>
+                        <constraint ref="dms:constraint:mail"/>
+                    </constraints>
+                </property>
+                <property name="dms:daysCredit">
+                    <title>Days Credit</title>
+                    <type>d:long</type>
+                    <constraints>
+                        <constraint ref="dms:constraint:long"/>
+                    </constraints>
+                </property>
+                <property name="dms:moneyCreditLimit">
+                    <title>Money credit limit</title>
+                    <type>d:double</type>
+                </property>
+                <property name="dms:discounts">
+                    <title>Discounts</title>
+                    <type>d:text</type>
                     <index enabled="true">
                         <atomic>true</atomic>
                         <stored>false</stored>
                         <tokenised>both</tokenised>
                     </index>
-				</property>
-				<property name="dms:isApproved">
-					<title>Is Contractor Approved</title>
-					<type>d:text</type>
-					<default>rejected</default>
+                </property>
+                <property name="dms:isApproved">
+                    <title>Is Contractor Approved</title>
+                    <type>d:text</type>
+                    <default>rejected</default>
                     <index enabled="true">
                         <atomic>true</atomic>
                         <stored>false</stored>
                         <tokenised>both</tokenised>
                     </index>
-					<constraints>
-						<constraint ref="dms:constraint:contractor_statuses" />
-					</constraints>
-				</property>
-			</properties>
-			<associations>
-				<association name="dms:contractor_to_department">
-					<title>Department</title>
-					<source>
-						<mandatory>false</mandatory>
-						<many>true</many>
-					</source>
-					<target>
-						<class>cm:authorityContainer</class>
-						<mandatory>false</mandatory>
-						<many>false</many>
-					</target>
-				</association>
-			</associations>
+                    <constraints>
+                        <constraint ref="dms:constraint:contractor_statuses"/>
+                    </constraints>
+                </property>
+            </properties>
+            <associations>
+                <association name="dms:contractor_to_department">
+                    <title>Department</title>
+                    <source>
+                        <mandatory>false</mandatory>
+                        <many>true</many>
+                    </source>
+                    <target>
+                        <class>cm:authorityContainer</class>
+                        <mandatory>false</mandatory>
+                        <many>false</many>
+                    </target>
+                </association>
+            </associations>
             <mandatory-aspects>
                 <aspect>dms:INN_KPP_withConstraint</aspect>
             </mandatory-aspects>
-		</type>
-		
-		<type name="dms:contractor">
-			<title>Contractor</title>
-			<parent>dms:generalContractor</parent>
-			<overrides>
-				<property name="dms:classification">
-					<mandatory>true</mandatory>
-				</property>
-				<property name="dms:juridicalTitle">
-					<mandatory>true</mandatory>
-				</property>
-				<property name="dms:juridicalAddress">
-					<mandatory>true</mandatory>
-				</property>
-				<property name="dms:postAddress">
-					<mandatory>true</mandatory>
-				</property>
-				<property name="dms:licenseNumber">
-					<mandatory>false</mandatory>
-				</property>
-				<property name="dms:INN">
-					<mandatory>true</mandatory>
-				</property>
-				<property name="dms:KPP">
-					<mandatory>true</mandatory>
-				</property>
-				<property name="dms:bankTitle">
-					<mandatory>true</mandatory>
-				</property>
-				<property name="dms:currentAccount">
-					<mandatory>true</mandatory>
-				</property>
-				<property name="dms:correspondentAccount">
-					<mandatory>true</mandatory>
-				</property>
-				<property name="dms:BIK">
-					<mandatory>true</mandatory>
-				</property>
-				<property name="dms:CEOname">
-					<mandatory>true</mandatory>
-				</property>
-				<property name="dms:chiefAccountantName">
-					<mandatory>true</mandatory>
-				</property>
-				<property name="dms:phonefax">
-					<mandatory>true</mandatory>
-				</property>
-				<property name="dms:email">
-					<mandatory>true</mandatory>
-				</property>
-				<property name="dms:daysCredit">
-					<mandatory>false</mandatory>
-				</property>
-				<property name="dms:moneyCreditLimit">
-					<mandatory>false</mandatory>
-				</property>
-				<property name="dms:discounts">
-					<mandatory>false</mandatory>
-				</property>
-				<property name="dms:isApproved">
-					<default>rejected</default>
-				</property>
-			</overrides>
-		</type>
-		
-		<type name="dms:generalDocument">
-			<parent>dms:doc</parent>
-			<mandatory-aspects>
-				<aspect>cm:generalclassifiable</aspect>
-			</mandatory-aspects>
-		</type>
-		
-		<type name="dms:template">
-			<parent>cm:content</parent>
-			<properties>
-				<property name="dms:aspect">
-					<type>d:qname</type>
-					<mandatory>false</mandatory>
-				</property>
-				<property name="dms:errorMessageConfig">
-					<type>d:text</type>
-				</property>
-			</properties>
-		</type>
+        </type>
+
+        <type name="dms:contractor">
+            <title>Contractor</title>
+            <parent>dms:generalContractor</parent>
+            <overrides>
+                <property name="dms:classification">
+                    <mandatory>true</mandatory>
+                </property>
+                <property name="dms:juridicalTitle">
+                    <mandatory>true</mandatory>
+                </property>
+                <property name="dms:juridicalAddress">
+                    <mandatory>true</mandatory>
+                </property>
+                <property name="dms:postAddress">
+                    <mandatory>true</mandatory>
+                </property>
+                <property name="dms:licenseNumber">
+                    <mandatory>false</mandatory>
+                </property>
+                <property name="dms:INN">
+                    <mandatory>true</mandatory>
+                </property>
+                <property name="dms:KPP">
+                    <mandatory>true</mandatory>
+                </property>
+                <property name="dms:bankTitle">
+                    <mandatory>true</mandatory>
+                </property>
+                <property name="dms:currentAccount">
+                    <mandatory>true</mandatory>
+                </property>
+                <property name="dms:correspondentAccount">
+                    <mandatory>true</mandatory>
+                </property>
+                <property name="dms:BIK">
+                    <mandatory>true</mandatory>
+                </property>
+                <property name="dms:CEOname">
+                    <mandatory>true</mandatory>
+                </property>
+                <property name="dms:chiefAccountantName">
+                    <mandatory>true</mandatory>
+                </property>
+                <property name="dms:phonefax">
+                    <mandatory>true</mandatory>
+                </property>
+                <property name="dms:email">
+                    <mandatory>true</mandatory>
+                </property>
+                <property name="dms:daysCredit">
+                    <mandatory>false</mandatory>
+                </property>
+                <property name="dms:moneyCreditLimit">
+                    <mandatory>false</mandatory>
+                </property>
+                <property name="dms:discounts">
+                    <mandatory>false</mandatory>
+                </property>
+                <property name="dms:isApproved">
+                    <default>rejected</default>
+                </property>
+            </overrides>
+        </type>
+
+        <type name="dms:generalDocument">
+            <parent>dms:doc</parent>
+            <mandatory-aspects>
+                <aspect>cm:generalclassifiable</aspect>
+            </mandatory-aspects>
+        </type>
+
+        <type name="dms:template">
+            <parent>cm:content</parent>
+            <properties>
+                <property name="dms:aspect">
+                    <type>d:qname</type>
+                    <mandatory>false</mandatory>
+                </property>
+                <property name="dms:errorMessageConfig">
+                    <type>d:text</type>
+                </property>
+            </properties>
+        </type>
 
         <type name="dms:cardTemplate">
             <parent>cm:content</parent>
             <properties>
-				<!-- type of document, for which this template is designed -->
+                <!-- type of document, for which this template is designed -->
                 <property name="dms:cardType">
                     <type>d:qname</type>
                     <mandatory>true</mandatory>
                 </property>
-				<!-- id of template processor -->
+                <!-- id of template processor -->
                 <property name="dms:templateProcessor">
                     <type>d:text</type>
                 </property>
-				<!-- type of template, e.g. document card, confirm list, etc -->
-				<property name="dms:templateType">
-					<type>d:text</type>
-					<mandatory>true</mandatory>
-				</property>
-				<!-- template for filename -->
-				<property name="dms:filenameTemplate">
-					<type>d:text</type>
-					<mandatory>true</mandatory>
-				</property>
+                <!-- type of template, e.g. document card, confirm list, etc -->
+                <property name="dms:templateType">
+                    <type>d:text</type>
+                    <mandatory>true</mandatory>
+                </property>
+                <!-- template for filename -->
+                <property name="dms:filenameTemplate">
+                    <type>d:text</type>
+                    <mandatory>true</mandatory>
+                </property>
             </properties>
         </type>
         <type name="dms:notificationTemplate">
@@ -563,25 +583,25 @@
                 <property name="dms:notificationType">
                     <type>d:text</type>
                     <mandatory>true</mandatory>
-					<default></default>
+                    <default></default>
                     <index enabled="true">
                         <atomic>true</atomic>
                         <stored>false</stored>
                         <tokenised>false</tokenised>
                     </index>
-					<constraints>
-						<constraint ref="dms:constraint:notification_types" />
-					</constraints>
+                    <constraints>
+                        <constraint ref="dms:constraint:notification_types"/>
+                    </constraints>
                 </property>
                 <property name="dms:taskName">
                     <type>d:text</type>
                     <mandatory>false</mandatory>
-					<default></default>
+                    <default></default>
                 </property>
                 <property name="dms:workflowName">
                     <type>d:text</type>
                     <mandatory>false</mandatory>
-					<default></default>
+                    <default></default>
                 </property>
                 <property name="dms:sendToOwner">
                     <type>d:boolean</type>
@@ -624,12 +644,12 @@
                     <type>d:qname</type>
                     <mandatory>false</mandatory>
                 </property>
-				<property name="dms:notSearchable">
-					<title>Searchable</title>
-					<description>Allow to not search template in notification senders</description>
-					<type>d:boolean</type>
-					<default>false</default>
-				</property>
+                <property name="dms:notSearchable">
+                    <title>Searchable</title>
+                    <description>Allow to not search template in notification senders</description>
+                    <type>d:boolean</type>
+                    <default>false</default>
+                </property>
             </properties>
         </type>
         <type name="dms:applicationFile">
@@ -641,81 +661,81 @@
                 </property>
             </properties>
         </type>
-	</types>
+    </types>
 
-	<aspects>
-	
-		<aspect name="dms:hasSupplementaryFiles">
-			<associations>
-				<child-association name="dms:supplementaryFiles">
-					<source>
-						<mandatory>false</mandatory>
-						<many>true</many>
-					</source>
-					<target>
-						<class>cm:content</class>
-						<mandatory>false</mandatory>
-						<many>true</many>
-					</target>
-					<duplicate>false</duplicate>
-					<propagateTimestamps>true</propagateTimestamps>
-				</child-association>
-			</associations>
-		</aspect>
-		
-		<aspect name="dms:documentChangeSubscribe">
-			<associations>
-				<child-association name="dms:document_change_subscribers">
-					<title>Document change subscribers</title>
-					<source>
-						<mandatory>false</mandatory>
-						<many>true</many>
-					</source>
-					<target>
-						<class>cm:person</class>
-						<mandatory>false</mandatory>
-						<many>true</many>
-					</target>
-				</child-association>
-			</associations>
-		</aspect>
+    <aspects>
 
-		<!-- derived from template -->
-		<aspect name="dms:templateable">
-			<properties>
-				<!-- update content from template on form persist or not -->
-				<property name="dms:updateContent">
-					<title>Generate from template</title>
-					<type>d:boolean</type>
-					<default>false</default>
-					<constraints>
-						<constraint ref="dms:constraint:dmsTrueFalse" />
-					</constraints>
-				</property>
-			</properties>
-			<associations>
-				<association name="dms:templateAssociation">
-					<source>
-						<mandatory>false</mandatory>
-						<many>true</many>
-					</source>
-					<target>
-						<class>dms:template</class>
-						<mandatory>false</mandatory>
-						<many>false</many>
-					</target>
-				</association>
-			</associations>
-		</aspect>
+        <aspect name="dms:hasSupplementaryFiles">
+            <associations>
+                <child-association name="dms:supplementaryFiles">
+                    <source>
+                        <mandatory>false</mandatory>
+                        <many>true</many>
+                    </source>
+                    <target>
+                        <class>cm:content</class>
+                        <mandatory>false</mandatory>
+                        <many>true</many>
+                    </target>
+                    <duplicate>false</duplicate>
+                    <propagateTimestamps>true</propagateTimestamps>
+                </child-association>
+            </associations>
+        </aspect>
 
-		<!-- aspect for testing template functionality -->
-		<aspect name="dms:test-template">
-			<properties>
-				<property name="dms:handField">
-					<type>d:text</type>
-				</property>
-			</properties>
-		</aspect>
+        <aspect name="dms:documentChangeSubscribe">
+            <associations>
+                <child-association name="dms:document_change_subscribers">
+                    <title>Document change subscribers</title>
+                    <source>
+                        <mandatory>false</mandatory>
+                        <many>true</many>
+                    </source>
+                    <target>
+                        <class>cm:person</class>
+                        <mandatory>false</mandatory>
+                        <many>true</many>
+                    </target>
+                </child-association>
+            </associations>
+        </aspect>
+
+        <!-- derived from template -->
+        <aspect name="dms:templateable">
+            <properties>
+                <!-- update content from template on form persist or not -->
+                <property name="dms:updateContent">
+                    <title>Generate from template</title>
+                    <type>d:boolean</type>
+                    <default>false</default>
+                    <constraints>
+                        <constraint ref="dms:constraint:dmsTrueFalse"/>
+                    </constraints>
+                </property>
+            </properties>
+            <associations>
+                <association name="dms:templateAssociation">
+                    <source>
+                        <mandatory>false</mandatory>
+                        <many>true</many>
+                    </source>
+                    <target>
+                        <class>dms:template</class>
+                        <mandatory>false</mandatory>
+                        <many>false</many>
+                    </target>
+                </association>
+            </associations>
+        </aspect>
+
+        <!-- aspect for testing template functionality -->
+        <aspect name="dms:test-template">
+            <properties>
+                <property name="dms:handField">
+                    <type>d:text</type>
+                </property>
+            </properties>
+        </aspect>
 
         <aspect name="dms:approvalDateAspect">
             <properties>
@@ -727,152 +747,152 @@
             </properties>
         </aspect>
 
-		<aspect name="dms:generalAgreement">
-			<properties>
-				<property name="dms:number">
-					<title>Number</title>
-					<type>d:text</type>
-					<mandatory>true</mandatory>
+        <aspect name="dms:generalAgreement">
+            <properties>
+                <property name="dms:number">
+                    <title>Number</title>
+                    <type>d:text</type>
+                    <mandatory>true</mandatory>
                     <index enabled="true">
                         <atomic>true</atomic>
                         <stored>false</stored>
                         <tokenised>both</tokenised>
                     </index>
-				</property>
-				<property name="dms:agreementDate">
-					<title>Date</title>
-					<type>d:date</type>
-				</property>
-				<property name="dms:amount">
-					<title>Amount</title>
-					<type>d:double</type>
-					<mandatory>true</mandatory>
-					<constraints>
-						<constraint ref="dms:constraint:double_with_two" />
-					</constraints>
-				</property>
-				<property name="dms:amountEUR">
-					<title>Amount in EUR</title>
-					<type>d:double</type>
-					<protected>true</protected>
-				</property>
-				<property name="dms:subject">
-					<title>Subject</title>
-					<type>d:text</type>
-					<mandatory>true</mandatory>
+                </property>
+                <property name="dms:agreementDate">
+                    <title>Date</title>
+                    <type>d:date</type>
+                </property>
+                <property name="dms:amount">
+                    <title>Amount</title>
+                    <type>d:double</type>
+                    <mandatory>true</mandatory>
+                    <constraints>
+                        <constraint ref="dms:constraint:double_with_two"/>
+                    </constraints>
+                </property>
+                <property name="dms:amountEUR">
+                    <title>Amount in EUR</title>
+                    <type>d:double</type>
+                    <protected>true</protected>
+                </property>
+                <property name="dms:subject">
+                    <title>Subject</title>
+                    <type>d:text</type>
+                    <mandatory>true</mandatory>
                     <index enabled="true">
                         <atomic>true</atomic>
                         <stored>false</stored>
                         <tokenised>both</tokenised>
                     </index>
-				</property>
-				<property name="dms:nature">
-					<title>Nature</title>
-					<type>d:text</type>
-					<mandatory>true</mandatory>
+                </property>
+                <property name="dms:nature">
+                    <title>Nature</title>
+                    <type>d:text</type>
+                    <mandatory>true</mandatory>
                     <index enabled="true">
                         <atomic>true</atomic>
                         <stored>false</stored>
                         <tokenised>both</tokenised>
                     </index>
-					<constraints>
-						<constraint ref="dms:constraint:natures" />
-					</constraints>
-				</property>
-				<property name="dms:type">
-					<title>Type</title>
-					<type>d:text</type>
-					<mandatory>true</mandatory>
+                    <constraints>
+                        <constraint ref="dms:constraint:natures"/>
+                    </constraints>
+                </property>
+                <property name="dms:type">
+                    <title>Type</title>
+                    <type>d:text</type>
+                    <mandatory>true</mandatory>
                     <index enabled="true">
                         <atomic>true</atomic>
                         <stored>false</stored>
                         <tokenised>both</tokenised>
                     </index>
-					<constraints>
-						<constraint ref="dms:constraint:types" />
-					</constraints>
-				</property>
-				<property name="dms:status">
-					<title>Status</title>
-					<type>d:text</type>
-					<mandatory>false</mandatory>
+                    <constraints>
+                        <constraint ref="dms:constraint:types"/>
+                    </constraints>
+                </property>
+                <property name="dms:status">
+                    <title>Status</title>
+                    <type>d:text</type>
+                    <mandatory>false</mandatory>
                     <index enabled="true">
                         <atomic>true</atomic>
                         <stored>false</stored>
                         <tokenised>both</tokenised>
                     </index>
-					<constraints>
-						<constraint ref="dms:constraint:statuses" />
-					</constraints>
-					<!-- TODO the value should be editable and visible only for Marketing 
-						and on-trade contracts -->
-				</property>
-				<property name="dms:shareholdersNegotiation">
-					<title>Shareholders negotiation required</title>
-					<type>d:boolean</type>
-					<mandatory>true</mandatory>
-					<default>false</default>
-				</property>
-				<property name="dms:approval_status">
-					<title>Approval Status</title>
-					<type>d:text</type>
+                    <constraints>
+                        <constraint ref="dms:constraint:statuses"/>
+                    </constraints>
+                    <!-- TODO the value should be editable and visible only for Marketing
+                        and on-trade contracts -->
+                </property>
+                <property name="dms:shareholdersNegotiation">
+                    <title>Shareholders negotiation required</title>
+                    <type>d:boolean</type>
+                    <mandatory>true</mandatory>
+                    <default>false</default>
+                </property>
+                <property name="dms:approval_status">
+                    <title>Approval Status</title>
+                    <type>d:text</type>
                     <index enabled="true">
                         <atomic>true</atomic>
                         <stored>false</stored>
                         <tokenised>both</tokenised>
                     </index>
-					<constraints>
-						<constraint ref="dms:constraint:approval_statuses" />
-					</constraints>
-				</property>
+                    <constraints>
+                        <constraint ref="dms:constraint:approval_statuses"/>
+                    </constraints>
+                </property>
 
-				<property name="dms:capitalExpenditure">
-					<title>Capital expenditure required</title>
-					<type>d:boolean</type>
-					<mandatory>true</mandatory>
-					<default>false</default>
-				</property>
+                <property name="dms:capitalExpenditure">
+                    <title>Capital expenditure required</title>
+                    <type>d:boolean</type>
+                    <mandatory>true</mandatory>
+                    <default>false</default>
+                </property>
 
-			</properties>
-			<associations>
-				<association name="dms:currency">
-					<title>Currency</title>
-					<source>
-						<mandatory>false</mandatory>
-						<many>true</many>
-					</source>
-					<target>
-						<class>cdl:currency</class>
-						<mandatory>false</mandatory>
-						<many>false</many>
-					</target>
-				</association>
-			</associations>
-		</aspect>
+            </properties>
+            <associations>
+                <association name="dms:currency">
+                    <title>Currency</title>
+                    <source>
+                        <mandatory>false</mandatory>
+                        <many>true</many>
+                    </source>
+                    <target>
+                        <class>cdl:currency</class>
+                        <mandatory>false</mandatory>
+                        <many>false</many>
+                    </target>
+                </association>
+            </associations>
+        </aspect>
 
-		<!-- document, that has some status -->
-		<!-- status is a category -->
-		<!-- so list of statuses is dependent on company and can be changed -->
-		<aspect name="dms:hasStatus">
-			<properties>
-				<property name="dms:docStatus">
-					<title>Document status</title>
-					<type>d:category</type>
-				</property>
-			</properties>
-		</aspect>
+        <!-- document, that has some status -->
+        <!-- status is a category -->
+        <!-- so list of statuses is dependent on company and can be changed -->
+        <aspect name="dms:hasStatus">
+            <properties>
+                <property name="dms:docStatus">
+                    <title>Document status</title>
+                    <type>d:category</type>
+                </property>
+            </properties>
+        </aspect>
 
-		<!-- document, that has some type -->
-		<!-- type is a category -->
-		<!-- so list of types is dependent on company and can be changed -->
-		<aspect name="dms:hasType">
-			<properties>
-				<property name="dms:docType">
-					<title>Document type</title>
-					<type>d:category</type>
-				</property>
-			</properties>
-		</aspect>
+        <!-- document, that has some type -->
+        <!-- type is a category -->
+        <!-- so list of types is dependent on company and can be changed -->
+        <aspect name="dms:hasType">
+            <properties>
+                <property name="dms:docType">
+                    <title>Document type</title>
+                    <type>d:category</type>
+                </property>
+            </properties>
+        </aspect>
 
         <aspect name="dms:storageTime">
             <properties>
@@ -911,49 +931,49 @@
                 <property name="dms:INN">
                     <constraints>
                         <!--<constraint ref="dms:constraint:innkppunique" />-->
-                        <constraint ref="dms:constraint:long" />
+                        <constraint ref="dms:constraint:long"/>
                     </constraints>
                 </property>
                 <property name="dms:KPP">
                     <constraints>
                         <!--<constraint ref="dms:constraint:innkppunique" />-->
-                        <constraint ref="dms:constraint:long" />
+                        <constraint ref="dms:constraint:long"/>
                     </constraints>
                 </property>
             </overrides>
         </aspect>
-	
-		<aspect name="dms:hasApplicationFiles">
-			<associations>
-				<child-association name="dms:applicationFiles">
-					<title>Application Files</title>
-					<source>
-						<mandatory>false</mandatory>
-						<many>true</many>
-					</source>
-					<target>
-						<class>dms:applicationFile</class>
-						<mandatory>false</mandatory>
-						<many>true</many>
-					</target>
-					<duplicate>false</duplicate>
-					<propagateTimestamps>true</propagateTimestamps>
-				</child-association>
-				<child-association name="dms:versionedApplicationFiles">
-					<source>
-						<mandatory>false</mandatory>
-						<many>true</many>
-					</source>
-					<target>
-						<class>cm:content</class>
-						<mandatory>false</mandatory>
-						<many>true</many>
-					</target>
-					<duplicate>false</duplicate>
-					<propagateTimestamps>true</propagateTimestamps>
-				</child-association>
-			</associations>
-		</aspect>
+
+        <aspect name="dms:hasApplicationFiles">
+            <associations>
+                <child-association name="dms:applicationFiles">
+                    <title>Application Files</title>
+                    <source>
+                        <mandatory>false</mandatory>
+                        <many>true</many>
+                    </source>
+                    <target>
+                        <class>dms:applicationFile</class>
+                        <mandatory>false</mandatory>
+                        <many>true</many>
+                    </target>
+                    <duplicate>false</duplicate>
+                    <propagateTimestamps>true</propagateTimestamps>
+                </child-association>
+                <child-association name="dms:versionedApplicationFiles">
+                    <source>
+                        <mandatory>false</mandatory>
+                        <many>true</many>
+                    </source>
+                    <target>
+                        <class>cm:content</class>
+                        <mandatory>false</mandatory>
+                        <many>true</many>
+                    </target>
+                    <duplicate>false</duplicate>
+                    <propagateTimestamps>true</propagateTimestamps>
+                </child-association>
+            </associations>
+        </aspect>
 
         <aspect name="dms:hasPredicate">
             <properties>
@@ -974,5 +994,22 @@
             </properties>
         </aspect>
 
-	</aspects>
+        <aspect name="dms:hasEcosNotification">
+            <properties>
+                <property name="dms:ecosType">
+                    <title>ECOS type</title>
+                    <type>d:text</type>
+                </property>
+                <property name="dms:ecosNotificationTemplate">
+                    <title>ECOS notification template</title>
+                    <type>d:text</type>
+                </property>
+                <property name="dms:notificationDisabled">
+                    <title>Notification disabled</title>
+                    <type>d:boolean</type>
+                </property>
+            </properties>
+        </aspect>
+
+    </aspects>
 </model>
