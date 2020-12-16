@@ -22,7 +22,7 @@ import org.alfresco.service.namespace.QName;
 
 /**
  * Alfresco content model for DMS project.
- * 
+ *
  */
 public final class DmsModel {
 
@@ -61,7 +61,7 @@ public final class DmsModel {
 	public static final QName PROP_CAPITAL_EXPENDITURE = QName.createQName(DMS_NAMESPACE, "capitalExpenditure");
 
 	public static final QName PROP_AGREEMENT_NATURE = QName.createQName(DMS_NAMESPACE, "nature");
-	
+
 	public static final QName PROP_ASPECT = QName.createQName(DMS_NAMESPACE, "aspect");
 	public static final QName PROP_ERROR_MESSAGE_CONFIG = QName.createQName(DMS_NAMESPACE, "errorMessageConfig");
 
@@ -99,7 +99,7 @@ public final class DmsModel {
 	public static final QName TYPE_CARD_TEMPLATE = QName.createQName(DMS_NAMESPACE, "cardTemplate");
 	public static final QName PROP_CARD_TYPE = QName.createQName(DMS_NAMESPACE, "cardType");
 	public static final QName PROP_TEMPLATE_TYPE = QName.createQName(DMS_NAMESPACE, "templateType");
-	
+
 	// type dms:notificationTemplate
 	public static final QName TYPE_NOTIFICATION_TEMPLATE = QName.createQName(DMS_NAMESPACE, "notificationTemplate");
 	public static final QName PROP_NOTIFICATION_TYPE = QName.createQName(DMS_NAMESPACE, "notificationType");
@@ -108,7 +108,10 @@ public final class DmsModel {
 	public static final QName PROP_TITLE_FOR_RESENDING = QName.createQName(DMS_NAMESPACE, "titleForResending");
 	public static final QName PROP_SUBJECT_TEMPLATE = QName.createQName(DMS_NAMESPACE, "subjectTemplate");
 	public static final QName PROP_DOC_TYPE = QName.createQName(DMS_NAMESPACE, "documentType");
-	public static final QName PROP_NOT_SEARCHABLE = QName.createQName(DMS_NAMESPACE, "notSearchable");
+    public static final QName PROP_NOT_SEARCHABLE = QName.createQName(DMS_NAMESPACE, "notSearchable");
+    public static final QName PROP_ECOS_TYPE = QName.createQName(DMS_NAMESPACE, "ecosType");
+    public static final QName PROP_ECOS_NOTIFICATION_TEMPLATE = QName.createQName(DMS_NAMESPACE, "ecosNotificationTemplate");
+    public static final QName PROP_NOTIFICATION_DISABLED = QName.createQName(DMS_NAMESPACE, "notificationDisabled");
 
 	// aspect hasApplicationFiles
 	public static final QName ASPECT_HAS_APPLICATION_FILES = QName.createQName(DMS_NAMESPACE, "hasApplicationFiles");
