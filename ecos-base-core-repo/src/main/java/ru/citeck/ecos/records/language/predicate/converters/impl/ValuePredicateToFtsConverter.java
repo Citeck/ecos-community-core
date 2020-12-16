@@ -311,6 +311,10 @@ public class ValuePredicateToFtsConverter implements PredicateToFtsConverter {
                 attributes.put(ContentModel.PROP_LASTNAME, assocVal);
             }
 
+            if (targetTypeName.equals(ContentModel.TYPE_AUTHORITY_CONTAINER)) {
+                attributes.put(ContentModel.PROP_AUTHORITY_DISPLAY_NAME, assocVal);
+            }
+
             TypeDefinition targetType = dictUtils.getTypeDefinition(targetTypeName);
             if (targetType != null) {
                 attributes.putAll(getTargetTypeAttributes(targetType, assocVal));
