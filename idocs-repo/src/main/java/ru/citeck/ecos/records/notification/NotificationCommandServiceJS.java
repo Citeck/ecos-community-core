@@ -1,5 +1,6 @@
 package ru.citeck.ecos.records.notification;
 
+import org.alfresco.service.cmr.repository.NodeRef;
 import org.springframework.beans.factory.annotation.Autowired;
 import ru.citeck.ecos.commons.data.DataValue;
 import ru.citeck.ecos.commons.json.Json;
@@ -17,6 +18,8 @@ import java.util.Map;
 
 public class NotificationCommandServiceJS extends AlfrescoScopableProcessorExtension {
 
+    private static final String RECORD_PROP = "record";
+
     private NotificationService notificationService;
     private UrlUtils urlUtils;
     private JsUtils jsUtils;
@@ -24,13 +27,22 @@ public class NotificationCommandServiceJS extends AlfrescoScopableProcessorExten
     public void send(Object data) {
 
         Object notificationObj = jsUtils.toJava(data);
+        if (notificationObj instanceof Map) {
+            Object record = ((Map<?, ?>) notificationObj).get(RECORD_PROP);
+            if (record instanceof NodeRef) {
+                @SuppressWarnings("unchecked")
+                Map<String, Object> newObj = new HashMap<>((Map<String, Object>) notificationObj);
+                newObj.put(RECORD_PROP, record.toString());
+                notificationObj = newObj;
+            }
+        }
         DataValue notificationValue = Json.getMapper().convert(notificationObj, DataValue.class);
 
         if (notificationValue == null) {
             throw new IllegalArgumentException("Incorrect notification: " + data);
         }
 
-        DataValue record = notificationValue.get("record");
+        DataValue record = notificationValue.get(RECORD_PROP);
         Object notificationRecord;
         if (record.isTextual()) {
             notificationRecord = RecordRef.valueOf(record.asText());
