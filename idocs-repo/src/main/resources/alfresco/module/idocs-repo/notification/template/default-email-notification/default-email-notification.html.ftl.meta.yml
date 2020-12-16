@@ -1,0 +1,28 @@
+{
+  "id" : "default-email-notification",
+  "name" : "default-email-notification",
+  "notificationTitle" : {
+    "ru" : "Новая задача: <#if taskDescription?? && taskDescription != ''>${taskDescription}, <#elseif taskName??>${taskName}, </#if><#if documentName??>документ - ${documentName!''}</#if>",
+    "en" : "New task: <#if taskDescription?? && taskDescription != ''>${taskDescription}, <#elseif taskName??>${taskName}, </#if><#if documentName??>document - ${documentName!''}</#if>"
+  },
+  "model" : {
+    "taskId" : ".id",
+    "taskDescription" : "description?str",
+    "taskPriority" : "bpm_priority?num",
+    "taskDueDate" : "bpm_dueDate?str",
+    "taskWorkflowDueDate" : "bpm_workflowDueDate?str",
+    "documentId" : "workflow.documents?id",
+    "documentName" : "workflow.documents?disp",
+    "sender" : "initiator?id",
+    "senderFirstName" : "initiator.cm:firstName?str",
+    "senderLastName" : "initiator.cm:lastName?str",
+    "web_url" : "$web_url?str",
+    "date" : "$date?str",
+    "taskName" : "name",
+    "test" : "workflow.documents.contracts:contractor?disp",
+    "test2" : "workflow.documents._type?id",
+    "t3" : "?json",
+    "t4" : ".json"
+  },
+  "multiTemplateConfig" : []
+}

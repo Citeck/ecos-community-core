@@ -1,0 +1,19 @@
+{
+  "id" : "default-expired-notification",
+  "name" : "default-expired-notification",
+  "notificationTitle" : {
+    "ru" : "${subject!\"Уведомление\"}",
+    "en" : "${subject!\"Notification\"}"
+  },
+  "model" : {
+    "subject" : "$subject?str",
+    "documentId" : "workflow.documents?id",
+    "taskId" : "?id",
+    "priority" : "bpm_priority?num",
+    "description" : "bpm_description?str",
+    "date" : "$date?str",
+    "web_url" : "$web_url",
+    "dueDate" : "bpm_dueDate"
+  },
+  "multiTemplateConfig" : []
+}

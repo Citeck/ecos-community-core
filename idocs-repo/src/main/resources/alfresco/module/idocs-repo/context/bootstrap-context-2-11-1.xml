@@ -18,6 +18,7 @@
         <property name="description" value="Default document changed notification" />
         <property name="bootstrapView">
             <props>
+                <prop key="uuidBinding">UPDATE_EXISTING</prop>
                 <prop key="path">/${spaces.company_home.childname}/${spaces.dictionary.childname}/${spaces.templates.email.childname}/${spaces.templates.email.notify.childname}</prop>
                 <prop key="location">alfresco/templates/bootstrap/ru/citeck/templates/email-notification.xml</prop>
                 <prop key="messages">alfresco/module/idocs-repo/bootstrap/emails/default-doc-changed-notification</prop>
