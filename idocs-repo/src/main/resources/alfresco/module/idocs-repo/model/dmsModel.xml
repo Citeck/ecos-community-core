@@ -1006,7 +1006,7 @@
                 </property>
                 <property name="dms:notificationDisabled">
                     <title>Notification disabled</title>
-                    <type>d:text</type>
+                    <type>d:boolean</type>
                 </property>
             </properties>
         </aspect>
