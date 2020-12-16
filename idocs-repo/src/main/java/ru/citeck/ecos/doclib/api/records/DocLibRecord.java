@@ -5,9 +5,12 @@ import ru.citeck.ecos.doclib.service.DocLibChildrenQuery;
 import ru.citeck.ecos.doclib.service.DocLibNodeInfo;
 import ru.citeck.ecos.doclib.service.DocLibNodeType;
 import ru.citeck.ecos.doclib.service.DocLibService;
+import ru.citeck.ecos.records.source.PeopleRecordsDao;
+import ru.citeck.ecos.records2.RecordConstants;
 import ru.citeck.ecos.records2.RecordRef;
 import ru.citeck.ecos.records3.record.op.atts.service.schema.annotation.AttName;
 
+import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -78,6 +81,26 @@ public class DocLibRecord {
     @AttName("?disp")
     public String getDisplayName() {
         return getDocLibNodeInfo().getDisplayName();
+    }
+
+    @AttName(RecordConstants.ATT_MODIFIED)
+    public Date getModified() {
+        return getDocLibNodeInfo().getModified();
+    }
+
+    @AttName(RecordConstants.ATT_CREATED)
+    public Date getCreated() {
+        return getDocLibNodeInfo().getCreated();
+    }
+
+    @AttName(RecordConstants.ATT_MODIFIER)
+    public RecordRef getModifier() {
+        return RecordRef.create(PeopleRecordsDao.ID, getDocLibNodeInfo().getModifier());
+    }
+
+    @AttName(RecordConstants.ATT_CREATOR)
+    public RecordRef getCreator() {
+        return RecordRef.create(PeopleRecordsDao.ID, getDocLibNodeInfo().getCreator());
     }
 
     private DocLibNodeInfo getDocLibNodeInfo() {

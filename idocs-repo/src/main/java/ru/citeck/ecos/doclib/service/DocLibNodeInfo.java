@@ -4,6 +4,8 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import ru.citeck.ecos.records2.RecordRef;
 
+import java.util.Date;
+
 @Data
 @AllArgsConstructor
 public class DocLibNodeInfo {
@@ -12,4 +14,8 @@ public class DocLibNodeInfo {
     private String displayName;
     private RecordRef typeRef;
     private RecordRef docLibTypeRef;
+    private Date modified;
+    private Date created;
+    private String modifier;
+    private String creator;
 }

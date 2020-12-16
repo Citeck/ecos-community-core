@@ -9,23 +9,40 @@ import java.util.Date;
 public class UserDTO {
 
     private String id;
-
-    @MetaAtt("cm:userName")
     private String userName;
-
-    @MetaAtt("cm:firstName")
     private String firstName;
-
-    @MetaAtt("cm:lastName")
     private String lastName;
-
-    @MetaAtt("cm:middleName")
     private String middleName;
-
-    @MetaAtt("ecos:birthDate")
     private Date birthDate;
-
-    @MetaAtt(".disp")
     private String displayName;
 
+    @MetaAtt("cm:userName")
+    public void setUserName(String userName) {
+        this.userName = userName;
+    }
+
+    @MetaAtt("cm:firstName")
+    public void setFirstName(String firstName) {
+        this.firstName = firstName;
+    }
+
+    @MetaAtt("cm:lastName")
+    public void setLastName(String lastName) {
+        this.lastName = lastName;
+    }
+
+    @MetaAtt("cm:middleName")
+    public void setMiddleName(String middleName) {
+        this.middleName = middleName;
+    }
+
+    @MetaAtt("ecos:birthDate")
+    public void setBirthDate(Date birthDate) {
+        this.birthDate = birthDate;
+    }
+
+    @MetaAtt(".disp")
+    public void setDisplayName(String displayName) {
+        this.displayName = displayName;
+    }
 }
