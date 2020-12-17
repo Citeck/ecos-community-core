@@ -9,6 +9,7 @@ import ru.citeck.ecos.notifications.lib.service.NotificationService;
 import ru.citeck.ecos.notifications.lib.service.NotificationServiceImpl;
 import ru.citeck.ecos.notifications.lib.service.NotificationTemplateService;
 import ru.citeck.ecos.records3.RecordsService;
+import ru.citeck.ecos.records3.RecordsServiceFactory;
 
 @Configuration
 public class NotificationServiceConfig {
@@ -21,11 +22,11 @@ public class NotificationServiceConfig {
 
     @Bean
     public NotificationService ecosNotificationService(CommandsService commandsService,
-                                                       RecordsService recordsService,
+                                                       RecordsServiceFactory recordsServiceFactory,
                                                        NotificationTemplateService notificationTemplateService) {
         NotificationServiceImpl service = new NotificationServiceImpl(
             commandsService,
-            recordsService,
+            recordsServiceFactory,
             notificationTemplateService);
 
         service.setDefaultLocale(LocaleUtils.toLocale(defaultAppNotificationLocale));
