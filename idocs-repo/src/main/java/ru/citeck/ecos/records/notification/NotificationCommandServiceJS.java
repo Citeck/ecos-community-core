@@ -57,9 +57,8 @@ public class NotificationCommandServiceJS extends AlfrescoScopableProcessorExten
             .recipients(notificationValue.get("recipients").asStrList())
             .from(asStringOrNull(notificationValue.get("from")))
             .lang(asStringOrNull(notificationValue.get("lang")))
-            .additionalMeta(
-                getAdditionalMeta(notificationValue.get("additionalMeta").asMap(String.class, Object.class))
-            ).build();
+            .additionalMeta(notificationValue.get("additionalMeta").asMap(String.class, Object.class))
+            .build();
 
         notificationService.send(notification);
     }
@@ -81,24 +80,10 @@ public class NotificationCommandServiceJS extends AlfrescoScopableProcessorExten
             .recipients(recipients)
             .from(from)
             .lang(lang)
-            .additionalMeta(getAdditionalMeta(additionalMeta))
+            .additionalMeta(additionalMeta)
             .build();
 
         notificationService.send(notification);
-    }
-
-    private Map<String, Object> getAdditionalMeta(Map<String, Object> baseMeta) {
-
-        Map<String, Object> result = new HashMap<>();
-
-        result.put("webUrl", urlUtils.getWebUrl());
-        result.put("shareUrl", urlUtils.getShareUrl());
-
-        if (baseMeta != null) {
-            result.putAll(baseMeta);
-        }
-
-        return result;
     }
 
     public void setNotificationService(NotificationService notificationService) {

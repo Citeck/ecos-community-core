@@ -1,17 +1,12 @@
 package ru.citeck.ecos.records.rest;
 
-import org.alfresco.repo.security.authentication.AuthenticationUtil;
-import org.springframework.extensions.surf.util.I18NUtil;
 import org.springframework.extensions.webscripts.*;
 import org.springframework.stereotype.Component;
 import ru.citeck.ecos.commons.json.Json;
-import ru.citeck.ecos.records2.RecordRef;
 import ru.citeck.ecos.records3.record.request.RequestCtxData;
 
 import java.io.IOException;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.function.Function;
 
 /**
@@ -21,11 +16,6 @@ import java.util.function.Function;
 public class RecordsRestUtils {
 
     void prepareCtxData(RequestCtxData.Builder builder) {
-
-        builder.setLocale(I18NUtil.getLocale());
-        Map<String, Object> contextAtts = new HashMap<>();
-        contextAtts.put("user", RecordRef.valueOf("people@" + AuthenticationUtil.getFullyAuthenticatedUser()));
-        builder.setCtxAtts(contextAtts);
     }
 
     <T> T readBody(WebScriptRequest req, Class<T> type) throws IOException {

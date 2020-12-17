@@ -140,7 +140,6 @@ public class AlfNodesRecordsDAO extends LocalRecordsDao
         }
 
         ObjectData attributes = record.getAttributes();
-        ObjectData finalAtts = attributes;
 
         // if we get "att_add_someAtt" and "someAtt", then ignore "att_add_*"
         attributes.forEachJ((name, value) -> {
@@ -154,7 +153,7 @@ public class AlfNodesRecordsDAO extends LocalRecordsDao
                     attrNameWithoutPrefix = name.replaceFirst(REMOVE_CMD_PREFIX, StringUtils.EMPTY);
                 }
 
-                if (finalAtts.has(attrNameWithoutPrefix) && value.isNotNull()) {
+                if (attributes.has(attrNameWithoutPrefix) && value.isNotNull()) {
                     String actualName = extractActualAttName(name);
                     attsToIgnore.put(name, actualName);
                 }
@@ -169,17 +168,14 @@ public class AlfNodesRecordsDAO extends LocalRecordsDao
         }
 
         TypeDto typeDto = ecosTypeRef != null ? typeInfoProvider.getType(ecosTypeRef) : null;
+        Map<String, String> propsMapping = Collections.emptyMap();
 
         if (ecosTypeRef != null && alfAutoModelService != null) {
-
-            Map<String, String> propsMapping
-                = alfAutoModelService.getPropsMapping(ecosTypeRef, attributes.fieldNamesList(), true);
-
-            if (!propsMapping.isEmpty()) {
-                Map<String, Object> newAttributes = new HashMap<>();
-                attributes.forEachJ((k, v) -> newAttributes.put(propsMapping.getOrDefault(k, k), v));
-                attributes = ObjectData.create(newAttributes);
-            }
+            propsMapping = alfAutoModelService.getPropsMapping(
+                ecosTypeRef,
+                attributes.fieldNamesList(),
+                true
+            );
         }
 
         AlfNodeInfo nodeInfo = nodeRef != null ? new AlfNodeInfoImpl(nodeRef, serviceRegistry) : null;
@@ -225,6 +221,8 @@ public class AlfNodesRecordsDAO extends LocalRecordsDao
                     "' because it is protected! Value: " + fieldRawValue);
                 continue;
             }
+
+            name = propsMapping.getOrDefault(name, name);
 
             if (name.equals("_caseStatus")) {
                 name = "icase:caseStatusAssoc";
