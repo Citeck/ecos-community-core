@@ -9,6 +9,7 @@
             <cm:title>${notification.title}</cm:title>
             <dms:notificationType>${notification.type}</dms:notificationType>
             <cm:content>contentUrl=classpath:${notification.content}|mimetype=text/plain|encoding=UTF-8</cm:content>
+            <dms:ecosNotificationTemplate>${notification.ecosTemplate}</dms:ecosNotificationTemplate>
         </view:properties>
     </dms:notificationTemplate>
 </view:view>

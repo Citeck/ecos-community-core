@@ -1,0 +1,17 @@
+{
+  "id" : "default-doc-changed-notification",
+  "name" : "default-doc-changed-notification",
+  "notificationTitle" : {
+    "ru" : "${subject!\"Документ изменился\"}",
+    "en" : "${subject!\"Document has changed\"}"
+  },
+  "model" : {
+    "documentId" : "?id",
+    "documentName" : "?disp",
+    "properties" : "$addition.properties[]{title:title, before:before, after:after, event:event, target:targetRef{type:TYPE, lastName:cm:lastName, firstName:cm:firstName, name:cm:name, title:cm:title}, type:type}",
+    "modifier" : "$user?disp",
+    "modified" : "cm:modified?str",
+    "subject" : "$subject"
+  },
+  "multiTemplateConfig" : []
+}

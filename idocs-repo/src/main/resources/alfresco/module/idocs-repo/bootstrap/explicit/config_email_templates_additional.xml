@@ -15,6 +15,7 @@
                 <![CDATA[<#if (task.description)?? && task.description != ''>#{task.description}<#elseif (task.name)??>#{task.name}</#if><#if workflow.documents??><#if workflow.documents?is_sequence><#if workflow.documents?size &gt; 0>, документ - #{workflow.documents[0].properties['cm:name']!''}</#if></#if></#if>]]>
             </dms:subjectTemplate>
             <dms:notSearchable>true</dms:notSearchable>
+            <dms:ecosNotificationTemplate>notifications/template@unavailable-assign-notification</dms:ecosNotificationTemplate>
         </view:properties>
     </dms:notificationTemplate>
     <dms:notificationTemplate view:childName="cm:unavailable-assign-notification.html.ftl">
@@ -29,6 +30,7 @@
                 <![CDATA[<#if (task.description)?? && task.description != ''>#{task.description}<#elseif (task.name)??>#{task.name}</#if><#if workflow.documents??><#if workflow.documents?is_sequence><#if workflow.documents?size &gt; 0>, документ - #{workflow.documents[0].properties['cm:name']!''}</#if></#if></#if>]]>
             </dms:subjectTemplate>
             <dms:notSearchable>true</dms:notSearchable>
+            <dms:ecosNotificationTemplate>notifications/template@unavailable-assign-notification</dms:ecosNotificationTemplate>
         </view:properties>
     </dms:notificationTemplate>
 </view:view>
