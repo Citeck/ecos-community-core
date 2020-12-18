@@ -300,10 +300,7 @@ public abstract class AbstractNotificationSender<ItemType> implements Notificati
      * @return
      */
     protected Map<String, Object> getEcosNotificationArgs(ItemType item){
-        Map<String, Object> args = new HashMap<>();
-        args.put("date", new Date());
-        args.put("web_url", urlUtils.getWebUrl());
-        return args;
+        return new HashMap<>();
     };
 
     /**
@@ -530,7 +527,6 @@ public abstract class AbstractNotificationSender<ItemType> implements Notificati
     }
 
     private void sendNotificationContext(Runnable runnable, boolean afterCommit) {
-        // send
         if (asyncNotification) {
             TransactionUtils.doAfterCommit(() -> {
                 runnable.run();

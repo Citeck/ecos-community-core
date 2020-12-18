@@ -34,8 +34,6 @@ import org.alfresco.service.cmr.security.AuthenticationService;
 import org.alfresco.service.cmr.security.PersonService;
 import org.alfresco.service.namespace.QName;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import ru.citeck.ecos.model.DmsModel;
 import ru.citeck.ecos.notification.task.record.TaskExecutionRecord;
 import ru.citeck.ecos.notifications.lib.Notification;
@@ -95,7 +93,6 @@ class ExecutionEntityNotificationSender extends AbstractNotificationSender<Execu
     protected AuthenticationService authenticationService;
     protected boolean sendToOwner;
     private NodeOwnerDAO nodeOwnerDAO;
-    private static final Log logger = LogFactory.getLog(ExecutionEntityNotificationSender.class);
     public static final String ARG_MODIFIER = "modifier";
     List<String> allowDocList;
     Map<String, Map<String,String>> subjectTemplates;
@@ -193,9 +190,7 @@ class ExecutionEntityNotificationSender extends AbstractNotificationSender<Execu
     }
 
     private void send(ExecutionEntity task, String template, String subject, Set<String> recipients) {
-        HashMap<String, Object> additionalMeta = new HashMap<>();
-        additionalMeta.put("date", new Date());
-        additionalMeta.put("web_url", urlUtils.getWebUrl());
+        Map<String, Object> additionalMeta = super.getEcosNotificationArgs(task);
         additionalMeta.put("subject", subject);
 
         RecordRef templateRef = RecordRef.valueOf(template);
@@ -224,8 +219,6 @@ class ExecutionEntityNotificationSender extends AbstractNotificationSender<Execu
         setBodyTemplate(notificationContext, template);
         notificationContext.setTemplateArgs(getNotificationArgs(task));
         notificationContext.setAsyncNotification(getAsyncNotification());
-        // send
-        logger.debug("Send notification");
         services.getNotificationService().sendNotification(notificationProviderName, notificationContext);
     }
 

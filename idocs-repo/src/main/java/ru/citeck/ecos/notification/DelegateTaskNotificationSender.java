@@ -18,6 +18,7 @@
  */
 package ru.citeck.ecos.notification;
 
+import lombok.extern.slf4j.Slf4j;
 import org.activiti.engine.delegate.DelegateTask;
 import org.activiti.engine.impl.persistence.entity.ExecutionEntity;
 import org.activiti.engine.impl.persistence.entity.IdentityLinkEntity;
@@ -33,8 +34,6 @@ import org.alfresco.service.cmr.search.ResultSet;
 import org.alfresco.service.namespace.QName;
 import org.alfresco.service.namespace.RegexQNamePattern;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import ru.citeck.ecos.model.DmsModel;
 import ru.citeck.ecos.notification.task.record.TaskExecutionRecord;
 import ru.citeck.ecos.notifications.lib.Notification;
@@ -74,6 +73,7 @@ import java.util.stream.Collectors;
  *
  * @author Elena Zaripova
  */
+@Slf4j
 class DelegateTaskNotificationSender extends AbstractNotificationSender<DelegateTask> {
 
     // template argument names:
@@ -94,7 +94,6 @@ class DelegateTaskNotificationSender extends AbstractNotificationSender<Delegate
     Map<String, String> subjectTemplatesForWorkflow;
     private String nodeVariable;
     private String templateEngine = "freemarker";
-    private static final Log logger = LogFactory.getLog(DelegateTaskNotificationSender.class);
     private NodeOwnerDAO nodeOwnerDAO;
     protected Map<String, Boolean> markResending;
 
@@ -219,10 +218,7 @@ class DelegateTaskNotificationSender extends AbstractNotificationSender<Delegate
             notificationContext.addTo(to);
         }
         notificationContext.setAsyncNotification(getAsyncNotification());
-        // send
-        logger.debug("before sent");
         services.getNotificationService().sendNotification(notificationProviderName, notificationContext);
-        logger.debug("after sent");
     }
 
     protected String getSubject(DelegateTask task, Map<String, Serializable> templateArgs, NodeRef template, String taskFormKey) {
@@ -331,9 +327,9 @@ class DelegateTaskNotificationSender extends AbstractNotificationSender<Delegate
                 NodeRef initiator = ((ActivitiScriptNode) executionEntity.getVariable("initiator")).getNodeRef();
                 String initiatorName = (String) nodeService.getProperty(initiator, ContentModel.PROP_USERNAME);
                 String sender = (String) task.getVariable("cwf_sender");
-                logger.debug("!!!! user " + user);
-                logger.debug("!!!! sender " + sender);
-                logger.debug("!!!! initiatorName " + initiatorName);
+                log.debug("!!!! user " + user);
+                log.debug("!!!! sender " + sender);
+                log.debug("!!!! initiatorName " + initiatorName);
                 if (user != null && !user.equals(initiatorName) && !user.equals(sender)) {
                     authorities.add(user);
                 }
@@ -341,7 +337,7 @@ class DelegateTaskNotificationSender extends AbstractNotificationSender<Delegate
         } else {
             authorities.add(task.getAssignee());
         }
-        logger.debug("authorities " + authorities);
+        log.debug("authorities " + authorities);
         return authorities;
     }
 

@@ -161,9 +161,6 @@ class StartDelegateTaskNotificationSender extends AbstractNotificationSender<Del
         }
         args.put("_record", executionRecord);
 
-        String userName = authenticationService.getCurrentUserName();
-        args.put("person", RecordRef.valueOf("people@" + userName));
-
         return args;
     }
 
@@ -335,8 +332,6 @@ class StartDelegateTaskNotificationSender extends AbstractNotificationSender<Del
             }
         }
 
-        // send
-        log.debug("Notification send, notificationContext: " + notificationContext);
         services.getNotificationService().sendNotification(notificationProviderName, notificationContext);
     }
 

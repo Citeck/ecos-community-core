@@ -101,9 +101,6 @@ public class DocumentNotificationSender extends AbstractNotificationSender<NodeR
         });
         args.put(ARG_ADDITION, addiction);
 
-        String userName = authenticationService.getCurrentUserName();
-        args.put("person", RecordRef.valueOf("people@" + userName));
-
         return args;
     }
 

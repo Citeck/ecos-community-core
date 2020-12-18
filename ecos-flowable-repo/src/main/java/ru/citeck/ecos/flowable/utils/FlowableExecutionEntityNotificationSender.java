@@ -99,9 +99,6 @@ public class FlowableExecutionEntityNotificationSender extends AbstractNotificat
             .orElse(null);
         args.put("_record", taskExecutionRecord);
 
-        String userName = authenticationService.getCurrentUserName();
-        args.put("person", "people@" + userName);
-
         return args;
     }
 
@@ -185,8 +182,7 @@ public class FlowableExecutionEntityNotificationSender extends AbstractNotificat
         setBodyTemplate(notificationContext, template);
         notificationContext.setTemplateArgs(getNotificationArgs(task));
         notificationContext.setAsyncNotification(getAsyncNotification());
-        // send
-        logger.debug("Send notification");
+
         services.getNotificationService().sendNotification(notificationProviderName, notificationContext);
     }
 
