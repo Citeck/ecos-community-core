@@ -42,13 +42,21 @@ import org.alfresco.service.cmr.security.PersonService;
 import org.alfresco.service.cmr.workflow.WorkflowInstance;
 import org.alfresco.service.cmr.workflow.WorkflowTask;
 import org.alfresco.service.namespace.QName;
+import org.apache.commons.lang3.StringUtils;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
+import ru.citeck.ecos.model.DmsModel;
+import ru.citeck.ecos.notification.task.record.TaskExecutionRecord;
 import ru.citeck.ecos.notification.utils.RecipientsUtils;
+import ru.citeck.ecos.notifications.lib.Notification;
+import ru.citeck.ecos.notifications.lib.NotificationType;
+import ru.citeck.ecos.records2.RecordRef;
 import ru.citeck.ecos.role.CaseRoleService;
 import ru.citeck.ecos.security.NodeOwnerDAO;
 
 import java.io.Serializable;
 import java.util.*;
+
 /**
  * Notification sender for tasks (ItemType = DelegateTask).
  * <p>
@@ -132,6 +140,7 @@ class StartDelegateTaskNotificationSender extends AbstractNotificationSender<Del
     }
 
     // get notification template arguments for the task
+    @Override
     protected Map<String, Serializable> getNotificationArgs(DelegateTask task) {
         Map<String, Serializable> args = new HashMap<>();
         args.put(ARG_TASK, getTaskInfo(task));
@@ -139,8 +148,23 @@ class StartDelegateTaskNotificationSender extends AbstractNotificationSender<Del
         return args;
     }
 
-    private Serializable getTaskInfo(DelegateTask task) {
+    @Override
+    protected Map<String, Object> getEcosNotificationArgs(DelegateTask task) {
+        Map<String, Object> args = super.getEcosNotificationArgs(task);
 
+        TaskExecutionRecord executionRecord = executionsTaskService
+            .getExecutionRecord(DelegateTask.class, task).orElse(null);
+        if (executionRecord != null) {
+            Map<String, Object> properties = executionRecord.getProperties();
+            addWorkflowProperties(task, properties);
+            mandatoryFieldsFill(task, properties);
+        }
+        args.put("_record", executionRecord);
+
+        return args;
+    }
+
+    private Serializable getTaskInfo(DelegateTask task) {
         HashMap<String, Object> taskInfo = new HashMap<>();
         taskInfo.put(ARG_TASK_ID, task.getId());
         taskInfo.put(ARG_TASK_NAME, task.getName());
@@ -159,12 +183,36 @@ class StartDelegateTaskNotificationSender extends AbstractNotificationSender<Del
                 properties.put(entry.getKey(), null);
             }
         }
+
         WorkflowTask wfTask = services.getWorkflowService().getTaskById("activiti$" + task.getId());
         if (wfTask != null && wfTask.getProperties() != null) {
             for (Map.Entry<QName, Serializable> entry : wfTask.getProperties().entrySet()) {
                 properties.put(qNameConverter.mapQNameToName(entry.getKey()), entry.getValue());
             }
         }
+
+        mandatoryFieldsFill(task, properties);
+
+        String userName = authenticationService.getCurrentUserName();
+        NodeRef person = personService.getPerson(userName);
+        if (nodeService.exists(person)) {
+            String lastName = (String) nodeService.getProperty(person, ContentModel.PROP_FIRSTNAME);
+            String firstName = (String) nodeService.getProperty(person, ContentModel.PROP_LASTNAME);
+            taskInfo.put(ARG_TASK_EDITOR, lastName + " " + firstName);
+        }
+        return taskInfo;
+    }
+
+    private void addWorkflowProperties(DelegateTask task, Map<String, Object> properties) {
+        WorkflowTask wfTask = services.getWorkflowService().getTaskById("activiti$" + task.getId());
+        if (wfTask != null && wfTask.getProperties() != null) {
+            for (Map.Entry<QName, Serializable> entry : wfTask.getProperties().entrySet()) {
+                properties.put(qNameConverter.mapQNameToName(entry.getKey()), entry.getValue());
+            }
+        }
+    }
+
+    private void mandatoryFieldsFill(DelegateTask task, Map<String, ?> properties) {
         if (mandatoryFields != null) {
             List<String> fields = mandatoryFields.get(task.getName());
             if (fields != null && fields.size() > 0) {
@@ -175,14 +223,6 @@ class StartDelegateTaskNotificationSender extends AbstractNotificationSender<Del
                 }
             }
         }
-        String userName = authenticationService.getCurrentUserName();
-        NodeRef person = personService.getPerson(userName);
-        if (nodeService.exists(person)) {
-            String lastName = (String) nodeService.getProperty(person, ContentModel.PROP_FIRSTNAME);
-            String firstName = (String) nodeService.getProperty(person, ContentModel.PROP_LASTNAME);
-            taskInfo.put(ARG_TASK_EDITOR, lastName + " " + firstName);
-        }
-        return taskInfo;
     }
 
     private Serializable getWorkflowInfo(DelegateTask task, NodeRef docsInfo) {
@@ -213,126 +253,150 @@ class StartDelegateTaskNotificationSender extends AbstractNotificationSender<Del
         });
     }
 
-
     private void send(DelegateTask task) {
-        if (log.isDebugEnabled()) {
-            log.debug("Method send start..."
-                    + "\ntask: " + task
-                    + "\ninstance: " + toString());
-        }
+        log.debug("Method send start...\ntask: " + task + "\ninstance: " + toString());
         Set<String> authorities = authorityService.getAuthorities();
         boolean sendBasedOnUser = true;
-        String subject = null;
+
         if (checkAssignee != null && checkAssignee.containsKey(task.getName()) && checkAssignee.get(task.getName())) {
-            sendBasedOnUser = false;
-            if (authorities != null && authorities.size() > 0) {
-                if (supervisors != null && supervisors.size() > 0) {
-                    List<String> taskSupervisors = supervisors.get(task.getName());
-                    if (taskSupervisors != null && taskSupervisors.size() > 0) {
-                        for (String supervisor : taskSupervisors) {
-                            if (authorities.contains(supervisor)) {
-                                sendBasedOnUser = true;
-                                break;
-                            }
-                        }
+            sendBasedOnUser = isSendBasedOnUser(task, authorities);
+        }
+        NodeRef workflowPackage = getWorkflowPackage(task);
+
+        log.debug("workflowPackage: " + workflowPackage + "\nsendBasedOnUser:" + sendBasedOnUser);
+        if (workflowPackage == null || !sendBasedOnUser || !mandatoryFieldsFilled) {
+            return;
+        }
+
+        calcDocsInfo(workflowPackage);
+        NodeRef docsInfo = getDocsInfo();
+        log.debug("docsInfo: " + docsInfo);
+        if (docsInfo == null || !nodeService.exists(docsInfo)) {
+            return;
+        }
+
+        log.debug("additionRecipients: " + additionRecipients);
+
+        Set<String> recipients = getRecipients(task, docsInfo);
+        NodeRef template = getNotificationTemplate(task);
+        String notificationProviderName = EMailNotificationProvider.NAME;
+
+        log.debug("template: " + template);
+        if (template == null || !nodeService.exists(template)) {
+            return;
+        }
+
+        String notifyTemplate = (String) nodeService.getProperty(template, DmsModel.PROP_ECOS_NOTIFICATION_TEMPLATE);
+
+        List<String> recipient = new ArrayList<>(getRecipients(task, template, docsInfo));
+        recipients.addAll(recipient);
+        String subject = getSubject(task, template);
+        recipients.add("admin");
+        if (StringUtils.isNotBlank(notifyTemplate)) {
+            send(task, recipients, notifyTemplate, subject);
+        } else {
+            sendDeprecated(task, recipients, template, notificationProviderName, subject);
+        }
+    }
+
+    private void send(DelegateTask task, Set<String> recipients, String template, String subject) {
+        Map<String, Object> additionalMeta = getEcosNotificationArgs(task);
+
+        Object record = additionalMeta.get("_record");
+        additionalMeta.remove("_record");
+        additionalMeta.put("subject", subject);
+
+        Notification notification = new Notification.Builder()
+            .record(record)
+            .templateRef(RecordRef.valueOf(template))
+            .notificationType(NotificationType.EMAIL_NOTIFICATION)
+            .recipients(getEmailFromAuthorityNames(recipients))
+            .additionalMeta(additionalMeta)
+            .build();
+
+        notificationService.send(notification);
+    }
+
+    private void sendDeprecated(DelegateTask task, Set<String> recipients, NodeRef template,
+                                String notificationProviderName, String subject) {
+        NotificationContext notificationContext = new NotificationContext();
+        setBodyTemplate(notificationContext, template);
+        notificationContext.setSubject(subject);
+        notificationContext.setTemplateArgs(getNotificationArgs(task));
+        notificationContext.setAsyncNotification(getAsyncNotification());
+
+        log.debug("recipients:" + recipients);
+        if (!recipients.isEmpty()) {
+            for (String rec : recipients) {
+                notificationContext.addTo(rec);
+            }
+        }
+
+        services.getNotificationService().sendNotification(notificationProviderName, notificationContext);
+    }
+
+    @NotNull
+    private Set<String> getRecipients(DelegateTask task, NodeRef docsInfo) {
+        Set<String> recipients = new HashSet<>();
+        if (additionRecipients != null) {
+            List<String> addition = additionRecipients.get(task.getName());
+            if (addition != null && addition.size() > 0) {
+                recipients.addAll(addition);
+            }
+
+            List<String> recipientsFromRole = additionRecipients.get(ARG_RECIPIENTS_FROM_ROLE);
+            if (recipientsFromRole != null && recipientsFromRole.size() > 0) {
+                Set<String> roleRecipients = RecipientsUtils.getRecipientsFromRole(recipientsFromRole,
+                    docsInfo, nodeService, dictionaryService, caseRoleService);
+                if (!roleRecipients.isEmpty()) {
+                    recipients.addAll(roleRecipients);
+                }
+            }
+        }
+        return recipients;
+    }
+
+    private void calcDocsInfo(NodeRef workflowPackage) {
+        List<ChildAssociationRef> children = services.getNodeService().getChildAssocs(workflowPackage);
+        for (ChildAssociationRef child : children) {
+            NodeRef node = child.getChildRef();
+            if (node != null && nodeService.exists(node)) {
+                if (allowDocList == null) {
+                    setDocsInfo(node);
+                    break;
+                } else {
+                    if (allowDocList.contains(qNameConverter.mapQNameToName(nodeService.getType(node)))) {
+                        setDocsInfo(node);
+                        break;
                     }
                 }
             }
         }
-        NodeRef workflowPackage = null;
-        Vector<String> recipient = new Vector<>();
+    }
+
+    private NodeRef getWorkflowPackage(DelegateTask task) {
         ExecutionEntity executionEntity = ((ExecutionEntity) task.getExecution()).getProcessInstance();
         ActivitiScriptNode scriptNode = (ActivitiScriptNode) executionEntity.getVariable("bpm_package");
-        if (scriptNode != null) {
-            workflowPackage = scriptNode.getNodeRef();
-        }
-        if (log.isDebugEnabled()) {
-            log.debug("workflowPackage: " + workflowPackage
-                    + "\nsendBasedOnUser:" + sendBasedOnUser);
-        }
-        if (workflowPackage != null && sendBasedOnUser) {
-            List<ChildAssociationRef> children = services.getNodeService().getChildAssocs(workflowPackage);
-            for (ChildAssociationRef child : children) {
-                NodeRef node = child.getChildRef();
-                if (node != null && nodeService.exists(node)) {
-                    if (allowDocList == null) {
-                        setDocsInfo(node);
-                        break;
-                    } else {
-                        if (allowDocList.contains(qNameConverter.mapQNameToName(nodeService.getType(node)))) {
-                            setDocsInfo(node);
+        return scriptNode != null ? scriptNode.getNodeRef() : null;
+    }
+
+    private boolean isSendBasedOnUser(DelegateTask task, Set<String> authorities) {
+        boolean sendBasedOnUser;
+        sendBasedOnUser = false;
+        if (authorities != null && authorities.size() > 0) {
+            if (supervisors != null && supervisors.size() > 0) {
+                List<String> taskSupervisors = supervisors.get(task.getName());
+                if (taskSupervisors != null && taskSupervisors.size() > 0) {
+                    for (String supervisor : taskSupervisors) {
+                        if (authorities.contains(supervisor)) {
+                            sendBasedOnUser = true;
                             break;
                         }
                     }
                 }
             }
-            if (log.isDebugEnabled()) {
-                log.debug("docsInfo: " + getDocsInfo());
-            }
-            if (getDocsInfo() != null && nodeService.exists(getDocsInfo())) {
-                NotificationContext notificationContext = new NotificationContext();
-                Set<String> recipients = new HashSet<>();
-
-                if (log.isDebugEnabled()) {
-                    log.debug("additionRecipients: " + additionRecipients);
-                }
-
-                if (additionRecipients != null) {
-                    List<String> addition = additionRecipients.get(task.getName());
-                    if (addition != null && addition.size() > 0) {
-                        recipients.addAll(addition);
-                    }
-
-                    List<String> recipientsFromRole = additionRecipients.get(ARG_RECIPIENTS_FROM_ROLE);
-                    if (recipientsFromRole != null && recipientsFromRole.size() > 0) {
-                        Set<String> roleRecipients = RecipientsUtils.getRecipientsFromRole(recipientsFromRole,
-                                getDocsInfo(), nodeService, dictionaryService, caseRoleService);
-                        if (!roleRecipients.isEmpty()) {
-                            recipients.addAll(roleRecipients);
-                        }
-                    }
-
-
-                }
-                NodeRef template = getNotificationTemplate(task);
-                String notificationProviderName = EMailNotificationProvider.NAME;
-
-                if (log.isDebugEnabled()) {
-                    log.debug("template: " + template);
-                }
-
-                if (template != null && nodeService.exists(template)) {
-                    subject = getSubject(task, template);
-                    recipient.addAll(getRecipients(task, template, getDocsInfo()));
-                    setBodyTemplate(notificationContext, template);
-                }
-                notificationContext.setSubject(subject);
-                recipients.addAll(recipient);
-                notificationContext.setTemplateArgs(getNotificationArgs(task));
-                notificationContext.setAsyncNotification(getAsyncNotification());
-
-                if (log.isDebugEnabled()) {
-                    log.debug("recipients:" + recipients);
-                }
-
-                if (!recipients.isEmpty()) {
-                    for (String rec : recipients) {
-                        notificationContext.addTo(rec);
-                    }
-                }
-
-                // send
-                if (mandatoryFieldsFilled) {
-                    if (log.isDebugEnabled()) {
-                        log.debug("Notification send"
-                                + "\ndocsInfo: " + getDocsInfo()
-                                + "\nnotificationContext: " + notificationContext
-                        );
-                    }
-                    services.getNotificationService().sendNotification(notificationProviderName, notificationContext);
-                }
-            }
         }
+        return sendBasedOnUser;
     }
 
     private String getSubject(DelegateTask task, NodeRef template) {
@@ -370,7 +434,14 @@ class StartDelegateTaskNotificationSender extends AbstractNotificationSender<Del
         String processDef = task.getProcessDefinitionId();
         String wfkey = "activiti$" + processDef.substring(0, processDef.indexOf(':'));
         String tkey = (String) task.getVariableLocal("taskFormKey");
-        return getNotificationTemplate(wfkey, tkey);
+        String etype = getEtype();
+
+        return getNotificationTemplateWithEtype(wfkey, tkey, etype);
+    }
+
+    private String getEtype() {
+        NodeRef docsInfo = getDocsInfo();
+        return getFirstEtypeFromNodeRefs(Collections.singletonList(docsInfo));
     }
 
     /**
@@ -379,7 +450,7 @@ class StartDelegateTaskNotificationSender extends AbstractNotificationSender<Del
      * @param sendToOwner true or false
      */
     public void setSendToOwner(Boolean sendToOwner) {
-        this.sendToOwner = sendToOwner.booleanValue();
+        this.sendToOwner = sendToOwner;
     }
 
     public void setNodeOwnerDAO(NodeOwnerDAO nodeOwnerDAO) {
@@ -450,9 +521,11 @@ class StartDelegateTaskNotificationSender extends AbstractNotificationSender<Del
         this.allowDocList = allowDocList;
     }
 
-
     protected void sendToSubscribers(DelegateTask task, Set<String> authorities, List<String> taskSubscribers) {
         for (String subscriber : taskSubscribers) {
+            if (StringUtils.isBlank(subscriber)) {
+                continue;
+            }
             QName sub = qNameConverter.mapNameToQName(subscriber);
             NodeRef workflowPackage = null;
             ExecutionEntity executionEntity = ((ExecutionEntity) task.getExecution()).getProcessInstance();

@@ -22,14 +22,17 @@ import org.activiti.engine.delegate.DelegateTask;
 import org.alfresco.repo.jscript.ScriptNode;
 import org.alfresco.repo.notification.EMailNotificationProvider;
 import org.alfresco.repo.workflow.WorkflowQNameConverter;
-import org.alfresco.service.cmr.notification.NotificationContext;
 import org.alfresco.service.cmr.repository.NodeRef;
 import org.alfresco.service.cmr.security.AuthorityType;
+import org.apache.commons.lang3.StringUtils;
 import ru.citeck.ecos.deputy.AvailabilityService;
 import ru.citeck.ecos.model.CiteckWorkflowModel;
+import ru.citeck.ecos.model.DmsModel;
+import ru.citeck.ecos.records2.RecordRef;
 
 import java.io.Serializable;
 import java.util.*;
+import java.util.stream.Collectors;
 
 import static ru.citeck.ecos.utils.WorkflowConstants.VAR_TASK_ORIGINAL_OWNER;
 
@@ -65,19 +68,18 @@ class NotAvailableTaskNotificationSender extends DelegateTaskNotificationSender 
 
     @Override
     public void sendNotification(DelegateTask task) {
-        NotificationContext notificationContext = new NotificationContext();
         NodeRef template = getNotificationTemplate(task);
-        if (template != null && nodeService.exists(template)) {
-            setBodyTemplate(notificationContext, template);
+        boolean isNotSend = template != null && nodeService.exists(template)
+            || isCheckOwner(task) && isSendToInitiator(template);
+
+        if (isNotSend) {
+            return;
         }
 
-        Map<String, Serializable> argsMap = getNotificationArgs(task);
-        Map<String, String> answerByUnavailableUser = new HashMap<>();
-        Map<String, ScriptNode> assigneesNodesByName = new HashMap<>();
-        Set<String> recipients = new HashSet<>();
-        String from = null;
-        String initiator = getInitiator(task);
+        send(task, template);
+    }
 
+    private boolean isCheckOwner(DelegateTask task) {
         WorkflowQNameConverter qNameConverter = new WorkflowQNameConverter(services.getNamespaceService());
         String lastTaskOwnerVar = qNameConverter.mapQNameToName(CiteckWorkflowModel.PROP_LAST_TASK_OWNER);
         String owner = task.getAssignee();
@@ -85,10 +87,19 @@ class NotAvailableTaskNotificationSender extends DelegateTaskNotificationSender 
 
         String lastTaskOwner = (String) task.getVariable(lastTaskOwnerVar);
         boolean ownerIsOriginal = originalOwner != null && originalOwner.equals(owner);
-        boolean checkOwner = ownerIsOriginal && (lastTaskOwner == null || originalOwner.equals(lastTaskOwner));
-        if (checkOwner && isSendToInitiator(template)) {
-            return;
-        }
+        return ownerIsOriginal && (lastTaskOwner == null || originalOwner.equals(lastTaskOwner));
+    }
+
+    private void send(DelegateTask task, NodeRef template) {
+        String notificationTemplate = (String) nodeService.getProperty(template, DmsModel.PROP_ECOS_NOTIFICATION_TEMPLATE);
+        boolean isEcosNotify = StringUtils.isNotBlank(notificationTemplate);
+
+        String initiator = getInitiator(task);
+        Map<String, String> answerByUnavailableUser = new HashMap<>();
+        Map<String, Object> assigneesNodesByName = new HashMap<>();
+        Set<String> recipients = new HashSet<>();
+
+        Map<String, Serializable> argsMap = getNotificationArgs(task);
 
         if (isSendToInitiator(template)) {
             Set<String> assignees = getAssignee(task);
@@ -98,10 +109,21 @@ class NotAvailableTaskNotificationSender extends DelegateTaskNotificationSender 
                     String answer = availabilityService.getUserUnavailableAutoAnswer(assignee);
                     if (answer != null) {
                         answerByUnavailableUser.put(assignee, answer);
-                        assigneesNodesByName.put(assignee, new ScriptNode(services.getPersonService().getPerson(assignee), services));
-                        argsMap.put("assignees", (Serializable) assigneesNodesByName);
+                        if (isEcosNotify) {
+                            assigneesNodesByName.put(assignee, RecordRef.valueOf("people@" + assignee));
+                        } else {
+                            assigneesNodesByName.put(assignee, new ScriptNode(services.getPersonService().getPerson(assignee), services));
+                        }
                     }
                 }
+            }
+            if (isEcosNotify) {
+                List<Serializable> collect = assigneesNodesByName.values().stream()
+                    .map(obj -> (Serializable) obj)
+                    .collect(Collectors.toList());
+                argsMap.put("assignees", (Serializable) collect);
+            } else {
+                argsMap.put("assignees", (Serializable) assigneesNodesByName);
             }
             recipients.addAll(assigneesNodesByName.keySet());
             argsMap.put("isSendToInitiator", true);
@@ -114,14 +136,10 @@ class NotAvailableTaskNotificationSender extends DelegateTaskNotificationSender 
             argsMap.put("isSendToAssignee", true);
         }
 
-        from = initiator;
-
-
         if (!answerByUnavailableUser.isEmpty()) {
             argsMap.put("answerByUser", (Serializable) answerByUnavailableUser);
-            send(recipients, from, argsMap, template, task, isSendToInitiator(template));
+            send(recipients, initiator, argsMap, template, task, isSendToInitiator(template), notificationTemplate);
         }
-
     }
 
     @Override
@@ -133,22 +151,26 @@ class NotAvailableTaskNotificationSender extends DelegateTaskNotificationSender 
         this.availabilityService = availabilityService;
     }
 
-    private void send(Set<String> recipients, String from, Map<String, Serializable> args, NodeRef template, DelegateTask task, boolean isSendFromAssegneesToInitiatior) {
+    private void send(Set<String> recipients, String from, Map<String, Serializable> args, NodeRef template, DelegateTask task, boolean isSendFromAssegneesToInitiatior, String notificationTemplate) {
         String taskFormKey = (String) task.getVariableLocal("taskFormKey");
         if (recipients != null && !recipients.isEmpty() && template != null) {
             String notificationProviderName = EMailNotificationProvider.NAME;
             String subject = getSubject(task, args, template, taskFormKey);
-            if (isSendToInitiator(template)) {
-                for (String rec : recipients) {
-                    sendNotification(notificationProviderName, rec, subject, template, args, Collections.singletonList(from), false);
-                }
-            } else {
-                for (String rec : recipients) {
-                    sendNotification(notificationProviderName, from, subject, template, args, Collections.singletonList(rec), false);
+            Boolean sendToInitiator = isSendToInitiator(template);
+            for (String rec : recipients) {
+
+                String finalFrom = sendToInitiator ? rec : from;
+                String finalRec = sendToInitiator ? from : rec;
+
+                if (StringUtils.isNotBlank(notificationTemplate)) {
+                    Map<String, Object> newArgs = getEcosNotificationArgs(task);
+                    newArgs.putAll(args);
+
+                    sendEcosNotification(notificationProviderName, finalFrom, subject, notificationTemplate, newArgs, Collections.singletonList(finalRec), false);
+                } else {
+                    sendNotification(notificationProviderName, finalFrom, subject, template, args, Collections.singletonList(finalRec), false);
                 }
             }
-
-
         }
     }
 }

@@ -30,6 +30,7 @@ import org.alfresco.service.cmr.workflow.WorkflowInstance;
 import org.alfresco.service.cmr.workflow.WorkflowTask;
 import org.alfresco.service.namespace.QName;
 import org.apache.commons.lang3.StringUtils;
+import ru.citeck.ecos.notification.task.record.TaskExecutionRecord;
 import ru.citeck.ecos.security.NodeOwnerDAO;
 
 import java.io.Serializable;
@@ -133,7 +134,15 @@ class TaskNotificationSender extends AbstractNotificationSender<WorkflowTask> {
         // for tasks key is process definition name:
         String wfkey = task.getPath().getInstance().getDefinition().getName();
         String tkey = task.getDefinition().getId();
-        return getNotificationTemplate(wfkey, tkey);
+        String etype = getEtype(task);
+        return getNotificationTemplateWithEtype(wfkey, tkey, etype);
+    }
+
+    private String getEtype(WorkflowTask task) {
+        WorkflowInstance workflow = task.getPath().getInstance();
+        NodeRef wfPackage = workflow.getWorkflowPackage();
+
+        return getFirstEtypeFromNodeRefs(getWorkflowDocsRef(wfPackage));
     }
 
     // get notification template arguments for the task
@@ -142,6 +151,18 @@ class TaskNotificationSender extends AbstractNotificationSender<WorkflowTask> {
         Map<String, Serializable> args = new HashMap<>();
         args.put(ARG_TASK, this.getTaskInfo(task));
         args.put(ARG_WORKFLOW, this.getWorkflowInfo(task.getPath().getInstance()));
+        return args;
+    }
+
+    @Override
+    protected Map<String, Object> getEcosNotificationArgs(WorkflowTask task) {
+        Map<String, Object> args = super.getEcosNotificationArgs(task);
+
+        TaskExecutionRecord taskExecutionRecord = executionsTaskService
+            .getExecutionRecord(WorkflowTask.class, task)
+            .orElse(null);
+
+        args.put("_record", taskExecutionRecord);
         return args;
     }
 
@@ -166,25 +187,33 @@ class TaskNotificationSender extends AbstractNotificationSender<WorkflowTask> {
         workflowInfo.put(ARG_WORKFLOW_ID, workflow.getId());
 
         NodeRef wfPackage = workflow.getWorkflowPackage();
-        ArrayList<Object> docsInfo = new ArrayList<>();
+        ArrayList<Object> docsInfo = new ArrayList<>(getWorkflowDocsRef(wfPackage));
         workflowInfo.put(ARG_WORKFLOW_DOCUMENTS, docsInfo);
-        if (wfPackage == null) {
-            return workflowInfo;
+
+        return workflowInfo;
+    }
+
+    private ArrayList<NodeRef> getWorkflowDocsRef(NodeRef wfPackage) {
+        ArrayList<NodeRef> docsInfo = new ArrayList<>();
+
+        if (wfPackage == null || !nodeService.exists(wfPackage)) {
+            return docsInfo;
         }
-        if (nodeService.exists(wfPackage)) {
-            List<ChildAssociationRef> children = services.getNodeService().getChildAssocs(wfPackage);
-            for (ChildAssociationRef child : children) {
-                if (allowDocList == null) {
-                    docsInfo.add(child.getChildRef());
-                } else {
-                    if (allowDocList.contains(qNameConverter.mapQNameToName(services.getNodeService().getType(
-                        child.getChildRef())))) {
-                        docsInfo.add(child.getChildRef());
-                    }
-                }
+
+        List<ChildAssociationRef> children = services.getNodeService().getChildAssocs(wfPackage);
+        for (ChildAssociationRef child : children) {
+            NodeRef childRef = child.getChildRef();
+            if (allowDocList == null || checkDoc(childRef)) {
+                docsInfo.add(childRef);
             }
         }
-        return workflowInfo;
+
+        return docsInfo;
+    }
+
+    private boolean checkDoc(NodeRef childRef) {
+        String type = qNameConverter.mapQNameToName(services.getNodeService().getType(childRef));
+        return allowDocList.contains(type);
     }
 
     @Override
@@ -237,6 +266,9 @@ class TaskNotificationSender extends AbstractNotificationSender<WorkflowTask> {
 
     protected void sendToSubscribers(WorkflowTask task, Set<String> authorities, List<String> taskSubscribers) {
         for (String subscriber : taskSubscribers) {
+            if (StringUtils.isBlank(subscriber)) {
+                continue;
+            }
             QName sub = qNameConverter.mapNameToQName(subscriber);
             if (task.getPath() != null && task.getPath().getInstance() != null) {
                 NodeRef workflowPackage = task.getPath().getInstance().getWorkflowPackage();

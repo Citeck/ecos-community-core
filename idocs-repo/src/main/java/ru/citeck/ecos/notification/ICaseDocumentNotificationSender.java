@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.extensions.surf.util.I18NUtil;
 import ru.citeck.ecos.icase.CaseStatusService;
 import ru.citeck.ecos.notification.utils.RecipientsUtils;
+import ru.citeck.ecos.records2.RecordRef;
 import ru.citeck.ecos.role.CaseRoleService;
 
 import java.io.Serializable;
@@ -131,6 +132,16 @@ public class ICaseDocumentNotificationSender extends DocumentNotificationSender 
         Map<String, Serializable> args = super.getNotificationArgs(item);
         if (targetRef != null) {
             args.put(ARG_TARGET_REF, targetRef);
+        }
+        args.put(ARG_NOTIFICATION_TYPE, notificationType);
+        return args;
+    }
+
+    @Override
+    protected Map<String, Object> getEcosNotificationArgs(NodeRef item) {
+        Map<String, Object> args = super.getEcosNotificationArgs(item);
+        if (targetRef != null) {
+            args.put(ARG_TARGET_REF, RecordRef.valueOf(targetRef.toString()));
         }
         args.put(ARG_NOTIFICATION_TYPE, notificationType);
         return args;
