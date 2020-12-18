@@ -6,7 +6,7 @@
     "en" : "${subject!\"One of the participants is absent from the office\"}"
   },
   "model" : {
-    "web_url" : "$web_url",
+    "web_url" : "$webUrl",
     "isSendToAssignee" : "$isSendToAssignee?bool",
     "isSendToInitiator" : "$isSendToInitiator?bool",
     "answerByUser" : "$answerByUser?json",

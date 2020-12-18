@@ -11,8 +11,8 @@
     "taskId" : "?id",
     "priority" : "bpm_priority?num",
     "description" : "bpm_description?str",
-    "date" : "$date?str",
-    "web_url" : "$web_url",
+    "date" : "$now?str",
+    "web_url" : "$webUrl",
     "dueDate" : "bpm_dueDate"
   },
   "multiTemplateConfig" : []

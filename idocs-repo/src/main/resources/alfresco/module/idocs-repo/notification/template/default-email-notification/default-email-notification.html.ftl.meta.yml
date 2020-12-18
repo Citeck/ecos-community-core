@@ -16,13 +16,9 @@
     "sender" : "initiator?id",
     "senderFirstName" : "initiator.cm:firstName?str",
     "senderLastName" : "initiator.cm:lastName?str",
-    "web_url" : "$web_url?str",
-    "date" : "$date?str",
-    "taskName" : "name",
-    "test" : "workflow.documents.contracts:contractor?disp",
-    "test2" : "workflow.documents._type?id",
-    "t3" : "?json",
-    "t4" : ".json"
+    "web_url" : "$webUrl",
+    "date" : "$now?str",
+    "taskName" : "name"
   },
   "multiTemplateConfig" : []
 }

@@ -8,7 +8,7 @@
   "model" : {
     "taskId" : ".id",
     "subject" : "$subject?str",
-    "web_url" : "$web_url?str"
+    "web_url" : "$webUrl?str"
   },
   "multiTemplateConfig" : []
 }
