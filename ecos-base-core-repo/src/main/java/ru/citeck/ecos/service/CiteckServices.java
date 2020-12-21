@@ -23,6 +23,7 @@ import org.alfresco.service.namespace.QName;
 public interface CiteckServices {
 
     String CITECK_NAMESPACE = "http://www.citeck.ru";
+    String TYPE_DEF_SERVICE_BEAN_NAME = "typeDefService";
 
     QName GRANT_PERMISSION_SERVICE = QName.createQName(CITECK_NAMESPACE, "GrantPermissionService");
     QName CONFISCATE_SERVICE = QName.createQName(CITECK_NAMESPACE, "ConfiscateService");
@@ -43,6 +44,7 @@ public interface CiteckServices {
     QName CRITERIA_SEARCH_SERVICE = QName.createQName(CITECK_NAMESPACE, "criteriaSearchService");
     QName LIFECYCLE_SERVICE = QName.createQName(CITECK_NAMESPACE, "lifeCycleService");
     QName CASE_STATUS_SERVICE = QName.createQName(CITECK_NAMESPACE, "caseStatusService");
+    QName CASE_STATUS_ASSOC_DAO = QName.createQName(CITECK_NAMESPACE, "caseStatusAssocDao");
     QName CASE_COMMANDS_SERVICE = QName.createQName(CITECK_NAMESPACE, "caseCommandsService");
     QName CASE_ACTIVITY_SERVICE = QName.createQName(CITECK_NAMESPACE, "caseActivityService");
     QName CASE_ACTIVITY_EVENT_SERVICE = QName.createQName(CITECK_NAMESPACE, "caseActivityEventService");

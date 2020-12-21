@@ -42,7 +42,8 @@ public class ChangeStatusByDate extends AbstractLockedJob {
 
     private static final Log logger = LogFactory.getLog(ChangeStatusByDate.class);
 
-    private static final String SEARCH_QUERY = "TYPE:\"%s\" AND @%s:[MIN TO NOW] AND @icase\\:caseStatusAssoc_added:\"%s\"";
+    private static final String SEARCH_QUERY = "TYPE:\"%s\" AND @%s:[MIN TO NOW] AND " +
+        "(@icase\\:caseStatusAssoc_added:\"%s\" OR =icase\\:caseStatusAssoc-prop:\"%s\")";
 
     @Override
     public void executeJob(JobExecutionContext context) throws JobExecutionException {
@@ -91,7 +92,7 @@ public class ChangeStatusByDate extends AbstractLockedJob {
 
     private List<NodeRef> findNodes(CaseStatusService caseStatusService, SearchService searchService, Transition transition) {
         NodeRef statusRef = getStatus(caseStatusService, transition.fromStatus);
-        String query = String.format(SEARCH_QUERY, transition.className, transition.fieldName, statusRef);
+        String query = String.format(SEARCH_QUERY, transition.className, transition.fieldName, statusRef, transition.fromStatus);
         ResultSet results = searchService.query(StoreRef.STORE_REF_WORKSPACE_SPACESSTORE,
                                                 SearchService.LANGUAGE_FTS_ALFRESCO, query);
 
@@ -124,11 +125,11 @@ public class ChangeStatusByDate extends AbstractLockedJob {
     private static class ChangeStatusWorker extends BatchProcessor.BatchProcessWorkerAdaptor<NodeRef> {
 
         private CaseStatusService caseStatusService;
-        private NodeRef toStatus;
+        private String toStatus;
 
         ChangeStatusWorker(CaseStatusService caseStatusService, String toStatus) {
             this.caseStatusService = caseStatusService;
-            this.toStatus = caseStatusService.getStatusByName(toStatus);
+            this.toStatus = toStatus;
         }
 
         @Override

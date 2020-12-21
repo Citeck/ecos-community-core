@@ -1723,6 +1723,16 @@
             </associations>
         </aspect>
 
+        <aspect name="idocs:hasEcosFinalStatuses">
+            <properties>
+                <property name="idocs:finalStatuses-prop">
+                    <title>ECOS Case statuses</title>
+                    <type>d:text</type>
+                    <multiple>true</multiple>
+                </property>
+            </properties>
+        </aspect>
+
     </aspects>
 
 </model>

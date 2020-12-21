@@ -10,6 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.DependsOn;
 import org.springframework.stereotype.Component;
 import ru.citeck.ecos.behavior.ChainingJavaBehaviour;
+import ru.citeck.ecos.icase.CaseStatusAssocDao;
 import ru.citeck.ecos.icase.CaseStatusService;
 import ru.citeck.ecos.icase.activity.service.alfresco.CaseActivityPolicies;
 import ru.citeck.ecos.model.IdocsModel;
@@ -18,7 +19,6 @@ import ru.citeck.ecos.records.RecordsUtils;
 import ru.citeck.ecos.records2.RecordRef;
 import ru.citeck.ecos.service.CiteckServices;
 import ru.citeck.ecos.utils.AlfActivityUtils;
-import ru.citeck.ecos.utils.RepoUtils;
 
 import javax.annotation.PostConstruct;
 
@@ -33,11 +33,13 @@ public class CaseStageBehavior implements CaseActivityPolicies.BeforeCaseActivit
     private CaseStatusService caseStatusService;
     private PolicyComponent policyComponent;
     private NodeService nodeService;
+    private final CaseStatusAssocDao caseStatusAssocDao;
 
     @Autowired
     public CaseStageBehavior(ServiceRegistry serviceRegistry) {
         this.alfActivityUtils = (AlfActivityUtils) serviceRegistry.getService(CiteckServices.ALF_ACTIVITY_UTILS);
         this.caseStatusService = (CaseStatusService) serviceRegistry.getService(CiteckServices.CASE_STATUS_SERVICE);
+        this.caseStatusAssocDao = (CaseStatusAssocDao) serviceRegistry.getService(CiteckServices.CASE_STATUS_ASSOC_DAO);
         this.policyComponent = serviceRegistry.getPolicyComponent();
         this.nodeService = serviceRegistry.getNodeService();
     }
@@ -69,7 +71,7 @@ public class CaseStageBehavior implements CaseActivityPolicies.BeforeCaseActivit
             nodeService.setProperty(documentNodeRef, IdocsModel.PROP_DOCUMENT_STATUS, documentStatus);
         }
 
-        NodeRef caseStatusRef = RepoUtils.getFirstTargetAssoc(stageRef, StagesModel.ASSOC_CASE_STATUS, nodeService);
+        NodeRef caseStatusRef = caseStatusAssocDao.getFirstStatusByAssoc(stageRef, StagesModel.ASSOC_CASE_STATUS);
         if (caseStatusRef != null) {
             caseStatusService.setStatus(documentNodeRef, caseStatusRef);
         }

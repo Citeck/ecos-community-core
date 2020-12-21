@@ -21,6 +21,7 @@ import ru.citeck.ecos.records.type.TypeDto;
 import ru.citeck.ecos.records2.RecordRef;
 import ru.citeck.ecos.records3.RecordsServiceFactory;
 import ru.citeck.ecos.records2.source.dao.local.RemoteSyncRecordsDao;
+import ru.citeck.ecos.service.CiteckServices;
 
 import java.util.List;
 
@@ -50,7 +51,7 @@ public class ModelServiceFactoryConfig extends ModelServiceFactory {
         return super.createPermsEvaluator();
     }
 
-    @Bean
+    @Bean(name = CiteckServices.TYPE_DEF_SERVICE_BEAN_NAME)
     @NotNull
     @Override
     protected TypeDefService createTypeDefService() {

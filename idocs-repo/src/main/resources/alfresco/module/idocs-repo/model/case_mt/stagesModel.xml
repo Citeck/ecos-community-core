@@ -104,6 +104,14 @@
                 </association>
             </associations>
         </aspect>
+        <aspect name="stages:hasEcosCaseStatus">
+            <properties>
+                <property name="stages:caseStatusAssoc-prop">
+                    <title>ECOS Case status</title>
+                    <type>d:text</type>
+                </property>
+            </properties>
+        </aspect>
         <aspect name="stages:doNotIndexTypeCompletely">
             <title>Do Not Index</title>
             <parent>cm:indexControl</parent>

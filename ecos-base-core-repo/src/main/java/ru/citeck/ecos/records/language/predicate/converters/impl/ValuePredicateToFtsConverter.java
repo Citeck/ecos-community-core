@@ -638,14 +638,40 @@ public class ValuePredicateToFtsConverter implements PredicateToFtsConverter {
         }
 
         if (attDef instanceof AssociationDefinition) {
+
             if (NodeRef.isNodeRef(predicateValue)) {
-                query.value(field, predicateValue);
+                QName qName = attDef.getName();
+                if (qName.equals(ASSOC_CASE_STATUS)) {
+                    queryCaseStatus(query, predicateValue, field);
+                } else {
+                    query.value(field, predicateValue);
+                }
                 return;
             }
 
             ClassDefinition targetType = ((AssociationDefinition) attDef).getTargetClass();
             addNodeRefSearchTerms(query, field, targetType.getName(), predicateValue);
         }
+    }
+
+    private void queryCaseStatus(FTSQuery query, String predicateValue, QName field) {
+        NodeRef nodeRef = new NodeRef(predicateValue);
+        if (predicateValue.startsWith(WORKSPACE_PREFIX)) {
+            String name = (String) nodeService.getProperty(nodeRef, ContentModel.PROP_NAME);
+            query.open().value(field, predicateValue).or()
+                .value(ASSOC_CASE_STATUS_PROP, name).close();
+        } else {
+            query.open().value(ASSOC_CASE_STATUS_PROP, nodeRef.getId());
+            getStatusByName(nodeRef.getId()).ifPresent(ref -> query.or().exact(field, ref));
+            query.close();
+        }
+    }
+
+    private Optional<NodeRef> getStatusByName(String statusName) {
+        return FTSQuery.create().type(TYPE_CASE_STATUS).and()
+            .exact(ContentModel.PROP_NAME, statusName)
+            .transactional()
+            .queryOne(searchService);
     }
 
     @Autowired

@@ -13,6 +13,7 @@ import ru.citeck.ecos.cmmn.condition.ConditionProperty;
 import ru.citeck.ecos.cmmn.condition.ConditionsList;
 import ru.citeck.ecos.cmmn.model.*;
 import ru.citeck.ecos.commons.json.Json;
+import ru.citeck.ecos.icase.CaseStatusAssocDao;
 import ru.citeck.ecos.icase.CaseStatusService;
 import ru.citeck.ecos.model.*;
 import ru.citeck.ecos.role.CaseRoleService;
@@ -35,6 +36,7 @@ public class CasePlanModelImport {
 
     private NodeService nodeService;
     private CaseStatusService caseStatusService;
+    private CaseStatusAssocDao caseStatusAssocDao;
 
     private CMMNUtils utils;
 
@@ -46,6 +48,7 @@ public class CasePlanModelImport {
     public CasePlanModelImport(ServiceRegistry serviceRegistry, CMMNUtils utils) {
         this.nodeService = serviceRegistry.getNodeService();
         this.caseStatusService = EcosCoreServices.getCaseStatusService(serviceRegistry);
+        this.caseStatusAssocDao = EcosCoreServices.getCaseStatusAssocDao(serviceRegistry);
         this.utils = utils;
     }
 
@@ -239,9 +242,9 @@ public class CasePlanModelImport {
         for (Map.Entry<javax.xml.namespace.QName, QName> entry : CMMNUtils.STATUS_ASSOCS_MAPPING.entrySet()) {
             String status = attributes.get(entry.getKey());
             if (status != null) {
-                NodeRef statusRef = caseStatusService.getStatusByName(status);
+                NodeRef statusRef = caseStatusService.getStatusByName(status, nodeRef);
                 if (statusRef != null) {
-                    nodeService.createAssociation(nodeRef, statusRef, entry.getValue());
+                    caseStatusAssocDao.createStatusAssoc(nodeRef, entry.getValue(), statusRef);
                 } else {
                     log.error("Status " + status + " not found in system. Please create it and import the template again");
                 }

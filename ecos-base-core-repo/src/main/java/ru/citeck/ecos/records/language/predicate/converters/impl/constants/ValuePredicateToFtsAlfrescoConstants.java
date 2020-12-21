@@ -1,5 +1,7 @@
 package ru.citeck.ecos.records.language.predicate.converters.impl.constants;
 
+import org.alfresco.service.namespace.QName;
+
 public class ValuePredicateToFtsAlfrescoConstants {
     // Attribute types
     public static final String MODIFIED = "_modified";
@@ -50,4 +52,9 @@ public class ValuePredicateToFtsAlfrescoConstants {
     public static final String SLASH_DELIMITER = "/";
     public static final String WORKSPACE_PREFIX = "workspace://SpacesStore/";
     public static final int INNER_QUERY_MAX_ITEMS = 20;
+
+    public static final String icaseNameSpace = "http://www.citeck.ru/model/icase/1.0";
+    public static final QName ASSOC_CASE_STATUS = QName.createQName(icaseNameSpace, "caseStatusAssoc");
+    public static final QName TYPE_CASE_STATUS = QName.createQName(icaseNameSpace, "caseStatus");
+    public static final QName ASSOC_CASE_STATUS_PROP = QName.createQName(icaseNameSpace, "caseStatusAssoc-prop");
 }

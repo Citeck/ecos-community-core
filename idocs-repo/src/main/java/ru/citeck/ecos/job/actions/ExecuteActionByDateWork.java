@@ -33,6 +33,7 @@ public abstract class ExecuteActionByDateWork implements ActionProcessor {
     private static final String ASPECT_QUERY = "ASPECT:\"%s\"";
     private static final String DATE_QUERY = "@%s:[MIN TO \"%s\"]";
     private static final String STATUS_FIELD = "@icase\\:caseStatusAssoc_added:";
+    private static final String ECOS_STATUS_FIELD = "@icase\\:caseStatusAssoc-prop:";
 
     protected ServiceRegistry serviceRegistry;
 
@@ -198,7 +199,11 @@ public abstract class ExecuteActionByDateWork implements ActionProcessor {
             if (!required) {
                 sb.append("NOT ");
             }
-            sb.append(STATUS_FIELD).append('"').append(statusRef).append('"');
+            sb.append("(")
+            .append(STATUS_FIELD).append('"').append(statusRef).append('"')
+            .append(" OR ")
+            .append(ECOS_STATUS_FIELD).append('"').append(status).append('"')
+            .append(")");
         }
         return sb.toString();
     }

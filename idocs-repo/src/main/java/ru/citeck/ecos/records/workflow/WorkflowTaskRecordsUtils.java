@@ -138,14 +138,23 @@ public class WorkflowTaskRecordsUtils {
             return;
         }
 
+        String caseEcosStatus = null;
         if (!NodeRef.isNodeRef(caseStatus)) {
             NodeRef ref = caseStatusService.getStatusByName(caseStatus.toLowerCase());
             if (ref != null) {
                 caseStatus = ref.toString();
             }
+
+            ref = caseStatusService.getEcosStatusByName(caseStatus.toLowerCase());
+            if (ref != null) {
+                caseEcosStatus = ref.toString();
+            }
         }
 
-        predicate.addPredicate(ValuePredicate.equal(CASE_STATUS_ATTR, caseStatus));
+        predicate.addPredicate(Predicates.or(
+            ValuePredicate.equal(CASE_STATUS_ATTR, caseStatus),
+            caseEcosStatus != null ? ValuePredicate.equal(CASE_STATUS_ATTR, caseEcosStatus) : null
+        ));
     }
 
     private void appendDocTypesPredicate(List<String> docTypes, AndPredicate predicate) {
