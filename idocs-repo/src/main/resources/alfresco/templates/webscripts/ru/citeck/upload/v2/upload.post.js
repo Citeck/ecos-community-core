@@ -215,6 +215,7 @@ function main() {
                 return;
             }
 
+            var oldName = updateNode.name;
             var workingcopy = updateNode.hasAspect("cm:workingcopy");
             if (!workingcopy && updateNode.isLocked) {
                 // We cannot update a locked document (except working copy as per MNT-8736)
@@ -237,7 +238,10 @@ function main() {
             // Update the working copy content
             updateNode.properties.content.write(content, false, true);
             updateNode.properties.content.guessMimetype(filename);
-            //updateNode.name = formdata.fields[1].value;
+            var newName = formdata.fields[1].value;
+            if (oldName != newName) {
+                updateNode.name = newName;
+            }
             // check it in again, with supplied version history note
 
             // Extract the metadata
