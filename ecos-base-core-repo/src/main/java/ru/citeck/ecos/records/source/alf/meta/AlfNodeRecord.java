@@ -66,6 +66,7 @@ public class AlfNodeRecord implements MetaValue {
     private static final String ATTR_CASE_STATUS = "caseStatus";
     private static final String ATTR_CM_MODIFIED = "cm:modified";
     private static final String CASE_STATUS_NAME_SCHEMA = "icase:caseStatusAssoc.cm:name";
+    private static final String CASE_STATUS_ID_SCHEMA = "icase:caseStatusAssoc?str";
     private static final String CASE_STATUS_DISP_SCHEMA = "icase:caseStatusAssoc?disp";
     private static final String CASE_STATUS_PROP_SCHEMA = "icase:caseStatusAssoc-prop";
     private static final String ASSOC_SRC_ATTR_PREFIX = "assoc_src_";
@@ -382,24 +383,28 @@ public class AlfNodeRecord implements MetaValue {
         Map<String, String> atts = new HashMap<>();
         atts.put("statusName", CASE_STATUS_NAME_SCHEMA);
         atts.put("statusDisp", CASE_STATUS_DISP_SCHEMA);
+        atts.put("statusId", CASE_STATUS_ID_SCHEMA);
         atts.put("ecosStatusId", CASE_STATUS_PROP_SCHEMA);
         RecordMeta caseStatusMeta = recordsService.getAttributes(recordRef, atts);
 
         StatusMetaValue statusMeta = null;
-        String statusId = caseStatusMeta.get("ecosStatusId").asText(null);
-        if (StringUtils.isBlank(statusId)) {
+        String ecosStatusId = caseStatusMeta.get("ecosStatusId").asText(null);
+
+        if (StringUtils.isBlank(ecosStatusId)) {
+            String statusId = caseStatusMeta.get("statusId").asText(null);
             statusMeta = new StatusMetaValue(
                 caseStatusMeta.get("statusName").asText(null),
-                caseStatusMeta.get("statusDisp").asText(null)
+                caseStatusMeta.get("statusDisp").asText(null),
+                statusId != null ? new NodeRef(statusId) : null
             );
         } else {
-            statusMeta = getStatusMetaValue(context, statusId);
+            statusMeta = getStatusMetaValue(context, ecosStatusId, ecosStatusId);
         }
 
         return Optional.ofNullable(statusMeta);
     }
 
-    private StatusMetaValue getStatusMetaValue(AlfGqlContext context, String statusId) {
+    private StatusMetaValue getStatusMetaValue(AlfGqlContext context, String ecosStatusId, String statusId) {
         Optional<TypeDefService> typeDefServiceOptional = context.getTypeDefService();
         if (!typeDefServiceOptional.isPresent()) {
             return null;
@@ -408,7 +413,7 @@ public class AlfNodeRecord implements MetaValue {
         TypeDefService typeDefService = typeDefServiceOptional.get();
         RecordRef typeRef = typeDefService.getTypeRef(recordRef);
         Map<String, StatusDef> statuses = typeDefService.getStatuses(typeRef);
-        StatusDef statusDef = statuses.get(statusId);
+        StatusDef statusDef = statuses.get(ecosStatusId);
         if (statusDef == null) {
             return null;
         }
@@ -416,7 +421,8 @@ public class AlfNodeRecord implements MetaValue {
         String statusName = statusDef.getName().getClosestValue(I18NUtil.getLocale());
         return new StatusMetaValue(
             statusId,
-            statusName
+            statusName,
+            new NodeRef("et-status://virtual/" + ecosStatusId)
         );
     }
 

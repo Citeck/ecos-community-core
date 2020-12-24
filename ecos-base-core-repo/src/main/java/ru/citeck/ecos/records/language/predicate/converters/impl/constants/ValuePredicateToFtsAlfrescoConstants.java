@@ -20,6 +20,7 @@ public class ValuePredicateToFtsAlfrescoConstants {
     public static final String IS_NULL = "ISNULL";
     public static final String IS_NOT_NULL = "ISNOTNULL";
     public static final String IS_UNSET = "ISUNSET";
+    public static final String ECOS_STATUS = "_status";
 
     // System journal search parameters
     public static final String SEARCH_PROPS = "search-value-properties-names";
