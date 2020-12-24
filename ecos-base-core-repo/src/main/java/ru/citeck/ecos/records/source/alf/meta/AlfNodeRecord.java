@@ -381,21 +381,17 @@ public class AlfNodeRecord implements MetaValue {
             return null;
         }
 
-        Map<String, String> atts = new HashMap<>();
-        atts.put("statusName", CASE_STATUS_NAME_SCHEMA);
-        atts.put("statusDisp", CASE_STATUS_DISP_SCHEMA);
-        atts.put("ecosStatusId", CASE_STATUS_PROP_SCHEMA);
-        RecordMeta caseStatusMeta = recordsService.getAttributes(recordRef, atts);
+        StatusMetaDTO caseStatusMeta = recordsService.getMeta(recordRef, StatusMetaDTO.class);
 
+        String statusEcosId = caseStatusMeta.getEcosId();
         StatusMetaValue statusMeta;
-        String statusId = caseStatusMeta.get("ecosStatusId").asText(null);
-        if (StringUtils.isBlank(statusId)) {
+        if (StringUtils.isBlank(statusEcosId)) {
             statusMeta = new StatusMetaValue(
-                caseStatusMeta.get("statusName").asText(null),
-                caseStatusMeta.get("statusDisp").asText(null)
+                caseStatusMeta.getId(),
+                caseStatusMeta.getName()
             );
         } else {
-            statusMeta = getStatusMetaValue(context, statusId);
+            statusMeta = getStatusMetaValue(context, statusEcosId);
         }
 
         return statusMeta;
