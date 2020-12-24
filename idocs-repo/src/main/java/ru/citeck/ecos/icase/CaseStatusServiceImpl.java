@@ -50,7 +50,7 @@ public class CaseStatusServiceImpl implements CaseStatusService {
         mandatoryNodeRef("Case", caseRef);
         mandatoryNodeRef("Case status", caseStatusRef);
 
-        NodeRef beforeCaseStatus = caseStatusAssocDao.getFirstStatusByAssoc(caseRef, ICaseModel.ASSOC_CASE_STATUS);
+        NodeRef beforeCaseStatus = caseStatusAssocDao.getStatusByAssoc(caseRef, ICaseModel.ASSOC_CASE_STATUS);
 
         if (!Objects.equals(beforeCaseStatus, caseStatusRef)) {
             if (beforeCaseStatus != null) {
@@ -65,13 +65,11 @@ public class CaseStatusServiceImpl implements CaseStatusService {
     }
 
     private void clearBeforeCaseStatus(NodeRef caseRef) {
-        List<NodeRef> beforeCaseStatusAssocs = caseStatusAssocDao.getStatusByAssoc(caseRef, ICaseModel.ASSOC_CASE_STATUS_BEFORE);
-        for (NodeRef assoc : beforeCaseStatusAssocs) {
-            if (isAlfRef(assoc)) {
-                nodeService.removeAssociation(caseRef, assoc, ICaseModel.ASSOC_CASE_STATUS_BEFORE);
-            } else {
-                nodeService.setProperty(caseRef, ICaseModel.ASSOC_CASE_STATUS_BEFORE_PROP, null);
-            }
+        NodeRef beforeCaseStatus = caseStatusAssocDao.getStatusByAssoc(caseRef, ICaseModel.ASSOC_CASE_STATUS_BEFORE);
+        if (isAlfRef(beforeCaseStatus)) {
+            nodeService.removeAssociation(caseRef, beforeCaseStatus, ICaseModel.ASSOC_CASE_STATUS_BEFORE);
+        } else {
+            nodeService.setProperty(caseRef, ICaseModel.ASSOC_CASE_STATUS_BEFORE_PROP, null);
         }
     }
 
@@ -187,7 +185,7 @@ public class CaseStatusServiceImpl implements CaseStatusService {
 
     @Override
     public NodeRef getStatusRef(NodeRef caseRef) {
-        return caseStatusAssocDao.getFirstStatusByAssoc(caseRef, ICaseModel.ASSOC_CASE_STATUS);
+        return caseStatusAssocDao.getStatusByAssoc(caseRef, ICaseModel.ASSOC_CASE_STATUS);
     }
 
     @Override
@@ -201,13 +199,13 @@ public class CaseStatusServiceImpl implements CaseStatusService {
 
     @Override
     public NodeRef getStatusBeforeRef(NodeRef caseRef) {
-        return caseStatusAssocDao.getFirstStatusByAssoc(caseRef, ICaseModel.ASSOC_CASE_STATUS_BEFORE);
+        return caseStatusAssocDao.getStatusByAssoc(caseRef, ICaseModel.ASSOC_CASE_STATUS_BEFORE);
     }
 
     @Override
     public NodeRef getStatusRefFromPrimaryParent(NodeRef childRef) {
         NodeRef parent = RepoUtils.getPrimaryParentRef(childRef, nodeService);
-        return caseStatusAssocDao.getFirstStatusByAssoc(parent, ICaseModel.ASSOC_CASE_STATUS);
+        return caseStatusAssocDao.getStatusByAssoc(parent, ICaseModel.ASSOC_CASE_STATUS);
     }
 
     private void mandatoryNodeRef(String strParamName, NodeRef nodeRef) {
