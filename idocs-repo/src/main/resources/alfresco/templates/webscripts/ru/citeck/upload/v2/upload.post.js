@@ -34,6 +34,20 @@ function getNewFile(contentType, destNode, formdata) {
     return destNode.createFile(filename, contentType);
 }
 
+function getNewFileName(oldFullName, newFullName) {
+    if (oldFullName == newFullName) {
+        return oldFullName;
+    }
+
+    var lastPointIndexOld = oldFullName.lastIndexOf('.');
+    var oldName = oldFullName.substring(0, lastPointIndexOld);
+
+    var lastPointIndexNew = newFullName.lastIndexOf('.');
+    var newExtension = newFullName.substring(lastPointIndexNew + 1, newFullName.length()) || newFullName;
+
+    return oldName + "." + newExtension;
+}
+
 function main() {
     try {
         var filename = null,
@@ -238,7 +252,7 @@ function main() {
             // Update the working copy content
             updateNode.properties.content.write(content, false, true);
             updateNode.properties.content.guessMimetype(filename);
-            var newName = formdata.fields[1].value;
+            var newName = getNewFileName(oldName, formdata.fields[1].value);
             if (oldName != newName) {
                 updateNode.name = newName;
             }
