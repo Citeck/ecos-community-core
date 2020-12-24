@@ -242,7 +242,7 @@ public class CasePlanModelImport {
         for (Map.Entry<javax.xml.namespace.QName, QName> entry : CMMNUtils.STATUS_ASSOCS_MAPPING.entrySet()) {
             String status = attributes.get(entry.getKey());
             if (status != null) {
-                NodeRef statusRef = caseStatusService.getStatusByName(status, nodeRef);
+                NodeRef statusRef = caseStatusService.getStatusByName(nodeRef, status);
                 if (statusRef != null) {
                     caseStatusAssocDao.createStatusAssoc(nodeRef, entry.getValue(), statusRef);
                 } else {

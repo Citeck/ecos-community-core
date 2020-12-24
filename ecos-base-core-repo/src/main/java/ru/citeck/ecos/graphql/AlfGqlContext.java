@@ -4,6 +4,7 @@ import ecos.com.google.common.cache.CacheBuilder;
 import ecos.com.google.common.cache.CacheLoader;
 import ecos.com.google.common.cache.LoadingCache;
 import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
 import org.alfresco.repo.i18n.MessageService;
 import org.alfresco.service.ServiceRegistry;
 import org.alfresco.service.cmr.dictionary.DictionaryService;
@@ -12,9 +13,11 @@ import org.alfresco.service.cmr.repository.NodeService;
 import org.alfresco.service.cmr.search.SearchService;
 import org.alfresco.service.namespace.NamespaceService;
 import org.alfresco.service.namespace.QName;
+import org.jetbrains.annotations.Nullable;
+import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 import ru.citeck.ecos.graphql.node.GqlAlfNode;
 import ru.citeck.ecos.graphql.node.GqlQName;
-import ru.citeck.ecos.model.lib.type.service.TypeDefService;
+import ru.citeck.ecos.model.lib.role.service.StatusService;
 import ru.citeck.ecos.records2.RecordsService;
 import ru.citeck.ecos.records2.graphql.GqlContext;
 import ru.citeck.ecos.security.EcosPermissionService;
@@ -27,6 +30,7 @@ import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
+@Slf4j
 public class AlfGqlContext extends GqlContext {
 
     private LoadingCache<NodeRef, GqlAlfNode> nodes;
@@ -45,7 +49,7 @@ public class AlfGqlContext extends GqlContext {
     @Getter
     private final EcosPermissionService ecosPermissionService;
 
-    private final TypeDefService typeDefService;
+    private final StatusService statusService;
 
     private final Map<String, Object> servicesCache = new ConcurrentHashMap<>();
 
@@ -61,7 +65,7 @@ public class AlfGqlContext extends GqlContext {
         this.nodeService = serviceRegistry.getNodeService();
         this.messageService = serviceRegistry.getMessageService();
         this.ecosPermissionService = (EcosPermissionService) serviceRegistry.getService(EcosPermissionService.QNAME);
-        typeDefService = getTypeDefService(serviceRegistry);
+        statusService = getStatusService(serviceRegistry);
 
         nodes = CacheBuilder.newBuilder()
                             .maximumSize(500)
@@ -71,11 +75,11 @@ public class AlfGqlContext extends GqlContext {
                              .build(CacheLoader.from(this::createQName));
     }
 
-    private TypeDefService getTypeDefService(ServiceRegistry serviceRegistry) {
-        QName typeDefServiceQname = QName.createQName("", CiteckServices.TYPE_DEF_SERVICE_BEAN_NAME);
+    private StatusService getStatusService(ServiceRegistry serviceRegistry) {
         try {
-            return (TypeDefService) serviceRegistry.getService(typeDefServiceQname);
-        } catch (Exception ignored) {
+            return (StatusService) serviceRegistry.getService(CiteckServices.STATUS_SERVICE_SERVICE);
+        } catch (NoSuchBeanDefinitionException exception) {
+            log.info("No such bean definition", exception);
             return null;
         }
     }
@@ -145,8 +149,9 @@ public class AlfGqlContext extends GqlContext {
         return serviceRegistry;
     }
 
-    public Optional<TypeDefService> getTypeDefService() {
-        return Optional.ofNullable(this.typeDefService);
+    @Nullable
+    public StatusService getStatusService() {
+        return this.statusService;
     }
 
     @SuppressWarnings("unchecked")

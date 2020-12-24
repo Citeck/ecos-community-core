@@ -369,6 +369,14 @@
                 <property name="icase:caseStatusChangedDateTime">
                     <type>d:datetime</type>
                 </property>
+                <property name="icase:caseStatusAssoc-prop">
+                    <title>ECOS Case status</title>
+                    <type>d:text</type>
+                </property>
+                <property name="icase:caseStatusBeforeAssoc-prop">
+                    <title>ECOS Case status before</title>
+                    <type>d:text</type>
+                </property>
             </properties>
             <associations>
                 <association name="icase:caseStatusAssoc">
@@ -394,19 +402,6 @@
                     </target>
                 </association>
             </associations>
-        </aspect>
-
-        <aspect name="icase:hasEcosCaseStatus">
-            <properties>
-                <property name="icase:caseStatusAssoc-prop">
-                    <title>ECOS Case status</title>
-                    <type>d:text</type>
-                </property>
-                <property name="icase:caseStatusBeforeAssoc-prop">
-                    <title>ECOS Case status before</title>
-                    <type>d:text</type>
-                </property>
-            </properties>
         </aspect>
 
         <aspect name="icase:hasLastChangedDate">

@@ -13,6 +13,7 @@ import org.alfresco.service.namespace.QName;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.springframework.extensions.surf.util.I18NUtil;
 import ru.citeck.ecos.action.ActionModule;
 import ru.citeck.ecos.action.node.NodeActionsService;
@@ -25,9 +26,9 @@ import ru.citeck.ecos.graphql.node.Attribute;
 import ru.citeck.ecos.graphql.node.GqlAlfNode;
 import ru.citeck.ecos.graphql.node.GqlQName;
 import ru.citeck.ecos.model.EcosModel;
+import ru.citeck.ecos.model.lib.role.service.StatusService;
 import ru.citeck.ecos.model.lib.status.constants.StatusAtts;
 import ru.citeck.ecos.model.lib.status.dto.StatusDef;
-import ru.citeck.ecos.model.lib.type.service.TypeDefService;
 import ru.citeck.ecos.node.AlfNodeContentPathRegistry;
 import ru.citeck.ecos.node.AlfNodeInfo;
 import ru.citeck.ecos.node.DisplayNameService;
@@ -311,9 +312,9 @@ public class AlfNodeRecord implements MetaValue {
 
             case StatusAtts.STATUS: {
 
-                Optional<StatusMetaValue> statusMeta = getCaseStatusMeta(context);
-                if (statusMeta.isPresent()) {
-                    return Collections.singletonList(statusMeta.get());
+                StatusMetaValue statusMeta = getCaseStatusMeta(context);
+                if (statusMeta != null) {
+                    return Collections.singletonList(statusMeta);
                 }
                 return Collections.emptyList();
             }
@@ -373,10 +374,11 @@ public class AlfNodeRecord implements MetaValue {
         return attribute != null ? attribute : Collections.emptyList();
     }
 
-    private Optional<StatusMetaValue> getCaseStatusMeta(AlfGqlContext context) {
+    @Nullable
+    private StatusMetaValue getCaseStatusMeta(AlfGqlContext context) {
         RecordsService recordsService = context.getRecordsService();
         if (recordsService == null) {
-            return Optional.empty();
+            return null;
         }
 
         Map<String, String> atts = new HashMap<>();
@@ -385,7 +387,7 @@ public class AlfNodeRecord implements MetaValue {
         atts.put("ecosStatusId", CASE_STATUS_PROP_SCHEMA);
         RecordMeta caseStatusMeta = recordsService.getAttributes(recordRef, atts);
 
-        StatusMetaValue statusMeta = null;
+        StatusMetaValue statusMeta;
         String statusId = caseStatusMeta.get("ecosStatusId").asText(null);
         if (StringUtils.isBlank(statusId)) {
             statusMeta = new StatusMetaValue(
@@ -396,18 +398,16 @@ public class AlfNodeRecord implements MetaValue {
             statusMeta = getStatusMetaValue(context, statusId);
         }
 
-        return Optional.ofNullable(statusMeta);
+        return statusMeta;
     }
 
     private StatusMetaValue getStatusMetaValue(AlfGqlContext context, String statusId) {
-        Optional<TypeDefService> typeDefServiceOptional = context.getTypeDefService();
-        if (!typeDefServiceOptional.isPresent()) {
+        StatusService statusService = context.getStatusService();
+        if (statusService == null) {
             return null;
         }
 
-        TypeDefService typeDefService = typeDefServiceOptional.get();
-        RecordRef typeRef = typeDefService.getTypeRef(recordRef);
-        Map<String, StatusDef> statuses = typeDefService.getStatuses(typeRef);
+        Map<String, StatusDef> statuses = statusService.getStatusesByDocument(recordRef);
         StatusDef statusDef = statuses.get(statusId);
         if (statusDef == null) {
             return null;

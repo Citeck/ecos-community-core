@@ -11,6 +11,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import ru.citeck.ecos.model.ICaseModel;
+import ru.citeck.ecos.model.lib.role.service.StatusService;
 import ru.citeck.ecos.model.lib.status.dto.StatusDef;
 import ru.citeck.ecos.model.lib.type.service.TypeDefService;
 import ru.citeck.ecos.records2.RecordRef;
@@ -34,6 +35,8 @@ public class CaseStatusServiceImpl implements CaseStatusService {
     private CaseStatusAssocDao caseStatusAssocDao;
     @Autowired @Setter
     private TypeDefService typeDefService;
+    @Autowired @Setter
+    private StatusService statusService;
 
     private ClassPolicyDelegate<CaseStatusPolicies.OnCaseStatusChangedPolicy> onCaseStatusChangedPolicyDelegate;
 
@@ -103,7 +106,7 @@ public class CaseStatusServiceImpl implements CaseStatusService {
     }
 
     @Override
-    public NodeRef getStatusByName(String statusName, NodeRef node) {
+    public NodeRef getStatusByName(NodeRef node, String statusName) {
         if (statusName == null) {
             return null;
         }
@@ -121,7 +124,7 @@ public class CaseStatusServiceImpl implements CaseStatusService {
             return null;
         }
 
-        StatusDef statusDef = typeDefService.getStatuses(etype).get(statusName);
+        StatusDef statusDef = statusService.getStatusDefByType(etype, statusName);
         if (statusDef == null) {
             return getStatusByName(statusName);
         }
@@ -148,7 +151,7 @@ public class CaseStatusServiceImpl implements CaseStatusService {
 
     @Override
     public void setStatus(NodeRef document, String status) {
-        NodeRef statusRef = getStatusByName(status, document);
+        NodeRef statusRef = getStatusByName(document, status);
         if (statusRef == null) {
             throw new IllegalArgumentException("Status " + status + " not found!");
         }
@@ -192,8 +195,8 @@ public class CaseStatusServiceImpl implements CaseStatusService {
         if (StringUtils.isBlank(statusId)) {
             return null;
         }
-        RecordRef typeRef = typeDefService.getTypeRef(RecordRef.valueOf(caseRef.toString()));
-        return typeDefService.getStatuses(typeRef).get(statusId);
+        RecordRef recordRef = RecordRef.valueOf(caseRef.toString());
+        return statusService.getStatusDefByDocument(recordRef, statusId);
     }
 
     @Override

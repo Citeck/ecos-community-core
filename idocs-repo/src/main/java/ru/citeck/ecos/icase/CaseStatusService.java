@@ -42,7 +42,7 @@ public interface CaseStatusService {
      * @param document - document NodeRef
      * @return case status nodeRef
      */
-    NodeRef getStatusByName(String statusName, NodeRef document);
+    NodeRef getStatusByName(NodeRef document, String statusName);
 
     /**
      * Get case status
