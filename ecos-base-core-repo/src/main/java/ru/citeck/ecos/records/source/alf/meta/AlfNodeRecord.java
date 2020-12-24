@@ -383,7 +383,7 @@ public class AlfNodeRecord implements MetaValue {
             return null;
         }
 
-        StatusMetaDTO caseStatusMeta = recordsService.getMeta(recordRef, StatusMetaDTO.class);
+        StatusMetaDto caseStatusMeta = recordsService.getMeta(recordRef, StatusMetaDto.class);
 
         String statusEcosId = caseStatusMeta.getEcosId();
         StatusMetaValue statusMeta;
@@ -632,7 +632,7 @@ public class AlfNodeRecord implements MetaValue {
     }
 
     @Data
-    public static class StatusMetaDTO {
+    public static class StatusMetaDto {
         @MetaAtt("icase:caseStatusAssoc.cm:name")
         private String id;
         @MetaAtt("icase:caseStatusAssoc-prop")
