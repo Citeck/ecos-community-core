@@ -67,11 +67,8 @@ public class TaskDataListenerUtils {
     }
 
     private void fillAlfrescoStatusData(Map<QName, Serializable> eventProperties, NodeRef statusRef) {
-        MLPropertyInterceptor.setMLAware(true);
-        MLText title = (MLText) nodeService.getProperty(statusRef, ContentModel.PROP_TITLE);
-        MLPropertyInterceptor.setMLAware(false);
+        MLText title = getMlTitle(statusRef);
         String name = (String) nodeService.getProperty(statusRef, ContentModel.PROP_NAME);
-
         eventProperties.put(HistoryModel.PROP_DOC_STATUS_NAME, name);
 
         String titleStr = null;
@@ -79,6 +76,15 @@ public class TaskDataListenerUtils {
             titleStr = mlTextToLine(title.get(Locale.ENGLISH), title.get(LOCAL_RU));
         }
         eventProperties.put(HistoryModel.PROP_DOC_STATUS_TITLE, titleStr);
+    }
+
+    private MLText getMlTitle(NodeRef statusRef) {
+        MLPropertyInterceptor.setMLAware(true);
+        try {
+            return (MLText) nodeService.getProperty(statusRef, ContentModel.PROP_TITLE);
+        } finally {
+            MLPropertyInterceptor.setMLAware(false);
+        }
     }
 
     private String mlTextToLine(String... text) {
