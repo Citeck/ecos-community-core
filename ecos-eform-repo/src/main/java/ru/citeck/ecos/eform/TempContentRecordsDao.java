@@ -1,8 +1,12 @@
 package ru.citeck.ecos.eform;
 
+import com.glaforge.i18n.io.CharsetToolkit;
 import ecos.com.google.common.io.ByteSource;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.Serializable;
+import java.net.URLConnection;
+import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
@@ -10,21 +14,23 @@ import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.alfresco.model.ContentModel;
 import org.alfresco.repo.content.MimetypeMap;
+import org.alfresco.service.cmr.repository.ContentReader;
 import org.alfresco.service.cmr.repository.ContentService;
 import org.alfresco.service.cmr.repository.ContentWriter;
+import org.alfresco.service.cmr.repository.MimetypeService;
 import org.alfresco.service.cmr.repository.NodeRef;
 import org.alfresco.service.cmr.repository.NodeService;
 import org.alfresco.service.namespace.NamespaceService;
 import org.alfresco.service.namespace.QName;
 import org.alfresco.util.GUID;
+import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 import ru.citeck.ecos.commons.data.DataValue;
 import ru.citeck.ecos.eform.model.EcosEformFileModel;
 import ru.citeck.ecos.records2.RecordMeta;
-import ru.citeck.ecos.records2.predicate.PredicateUtils;
-import ru.citeck.ecos.records2.predicate.model.Predicates;
 import ru.citeck.ecos.records2.request.delete.RecordsDelResult;
 import ru.citeck.ecos.records2.request.delete.RecordsDeletion;
 import ru.citeck.ecos.records2.request.mutation.RecordsMutResult;
@@ -49,6 +55,8 @@ public class TempContentRecordsDao implements RecordsDao, MutableRecordsDao {
     private NodeService nodeService;
     @Autowired
     private ContentService contentService;
+    @Autowired
+    private MimetypeService mimetypeService;
 
     @Override
     public String getId() {
@@ -67,10 +75,10 @@ public class TempContentRecordsDao implements RecordsDao, MutableRecordsDao {
                 log.info("Skip saving temp content with empty data: " + fileName);
                 continue;
             }
-            String mimetype = record.getAttribute(PARAM_MIMETYPE, MimetypeMap.MIMETYPE_BINARY);
+            DataValue mimetype = record.getAttribute(PARAM_MIMETYPE);
             String encoding = record.getAttribute(PARAM_ENCODING, StandardCharsets.UTF_8.name());
             try {
-                NodeRef saved = saveFile(name, fileName, mimetype, encoding, value.binaryValue());
+                NodeRef saved = saveFile(name, fileName, mimetype.isNotNull() ? mimetype.asText() : null, encoding, value.binaryValue());
                 result.addRecord(new RecordMeta(saved.toString()));
             } catch (IOException e) {
                 log.error("Can't saved temp content: " + fileName, e);
@@ -98,11 +106,42 @@ public class TempContentRecordsDao implements RecordsDao, MutableRecordsDao {
                 EcosEformFileModel.TYPE_TEMP_FILE,
                 props).getChildRef();
 
+        if (StringUtils.isBlank(mimetype)) {
+            String extension = FilenameUtils.getExtension(fileName);
+            mimetype = mimetypeService.getMimetype(extension);
+            if (StringUtils.isBlank(mimetype)) {
+                mimetype = MimetypeMap.MIMETYPE_BINARY;
+            }
+        }
+
+        if (StringUtils.isBlank(encoding)) {
+            encoding = guessEncoding(content, mimetype);
+        }
+
+        InputStream contentStream = ByteSource.wrap(content).openStream();
         ContentWriter writer = contentService.getWriter(createdTempFile, ContentModel.PROP_CONTENT, true);
         writer.setEncoding(encoding);
         writer.setMimetype(mimetype);
-        writer.putContent(ByteSource.wrap(content).openStream());
+        writer.putContent(contentStream);
 
         return createdTempFile;
     }
+
+    private String guessEncoding(byte[] content, String mimetype) {
+        Charset defaultEncoding = getDefaultEncoding(mimetype);
+        try {
+            CharsetToolkit charsetToolkit = new CharsetToolkit(content, defaultEncoding);
+            return charsetToolkit.guessEncoding().name();
+        } catch (Exception ignored) {
+            return defaultEncoding.name();
+        }
+    }
+
+    private Charset getDefaultEncoding(String mimetype) {
+        if (MediaType.TEXT_XML_VALUE.equalsIgnoreCase(mimetype)) {
+            return Charset.forName("windows-1251");
+        }
+        return StandardCharsets.UTF_8;
+    }
+
 }

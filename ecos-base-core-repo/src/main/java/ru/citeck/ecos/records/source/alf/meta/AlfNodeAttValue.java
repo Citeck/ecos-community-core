@@ -1,6 +1,8 @@
 package ru.citeck.ecos.records.source.alf.meta;
 
 import com.fasterxml.jackson.databind.util.ISO8601Utils;
+import java.io.ByteArrayOutputStream;
+import javax.xml.bind.DatatypeConverter;
 import lombok.Getter;
 import org.alfresco.error.AlfrescoRuntimeException;
 import org.alfresco.model.ContentModel;
@@ -129,7 +131,12 @@ public class AlfNodeAttValue implements MetaValue {
 
             return AuthenticationUtil.runAsSystem(() -> {
                 ContentReader reader = contentService.getRawReader(contentUrl);
-                return reader.exists() ? reader.getContentString() : null;
+                if (reader != null && reader.exists()) {
+                    ByteArrayOutputStream out = new ByteArrayOutputStream();
+                    reader.getContent(out);
+                    return DatatypeConverter.printBase64Binary(out.toByteArray());
+                }
+                return null;
             });
         }
         if (rawValue instanceof Number) {
