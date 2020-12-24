@@ -3,6 +3,7 @@ package ru.citeck.ecos.icase;
 import org.alfresco.service.cmr.repository.NodeRef;
 import org.alfresco.service.cmr.repository.StoreRef;
 import ru.citeck.ecos.model.lib.status.dto.StatusDef;
+import ru.citeck.ecos.records2.RecordRef;
 
 /**
  * @author Roman Makarskiy
@@ -62,7 +63,7 @@ public interface CaseStatusService {
      *
      * @return case status name or null if status doesn't exists in this ecos type
      */
-    NodeRef getStatusByNameAndType(String statusName, String etype);
+    NodeRef getStatusByNameAndType(String statusName, RecordRef etype);
 
     /**
      * Get ECOS case status name

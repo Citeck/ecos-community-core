@@ -6,7 +6,6 @@ import org.alfresco.repo.policy.ClassPolicyDelegate;
 import org.alfresco.repo.policy.PolicyComponent;
 import org.alfresco.service.cmr.repository.NodeRef;
 import org.alfresco.service.cmr.repository.NodeService;
-import org.alfresco.service.cmr.repository.StoreRef;
 import org.alfresco.service.namespace.QName;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.Nullable;
@@ -113,16 +112,16 @@ public class CaseStatusServiceImpl implements CaseStatusService {
         }
 
         RecordRef typeRef = typeDefService.getTypeRef(RecordRef.valueOf(node.toString()));
-        return getStatusByNameAndType(statusName, typeRef.toString());
+        return getStatusByNameAndType(statusName, typeRef);
     }
 
     @Override
-    public NodeRef getStatusByNameAndType(String statusName, String etype) {
-        if (statusName == null || StringUtils.isBlank(etype)) {
+    public NodeRef getStatusByNameAndType(String statusName, RecordRef etype) {
+        if (statusName == null || etype == null) {
             return null;
         }
 
-        StatusDef statusDef = typeDefService.getStatuses(RecordRef.valueOf(etype)).get(statusName);
+        StatusDef statusDef = typeDefService.getStatuses(etype).get(statusName);
         if (statusDef == null) {
             return getStatusByName(statusName);
         }
