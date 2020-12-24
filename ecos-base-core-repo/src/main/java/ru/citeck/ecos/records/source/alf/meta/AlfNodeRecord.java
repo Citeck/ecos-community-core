@@ -1,5 +1,6 @@
 package ru.citeck.ecos.records.source.alf.meta;
 
+import lombok.Data;
 import lombok.Getter;
 import org.alfresco.model.ContentModel;
 import org.alfresco.repo.node.MLPropertyInterceptor;
@@ -39,6 +40,7 @@ import ru.citeck.ecos.records.source.alf.AlfNodeMetaEdge;
 import ru.citeck.ecos.records.source.alf.file.FileRepresentation;
 import ru.citeck.ecos.records.source.common.MLTextValue;
 import ru.citeck.ecos.records2.*;
+import ru.citeck.ecos.records2.graphql.meta.annotation.MetaAtt;
 import ru.citeck.ecos.records2.graphql.meta.value.MetaEdge;
 import ru.citeck.ecos.records2.graphql.meta.value.MetaField;
 import ru.citeck.ecos.records2.graphql.meta.value.MetaValue;
@@ -627,6 +629,16 @@ public class AlfNodeRecord implements MetaValue {
         public String getDisplayName() {
             return disp;
         }
+    }
+
+    @Data
+    public static class StatusMetaDTO {
+        @MetaAtt("icase:caseStatusAssoc.cm:name")
+        private String id;
+        @MetaAtt("icase:caseStatusAssoc-prop")
+        private String ecosId;
+        @MetaAtt("icase:caseStatusAssoc?disp")
+        private String name;
     }
 }
 
