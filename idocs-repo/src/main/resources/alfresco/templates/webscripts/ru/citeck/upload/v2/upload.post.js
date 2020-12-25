@@ -34,6 +34,20 @@ function getNewFile(contentType, destNode, formdata) {
     return destNode.createFile(filename, contentType);
 }
 
+function getNewFileName(oldFullName, newFullName) {
+    if (oldFullName == newFullName) {
+        return oldFullName;
+    }
+
+    var lastPointIndexOld = oldFullName.lastIndexOf('.');
+    var oldName = oldFullName.substring(0, lastPointIndexOld);
+
+    var lastPointIndexNew = newFullName.lastIndexOf('.');
+    var newExtension = newFullName.substring(lastPointIndexNew + 1, newFullName.length()) || newFullName;
+
+    return oldName + "." + newExtension;
+}
+
 function main() {
     try {
         var filename = null,
@@ -215,6 +229,7 @@ function main() {
                 return;
             }
 
+            var oldName = updateNode.name;
             var workingcopy = updateNode.hasAspect("cm:workingcopy");
             if (!workingcopy && updateNode.isLocked) {
                 // We cannot update a locked document (except working copy as per MNT-8736)
@@ -237,7 +252,10 @@ function main() {
             // Update the working copy content
             updateNode.properties.content.write(content, false, true);
             updateNode.properties.content.guessMimetype(filename);
-            //updateNode.name = formdata.fields[1].value;
+            var newName = getNewFileName(oldName, formdata.fields[1].value);
+            if (oldName != newName) {
+                updateNode.name = newName;
+            }
             // check it in again, with supplied version history note
 
             // Extract the metadata
