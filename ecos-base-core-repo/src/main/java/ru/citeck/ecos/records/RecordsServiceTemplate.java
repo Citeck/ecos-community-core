@@ -5,6 +5,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import ru.citeck.ecos.commons.data.DataValue;
 import ru.citeck.ecos.commons.data.ObjectData;
 import ru.citeck.ecos.records2.RecordRef;
+import ru.citeck.ecos.records2.RecordsServiceImpl;
 import ru.citeck.ecos.records3.record.op.query.dto.RecsQueryRes;
 import ru.citeck.ecos.utils.JsUtils;
 
@@ -21,7 +22,7 @@ public class RecordsServiceTemplate extends BaseTemplateProcessorExtension {
     private RecordsServiceImpl recordsService;
 
     public RecsQueryRes<?> getRecordsForClass(Object recordsQuery, String schemaClass) {
-        return recordsService.getRecords(recordsQuery, getClass(schemaClass));
+        return recordsServiceJs.getRecords(recordsQuery, getClass(schemaClass));
     }
 
     public DataValue getAtt(Object record, String att) {
