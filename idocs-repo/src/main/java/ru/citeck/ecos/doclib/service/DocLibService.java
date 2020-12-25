@@ -156,7 +156,7 @@ public class DocLibService {
         List<DocLibNodeInfo> resultPath = new ArrayList<>();
 
         EntityId entityId = getEntityId(docLibRef);
-        if (RecordRef.isEmpty(entityId.getTypeRef())) {
+        if (RecordRef.isEmpty(entityId.getTypeRef()) || StringUtils.isBlank(entityId.getLocalId())) {
             return resultPath;
         }
 
