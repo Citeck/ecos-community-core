@@ -2,7 +2,6 @@ package ru.citeck.ecos.records.source.alf.meta;
 
 import com.fasterxml.jackson.databind.util.ISO8601Utils;
 import java.io.ByteArrayOutputStream;
-import javax.xml.bind.DatatypeConverter;
 import lombok.Getter;
 import org.alfresco.error.AlfrescoRuntimeException;
 import org.alfresco.model.ContentModel;
