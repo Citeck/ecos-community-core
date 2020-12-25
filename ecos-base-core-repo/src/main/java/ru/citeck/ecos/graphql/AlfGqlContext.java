@@ -79,7 +79,7 @@ public class AlfGqlContext extends GqlContext {
         try {
             return (StatusService) serviceRegistry.getService(CiteckServices.STATUS_SERVICE_SERVICE);
         } catch (NoSuchBeanDefinitionException exception) {
-            log.info("No such bean definition", exception);
+            log.info("StatusService was not found");
             return null;
         }
     }
