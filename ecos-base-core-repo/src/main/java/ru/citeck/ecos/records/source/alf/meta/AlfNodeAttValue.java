@@ -131,12 +131,7 @@ public class AlfNodeAttValue implements MetaValue {
 
             return AuthenticationUtil.runAsSystem(() -> {
                 ContentReader reader = contentService.getRawReader(contentUrl);
-                if (reader != null && reader.exists()) {
-                    ByteArrayOutputStream out = new ByteArrayOutputStream();
-                    reader.getContent(out);
-                    return DatatypeConverter.printBase64Binary(out.toByteArray());
-                }
-                return null;
+                return reader.exists() ? reader.getContentString() : null;
             });
         }
         if (rawValue instanceof Number) {
@@ -186,6 +181,19 @@ public class AlfNodeAttValue implements MetaValue {
                     return content.getLocale();
                 case "contentUrl":
                     return content.getContentUrl();
+                case "bytes":
+                    String contentUrl = content.getContentUrl();
+                    ContentService contentService = context.getServiceRegistry().getContentService();
+
+                    return AuthenticationUtil.runAsSystem(() -> {
+                        ContentReader reader = contentService.getRawReader(contentUrl);
+                        if (reader != null && reader.exists()) {
+                            ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+                            reader.getContent(outputStream);
+                            return outputStream.toByteArray();
+                        }
+                        return new byte[0];
+                    });
             }
         }
         return null;
