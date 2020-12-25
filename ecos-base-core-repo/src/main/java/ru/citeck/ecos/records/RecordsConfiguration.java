@@ -15,7 +15,8 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
-import ru.citeck.ecos.eureka.EcosEurekaClient;
+import ru.citeck.ecos.eureka.EcosServiceDiscovery;
+import ru.citeck.ecos.eureka.EcosServiceInstanceInfo;
 import ru.citeck.ecos.eureka.EurekaContextConfig;
 import ru.citeck.ecos.graphql.AlfGqlContext;
 import ru.citeck.ecos.records.type.TypesManager;
@@ -51,7 +52,7 @@ public class RecordsConfiguration extends RecordsServiceFactory {
     @Autowired
     private ServiceRegistry serviceRegistry;
     @Autowired
-    private EcosEurekaClient ecosEurekaClient;
+    private EcosServiceDiscovery ecosServiceDiscovery;
     @Autowired
     private RecordsProperties properties;
     @Autowired(required = false)
@@ -121,14 +122,14 @@ public class RecordsConfiguration extends RecordsServiceFactory {
 
         return appName -> {
 
-            InstanceInfo instanceInfo = ecosEurekaClient.getInstanceInfo(appName);
+            EcosServiceInstanceInfo instanceInfo = ecosServiceDiscovery.getInstanceInfo(appName);
             if (instanceInfo == null) {
                 return null;
             }
 
             RemoteAppInfo info = new RemoteAppInfo();
-            info.setIp(instanceInfo.getIPAddr());
-            info.setHost(instanceInfo.getHostName());
+            info.setIp(instanceInfo.getIp());
+            info.setHost(instanceInfo.getHost());
             info.setPort(instanceInfo.getPort());
 
             info.setRecordsBaseUrl(instanceInfo.getMetadata().get(RestConstants.RECS_BASE_URL_META_KEY));
