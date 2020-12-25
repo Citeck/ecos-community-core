@@ -111,6 +111,11 @@ public class DocLibRecord {
         return new RecordContentData(new NodeRef(recordRefId), contentData);
     }
 
+    @AttName(RecordConstants.ATT_MODIFIED)
+    public Date getModified() {
+        return getDocLibNodeInfo().getModified();
+    }
+
     @AttName(RecordConstants.ATT_CREATED)
     public Date getCreated() {
         return getDocLibNodeInfo().getCreated();
