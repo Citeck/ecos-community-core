@@ -35,17 +35,28 @@ function getNewFile(contentType, destNode, formdata) {
 }
 
 function getNewFileName(oldFullName, newFullName) {
+
     if (oldFullName == newFullName) {
         return oldFullName;
     }
 
     var lastPointIndexOld = oldFullName.lastIndexOf('.');
-    var oldName = oldFullName.substring(0, lastPointIndexOld);
+    var oldName;
+    var oldExtension = '';
+    if (lastPointIndexOld > 0) {
+        oldName = oldFullName.substring(0, lastPointIndexOld);
+        oldExtension = oldFullName.substring(lastPointIndexOld + 1);
+    } else {
+        oldName = oldFullName;
+    }
 
     var lastPointIndexNew = newFullName.lastIndexOf('.');
-    var newExtension = newFullName.substring(lastPointIndexNew + 1, newFullName.length()) || newFullName;
+    var newExtension = oldExtension;
+    if (lastPointIndexNew > 0) {
+        newExtension = newFullName.substring(lastPointIndexNew + 1);
+    }
 
-    return oldName + "." + newExtension;
+    return oldName + (newExtension ? "." + newExtension : '');
 }
 
 function main() {
