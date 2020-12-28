@@ -17,8 +17,13 @@
             statusType = STATUS_TYPE_DOCUMENT;
         }
     } else {
-        statusName = caseStatus.properties['cm:title'] || caseStatus.properties['cm:name'];
-        statusId   = caseStatus.properties['cm:name'];
+        if (caseStatusService.isAlfRef(caseStatus.nodeRef)) {
+            statusName = caseStatus.properties['cm:title'] || caseStatus.properties['cm:name'];
+            statusId   = caseStatus.properties['cm:name'];
+        } else {
+            statusId = caseStatus.nodeRef.getId();
+            statusName = caseStatusService.getEcosStatusName(args.nodeRef, caseStatus) || statusId;
+        }
         statusType = STATUS_TYPE_CASE;
     }
     model.json = {

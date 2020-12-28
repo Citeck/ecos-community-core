@@ -91,6 +91,12 @@
         </aspect>
 
         <aspect name="stages:hasCaseStatus">
+            <properties>
+                <property name="stages:caseStatusAssoc-prop">
+                    <title>ECOS Case status</title>
+                    <type>d:text</type>
+                </property>
+            </properties>
             <associations>
                 <association name="stages:caseStatusAssoc">
                     <source>
