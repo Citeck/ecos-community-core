@@ -50,6 +50,7 @@ import ru.citeck.ecos.utils.NodeUtils;
 
 import java.io.Serializable;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 public class AlfNodeRecord implements MetaValue {
@@ -82,7 +83,7 @@ public class AlfNodeRecord implements MetaValue {
     private static final Set<String> attributesAsRecord;
 
     static {
-        attributesAsRecord = new ConcurrentHashSet<>();
+        attributesAsRecord = Collections.newSetFromMap(new ConcurrentHashMap<>());
         attributesAsRecord.add("wfm:documentEcosType");
     }
 
