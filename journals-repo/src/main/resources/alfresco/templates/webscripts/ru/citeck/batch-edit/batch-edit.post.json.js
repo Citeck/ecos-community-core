@@ -21,13 +21,11 @@ const STATUS_SKIPPED = "STATUS_SKIPPED";
     if (skipInStatuses) {
         for (var i = 0; i < skipInStatuses.length(); i++) {
             var statusName = skipInStatuses.get(i).trim();
-            var status = caseStatusService.getStatusByName(statusName);
-            if (status != null) {
-                statuses.push(status.getNodeRef());
+            if (statusName != null) {
+                statuses.push(statusName);
             }
         }
     }
-    statuses = statuses.join(",");
 
     var changeResult = groupActions.forEach(nodes, function(nodeStr) {
         var splitedNode = nodeStr.split("@");
@@ -48,8 +46,9 @@ const STATUS_SKIPPED = "STATUS_SKIPPED";
                 : caseStatusService.getStatusNode(node),
                 caseStatusRef = caseStatusNode ? caseStatusNode.nodeRef : null;
 
+            var statusName = caseStatusService.getStatusName(node, caseStatusRef);
             if (caseStatusRef) {
-                skipInThisStatus = (statuses.indexOf(caseStatusRef) >= 0);
+                skipInThisStatus = (statuses.indexOf(statusName) >= 0);
             }
 
             if (!skipInThisStatus) {

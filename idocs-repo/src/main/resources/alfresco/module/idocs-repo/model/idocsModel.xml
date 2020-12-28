@@ -767,6 +767,11 @@
                     <title>Document type</title>
                     <type>d:qname</type>
                 </property>
+                <property name="idocs:finalStatuses-prop">
+                    <title>ECOS Case statuses</title>
+                    <type>d:text</type>
+                    <multiple>true</multiple>
+                </property>
             </properties>
             <associations>
                 <association name="idocs:finalStatuses">

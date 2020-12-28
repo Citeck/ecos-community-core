@@ -486,13 +486,13 @@ public class WorkflowTaskRecords extends LocalRecordsDao
                         customAttributes.add(ATT_DOC_DISP_NAME);
                         break;
                     case ATT_DOC_STATUS_TITLE:
-                        documentAttributes.put(ATT_DOC_STATUS_TITLE, "icase:caseStatusAssoc.cm:title");
+                        documentAttributes.put(ATT_DOC_STATUS_TITLE, "_status?disp");
                         customAttributes.add(ATT_DOC_STATUS_TITLE);
                         documentAttributes.put(ATT_DOC_STATUS_DISP_PROP, "idocs:documentStatus?disp");
                         customAttributes.add(ATT_DOC_STATUS_DISP_PROP);
                         break;
                     case ATT_DOC_STATUS:
-                        documentAttributes.put(ATT_DOC_STATUS, "icase:caseStatusAssoc.cm:name");
+                        documentAttributes.put(ATT_DOC_STATUS, "_status?str");
                         customAttributes.add(ATT_DOC_STATUS);
                         documentAttributes.put(ATT_DOC_STATUS_STR_PROP, "idocs:documentStatus?str");
                         customAttributes.add(ATT_DOC_STATUS_STR_PROP);

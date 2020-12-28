@@ -379,35 +379,40 @@ public class NodeUtils {
     }
 
     public void fillNodeRefsList(Object value, List<NodeRef> resultList) {
-        if (value == null) {
-            return;
-        }
-        if (value instanceof NodeRef) {
-            resultList.add((NodeRef) value);
-        } else if (value instanceof String) {
-            String strValue = (String) value;
-            if (StringUtils.isNotBlank(strValue)) {
-                resultList.add(new NodeRef(strValue));
-            }
-        } else if (value instanceof AssociationRef) {
-            resultList.add(((AssociationRef) value).getTargetRef());
-        } else if (value instanceof ChildAssociationRef) {
-            resultList.add(((ChildAssociationRef) value).getChildRef());
-        } else if (value instanceof Collection) {
+        if (value instanceof Collection) {
             for (Object item : (Collection<?>) value) {
                 fillNodeRefsList(item, resultList);
             }
-        } else if (value instanceof ActivitiScriptNode) {
-            NodeRef nodeRef = ((ActivitiScriptNode) value).getNodeRef();
-            if (nodeRef != null) {
-                resultList.add(nodeRef);
-            }
-        } else if (value instanceof ScriptNode) {
-            NodeRef nodeRef = ((ScriptNode) value).getNodeRef();
-            if (nodeRef != null) {
-                resultList.add(nodeRef);
+        } else {
+            NodeRef node = getNodeRefByObject(value);
+            if (node != null) {
+                resultList.add(node);
             }
         }
+    }
+
+    public NodeRef getNodeRefByObject(Object value) {
+        if (value == null) {
+            return null;
+        }
+        if (value instanceof NodeRef) {
+            return (NodeRef) value;
+        } else if (value instanceof String) {
+            String strValue = (String) value;
+            if (StringUtils.isNotBlank(strValue)) {
+                return new NodeRef(strValue);
+            }
+        } else if (value instanceof AssociationRef) {
+            return ((AssociationRef) value).getTargetRef();
+        } else if (value instanceof ChildAssociationRef) {
+            return ((ChildAssociationRef) value).getChildRef();
+        } else if (value instanceof ActivitiScriptNode) {
+            return ((ActivitiScriptNode) value).getNodeRef();
+        } else if (value instanceof ScriptNode) {
+            return ((ScriptNode) value).getNodeRef();
+        }
+
+        return null;
     }
 
     @Autowired

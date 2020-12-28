@@ -2,144 +2,144 @@
 
 <model name="icase:icase" xmlns="http://www.alfresco.org/model/dictionary/1.0">
 
-	<description>Case management in iDocs</description>
-	<author>Citeck</author>
-	<version>1.0</version>
+    <description>Case management in iDocs</description>
+    <author>Citeck</author>
+    <version>1.0</version>
 
-	<imports>
-		<import uri="http://www.alfresco.org/model/dictionary/1.0" prefix="d" />
-		<import uri="http://www.alfresco.org/model/system/1.0" prefix="sys" />
-		<import uri="http://www.alfresco.org/model/content/1.0" prefix="cm" />
-		<import uri="http://www.alfresco.org/model/datalist/1.0" prefix="dl" />
-		<import uri="http://www.citeck.ru/model/content/classification/tk/1.0" prefix="tk" />
-	</imports>
+    <imports>
+        <import uri="http://www.alfresco.org/model/dictionary/1.0" prefix="d"/>
+        <import uri="http://www.alfresco.org/model/system/1.0" prefix="sys"/>
+        <import uri="http://www.alfresco.org/model/content/1.0" prefix="cm"/>
+        <import uri="http://www.alfresco.org/model/datalist/1.0" prefix="dl"/>
+        <import uri="http://www.citeck.ru/model/content/classification/tk/1.0" prefix="tk"/>
+    </imports>
 
-	<namespaces>
-		<namespace uri="http://www.citeck.ru/model/icase/1.0" prefix="icase" />
-		<namespace uri="http://www.citeck.ru/model/icase/template/1.0" prefix="icasetpl" />
-	</namespaces>
+    <namespaces>
+        <namespace uri="http://www.citeck.ru/model/icase/1.0" prefix="icase"/>
+        <namespace uri="http://www.citeck.ru/model/icase/template/1.0" prefix="icasetpl"/>
+    </namespaces>
 
-	<constraints>
-		<constraint name="icase:assocTypes" type="LIST">
-			<parameter name="allowedValues">
-				<list>
-					<value>target</value>
-					<value>source</value>
-					<value>child</value>
-				</list>
-			</parameter>
-		</constraint>
-	</constraints>
+    <constraints>
+        <constraint name="icase:assocTypes" type="LIST">
+            <parameter name="allowedValues">
+                <list>
+                    <value>target</value>
+                    <value>source</value>
+                    <value>child</value>
+                </list>
+            </parameter>
+        </constraint>
+    </constraints>
 
-	<types>
+    <types>
 
-		<type name="icase:elementConfig">
-			<parent>dl:dataListItem</parent>
-			<properties>
-				<property name="icase:caseClass">
-					<type>d:qname</type>
-					<mandatory enforced="true">true</mandatory>
-				</property>
-				<property name="icase:elementType">
-					<type>d:qname</type>
-				</property>
-				<property name="icase:copyElements">
-					<type>d:boolean</type>
-					<default>false</default>
-				</property>
-				<!-- obsolete -->
-				<property name="icase:folderName">
-					<type>d:text</type>
-				</property>
-				<!-- obsolete -->
-				<property name="icase:folderType">
-					<type>d:qname</type>
-				</property>
-				<!-- obsolete -->
-				<property name="icase:folderAssocName">
-					<type>d:qname</type>
-				</property>
-				<!-- obsolete -->
-				<property name="icase:showForAdminOnly">
-					<type>d:boolean</type>
-					<default>false</default>
-				</property>
-				<property name="icase:createSubcase">
-					<type>d:boolean</type>
-					<default>false</default>
-				</property>
-				<property name="icase:removeSubcase">
-					<type>d:boolean</type>
-					<default>false</default>
-				</property>
-				<property name="icase:removeEmptySubcase">
-					<type>d:boolean</type>
-					<default>true</default>
-				</property>
-				<property name="icase:subcaseType">
-					<type>d:qname</type>
-					<default>{http://www.alfresco.org/model/content/1.0}folder</default>
-				</property>
-				<property name="icase:subcaseAssoc">
-					<type>d:qname</type>
-					<default>{http://www.alfresco.org/model/content/1.0}contains</default>
-				</property>
-			</properties>
-			<mandatory-aspects>
-				<aspect>cm:titled</aspect>
-			</mandatory-aspects>
-		</type>
+        <type name="icase:elementConfig">
+            <parent>dl:dataListItem</parent>
+            <properties>
+                <property name="icase:caseClass">
+                    <type>d:qname</type>
+                    <mandatory enforced="true">true</mandatory>
+                </property>
+                <property name="icase:elementType">
+                    <type>d:qname</type>
+                </property>
+                <property name="icase:copyElements">
+                    <type>d:boolean</type>
+                    <default>false</default>
+                </property>
+                <!-- obsolete -->
+                <property name="icase:folderName">
+                    <type>d:text</type>
+                </property>
+                <!-- obsolete -->
+                <property name="icase:folderType">
+                    <type>d:qname</type>
+                </property>
+                <!-- obsolete -->
+                <property name="icase:folderAssocName">
+                    <type>d:qname</type>
+                </property>
+                <!-- obsolete -->
+                <property name="icase:showForAdminOnly">
+                    <type>d:boolean</type>
+                    <default>false</default>
+                </property>
+                <property name="icase:createSubcase">
+                    <type>d:boolean</type>
+                    <default>false</default>
+                </property>
+                <property name="icase:removeSubcase">
+                    <type>d:boolean</type>
+                    <default>false</default>
+                </property>
+                <property name="icase:removeEmptySubcase">
+                    <type>d:boolean</type>
+                    <default>true</default>
+                </property>
+                <property name="icase:subcaseType">
+                    <type>d:qname</type>
+                    <default>{http://www.alfresco.org/model/content/1.0}folder</default>
+                </property>
+                <property name="icase:subcaseAssoc">
+                    <type>d:qname</type>
+                    <default>{http://www.alfresco.org/model/content/1.0}contains</default>
+                </property>
+            </properties>
+            <mandatory-aspects>
+                <aspect>cm:titled</aspect>
+            </mandatory-aspects>
+        </type>
 
-		<type name="icase:classConfig">
-			<parent>icase:elementConfig</parent>
-		</type>
+        <type name="icase:classConfig">
+            <parent>icase:elementConfig</parent>
+        </type>
 
-		<type name="icase:keyPropConfig">
-			<parent>icase:elementConfig</parent>
-			<properties>
-				<property name="icase:elementKey">
-					<type>d:qname</type>
-				</property>
-				<property name="icase:caseKey">
-					<type>d:qname</type>
-				</property>
-			</properties>
-		</type>
+        <type name="icase:keyPropConfig">
+            <parent>icase:elementConfig</parent>
+            <properties>
+                <property name="icase:elementKey">
+                    <type>d:qname</type>
+                </property>
+                <property name="icase:caseKey">
+                    <type>d:qname</type>
+                </property>
+            </properties>
+        </type>
 
-		<type name="icase:assocConfig">
-			<parent>icase:elementConfig</parent>
-			<properties>
-				<property name="icase:assocName">
-					<type>d:qname</type>
-				</property>
-				<property name="icase:assocType">
-					<type>d:text</type>
-					<constraints>
-						<constraint ref="icase:assocTypes" />
-					</constraints>
-				</property>
-			</properties>
-		</type>
+        <type name="icase:assocConfig">
+            <parent>icase:elementConfig</parent>
+            <properties>
+                <property name="icase:assocName">
+                    <type>d:qname</type>
+                </property>
+                <property name="icase:assocType">
+                    <type>d:text</type>
+                    <constraints>
+                        <constraint ref="icase:assocTypes"/>
+                    </constraints>
+                </property>
+            </properties>
+        </type>
 
-		<type name="icase:categoryConfig">
-			<parent>icase:elementConfig</parent>
-			<properties>
-				<property name="icase:categoryProperty">
-					<type>d:qname</type>
-					<mandatory>true</mandatory>
-				</property>
-			</properties>
-			<overrides>
-				<property name="icase:elementType">
-					<default>{http://www.alfresco.org/model/content/1.0}category</default>
-				</property>
-			</overrides>
-		</type>
+        <type name="icase:categoryConfig">
+            <parent>icase:elementConfig</parent>
+            <properties>
+                <property name="icase:categoryProperty">
+                    <type>d:qname</type>
+                    <mandatory>true</mandatory>
+                </property>
+            </properties>
+            <overrides>
+                <property name="icase:elementType">
+                    <default>{http://www.alfresco.org/model/content/1.0}category</default>
+                </property>
+            </overrides>
+        </type>
 
         <type name="icase:template">
             <parent>cm:content</parent>
             <properties>
-				<!-- type of document, for which this template is designed -->
+                <!-- type of document, for which this template is designed -->
                 <property name="icase:caseType">
                     <title>Case Type</title>
                     <type>d:qname</type>
@@ -161,249 +161,257 @@
                 </property>
             </properties>
             <associations>
-				<association name="icase:caseElements">
-					<title>Сase Elements</title>
-					<source>
-						<mandatory>false</mandatory>
-						<many>true</many>
-					</source>
-					<target>
-						<class>cm:cmobject</class>
-						<mandatory>false</mandatory>
-						<many>true</many>
-					</target>
-				</association>
-            	<child-association name="icasetpl:elementTypes">
-					<source>
-						<mandatory>false</mandatory>
-						<many>true</many>
-					</source>
-					<target>
-						<class>icasetpl:elementType</class>
-						<mandatory>false</mandatory>
-						<many>true</many>
-					</target>
-					<duplicate>false</duplicate>
-            	</child-association>
+                <association name="icase:caseElements">
+                    <title>Сase Elements</title>
+                    <source>
+                        <mandatory>false</mandatory>
+                        <many>true</many>
+                    </source>
+                    <target>
+                        <class>cm:cmobject</class>
+                        <mandatory>false</mandatory>
+                        <many>true</many>
+                    </target>
+                </association>
+                <child-association name="icasetpl:elementTypes">
+                    <source>
+                        <mandatory>false</mandatory>
+                        <many>true</many>
+                    </source>
+                    <target>
+                        <class>icasetpl:elementType</class>
+                        <mandatory>false</mandatory>
+                        <many>true</many>
+                    </target>
+                    <duplicate>false</duplicate>
+                </child-association>
             </associations>
         </type>
 
         <type name="icasetpl:elementType">
-        	<parent>cm:cmobject</parent>
-        	<associations>
-        		<association name="icasetpl:elementConfig">
-        			<source>
-        				<mandatory>false</mandatory>
-        				<many>true</many>
-        			</source>
-        			<target>
-        				<class>icase:elementConfig</class>
-        				<mandatory>true</mandatory>
-        				<many>false</many>
-        			</target>
-        		</association>
-        		<association name="icasetpl:externalElements">
-        			<source>
-        				<mandatory>false</mandatory>
-        				<many>true</many>
-        			</source>
-        			<target>
-        				<class>sys:base</class>
-        				<mandatory>false</mandatory>
-        				<many>true</many>
-        			</target>
-        		</association>
-        		<child-association name="icasetpl:internalElements">
-        			<source>
-        				<mandatory>false</mandatory>
-        				<many>true</many>
-        			</source>
-        			<target>
-        				<class>sys:base</class>
-        				<mandatory>false</mandatory>
-        				<many>true</many>
-        			</target>
-        		</child-association>
-        	</associations>
+            <parent>cm:cmobject</parent>
+            <associations>
+                <association name="icasetpl:elementConfig">
+                    <source>
+                        <mandatory>false</mandatory>
+                        <many>true</many>
+                    </source>
+                    <target>
+                        <class>icase:elementConfig</class>
+                        <mandatory>true</mandatory>
+                        <many>false</many>
+                    </target>
+                </association>
+                <association name="icasetpl:externalElements">
+                    <source>
+                        <mandatory>false</mandatory>
+                        <many>true</many>
+                    </source>
+                    <target>
+                        <class>sys:base</class>
+                        <mandatory>false</mandatory>
+                        <many>true</many>
+                    </target>
+                </association>
+                <child-association name="icasetpl:internalElements">
+                    <source>
+                        <mandatory>false</mandatory>
+                        <many>true</many>
+                    </source>
+                    <target>
+                        <class>sys:base</class>
+                        <mandatory>false</mandatory>
+                        <many>true</many>
+                    </target>
+                </child-association>
+            </associations>
         </type>
 
-		<type name="icase:caseStatus">
-			<parent>dl:dataListItem</parent>
-			<mandatory-aspects>
-				<aspect>cm:titled</aspect>
-			</mandatory-aspects>
-		</type>
+        <type name="icase:caseStatus">
+            <parent>dl:dataListItem</parent>
+            <mandatory-aspects>
+                <aspect>cm:titled</aspect>
+            </mandatory-aspects>
+        </type>
 
-	</types>
+    </types>
 
-	<aspects>
+    <aspects>
 
-		<aspect name="icase:case">
-			<associations>
-				<!-- obsolete -->
-				<association name="icase:elementConfigs">
-					<source>
-						<mandatory>false</mandatory>
-						<many>true</many>
-					</source>
-					<target>
-						<class>icase:elementConfig</class>
-						<mandatory>false</mandatory>
-						<many>true</many>
-					</target>
-				</association>
-			</associations>
-			<mandatory-aspects>
-				<aspect>icase:hasCaseStatus</aspect>
-			</mandatory-aspects>
-		</aspect>
+        <aspect name="icase:case">
+            <associations>
+                <!-- obsolete -->
+                <association name="icase:elementConfigs">
+                    <source>
+                        <mandatory>false</mandatory>
+                        <many>true</many>
+                    </source>
+                    <target>
+                        <class>icase:elementConfig</class>
+                        <mandatory>false</mandatory>
+                        <many>true</many>
+                    </target>
+                </association>
+            </associations>
+            <mandatory-aspects>
+                <aspect>icase:hasCaseStatus</aspect>
+            </mandatory-aspects>
+        </aspect>
 
-		<aspect name="icase:subcase">
-			<!--parent>icase:case</parent-->
-			<associations>
-				<association name="icase:subcaseElement">
-					<source>
-						<mandatory>false</mandatory>
-						<many>true</many>
-					</source>
-					<target>
-						<class>cm:cmobject</class>
-						<mandatory>true</mandatory>
-						<many>false</many>
-					</target>
-				</association>
-				<association name="icase:subcaseElementConfig">
-					<source>
-						<mandatory>false</mandatory>
-						<many>true</many>
-					</source>
-					<target>
-						<class>icase:assocConfig</class>
-						<mandatory>true</mandatory>
-						<many>false</many>
-					</target>
-				</association>
-				<association name="icase:parentCase">
-					<source>
-						<mandatory>false</mandatory>
-						<many>true</many>
-					</source>
-					<target>
-						<class>icase:case</class>
-						<mandatory>true</mandatory>
-						<many>false</many>
-					</target>
-				</association>
-			</associations>
-			<mandatory-aspects>
-				<aspect>icase:case</aspect>
-			</mandatory-aspects>
-		</aspect>
+        <aspect name="icase:subcase">
+            <!--parent>icase:case</parent-->
+            <associations>
+                <association name="icase:subcaseElement">
+                    <source>
+                        <mandatory>false</mandatory>
+                        <many>true</many>
+                    </source>
+                    <target>
+                        <class>cm:cmobject</class>
+                        <mandatory>true</mandatory>
+                        <many>false</many>
+                    </target>
+                </association>
+                <association name="icase:subcaseElementConfig">
+                    <source>
+                        <mandatory>false</mandatory>
+                        <many>true</many>
+                    </source>
+                    <target>
+                        <class>icase:assocConfig</class>
+                        <mandatory>true</mandatory>
+                        <many>false</many>
+                    </target>
+                </association>
+                <association name="icase:parentCase">
+                    <source>
+                        <mandatory>false</mandatory>
+                        <many>true</many>
+                    </source>
+                    <target>
+                        <class>icase:case</class>
+                        <mandatory>true</mandatory>
+                        <many>false</many>
+                    </target>
+                </association>
+            </associations>
+            <mandatory-aspects>
+                <aspect>icase:case</aspect>
+            </mandatory-aspects>
+        </aspect>
 
-		<aspect name="icase:relatedCases">
-			<associations>
-				<association name="icase:relatedCases">
-					<source>
-						<mandatory>false</mandatory>
-						<many>true</many>
-					</source>
-					<target>
-						<class>icase:case</class>
-						<mandatory>false</mandatory>
-						<many>true</many>
-					</target>
-				</association>
-			</associations>
-		</aspect>
+        <aspect name="icase:relatedCases">
+            <associations>
+                <association name="icase:relatedCases">
+                    <source>
+                        <mandatory>false</mandatory>
+                        <many>true</many>
+                    </source>
+                    <target>
+                        <class>icase:case</class>
+                        <mandatory>false</mandatory>
+                        <many>true</many>
+                    </target>
+                </association>
+            </associations>
+        </aspect>
 
-		<aspect name="icase:participants">
-			<associations>
-				<association name="icase:participants">
-					<source>
-						<mandatory>false</mandatory>
-						<many>true</many>
-					</source>
-					<target>
-						<class>cm:person</class>
-						<mandatory>false</mandatory>
-						<many>true</many>
-					</target>
-				</association>
-			</associations>
-		</aspect>
+        <aspect name="icase:participants">
+            <associations>
+                <association name="icase:participants">
+                    <source>
+                        <mandatory>false</mandatory>
+                        <many>true</many>
+                    </source>
+                    <target>
+                        <class>cm:person</class>
+                        <mandatory>false</mandatory>
+                        <many>true</many>
+                    </target>
+                </association>
+            </associations>
+        </aspect>
 
-		<aspect name="icase:caseTemplate" />
-		<aspect name="icase:copiedFromTemplate" />
+        <aspect name="icase:caseTemplate"/>
+        <aspect name="icase:copiedFromTemplate"/>
 
-		<aspect name="icase:element" />
+        <aspect name="icase:element"/>
 
-		<aspect name="icase:hasCalendarEvents" />
+        <aspect name="icase:hasCalendarEvents"/>
 
-		<aspect name="icase:isCaseable">
-			<properties>
-				<property name="icase:isCase">
-					<title>Is case?</title>
-					<type>d:boolean</type>
-				</property>
-			</properties>
-		</aspect>
+        <aspect name="icase:isCaseable">
+            <properties>
+                <property name="icase:isCase">
+                    <title>Is case?</title>
+                    <type>d:boolean</type>
+                </property>
+            </properties>
+        </aspect>
 
-		<aspect name="icase:hasDocuments">
-			<associations>
-				<child-association name="icase:documents">
-					<source>
-						<mandatory>false</mandatory>
-						<many>true</many>
-					</source>
-					<target>
-						<class>cm:content</class>
-						<mandatory>false</mandatory>
-						<many>true</many>
-					</target>
-				</child-association>
-			</associations>
-		</aspect>
+        <aspect name="icase:hasDocuments">
+            <associations>
+                <child-association name="icase:documents">
+                    <source>
+                        <mandatory>false</mandatory>
+                        <many>true</many>
+                    </source>
+                    <target>
+                        <class>cm:content</class>
+                        <mandatory>false</mandatory>
+                        <many>true</many>
+                    </target>
+                </child-association>
+            </associations>
+        </aspect>
 
-		<aspect name="icase:hasCaseStatus">
-			<properties>
-				<property name="icase:caseStatusChangedDateTime">
-					<type>d:datetime</type>
-				</property>
-			</properties>
-			<associations>
-				<association name="icase:caseStatusAssoc">
-					<source>
-						<mandatory>false</mandatory>
-						<many>true</many>
-					</source>
-					<target>
-						<class>icase:caseStatus</class>
-						<mandatory>false</mandatory>
-						<many>false</many>
-					</target>
-				</association>
-				<association name="icase:caseStatusBeforeAssoc">
-					<source>
-						<mandatory>false</mandatory>
-						<many>true</many>
-					</source>
-					<target>
-						<class>icase:caseStatus</class>
-						<mandatory>false</mandatory>
-						<many>false</many>
-					</target>
-				</association>
-			</associations>
-		</aspect>
-		
-		<aspect name="icase:hasLastChangedDate">
-			<properties>
-				<property name="icase:lastChangedDate">
-					<type>d:datetime</type>
-				</property>
-			</properties>
-		</aspect>
-		
-	</aspects>
+        <aspect name="icase:hasCaseStatus">
+            <properties>
+                <property name="icase:caseStatusChangedDateTime">
+                    <type>d:datetime</type>
+                </property>
+                <property name="icase:caseStatusAssoc-prop">
+                    <title>ECOS Case status</title>
+                    <type>d:text</type>
+                </property>
+                <property name="icase:caseStatusBeforeAssoc-prop">
+                    <title>ECOS Case status before</title>
+                    <type>d:text</type>
+                </property>
+            </properties>
+            <associations>
+                <association name="icase:caseStatusAssoc">
+                    <source>
+                        <mandatory>false</mandatory>
+                        <many>true</many>
+                    </source>
+                    <target>
+                        <class>icase:caseStatus</class>
+                        <mandatory>false</mandatory>
+                        <many>false</many>
+                    </target>
+                </association>
+                <association name="icase:caseStatusBeforeAssoc">
+                    <source>
+                        <mandatory>false</mandatory>
+                        <many>true</many>
+                    </source>
+                    <target>
+                        <class>icase:caseStatus</class>
+                        <mandatory>false</mandatory>
+                        <many>false</many>
+                    </target>
+                </association>
+            </associations>
+        </aspect>
+
+        <aspect name="icase:hasLastChangedDate">
+            <properties>
+                <property name="icase:lastChangedDate">
+                    <type>d:datetime</type>
+                </property>
+            </properties>
+        </aspect>
+
+    </aspects>
 
 </model>

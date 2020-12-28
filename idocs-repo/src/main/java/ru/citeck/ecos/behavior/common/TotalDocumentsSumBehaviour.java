@@ -1,9 +1,9 @@
 package ru.citeck.ecos.behavior.common;
 
-import org.alfresco.model.ContentModel;
+import lombok.Setter;
+import lombok.extern.slf4j.Slf4j;
 import org.alfresco.repo.node.NodeServicePolicies;
 import org.alfresco.repo.policy.Behaviour;
-import ru.citeck.ecos.behavior.JavaBehaviour;
 import org.alfresco.repo.policy.PolicyComponent;
 import org.alfresco.repo.security.authentication.AuthenticationUtil;
 import org.alfresco.service.cmr.repository.AssociationRef;
@@ -11,10 +11,11 @@ import org.alfresco.service.cmr.repository.NodeRef;
 import org.alfresco.service.cmr.repository.NodeService;
 import org.alfresco.service.cmr.repository.StoreRef;
 import org.alfresco.service.namespace.QName;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import ru.citeck.ecos.behavior.JavaBehaviour;
 import ru.citeck.ecos.currency.Currency;
 import ru.citeck.ecos.currency.CurrencyService;
+import ru.citeck.ecos.icase.CaseStatusService;
 import ru.citeck.ecos.model.ICaseModel;
 
 import java.io.Serializable;
@@ -26,17 +27,19 @@ import java.util.Map;
  * @author alexander.nemerov
  *         date 01.11.2016.
  */
+@Slf4j
 public class TotalDocumentsSumBehaviour implements
         NodeServicePolicies.OnUpdatePropertiesPolicy,
         NodeServicePolicies.OnCreateAssociationPolicy,
         NodeServicePolicies.OnDeleteAssociationPolicy {
 
-    private static Log logger = LogFactory.getLog(FieldAutoFillBehaviour.class);
-
     // common properties
     private PolicyComponent policyComponent;
     private NodeService nodeService;
     private CurrencyService currencyService;
+
+    @Setter @Autowired
+    private CaseStatusService caseStatusService;
 
     // distinct properties
     private QName className;
@@ -95,7 +98,7 @@ public class TotalDocumentsSumBehaviour implements
         } else {
             NodeRef archivedNode = new NodeRef(StoreRef.STORE_REF_ARCHIVE_SPACESSTORE, nodeRef.getId());
             if (!nodeService.exists(archivedNode)) {
-                logger.error("Document" + nodeRef + "is not in archive. We can't calculate total sum");
+                log.error("Document `" + nodeRef + "` is not in archive. We can't calculate total sum");
                 return;
             }
             QName assocNameAdded = QName.createQName(assocName.toString() + "_added");
@@ -124,15 +127,7 @@ public class TotalDocumentsSumBehaviour implements
     }
 
     private String getNodeCaseStatus(NodeRef nodeRef) {
-        List<AssociationRef> caseAssocs = nodeService.getTargetAssocs(nodeRef, ICaseModel.ASSOC_CASE_STATUS);
-        if (caseAssocs == null || caseAssocs.size() != 1) {
-            return null;
-        }
-        NodeRef statusRef = caseAssocs.get(0).getTargetRef();
-        if(!nodeService.exists(statusRef)) {
-            return null;
-        }
-        return (String) nodeService.getProperty(statusRef, ContentModel.PROP_NAME);
+        return caseStatusService.getStatus(nodeRef);
     }
 
     private void recalculateBranch(final NodeRef nodeRef) {
