@@ -74,10 +74,18 @@ public class FileRepresentation {
     }
 
     public static JSONArray formContentData(ContentData contentData, AlfGqlContext context, Attribute att) {
+
         NodeService nd = context.getNodeService();
         NodeRef nodeRef = att.getScopeNodeRef();
 
-        String name = (String) nd.getProperty(nodeRef, ContentModel.PROP_NAME);
+        return formContentData(contentData, nd, nodeRef);
+    }
+
+    public static JSONArray formContentData(ContentData contentData,
+                                            NodeService nodeService,
+                                            NodeRef nodeRef) {
+
+        String name = (String) nodeService.getProperty(nodeRef, ContentModel.PROP_NAME);
 
         JSONArray array = new JSONArray();
         JSONObject obj = new JSONObject();

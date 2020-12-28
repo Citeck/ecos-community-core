@@ -55,13 +55,14 @@ public class EcosServiceDiscovery {
         }
 
         if (eurekaInstanceInfo == null) {
-            return new EcosServiceInstanceInfo(null, null, null);
+            return new EcosServiceInstanceInfo(null, null, null, null);
         }
 
         return new EcosServiceInstanceInfo(
             eurekaInstanceInfo.getHostName(),
             eurekaInstanceInfo.getIPAddr(),
-            eurekaInstanceInfo.getPort()
+            eurekaInstanceInfo.getPort(),
+            eurekaInstanceInfo.getMetadata()
         );
     }
 
@@ -71,7 +72,7 @@ public class EcosServiceDiscovery {
         String host = getStrParam(String.format(APP_INFO_HOST, appName));
         Integer port = getIntParam(String.format(APP_INFO_PORT, appName));
 
-        return new EcosServiceInstanceInfo(host, ip, port);
+        return new EcosServiceInstanceInfo(host, ip, port, null);
     }
 
     private String getStrParam(String key) {

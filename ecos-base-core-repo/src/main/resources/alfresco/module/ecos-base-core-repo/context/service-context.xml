@@ -422,11 +422,18 @@
         <property name="serviceRegistry" ref="ServiceRegistry" />
     </bean>
 
+    <bean id="ecos-base-core.repoScriptRecordsService"
+          class="ru.citeck.ecos.records.script.RepoScriptRecordsService"
+          parent="baseJavaScriptExtension">
+        <property name="extensionName" value="Records" />
+        <property name="serviceRegistry" ref="ServiceRegistry" />
+    </bean>
+
     <bean id="RecordsServiceTemplate"
           class="ru.citeck.ecos.records.RecordsServiceTemplate"
           parent="baseTemplateImplementation">
         <property name="extensionName" value="recordsService" />
-        <property name="recordsService" ref="ecos-base-core.recordsServiceJS" />
+        <property name="recordsServiceJs" ref="ecos-base-core.recordsServiceJS" />
     </bean>
 
     <bean class="ru.citeck.ecos.records.source.alf.AlfNodesDefaultParentRegistrar">

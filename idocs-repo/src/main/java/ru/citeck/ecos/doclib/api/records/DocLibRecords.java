@@ -1,6 +1,7 @@
 package ru.citeck.ecos.doclib.api.records;
 
 import lombok.Getter;
+import org.alfresco.service.cmr.repository.NodeService;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,11 +34,15 @@ public class DocLibRecords extends AbstractRecordsDao
     private final DocLibService docLibService;
     @Getter
     private final DisplayNameService displayNameService;
+    @Getter
+    private final NodeService nodeService;
 
     @Autowired
     public DocLibRecords(@NotNull DocLibService docLibService,
-                         DisplayNameService displayNameService) {
+                         DisplayNameService displayNameService,
+                         NodeService nodeService) {
 
+        this.nodeService = nodeService;
         this.docLibService = docLibService;
         this.displayNameService = displayNameService;
     }

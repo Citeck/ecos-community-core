@@ -3,6 +3,7 @@ package ru.citeck.ecos.doclib.service;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import org.alfresco.model.ContentModel;
+import org.alfresco.service.cmr.repository.ContentData;
 import org.alfresco.service.cmr.repository.NodeRef;
 import org.alfresco.service.cmr.repository.NodeService;
 import org.alfresco.service.namespace.NamespaceService;
@@ -42,6 +43,7 @@ import ru.citeck.ecos.records3.record.op.query.dto.query.QueryPage;
 import ru.citeck.ecos.records3.record.op.query.dto.query.RecordsQuery;
 
 import java.util.*;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 @Service
@@ -58,7 +60,8 @@ public class DocLibService {
         null,
         null,
         null,
-        null
+        null,
+        () -> null
     );
 
     private final EcosTypeService ecosTypeService;
@@ -153,7 +156,7 @@ public class DocLibService {
         List<DocLibNodeInfo> resultPath = new ArrayList<>();
 
         EntityId entityId = getEntityId(docLibRef);
-        if (RecordRef.isEmpty(entityId.getTypeRef())) {
+        if (RecordRef.isEmpty(entityId.getTypeRef()) || StringUtils.isBlank(entityId.getLocalId())) {
             return resultPath;
         }
 
@@ -230,7 +233,8 @@ public class DocLibService {
                 null,
                 null,
                 null,
-                null
+                null,
+                () -> null
             );
         }
 
@@ -259,6 +263,13 @@ public class DocLibService {
             return EMPTY_NODE;
         }
 
+        Supplier<ContentData> content;
+        if (DocLibNodeType.DIR.equals(nodeType)) {
+            content = () -> null;
+        } else {
+            content = () -> (ContentData) nodeService.getProperty(new NodeRef(nodeRef), ContentModel.PROP_CONTENT);
+        }
+
         return new DocLibNodeInfo(
             docLibRef,
             nodeType,
@@ -268,7 +279,8 @@ public class DocLibService {
             info.getModified(),
             info.getCreated(),
             info.getModifier(),
-            info.getCreator()
+            info.getCreator(),
+            content
         );
     }
 

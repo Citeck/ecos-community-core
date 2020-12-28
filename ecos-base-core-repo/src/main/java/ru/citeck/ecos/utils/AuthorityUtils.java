@@ -1,9 +1,9 @@
 package ru.citeck.ecos.utils;
 
 import org.alfresco.model.ContentModel;
-import org.alfresco.repo.security.authentication.AuthenticationUtil;
 import org.alfresco.service.cmr.repository.NodeRef;
 import org.alfresco.service.cmr.repository.NodeService;
+import org.alfresco.service.cmr.security.AuthenticationService;
 import org.alfresco.service.cmr.security.AuthorityService;
 import org.alfresco.service.cmr.security.AuthorityType;
 import org.alfresco.service.namespace.QName;
@@ -21,6 +21,7 @@ import java.util.stream.Collectors;
 public class AuthorityUtils {
 
     private AuthorityService authorityService;
+    private AuthenticationService authenticationService;
     private NodeService nodeService;
     private DisplayNameService displayNameService;
 
@@ -113,11 +114,11 @@ public class AuthorityUtils {
     }
 
     public Set<String> getUserAuthorities() {
-        return getUserAuthorities(AuthenticationUtil.getRunAsUser());
+        return getUserAuthorities(authenticationService.getCurrentUserName());
     }
 
     public Set<NodeRef> getUserAuthoritiesRefs() {
-        return getUserAuthoritiesRefs(AuthenticationUtil.getRunAsUser());
+        return getUserAuthoritiesRefs(authenticationService.getCurrentUserName());
     }
 
     @Autowired
@@ -134,5 +135,10 @@ public class AuthorityUtils {
     @Autowired
     public void setNodeService(NodeService nodeService) {
         this.nodeService = nodeService;
+    }
+
+    @Autowired
+    public void setAuthenticationService(AuthenticationService authenticationService) {
+        this.authenticationService = authenticationService;
     }
 }

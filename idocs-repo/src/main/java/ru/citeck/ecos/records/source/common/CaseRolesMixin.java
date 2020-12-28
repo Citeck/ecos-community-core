@@ -4,8 +4,8 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.alfresco.repo.security.authentication.AuthenticationUtil;
 import org.alfresco.service.cmr.repository.NodeRef;
+import org.alfresco.service.cmr.security.AuthenticationService;
 import org.apache.commons.lang.StringUtils;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,14 +32,17 @@ public class CaseRolesMixin implements AttributesMixin<Class<RecordRef>, RecordR
     private final AuthorityUtils authorityUtils;
     private final CaseRoleService caseRoleService;
     private final AlfNodesRecordsDAO alfNodesRecordsDao;
+    private final AuthenticationService authenticationService;
 
     @Autowired
     public CaseRolesMixin(AuthorityUtils authorityUtils,
                           CaseRoleService caseRoleService,
-                          AlfNodesRecordsDAO alfNodesRecordsDao) {
+                          AlfNodesRecordsDAO alfNodesRecordsDao,
+                          AuthenticationService authenticationService) {
         this.authorityUtils = authorityUtils;
         this.caseRoleService = caseRoleService;
         this.alfNodesRecordsDao = alfNodesRecordsDao;
+        this.authenticationService = authenticationService;
     }
 
     @PostConstruct
@@ -119,7 +122,7 @@ public class CaseRolesMixin implements AttributesMixin<Class<RecordRef>, RecordR
             }
 
             if (name.equals(CURRENT_USER_EXPRESSION)) {
-                name = AuthenticationUtil.getRunAsUser();
+                name = authenticationService.getCurrentUserName();
             }
 
             NodeRef authorityRef = authorityUtils.getNodeRef(name);
