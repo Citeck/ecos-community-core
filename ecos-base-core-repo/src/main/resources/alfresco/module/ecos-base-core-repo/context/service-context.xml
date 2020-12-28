@@ -422,6 +422,13 @@
         <property name="serviceRegistry" ref="ServiceRegistry" />
     </bean>
 
+    <bean id="ecos-base-core.repoScriptRecordsService"
+          class="ru.citeck.ecos.records.script.RepoScriptRecordsService"
+          parent="baseJavaScriptExtension">
+        <property name="extensionName" value="Records" />
+        <property name="serviceRegistry" ref="ServiceRegistry" />
+    </bean>
+
     <bean id="RecordsServiceTemplate"
           class="ru.citeck.ecos.records.RecordsServiceTemplate"
           parent="baseTemplateImplementation">
