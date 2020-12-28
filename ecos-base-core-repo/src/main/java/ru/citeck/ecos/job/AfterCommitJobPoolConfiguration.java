@@ -14,9 +14,8 @@ public class AfterCommitJobPoolConfiguration {
         ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
         executor.setCorePoolSize(2);
         executor.setMaxPoolSize(10);
-        executor.setQueueCapacity(100);
         executor.setThreadNamePrefix("after-commit-task-Executor-");
-        executor.setAwaitTerminationSeconds(30);
+        executor.setAwaitTerminationSeconds(300);
         executor.setWaitForTasksToCompleteOnShutdown(true);
         executor.initialize();
         return executor;
