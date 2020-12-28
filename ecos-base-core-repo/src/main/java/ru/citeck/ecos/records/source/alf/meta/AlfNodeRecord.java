@@ -50,6 +50,7 @@ import ru.citeck.ecos.utils.NodeUtils;
 
 import java.io.Serializable;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 public class AlfNodeRecord implements MetaValue {
@@ -78,6 +79,13 @@ public class AlfNodeRecord implements MetaValue {
     private static final String VIRTUAL_SCRIPT_ATTS_ID = "virtualScriptAttributesProvider";
     private static final String DEFAULT_VERSION_LABEL = "1.0";
     private static final String ATTR_DICT = "dict";
+
+    private static final Set<String> attributesAsRecord;
+
+    static {
+        attributesAsRecord = Collections.newSetFromMap(new ConcurrentHashMap<>());
+        attributesAsRecord.add("wfm:documentEcosType");
+    }
 
     private NodeRef nodeRef;
     private final RecordRef recordRef;
@@ -534,8 +542,7 @@ public class AlfNodeRecord implements MetaValue {
             metaValue = new AlfNodeRecord(RecordRef.valueOf(value.toString()));
         } else if (value instanceof MLText) {
             metaValue = new MLTextValue((MLText) value);
-        } else if (att != null && value instanceof String && "wfm:documentEcosType".equals(att.name())) {
-            //todo: move this logic to external converter
+        } else if (att != null && value instanceof String && attributesAsRecord.contains(att.name())) {
             RecordRef recordRef = RecordRef.valueOf((String) value);
             metaValue = context.getServiceFactory().getMetaValuesConverter().toMetaValue(recordRef);
         } else {
@@ -555,6 +562,10 @@ public class AlfNodeRecord implements MetaValue {
             .toMetaValue(recordRef);
         value.init(context, field);
         return value;
+    }
+
+    public static void addAttAsRecord(String att) {
+        attributesAsRecord.add(att);
     }
 
     public class Permissions implements MetaValue {
