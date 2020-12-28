@@ -18,10 +18,10 @@ public class AfterCommitJobPoolConfiguration {
     @Value("${after-commit-job.thread-pool.max-pool-size}")
     private Integer maxPoolSize;
 
-    @Value("${after-commit-job.thread-pool.queue-capacity}")
+    @Value("${after-commit-job.thread-pool.await-termination-seconds}")
     private Integer awaitTerminationSeconds;
 
-    @Value("${after-commit-job.thread-pool.await-termination-seconds}")
+    @Value("${after-commit-job.thread-pool.queue-capacity}")
     private Integer queueCapacity;
 
     @Bean
