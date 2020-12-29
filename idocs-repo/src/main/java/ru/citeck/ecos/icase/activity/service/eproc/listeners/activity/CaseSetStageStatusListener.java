@@ -60,7 +60,7 @@ public class CaseSetStageStatusListener implements BeforeStartedActivityListener
 
         String statusName = EProcUtils.getDefAttribute(definition, CmmnDefinitionConstants.CASE_STATUS);
         if (StringUtils.isNotEmpty(statusName)) {
-            NodeRef caseStatusRef = caseStatusService.getStatusByName(statusName, documentNodeRef);
+            NodeRef caseStatusRef = caseStatusService.getStatusByName(documentNodeRef, statusName);
             if (caseStatusRef != null) {
                 caseStatusService.setStatus(documentNodeRef, caseStatusRef);
             } else {

@@ -24,6 +24,7 @@ public interface CiteckServices {
 
     String CITECK_NAMESPACE = "http://www.citeck.ru";
     String TYPE_DEF_SERVICE_BEAN_NAME = "typeDefService";
+    String STATUS_SERVICE_BEAN_NAME = "statusService";
 
     QName GRANT_PERMISSION_SERVICE = QName.createQName(CITECK_NAMESPACE, "GrantPermissionService");
     QName CONFISCATE_SERVICE = QName.createQName(CITECK_NAMESPACE, "ConfiscateService");
@@ -52,6 +53,8 @@ public interface CiteckServices {
     QName ALF_ACTIVITY_UTILS = QName.createQName(CITECK_NAMESPACE, "alfActivityUtils");
     QName JOURNAL_SERVICE = QName.createQName(CITECK_NAMESPACE, "journalService");
     QName CASE_COMPLETENESS_SERVICE = QName.createQName(CITECK_NAMESPACE, "caseCompletenessService");
+    QName TYPE_DEF_SERVICE_SERVICE = QName.createQName("", TYPE_DEF_SERVICE_BEAN_NAME);
+    QName STATUS_SERVICE_SERVICE = QName.createQName("", STATUS_SERVICE_BEAN_NAME);
 
     QName NODE_ATTRIBUTE_SERVICE = QName.createQName(CITECK_NAMESPACE, "nodeAttributeService");
     QName INVARIANT_SERVICE = QName.createQName(CITECK_NAMESPACE, "invariantService");

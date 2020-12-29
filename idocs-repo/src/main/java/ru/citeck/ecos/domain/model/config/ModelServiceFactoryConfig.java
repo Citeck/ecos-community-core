@@ -12,6 +12,7 @@ import ru.citeck.ecos.model.lib.permissions.repo.PermissionsRepo;
 import ru.citeck.ecos.model.lib.permissions.service.PermsEvaluator;
 import ru.citeck.ecos.model.lib.permissions.service.RecordPermsService;
 import ru.citeck.ecos.model.lib.role.service.RoleService;
+import ru.citeck.ecos.model.lib.role.service.StatusService;
 import ru.citeck.ecos.model.lib.type.dto.TypeDef;
 import ru.citeck.ecos.model.lib.type.dto.TypePermsDef;
 import ru.citeck.ecos.model.lib.type.repo.TypesRepo;
@@ -19,8 +20,8 @@ import ru.citeck.ecos.model.lib.type.service.TypeDefService;
 import ru.citeck.ecos.node.EcosTypeService;
 import ru.citeck.ecos.records.type.TypeDto;
 import ru.citeck.ecos.records2.RecordRef;
-import ru.citeck.ecos.records3.RecordsServiceFactory;
 import ru.citeck.ecos.records2.source.dao.local.RemoteSyncRecordsDao;
+import ru.citeck.ecos.records3.RecordsServiceFactory;
 import ru.citeck.ecos.service.CiteckServices;
 
 import java.util.List;
@@ -63,6 +64,13 @@ public class ModelServiceFactoryConfig extends ModelServiceFactory {
     @Override
     protected RoleService createRoleService() {
         return super.createRoleService();
+    }
+
+    @Bean(name = CiteckServices.STATUS_SERVICE_BEAN_NAME)
+    @NotNull
+    @Override
+    protected StatusService createStatusService() {
+        return super.createStatusService();
     }
 
     @Bean

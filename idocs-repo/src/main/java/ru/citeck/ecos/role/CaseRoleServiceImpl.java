@@ -229,7 +229,7 @@ public class CaseRoleServiceImpl implements CaseRoleService {
         List<NodeRef> userRoleRefs = new ArrayList<>();
         List<NodeRef> roles = getRoles(caseRef);
 
-        Set<NodeRef> userAuthorities = authorityUtils.getUserAuthoritiesRefs();
+        Set<NodeRef> userAuthorities = authorityUtils.getUserAuthoritiesRefs(userName);
 
         for (NodeRef roleRef : roles) {
             Set<NodeRef> roleAssignees = getAssignees(roleRef);

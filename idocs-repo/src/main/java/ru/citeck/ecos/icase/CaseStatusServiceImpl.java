@@ -11,6 +11,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import ru.citeck.ecos.model.ICaseModel;
+import ru.citeck.ecos.model.lib.role.service.StatusService;
 import ru.citeck.ecos.model.lib.status.dto.StatusDef;
 import ru.citeck.ecos.model.lib.type.service.TypeDefService;
 import ru.citeck.ecos.records2.RecordRef;
@@ -34,6 +35,8 @@ public class CaseStatusServiceImpl implements CaseStatusService {
     private CaseStatusAssocDao caseStatusAssocDao;
     @Autowired @Setter
     private TypeDefService typeDefService;
+    @Autowired @Setter
+    private StatusService statusService;
 
     private ClassPolicyDelegate<CaseStatusPolicies.OnCaseStatusChangedPolicy> onCaseStatusChangedPolicyDelegate;
 
@@ -47,7 +50,7 @@ public class CaseStatusServiceImpl implements CaseStatusService {
         mandatoryNodeRef("Case", caseRef);
         mandatoryNodeRef("Case status", caseStatusRef);
 
-        NodeRef beforeCaseStatus = caseStatusAssocDao.getFirstStatusByAssoc(caseRef, ICaseModel.ASSOC_CASE_STATUS);
+        NodeRef beforeCaseStatus = caseStatusAssocDao.getStatusByAssoc(caseRef, ICaseModel.ASSOC_CASE_STATUS);
 
         if (!Objects.equals(beforeCaseStatus, caseStatusRef)) {
             if (beforeCaseStatus != null) {
@@ -62,13 +65,11 @@ public class CaseStatusServiceImpl implements CaseStatusService {
     }
 
     private void clearBeforeCaseStatus(NodeRef caseRef) {
-        List<NodeRef> beforeCaseStatusAssocs = caseStatusAssocDao.getStatusByAssoc(caseRef, ICaseModel.ASSOC_CASE_STATUS_BEFORE);
-        for (NodeRef assoc : beforeCaseStatusAssocs) {
-            if (isAlfRef(assoc)) {
-                nodeService.removeAssociation(caseRef, assoc, ICaseModel.ASSOC_CASE_STATUS_BEFORE);
-            } else {
-                nodeService.setProperty(caseRef, ICaseModel.ASSOC_CASE_STATUS_BEFORE_PROP, null);
-            }
+        NodeRef beforeCaseStatus = caseStatusAssocDao.getStatusByAssoc(caseRef, ICaseModel.ASSOC_CASE_STATUS_BEFORE);
+        if (isAlfRef(beforeCaseStatus)) {
+            nodeService.removeAssociation(caseRef, beforeCaseStatus, ICaseModel.ASSOC_CASE_STATUS_BEFORE);
+        } else {
+            nodeService.setProperty(caseRef, ICaseModel.ASSOC_CASE_STATUS_BEFORE_PROP, null);
         }
     }
 
@@ -103,7 +104,7 @@ public class CaseStatusServiceImpl implements CaseStatusService {
     }
 
     @Override
-    public NodeRef getStatusByName(String statusName, NodeRef node) {
+    public NodeRef getStatusByName(NodeRef node, String statusName) {
         if (statusName == null) {
             return null;
         }
@@ -121,7 +122,7 @@ public class CaseStatusServiceImpl implements CaseStatusService {
             return null;
         }
 
-        StatusDef statusDef = typeDefService.getStatuses(etype).get(statusName);
+        StatusDef statusDef = statusService.getStatusDefByType(etype, statusName);
         if (statusDef == null) {
             return getStatusByName(statusName);
         }
@@ -148,7 +149,7 @@ public class CaseStatusServiceImpl implements CaseStatusService {
 
     @Override
     public void setStatus(NodeRef document, String status) {
-        NodeRef statusRef = getStatusByName(status, document);
+        NodeRef statusRef = getStatusByName(document, status);
         if (statusRef == null) {
             throw new IllegalArgumentException("Status " + status + " not found!");
         }
@@ -184,7 +185,7 @@ public class CaseStatusServiceImpl implements CaseStatusService {
 
     @Override
     public NodeRef getStatusRef(NodeRef caseRef) {
-        return caseStatusAssocDao.getFirstStatusByAssoc(caseRef, ICaseModel.ASSOC_CASE_STATUS);
+        return caseStatusAssocDao.getStatusByAssoc(caseRef, ICaseModel.ASSOC_CASE_STATUS);
     }
 
     @Override
@@ -192,19 +193,19 @@ public class CaseStatusServiceImpl implements CaseStatusService {
         if (StringUtils.isBlank(statusId)) {
             return null;
         }
-        RecordRef typeRef = typeDefService.getTypeRef(RecordRef.valueOf(caseRef.toString()));
-        return typeDefService.getStatuses(typeRef).get(statusId);
+        RecordRef recordRef = RecordRef.valueOf(caseRef.toString());
+        return statusService.getStatusDefByDocument(recordRef, statusId);
     }
 
     @Override
     public NodeRef getStatusBeforeRef(NodeRef caseRef) {
-        return caseStatusAssocDao.getFirstStatusByAssoc(caseRef, ICaseModel.ASSOC_CASE_STATUS_BEFORE);
+        return caseStatusAssocDao.getStatusByAssoc(caseRef, ICaseModel.ASSOC_CASE_STATUS_BEFORE);
     }
 
     @Override
     public NodeRef getStatusRefFromPrimaryParent(NodeRef childRef) {
         NodeRef parent = RepoUtils.getPrimaryParentRef(childRef, nodeService);
-        return caseStatusAssocDao.getFirstStatusByAssoc(parent, ICaseModel.ASSOC_CASE_STATUS);
+        return caseStatusAssocDao.getStatusByAssoc(parent, ICaseModel.ASSOC_CASE_STATUS);
     }
 
     private void mandatoryNodeRef(String strParamName, NodeRef nodeRef) {

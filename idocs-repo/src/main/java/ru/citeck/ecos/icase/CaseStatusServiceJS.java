@@ -20,7 +20,7 @@ public class CaseStatusServiceJS extends AlfrescoScopableProcessorExtension {
         NodeRef docRef = JavaScriptImplUtils.getNodeRef(caseRef);
 
         if (caseStatus instanceof String && !NodeRef.isNodeRef(caseStatus.toString())) {
-            caseStatusRef = caseStatusService.getStatusByName(caseStatus.toString(), docRef);
+            caseStatusRef = caseStatusService.getStatusByName(docRef, caseStatus.toString());
         } else {
             caseStatusRef = JavaScriptImplUtils.getNodeRef(caseStatus);
         }
@@ -36,7 +36,7 @@ public class CaseStatusServiceJS extends AlfrescoScopableProcessorExtension {
 
     public ScriptNode getStatusByName(String statusName, Object document) {
         NodeRef docRef = JavaScriptImplUtils.getNodeRef(document);
-        NodeRef caseStatusRef = caseStatusService.getStatusByName(statusName, docRef);
+        NodeRef caseStatusRef = caseStatusService.getStatusByName(docRef, statusName);
         return JavaScriptImplUtils.wrapNode(caseStatusRef, this);
     }
 

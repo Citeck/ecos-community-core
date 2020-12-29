@@ -71,7 +71,7 @@ public class CaseStageBehavior implements CaseActivityPolicies.BeforeCaseActivit
             nodeService.setProperty(documentNodeRef, IdocsModel.PROP_DOCUMENT_STATUS, documentStatus);
         }
 
-        NodeRef caseStatusRef = caseStatusAssocDao.getFirstStatusByAssoc(stageRef, StagesModel.ASSOC_CASE_STATUS);
+        NodeRef caseStatusRef = caseStatusAssocDao.getStatusByAssoc(stageRef, StagesModel.ASSOC_CASE_STATUS);
         if (caseStatusRef != null) {
             caseStatusService.setStatus(documentNodeRef, caseStatusRef);
         }
