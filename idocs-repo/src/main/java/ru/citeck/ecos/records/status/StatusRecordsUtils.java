@@ -4,7 +4,6 @@ import org.alfresco.model.ContentModel;
 import org.alfresco.service.cmr.dictionary.Constraint;
 import org.alfresco.service.cmr.dictionary.ConstraintDefinition;
 import org.alfresco.service.cmr.dictionary.DictionaryService;
-import org.alfresco.service.cmr.dictionary.PropertyDefinition;
 import org.alfresco.service.cmr.repository.NodeRef;
 import org.alfresco.service.cmr.repository.NodeService;
 import org.alfresco.service.namespace.NamespaceService;
@@ -17,11 +16,11 @@ import org.springframework.extensions.surf.util.I18NUtil;
 import org.springframework.stereotype.Component;
 import ru.citeck.ecos.icase.CaseStatusAssocDao;
 import ru.citeck.ecos.icase.CaseStatusService;
-import ru.citeck.ecos.model.ClassificationModel;
 import ru.citeck.ecos.model.IdocsModel;
 import ru.citeck.ecos.model.lib.role.service.StatusService;
 import ru.citeck.ecos.model.lib.status.dto.StatusDef;
 import ru.citeck.ecos.model.lib.type.service.TypeDefService;
+import ru.citeck.ecos.node.EcosTypeService;
 import ru.citeck.ecos.records2.RecordRef;
 import ru.citeck.ecos.records2.predicate.PredicateService;
 import ru.citeck.ecos.records2.predicate.model.Predicates;
@@ -29,7 +28,6 @@ import ru.citeck.ecos.records3.RecordsService;
 import ru.citeck.ecos.records3.record.op.query.dto.RecsQueryRes;
 import ru.citeck.ecos.records3.record.op.query.dto.query.RecordsQuery;
 import ru.citeck.ecos.spring.registry.MappingRegistry;
-import ru.citeck.ecos.utils.DictUtils;
 
 import java.io.Serializable;
 import java.util.Collections;
@@ -56,7 +54,7 @@ class StatusRecordsUtils {
     private final MappingRegistry<String, String> typeToConstraintMapping;
     private final DictionaryService dictionaryService;
     private final NamespaceService namespaceService;
-    private final DictUtils dictUtils;
+    private final EcosTypeService ecosTypeService;
     private final StatusService statusService;
     private final TypeDefService typeDefService;
 
@@ -67,7 +65,7 @@ class StatusRecordsUtils {
                               @Qualifier("records.document-status.type-to-constraint.mappingRegistry")
                                   MappingRegistry<String, String> typeToConstraintMapping,
                               DictionaryService dictionaryService, NamespaceService namespaceService,
-                              DictUtils dictUtils, StatusService statusService, TypeDefService typeDefService) {
+                              EcosTypeService ecosTypeService, StatusService statusService, TypeDefService typeDefService) {
         this.nodeService = nodeService;
         this.recordsService = recordsService;
         this.caseStatusService = caseStatusService;
@@ -75,7 +73,7 @@ class StatusRecordsUtils {
         this.typeToConstraintMapping = typeToConstraintMapping;
         this.dictionaryService = dictionaryService;
         this.namespaceService = namespaceService;
-        this.dictUtils = dictUtils;
+        this.ecosTypeService = ecosTypeService;
         this.statusService = statusService;
         this.typeDefService = typeDefService;
     }
@@ -90,7 +88,7 @@ class StatusRecordsUtils {
     }
 
     private RecsQueryRes<StatusRecord> getAllExistingCaseStatuses(String type) {
-        RecordRef ecosType = getEcosType(type);
+        RecordRef ecosType = ecosTypeService.getEcosType(type);
         Map<String, StatusDef> statuses = ecosType != null ? statusService.getStatusesByType(ecosType) : null;
 
         RecordsQuery query = RecordsQuery.create()
@@ -166,7 +164,7 @@ class StatusRecordsUtils {
             throw new IllegalArgumentException("Record id should be NodeRef format");
         }
 
-        StatusDTO dto = getDocumentStatus(new NodeRef(id));
+        StatusDto dto = getDocumentStatus(new NodeRef(id));
         if (dto == null) {
             return new RecsQueryRes<>();
         }
@@ -179,7 +177,7 @@ class StatusRecordsUtils {
         return result;
     }
 
-    public StatusDTO getStatusById(String recordId) {
+    public StatusDto getStatusById(String recordId) {
         int slashIndex = recordId.lastIndexOf('/');
         String status = slashIndex >= 0 ? recordId.substring(slashIndex + 1) : recordId;
         String etype = slashIndex >= 0 ? recordId.substring(0, slashIndex) : null;
@@ -191,14 +189,14 @@ class StatusRecordsUtils {
         return getEcosStatusById(status, etype);
     }
 
-    public StatusDTO getEcosStatusById(String statusId, String etype) {
+    public StatusDto getEcosStatusById(String statusId, String etype) {
         RecordRef typeRef = RecordRef.create("emodel", "type", etype);
         Map<String, StatusDef> statuses = statusService.getStatusesByType(typeRef);
         NodeRef statusNode = caseStatusAssocDao.statusToNode(statusId);
-        return getEcosStatusDTO(statusNode, statuses, typeRef);
+        return getEcosStatusDto(statusNode, statuses, typeRef);
     }
 
-    StatusDTO getByNameCaseOrDocumentStatus(String name) {
+    StatusDto getByNameCaseOrDocumentStatus(String name) {
         NodeRef statusRef = caseStatusService.getStatusByName(name);
         if (statusRef == null) {
             return getByNameDocumentStatus(name);
@@ -207,22 +205,7 @@ class StatusRecordsUtils {
         return getByStatusRef(statusRef);
     }
 
-    private RecordRef getEcosType(String alfrescoType) {
-        PropertyDefinition propDef = dictUtils.getPropDef(alfrescoType, ClassificationModel.PROP_DOCUMENT_TYPE);
-        if (propDef == null) {
-            return null;
-        }
-
-        String value = propDef.getDefaultValue();
-        if (!StringUtils.isNotBlank(value) || !NodeRef.isNodeRef(value)) {
-            return null;
-        }
-
-        NodeRef typeNodeRef = new NodeRef(value);
-        return RecordRef.create("emodel", "type", typeNodeRef.getId());
-    }
-
-    private StatusDTO getDocumentStatus(NodeRef document) {
+    private StatusDto getDocumentStatus(NodeRef document) {
         NodeRef statusRef = caseStatusService.getStatusRef(document);
 
         if (statusRef != null) {
@@ -239,8 +222,8 @@ class StatusRecordsUtils {
         return null;
     }
 
-    private StatusDTO getByNameDocumentStatus(String name) {
-        StatusDTO dto = new StatusDTO();
+    private StatusDto getByNameDocumentStatus(String name) {
+        StatusDto dto = new StatusDto();
         dto.setType(StatusType.DOCUMENT_STATUS.toString());
         dto.setId(name);
 
@@ -250,20 +233,20 @@ class StatusRecordsUtils {
         return dto;
     }
 
-    private StatusDTO getByStatusRef(NodeRef statusRef) {
+    private StatusDto getByStatusRef(NodeRef statusRef) {
         return getByStatusRef(statusRef, null, null);
     }
 
-    private StatusDTO getByStatusRef(NodeRef statusRef, Map<String, StatusDef> statuses, RecordRef etype) {
+    private StatusDto getByStatusRef(NodeRef statusRef, Map<String, StatusDef> statuses, RecordRef etype) {
         if (caseStatusService.isAlfRef(statusRef)) {
-            return getAlfrescoStatusDTO(statusRef);
+            return getAlfrescoStatusDto(statusRef);
         } else {
-            return getEcosStatusDTO(statusRef, statuses, etype);
+            return getEcosStatusDto(statusRef, statuses, etype);
         }
     }
 
     @NotNull
-    private StatusDTO getAlfrescoStatusDTO(NodeRef statusRef) {
+    private StatusDto getAlfrescoStatusDto(NodeRef statusRef) {
         Map<QName, Serializable> properties = nodeService.getProperties(statusRef);
         String name = (String) properties.get(ContentModel.PROP_NAME);
 
@@ -272,14 +255,14 @@ class StatusRecordsUtils {
             title = name;
         }
 
-        StatusDTO dto = new StatusDTO();
+        StatusDto dto = new StatusDto();
         dto.setName((String) title);
         dto.setType(StatusType.CASE_STATUS.toString());
         dto.setId(name);
         return dto;
     }
 
-    private StatusDTO getEcosStatusDTO(NodeRef statusRef, Map<String, StatusDef> statuses, RecordRef etype) {
+    private StatusDto getEcosStatusDto(NodeRef statusRef, Map<String, StatusDef> statuses, RecordRef etype) {
         if (statuses == null) {
             return null;
         }
@@ -289,7 +272,7 @@ class StatusRecordsUtils {
             return null;
         }
 
-        StatusDTO dto = new StatusDTO();
+        StatusDto dto = new StatusDto();
         dto.setName(statusDef.getName().getClosestValue(I18NUtil.getLocale()));
         dto.setType(StatusType.ECOS_CASE_STATUS.toString());
 

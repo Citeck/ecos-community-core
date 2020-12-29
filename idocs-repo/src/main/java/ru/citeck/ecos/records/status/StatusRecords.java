@@ -30,10 +30,10 @@ public class StatusRecords extends AbstractRecordsDao implements RecordAttsDao, 
     @Override
     public Object getRecordAtts(@NotNull String recordId) {
         if (StringUtils.isBlank(recordId)) {
-            return new StatusRecord(new StatusDTO());
+            return new StatusRecord(new StatusDto());
         }
 
-        StatusDTO found = statusRecordsUtils.getStatusById(recordId);
+        StatusDto found = statusRecordsUtils.getStatusById(recordId);
         return new StatusRecord(found);
     }
 
