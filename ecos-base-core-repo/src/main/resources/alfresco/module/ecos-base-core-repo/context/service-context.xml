@@ -311,6 +311,15 @@
         </property>
     </bean>
 
+    <bean class="org.springframework.beans.factory.config.MethodInvokingFactoryBean">
+        <property name="staticMethod" value="ru.citeck.ecos.utils.TransactionUtils.setTaskExecutor"/>
+        <property name="arguments">
+            <list>
+                <ref bean="afterCommitTaskExecutor"/>
+            </list>
+        </property>
+    </bean>
+
     <bean name="abstractAddAssociationIndexProperties" class="ru.citeck.ecos.dictionary.AddAssociationIndexProperties" abstract="true" >
         <property name="registry" ref="AssociationIndexPropertyRegistry" />
     </bean>
