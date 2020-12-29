@@ -5,6 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.alfresco.model.ContentModel;
 import org.alfresco.repo.security.authentication.AuthenticationUtil;
 import org.alfresco.service.ServiceRegistry;
+import org.alfresco.service.cmr.dictionary.PropertyDefinition;
 import org.alfresco.service.cmr.repository.NodeRef;
 import org.alfresco.service.cmr.repository.NodeService;
 import org.alfresco.service.cmr.search.SearchService;
@@ -21,6 +22,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import ru.citeck.ecos.commons.data.ObjectData;
+import ru.citeck.ecos.model.ClassificationModel;
 import ru.citeck.ecos.model.EcosTypeModel;
 import ru.citeck.ecos.model.lib.ModelServiceFactory;
 import ru.citeck.ecos.records.type.NumTemplateDto;
@@ -33,6 +35,7 @@ import ru.citeck.ecos.records2.predicate.PredicateService;
 import ru.citeck.ecos.records2.predicate.model.Predicates;
 import ru.citeck.ecos.records2.request.query.RecordsQuery;
 import ru.citeck.ecos.search.ftsquery.FTSQuery;
+import ru.citeck.ecos.utils.DictUtils;
 
 import java.io.Serializable;
 import java.util.*;
@@ -54,6 +57,7 @@ public class EcosTypeService {
     private SearchService searchService;
     private SiteService siteService;
     private NodeService nodeService;
+    private DictUtils dictUtils;
 
     private TypesManager typesManager;
 
@@ -85,6 +89,21 @@ public class EcosTypeService {
     public RecordRef getEcosType(AlfNodeInfo nodeInfo) {
         RecordRef result = evaluators.eval(nodeInfo);
         return result != null ? result : RecordRef.EMPTY;
+    }
+
+    public RecordRef getEcosType(String alfrescoType) {
+        PropertyDefinition propDef = dictUtils.getPropDef(alfrescoType, ClassificationModel.PROP_DOCUMENT_TYPE);
+        if (propDef == null) {
+            return null;
+        }
+
+        String value = propDef.getDefaultValue();
+        if (!StringUtils.isNotBlank(value) || !NodeRef.isNodeRef(value)) {
+            return null;
+        }
+
+        NodeRef typeNodeRef = new NodeRef(value);
+        return RecordRef.create("emodel", "type", typeNodeRef.getId());
     }
 
     public List<RecordRef> getDescendantTypes(RecordRef typeRef) {

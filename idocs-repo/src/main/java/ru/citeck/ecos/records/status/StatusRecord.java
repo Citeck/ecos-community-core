@@ -5,9 +5,9 @@ import ru.citeck.ecos.records2.graphql.meta.value.MetaValue;
 
 public class StatusRecord implements MetaValue {
 
-    private final StatusDTO dto;
+    private final StatusDto dto;
 
-    public StatusRecord(StatusDTO dto) {
+    public StatusRecord(StatusDto dto) {
         this.dto = dto;
     }
 

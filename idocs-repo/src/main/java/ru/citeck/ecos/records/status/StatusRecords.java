@@ -1,59 +1,45 @@
 package ru.citeck.ecos.records.status;
 
 import org.apache.commons.lang3.StringUtils;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import ru.citeck.ecos.records2.RecordRef;
-import ru.citeck.ecos.records2.graphql.meta.value.MetaField;
-import ru.citeck.ecos.records2.request.query.RecordsQuery;
-import ru.citeck.ecos.records2.request.query.RecordsQueryResult;
-import ru.citeck.ecos.records2.source.dao.local.LocalRecordsDao;
-import ru.citeck.ecos.records2.source.dao.local.v2.LocalRecordsMetaDao;
-import ru.citeck.ecos.records2.source.dao.local.v2.LocalRecordsQueryWithMetaDao;
-
-import java.util.ArrayList;
-import java.util.List;
+import ru.citeck.ecos.records3.record.dao.AbstractRecordsDao;
+import ru.citeck.ecos.records3.record.op.atts.dao.RecordAttsDao;
+import ru.citeck.ecos.records3.record.op.query.dao.RecordsQueryDao;
+import ru.citeck.ecos.records3.record.op.query.dto.RecsQueryRes;
+import ru.citeck.ecos.records3.record.op.query.dto.query.RecordsQuery;
 
 /**
  * @author Roman Makarskiy
  */
 @Component
-public class StatusRecords extends LocalRecordsDao implements LocalRecordsMetaDao<StatusRecord>,
-        LocalRecordsQueryWithMetaDao<StatusRecord> {
+public class StatusRecords extends AbstractRecordsDao implements RecordAttsDao, RecordsQueryDao {
 
     private static final String ID = "status";
 
     private final StatusRecordsUtils statusRecordsUtils;
-
-    {
-        setId(ID);
-    }
 
     @Autowired
     public StatusRecords(StatusRecordsUtils statusRecordsUtils) {
         this.statusRecordsUtils = statusRecordsUtils;
     }
 
+    @Nullable
     @Override
-    public List<StatusRecord> getLocalRecordsMeta(List<RecordRef> records, MetaField metaField) {
-        List<StatusRecord> result = new ArrayList<>();
-
-        for (RecordRef recordRef : records) {
-            String id = recordRef.getId();
-            if (StringUtils.isBlank(id)) {
-                result.add(new StatusRecord(new StatusDTO()));
-                continue;
-            }
-
-            StatusDTO found = statusRecordsUtils.getByNameCaseOrDocumentStatus(id);
-            result.add(new StatusRecord(found));
+    public Object getRecordAtts(@NotNull String recordId) {
+        if (StringUtils.isBlank(recordId)) {
+            return new StatusRecord(new StatusDto());
         }
 
-        return result;
+        StatusDto found = statusRecordsUtils.getStatusById(recordId);
+        return new StatusRecord(found);
     }
 
+    @Nullable
     @Override
-    public RecordsQueryResult<StatusRecord> queryLocalRecords(RecordsQuery recordsQuery, MetaField metaField) {
+    public RecsQueryRes<StatusRecord> queryRecords(@NotNull RecordsQuery recordsQuery) {
         StatusQuery query = recordsQuery.getQuery(StatusQuery.class);
 
         if (StringUtils.isNotBlank(query.getAllExisting())) {
@@ -65,5 +51,11 @@ public class StatusRecords extends LocalRecordsDao implements LocalRecordsMetaDa
         }
 
         return statusRecordsUtils.getStatusByRecord(query.getRecord());
+    }
+
+    @NotNull
+    @Override
+    public String getId() {
+        return ID;
     }
 }

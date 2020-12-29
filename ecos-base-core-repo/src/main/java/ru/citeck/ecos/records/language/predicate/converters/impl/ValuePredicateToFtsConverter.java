@@ -72,6 +72,10 @@ public class ValuePredicateToFtsConverter implements PredicateToFtsConverter {
                 processAllAttribute(query, predicateValue);
                 break;
             }
+            case ECOS_STATUS:{
+                processEcosStatusAttribute(query, predicateValue);
+                break;
+            }
             case PATH: {
                 query.path(predicateValue);
                 break;
@@ -147,6 +151,16 @@ public class ValuePredicateToFtsConverter implements PredicateToFtsConverter {
         addSearchingPropsToQuery(query, value);
         excludeTypesFromQuery(query);
         excludeAspectsFromQuery(query);
+    }
+
+    private void processEcosStatusAttribute(FTSQuery query, String value) {
+        ClassAttributeDefinition attDef = dictUtils.getAttDefinition(ASSOC_CASE_STATUS.toString());
+        QName caseStatusAssocField = getQueryField(attDef);
+        Optional<NodeRef> statusByName = getStatusByName(value);
+
+        query.open();
+        statusByName.ifPresent(status -> query.exact(caseStatusAssocField, status).or());
+        query.exact(ASSOC_CASE_STATUS_PROP, value).close();
     }
 
     private void addSearchingPropsToQuery(FTSQuery query, String value) {
