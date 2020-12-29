@@ -19,6 +19,7 @@ import ru.citeck.ecos.icase.CaseStatusAssocDao;
 import ru.citeck.ecos.icase.CaseStatusService;
 import ru.citeck.ecos.model.ClassificationModel;
 import ru.citeck.ecos.model.IdocsModel;
+import ru.citeck.ecos.model.lib.role.service.StatusService;
 import ru.citeck.ecos.model.lib.status.dto.StatusDef;
 import ru.citeck.ecos.model.lib.type.service.TypeDefService;
 import ru.citeck.ecos.records2.RecordRef;
@@ -56,6 +57,7 @@ class StatusRecordsUtils {
     private final DictionaryService dictionaryService;
     private final NamespaceService namespaceService;
     private final DictUtils dictUtils;
+    private final StatusService statusService;
     private final TypeDefService typeDefService;
 
     @Autowired
@@ -63,9 +65,9 @@ class StatusRecordsUtils {
                               CaseStatusService caseStatusService,
                               CaseStatusAssocDao caseStatusAssocDao,
                               @Qualifier("records.document-status.type-to-constraint.mappingRegistry")
-                              MappingRegistry<String, String> typeToConstraintMapping,
+                                  MappingRegistry<String, String> typeToConstraintMapping,
                               DictionaryService dictionaryService, NamespaceService namespaceService,
-                              DictUtils dictUtils, TypeDefService typeDefService) {
+                              DictUtils dictUtils, StatusService statusService, TypeDefService typeDefService) {
         this.nodeService = nodeService;
         this.recordsService = recordsService;
         this.caseStatusService = caseStatusService;
@@ -74,6 +76,7 @@ class StatusRecordsUtils {
         this.dictionaryService = dictionaryService;
         this.namespaceService = namespaceService;
         this.dictUtils = dictUtils;
+        this.statusService = statusService;
         this.typeDefService = typeDefService;
     }
 
@@ -88,7 +91,7 @@ class StatusRecordsUtils {
 
     private RecsQueryRes<StatusRecord> getAllExistingCaseStatuses(String type) {
         RecordRef ecosType = getEcosType(type);
-        Map<String, StatusDef> statuses = ecosType != null ? typeDefService.getStatuses(ecosType) : null;
+        Map<String, StatusDef> statuses = ecosType != null ? statusService.getStatusesByType(ecosType) : null;
 
         RecordsQuery query = RecordsQuery.create()
             .withLanguage(PredicateService.LANGUAGE_PREDICATE)
@@ -190,7 +193,7 @@ class StatusRecordsUtils {
 
     public StatusDTO getEcosStatusById(String statusId, String etype) {
         RecordRef typeRef = RecordRef.create("emodel", "type", etype);
-        Map<String, StatusDef> statuses = typeDefService.getStatuses(typeRef);
+        Map<String, StatusDef> statuses = statusService.getStatusesByType(typeRef);
         NodeRef statusNode = caseStatusAssocDao.statusToNode(statusId);
         return getEcosStatusDTO(statusNode, statuses, typeRef);
     }
@@ -223,9 +226,9 @@ class StatusRecordsUtils {
         NodeRef statusRef = caseStatusService.getStatusRef(document);
 
         if (statusRef != null) {
-            RecordRef typeRef = typeDefService.getTypeRef(RecordRef.valueOf(document.toString()));
-            Map<String, StatusDef> statuses = typeDefService.getStatuses(typeRef);
-            return getByStatusRef(statusRef, statuses, typeRef);
+            RecordRef documentRef = RecordRef.valueOf(document.toString());
+            Map<String, StatusDef> statuses = statusService.getStatusesByDocument(documentRef);
+            return getByStatusRef(statusRef, statuses, typeDefService.getTypeRef(documentRef));
         } else {
             Serializable documentStatus = nodeService.getProperty(document, IdocsModel.PROP_DOCUMENT_STATUS);
             if (documentStatus != null) {

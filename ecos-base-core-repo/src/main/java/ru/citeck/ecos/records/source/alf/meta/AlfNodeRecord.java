@@ -397,24 +397,31 @@ public class AlfNodeRecord implements MetaValue {
         String statusEcosId = caseStatusMeta.getEcosId();
         StatusMetaValue statusMeta;
         if (StringUtils.isBlank(statusEcosId)) {
-            statusMeta = new StatusMetaValue(
-                caseStatusMeta.getId(),
-                caseStatusMeta.getName(),
-                statusId != null ? new NodeRef(statusId) : null
-            );
+            statusMeta = getStatusMetaValue(caseStatusMeta);
         } else {
-            statusMeta = getStatusMetaValue(context, statusEcosId);
+            statusMeta = getEcosStatusMetaValue(context, caseStatusMeta);
         }
 
         return statusMeta;
     }
 
-    private StatusMetaValue getStatusMetaValue(AlfGqlContext context, String ecosStatusId, String statusId) {
+    @NotNull
+    private StatusMetaValue getStatusMetaValue(StatusMetaDto caseStatusMeta) {
+        String statusId = caseStatusMeta.getNodeRef();
+        return new StatusMetaValue(
+            caseStatusMeta.getId(),
+            caseStatusMeta.getName(),
+            statusId != null ? new NodeRef(statusId) : null
+        );
+    }
+
+    private StatusMetaValue getEcosStatusMetaValue(AlfGqlContext context, StatusMetaDto statusMetaDto) {
         StatusService statusService = context.getStatusService();
         if (statusService == null) {
             return null;
         }
 
+        String ecosStatusId = statusMetaDto.getEcosId();
         Map<String, StatusDef> statuses = statusService.getStatusesByDocument(recordRef);
         StatusDef statusDef = statuses.get(ecosStatusId);
         if (statusDef == null) {
@@ -423,7 +430,7 @@ public class AlfNodeRecord implements MetaValue {
 
         String statusName = statusDef.getName().getClosestValue(I18NUtil.getLocale());
         return new StatusMetaValue(
-            statusId,
+            statusMetaDto.getId(),
             statusName,
             new NodeRef("et-status://virtual/" + ecosStatusId)
         );
@@ -653,6 +660,8 @@ public class AlfNodeRecord implements MetaValue {
         private String ecosId;
         @MetaAtt("icase:caseStatusAssoc?disp")
         private String name;
+        @MetaAtt("icase:caseStatusAssoc?id")
+        private String nodeRef;
     }
 }
 
