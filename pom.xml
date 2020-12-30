@@ -4,7 +4,7 @@
 
     <groupId>ru.citeck.ecos.community</groupId>
     <artifactId>ecos-community-core</artifactId>
-    <version>4.0.0-SNAPSHOT</version>
+    <version>4.0.0</version>
     <packaging>pom</packaging>
 
     <name>ecos-community</name>
@@ -880,14 +880,14 @@
                         <moduleDependency>
                             <groupId>ru.citeck.ecos.community</groupId>
                             <artifactId>contracts-repo</artifactId>
-                            <version>4.0.0-SNAPSHOT</version>
+                            <version>4.0.0</version>
                             <type>amp</type>
                         </moduleDependency>
 
                         <moduleDependency>
                             <groupId>ru.citeck.ecos.community</groupId>
                             <artifactId>orders-repo</artifactId>
-                            <version>4.0.0-SNAPSHOT</version>
+                            <version>4.0.0</version>
                             <type>amp</type>
                         </moduleDependency>
 
@@ -972,14 +972,14 @@
                         <moduleDependency>
                             <groupId>ru.citeck.ecos.community</groupId>
                             <artifactId>contracts-share</artifactId>
-                            <version>4.0.0-SNAPSHOT</version>
+                            <version>4.0.0</version>
                             <type>amp</type>
                         </moduleDependency>
 
                         <moduleDependency>
                             <groupId>ru.citeck.ecos.community</groupId>
                             <artifactId>orders-share</artifactId>
-                            <version>4.0.0-SNAPSHOT</version>
+                            <version>4.0.0</version>
                             <type>amp</type>
                         </moduleDependency>
 
