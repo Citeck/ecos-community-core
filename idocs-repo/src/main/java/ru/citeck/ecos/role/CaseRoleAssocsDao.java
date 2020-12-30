@@ -1,5 +1,7 @@
 package ru.citeck.ecos.role;
 
+import lombok.AllArgsConstructor;
+import lombok.Data;
 import org.activiti.engine.delegate.VariableScope;
 import org.alfresco.service.cmr.repository.NodeRef;
 import org.alfresco.service.cmr.repository.NodeService;
@@ -40,7 +42,13 @@ public class CaseRoleAssocsDao {
         ArrayList<NodeRef> nodeRefs = new ArrayList<>();
         nodeUtils.fillNodeRefsList(value, nodeRefs);
 
-        nodeInfo.setProperty(assocToProp(assoc), nodeRefs);
+        AlfAndTypeRoles alfAndTypeRoles = splitAlfAndTypeRoles(nodeRefs);
+        if (!alfAndTypeRoles.alfRoles.isEmpty()) {
+            nodeInfo.createTargetAssociations(alfAndTypeRoles.alfRoles, assoc);
+        }
+        if (!alfAndTypeRoles.typeRoles.isEmpty()) {
+            nodeInfo.setProperty(assocToProp(assoc), alfAndTypeRoles.typeRoles);
+        }
     }
 
     private QName assocToProp(QName assoc) {
@@ -93,5 +101,28 @@ public class CaseRoleAssocsDao {
 
         Set<NodeRef> assocsSet = new HashSet<>();
         return result.stream().filter(assocsSet::add).collect(Collectors.toList());
+    }
+
+    private AlfAndTypeRoles splitAlfAndTypeRoles(List<NodeRef> roleRefs) {
+
+        ArrayList<NodeRef> alfRoles = new ArrayList<>();
+        ArrayList<NodeRef> typeRoles = new ArrayList<>();
+
+        for (NodeRef roleRef : roleRefs) {
+            if (caseRoleService.isAlfRole(roleRef)) {
+                alfRoles.add(roleRef);
+            } else {
+                typeRoles.add(roleRef);
+            }
+        }
+
+        return new AlfAndTypeRoles(alfRoles, typeRoles);
+    }
+
+    @Data
+    @AllArgsConstructor
+    private static class AlfAndTypeRoles {
+        ArrayList<NodeRef> alfRoles;
+        ArrayList<NodeRef> typeRoles;
     }
 }
