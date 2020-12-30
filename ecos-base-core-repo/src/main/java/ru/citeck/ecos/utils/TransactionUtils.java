@@ -8,6 +8,7 @@ import org.alfresco.service.ServiceRegistry;
 import org.alfresco.service.transaction.TransactionService;
 import org.alfresco.util.transaction.TransactionListenerAdapter;
 import org.apache.log4j.Logger;
+import org.springframework.core.task.TaskExecutor;
 import org.springframework.extensions.surf.util.I18NUtil;
 import ru.citeck.ecos.utils.performance.ActionPerformance;
 import ru.citeck.ecos.utils.performance.Performance;
@@ -22,6 +23,7 @@ public class TransactionUtils {
     private static final String AFTER_COMMIT_JOBS_KEY = TransactionUtils.class + ".after-commit-jobs";
 
     private static TransactionService transactionService;
+    private static TaskExecutor taskExecutor;
 
     public static void doBeforeCommit(final Runnable runnable) {
         doBeforeCommit(null, runnable);
@@ -70,7 +72,7 @@ public class TransactionUtils {
             AlfrescoTransactionSupport.bindListener(new TransactionListenerAdapter() {
                 @Override
                 public void afterCommit() {
-                    prepareAfterCommitJobsThread(finalJobs, currentUser, locale).start();
+                    executeAfterCommitJobsThread(finalJobs, currentUser, locale);
                 }
             });
         }
@@ -136,10 +138,9 @@ public class TransactionUtils {
         }
     }
 
-    private static Thread prepareAfterCommitJobsThread(List<Job> jobs, final String currentUser, final Locale locale) {
+    private static void executeAfterCommitJobsThread(List<Job> jobs, final String currentUser, final Locale locale) {
 
-        return new Thread(() -> {
-
+        taskExecutor.execute(() -> {
             AuthenticationUtil.setRunAsUser(currentUser);
             I18NUtil.setLocale(locale);
 
@@ -165,6 +166,7 @@ public class TransactionUtils {
                 return null;
             });
         });
+
     }
 
     private static void doInTransaction(final Runnable job) {
@@ -177,6 +179,10 @@ public class TransactionUtils {
 
     public static void setServiceRegistry(ServiceRegistry serviceRegistry) {
         transactionService = serviceRegistry.getTransactionService();
+    }
+
+    public static void setTaskExecutor(TaskExecutor taskExecutor) {
+        TransactionUtils.taskExecutor = taskExecutor;
     }
 
     private static class Job {

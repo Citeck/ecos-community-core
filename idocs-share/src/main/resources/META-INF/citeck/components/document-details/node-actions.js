@@ -563,6 +563,9 @@ define([
                     updateVersion: version,
                     suppressRefreshEvent: true,
                     overwrite: true,
+                    uploadURL: '/api/v2/citeck/upload',
+                    flashUploadURL: '/api/v2/citeck/upload',
+                    htmlUploadURL: '/api/v2/citeck/upload',
                     filter: [
                         {
                             description: description,
