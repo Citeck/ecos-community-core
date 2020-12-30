@@ -3,15 +3,13 @@ package ru.citeck.ecos.action.group;
 import com.fasterxml.jackson.databind.node.NullNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.alfresco.repo.security.authentication.AuthenticationUtil;
-import org.alfresco.repo.transaction.AlfrescoTransactionSupport;
 import org.alfresco.repo.transaction.RetryingTransactionHelper;
 import org.alfresco.service.transaction.TransactionService;
-import org.alfresco.util.transaction.TransactionListenerAdapter;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.extensions.surf.util.I18NUtil;
 import ru.citeck.ecos.action.group.impl.CustomTxnGroupAction;
 import ru.citeck.ecos.action.group.impl.GroupActionExecutor;
 import ru.citeck.ecos.action.group.impl.GroupActionExecutorFactory;
+import ru.citeck.ecos.utils.TransactionUtils;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -67,25 +65,8 @@ public class GroupActionServiceImpl implements GroupActionService {
 
         if (action.isAsync()) {
 
-            final String currentUser = AuthenticationUtil.getFullyAuthenticatedUser();
-            final Locale locale = I18NUtil.getLocale();
-
-            AlfrescoTransactionSupport.bindListener(new TransactionListenerAdapter() {
-                @Override
-                public void afterCommit() {
-                    new Thread(() -> {
-
-                        AuthenticationUtil.setRunAsUser(currentUser);
-                        I18NUtil.setLocale(locale);
-
-                        executeInTxn(execution);
-
-                    }).start();
-                }
-            });
-
+            TransactionUtils.doAfterCommit(() -> executeImpl(execution));
             return new ActionResults<>();
-
         } else {
 
             return executeInTxn(execution);

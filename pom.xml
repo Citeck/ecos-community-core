@@ -877,20 +877,6 @@
                             <type>amp</type>
                         </moduleDependency>
 
-                        <moduleDependency>
-                            <groupId>ru.citeck.ecos.community</groupId>
-                            <artifactId>contracts-repo</artifactId>
-                            <version>4.0.0</version>
-                            <type>amp</type>
-                        </moduleDependency>
-
-                        <moduleDependency>
-                            <groupId>ru.citeck.ecos.community</groupId>
-                            <artifactId>orders-repo</artifactId>
-                            <version>4.0.0</version>
-                            <type>amp</type>
-                        </moduleDependency>
-
                         <!-- Bring in the integration tests -->
                         <!--<moduleDependency>
                             <groupId>${project.groupId}</groupId>
