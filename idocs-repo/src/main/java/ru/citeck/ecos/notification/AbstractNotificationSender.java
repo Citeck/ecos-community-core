@@ -20,6 +20,7 @@ package ru.citeck.ecos.notification;
 
 import lombok.Setter;
 import org.alfresco.model.ContentModel;
+import org.alfresco.repo.node.NodeUtils;
 import org.alfresco.repo.notification.EMailNotificationProvider;
 import org.alfresco.repo.security.authentication.AuthenticationUtil;
 import org.alfresco.repo.security.authentication.AuthenticationUtil.RunAsWork;
@@ -440,13 +441,18 @@ public abstract class AbstractNotificationSender<ItemType> implements Notificati
             )).build();
 
         RecordRef recordRef = recordsService.queryOne(query);
-        NodeRef nodeRef = recordRef != null ? new NodeRef(recordRef.toString()) : null;
-        return Optional.ofNullable(getEnabledTemplate(nodeRef));
+        if (RecordRef.isEmpty(recordRef) || StringUtils.isBlank(recordRef.getId())) {
+            return Optional.empty();
+        }
+        return Optional.ofNullable(getEnabledTemplate(new NodeRef(recordRef.getId())));
     }
 
     private NodeRef getEnabledTemplate(NodeRef nodeRef) {
+        if (!NodeUtils.exists(nodeRef, nodeService)) {
+            return null;
+        }
         Boolean isDisabled = (Boolean) nodeService.getProperty(nodeRef, DmsModel.PROP_NOTIFICATION_DISABLED);
-        return isDisabled ? null : nodeRef;
+        return Boolean.TRUE.equals(isDisabled) ? null : nodeRef;
     }
 
     protected NodeRef getTemplateNodeRef(String templatePath) {
@@ -513,7 +519,7 @@ public abstract class AbstractNotificationSender<ItemType> implements Notificati
         args.put("subject", subject);
 
         Notification notification = new Notification.Builder()
-            .record(record)
+            .record((RecordRef) record)
             .templateRef(RecordRef.valueOf(template))
             .notificationType(NotificationType.EMAIL_NOTIFICATION)
             .recipients(getEmailFromAuthorityNames(recipients))
