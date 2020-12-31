@@ -510,26 +510,32 @@ public abstract class AbstractNotificationSender<ItemType> implements Notificati
                                       boolean afterCommit) {
 
         if (recipients == null || recipients.isEmpty()) {
+            if (logger.isDebugEnabled()) {
+                logger.debug("Skipped notification sending. Empty recipients list");
+            }
             return;
         }
 
         Object record = args.get("_record");
+        if (record == null) {
+            logger.warn("Skipped notification sending. Unable to determine _record param");
+            return;
+        }
+
         args.remove("_record");
 
         args.put("subject", subject);
 
         Notification notification = new Notification.Builder()
-            .record((RecordRef) record)
-            .templateRef(RecordRef.valueOf(template))
-            .notificationType(NotificationType.EMAIL_NOTIFICATION)
-            .recipients(getEmailFromAuthorityNames(recipients))
-            .additionalMeta(args)
-            .from(from)
-            .build();
+                .record((RecordRef) record)
+                .templateRef(RecordRef.valueOf(template))
+                .notificationType(NotificationType.EMAIL_NOTIFICATION)
+                .recipients(getEmailFromAuthorityNames(recipients))
+                .additionalMeta(args)
+                .from(from)
+                .build();
 
-        sendNotificationContext(() -> {
-            notificationService.send(notification);
-        }, afterCommit);
+        sendNotificationContext(() -> notificationService.send(notification), afterCommit);
     }
 
     private void sendNotificationContext(Runnable runnable, boolean afterCommit) {
@@ -654,7 +660,7 @@ public abstract class AbstractNotificationSender<ItemType> implements Notificati
     protected Set<String> getEmailFromAuthorityRefs(Collection<NodeRef> authorityRefs) {
         Set<String> result = new HashSet<>();
         for (NodeRef ref : authorityRefs) {
-            if (!nodeService.exists(ref)) {
+            if (!NodeUtils.exists(ref, nodeService)) {
                 continue;
             }
 
