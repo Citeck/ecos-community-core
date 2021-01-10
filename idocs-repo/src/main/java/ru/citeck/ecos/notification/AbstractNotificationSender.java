@@ -50,6 +50,7 @@ import ru.citeck.ecos.notification.task.record.services.EcosExecutionsTaskServic
 import ru.citeck.ecos.notifications.lib.Notification;
 import ru.citeck.ecos.notifications.lib.NotificationType;
 import ru.citeck.ecos.notifications.lib.service.NotificationService;
+import ru.citeck.ecos.records.RecordsUtils;
 import ru.citeck.ecos.records2.RecordRef;
 import ru.citeck.ecos.records2.predicate.PredicateService;
 import ru.citeck.ecos.records2.predicate.model.*;
@@ -444,7 +445,7 @@ public abstract class AbstractNotificationSender<ItemType> implements Notificati
         if (RecordRef.isEmpty(recordRef) || StringUtils.isBlank(recordRef.getId())) {
             return Optional.empty();
         }
-        return Optional.ofNullable(getEnabledTemplate(new NodeRef(recordRef.getId())));
+        return Optional.ofNullable(getEnabledTemplate(RecordsUtils.toNodeRef(recordRef)));
     }
 
     private NodeRef getEnabledTemplate(NodeRef nodeRef) {
