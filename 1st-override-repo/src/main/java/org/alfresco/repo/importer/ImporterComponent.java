@@ -1586,7 +1586,7 @@ public class ImporterComponent implements ImporterService
                     NodeRef parentNodeRef = node.getParentContext().getParentRef();
 
                     // Resolve to path within node, if one specified
-                    String path = location.getPath() + "/" + QName.createQName(node.getTypeDefinition().getName().getNamespaceURI(), node.getChildName()).toPrefixString();
+                    String path = location.getPath() + "/" + getChildName(node).toPrefixString();
                     // Search the node by name
                     List<NodeRef> nodeRefs = searchService.selectNodes(parentNodeRef, path, null, namespaceService, false);
                     if (!nodeRefs.isEmpty())
