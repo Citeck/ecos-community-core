@@ -116,7 +116,8 @@ public class AlfAutoModelServiceImpl implements AlfAutoModelService {
                     if (property != null) {
                         if (isWriteMode) {
                             String propType = property.getDataType().getName().toPrefixString(namespaceService);
-                            if (!getModelPropType(att).equals(propType)) {
+                            if (!getModelPropType(att).equals(propType)
+                                    || property.isMultiValued() != att.getMultiple()) {
                                 attributesToGenerate.computeIfAbsent(attsTypeRef, t -> new ArrayList<>()).add(att);
                             } else {
                                 resultMapping.put(att.getId(), modelQName.getLocalName() + ":" + att.getId());

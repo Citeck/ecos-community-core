@@ -4,7 +4,7 @@
 
     <groupId>ru.citeck.ecos.community</groupId>
     <artifactId>ecos-community-core</artifactId>
-    <version>4.1.0-SNAPSHOT</version>
+    <version>4.0.1</version>
     <packaging>pom</packaging>
 
     <name>ecos-community</name>
@@ -74,7 +74,7 @@
         <ecos.commands.version>1.8.2</ecos.commands.version>
         <ecos.meta-repo.version>1.1.0</ecos.meta-repo.version>
         <ecos.notifications.lib.version>1.5.0</ecos.notifications.lib.version>
-        <ecos.model-lib.version>1.9.0</ecos.model-lib.version>
+        <ecos.model-lib.version>1.8.3</ecos.model-lib.version>
 
         <spring.retry.version>1.2.4.RELEASE</spring.retry.version>
 
@@ -877,20 +877,6 @@
                             <type>amp</type>
                         </moduleDependency>
 
-                        <moduleDependency>
-                            <groupId>ru.citeck.ecos.community</groupId>
-                            <artifactId>contracts-repo</artifactId>
-                            <version>4.1.0-SNAPSHOT</version>
-                            <type>amp</type>
-                        </moduleDependency>
-
-                        <moduleDependency>
-                            <groupId>ru.citeck.ecos.community</groupId>
-                            <artifactId>orders-repo</artifactId>
-                            <version>4.1.0-SNAPSHOT</version>
-                            <type>amp</type>
-                        </moduleDependency>
-
                         <!-- Bring in the integration tests -->
                         <!--<moduleDependency>
                             <groupId>${project.groupId}</groupId>
@@ -972,14 +958,14 @@
                         <moduleDependency>
                             <groupId>ru.citeck.ecos.community</groupId>
                             <artifactId>contracts-share</artifactId>
-                            <version>4.1.0-SNAPSHOT</version>
+                            <version>4.0.0</version>
                             <type>amp</type>
                         </moduleDependency>
 
                         <moduleDependency>
                             <groupId>ru.citeck.ecos.community</groupId>
                             <artifactId>orders-share</artifactId>
-                            <version>4.1.0-SNAPSHOT</version>
+                            <version>4.0.0</version>
                             <type>amp</type>
                         </moduleDependency>
 
