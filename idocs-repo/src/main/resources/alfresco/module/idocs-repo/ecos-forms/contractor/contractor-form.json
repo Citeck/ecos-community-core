@@ -2,7 +2,8 @@
   "id": "02347243-639c-4da4-b261-8b47cbca2362",
   "formKey": "alf_idocs:contractor",
   "title": {
-    "en": "Idocs contractor form"
+    "en": "Idocs contractor form",
+    "ru": "Контрагент"
   },
   "description": {
     "en": ""
@@ -1261,7 +1262,9 @@
                             "components": [
                               {
                                 "label": "eint:ediProviderInfoAssoc",
+                                "isStaticModalTitle": true,
                                 "multiple": true,
+                                "reorder": false,
                                 "clearOnHide": false,
                                 "source": {
                                   "type": "custom",
@@ -1292,8 +1295,7 @@
                                   "attribute": "eint:ediProviderInfoAssoc"
                                 },
                                 "type": "tableForm",
-                                "input": true,
-                                "reorder": false
+                                "input": true
                               }
                             ],
                             "md": 12,

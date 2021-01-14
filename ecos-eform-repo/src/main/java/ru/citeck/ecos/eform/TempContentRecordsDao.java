@@ -103,12 +103,17 @@ public class TempContentRecordsDao implements RecordsDao, MutableRecordsDao {
                 EcosEformFileModel.TYPE_TEMP_FILE,
                 props).getChildRef();
 
-        if (StringUtils.isBlank(mimetype)) {
+        if (StringUtils.isBlank(mimetype) ||
+                !mimetypeService.getExtensionsByMimetype().containsKey(mimetype)) {
             String extension = FilenameUtils.getExtension(fileName);
-            mimetype = mimetypeService.getMimetype(extension);
-            if (StringUtils.isBlank(mimetype)) {
-                mimetype = MimetypeMap.MIMETYPE_BINARY;
+            String mimetypeByExt = mimetypeService.getMimetype(extension);
+            if (mimetypeByExt != null) {
+                mimetype = mimetypeByExt;
             }
+        }
+
+        if (StringUtils.isBlank(mimetype)) {
+            mimetype = MimetypeMap.MIMETYPE_BINARY;
         }
 
         if (StringUtils.isBlank(encoding)) {

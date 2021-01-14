@@ -50,26 +50,28 @@ public class CaseStatusServiceImpl implements CaseStatusService {
         mandatoryNodeRef("Case", caseRef);
         mandatoryNodeRef("Case status", caseStatusRef);
 
-        NodeRef beforeCaseStatus = caseStatusAssocDao.getStatusByAssoc(caseRef, ICaseModel.ASSOC_CASE_STATUS);
+        NodeRef currentCaseStatus = caseStatusAssocDao.getStatusByAssoc(caseRef, ICaseModel.ASSOC_CASE_STATUS);
 
-        if (!Objects.equals(beforeCaseStatus, caseStatusRef)) {
-            if (beforeCaseStatus != null) {
+        if (!Objects.equals(currentCaseStatus, caseStatusRef)) {
+            if (currentCaseStatus != null) {
                 clearBeforeCaseStatus(caseRef);
-                setBeforeCaseStatus(caseRef, beforeCaseStatus);
+                setBeforeCaseStatus(caseRef, currentCaseStatus);
             }
             setCaseStatus(caseRef, caseStatusRef);
             nodeService.setProperty(caseRef, ICaseModel.PROP_CASE_STATUS_CHANGED_DATETIME, new Date());
 
-            triggerStatusChanged(caseRef, caseStatusRef, beforeCaseStatus);
+            triggerStatusChanged(caseRef, caseStatusRef, currentCaseStatus);
         }
     }
 
     private void clearBeforeCaseStatus(NodeRef caseRef) {
         NodeRef beforeCaseStatus = caseStatusAssocDao.getStatusByAssoc(caseRef, ICaseModel.ASSOC_CASE_STATUS_BEFORE);
-        if (isAlfRef(beforeCaseStatus)) {
-            nodeService.removeAssociation(caseRef, beforeCaseStatus, ICaseModel.ASSOC_CASE_STATUS_BEFORE);
-        } else {
-            nodeService.setProperty(caseRef, ICaseModel.ASSOC_CASE_STATUS_BEFORE_PROP, null);
+        if (beforeCaseStatus != null) {
+            if (isAlfRef(beforeCaseStatus)) {
+                nodeService.removeAssociation(caseRef, beforeCaseStatus, ICaseModel.ASSOC_CASE_STATUS_BEFORE);
+            } else {
+                nodeService.setProperty(caseRef, ICaseModel.ASSOC_CASE_STATUS_BEFORE_PROP, null);
+            }
         }
     }
 
