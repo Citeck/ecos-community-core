@@ -13,10 +13,10 @@ import org.alfresco.service.cmr.dictionary.DictionaryService;
 import org.alfresco.service.cmr.repository.*;
 import org.alfresco.service.cmr.security.AuthorityService;
 import org.alfresco.service.cmr.security.AuthorityType;
-import org.alfresco.service.namespace.NamespaceService;
 import org.alfresco.service.namespace.QName;
 import org.alfresco.service.namespace.RegexQNamePattern;
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.BooleanUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.json.JSONException;
@@ -25,10 +25,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.extensions.surf.util.I18NUtil;
 import org.springframework.extensions.surf.util.ParameterCheck;
 import ru.citeck.ecos.commons.data.MLText;
+import ru.citeck.ecos.commons.data.ObjectData;
 import ru.citeck.ecos.model.lib.role.dto.RoleDef;
 import ru.citeck.ecos.model.lib.role.service.RoleService;
 import ru.citeck.ecos.model.lib.type.service.TypeDefService;
 import ru.citeck.ecos.node.EcosTypeService;
+import ru.citeck.ecos.records.type.TypeDto;
+import ru.citeck.ecos.records.type.TypesManager;
 import ru.citeck.ecos.records2.RecordRef;
 import ru.citeck.ecos.records3.RecordsServiceFactory;
 import ru.citeck.ecos.records3.record.request.RequestContext;
@@ -59,6 +62,7 @@ public class CaseRoleServiceImpl implements CaseRoleService {
 
     private NodeService nodeService;
 
+    private TypesManager typesManager;
     private TypeDefService typeDefService;
     private EcosTypeService ecosTypeService;
 
@@ -68,6 +72,7 @@ public class CaseRoleServiceImpl implements CaseRoleService {
     private RoleService roleService;
     private AuthorityUtils authorityUtils;
     private RecordsServiceFactory recordsServiceFactory;
+
 
     private final Map<QName, RoleDAO> rolesDaoByType = new HashMap<>();
 
@@ -81,9 +86,9 @@ public class CaseRoleServiceImpl implements CaseRoleService {
         onCaseRolesAssigneesChangedDelegate = policyComponent.registerClassPolicy(OnCaseRolesAssigneesChangedPolicy.class);
 
         normalizeRoleCache = CacheBuilder.newBuilder()
-            .maximumSize(500)
-            .expireAfterWrite(30, TimeUnit.SECONDS)
-            .build(CacheLoader.from(this::normalizeRoleRefImpl));
+                .maximumSize(500)
+                .expireAfterWrite(30, TimeUnit.SECONDS)
+                .build(CacheLoader.from(this::normalizeRoleRefImpl));
     }
 
     private NodeRef ecosRoleToNodeRef(NodeRef parentRef, String roleId) {
@@ -98,9 +103,9 @@ public class CaseRoleServiceImpl implements CaseRoleService {
     @Override
     public List<RoleDef> getRolesDef(NodeRef caseRef) {
         return getRoles(caseRef)
-            .stream()
-            .map(this::getRoleDef)
-            .collect(Collectors.toList());
+                .stream()
+                .map(this::getRoleDef)
+                .collect(Collectors.toList());
     }
 
     @Override
@@ -110,29 +115,54 @@ public class CaseRoleServiceImpl implements CaseRoleService {
             return Collections.emptyList();
         }
 
-        List<ChildAssociationRef> assocs = nodeService.getChildAssocs(caseRef, ICaseRoleModel.ASSOC_ROLES,
-                                                                               RegexQNamePattern.MATCH_ALL);
         Map<String, NodeRef> result = new HashMap<>();
-        for (ChildAssociationRef assoc : assocs) {
-            result.put(getRoleId(assoc.getChildRef()), assoc.getChildRef());
+
+        RecordRef ecosType = ecosTypeService.getEcosType(caseRef);
+        TypeDto typeDto = typesManager.getType(ecosType);
+        if (isPrioritizingAlfRolesOptionEnabled(typeDto)) {
+            result.putAll(getEcosTypeRolesForCase(ecosType, caseRef));
+            result.putAll(getAlfRolesForCase(caseRef));
+        } else {
+            result.putAll(getAlfRolesForCase(caseRef));
+            result.putAll(getEcosTypeRolesForCase(ecosType, caseRef));
         }
-        result.putAll(getEcosTypeRolesForCase(caseRef));
 
         return Collections.unmodifiableList(new ArrayList<>(result.values()));
     }
 
-    private Map<String, NodeRef> getEcosTypeRolesForCase(NodeRef caseRef) {
+    private boolean isPrioritizingAlfRolesOptionEnabled(TypeDto typeDto) {
+        if (typeDto == null) {
+            return false;
+        }
+        ObjectData attributes = typeDto.getAttributes();
+        if (attributes == null) {
+            return false;
+        }
+        String priorityUseAlfRoles = attributes.get("priorityUseAlfRoles").asText();
+        return BooleanUtils.toBoolean(priorityUseAlfRoles);
+    }
+
+    private Map<String, NodeRef> getEcosTypeRolesForCase(RecordRef ecosType, NodeRef caseRef) {
 
         Map<String, NodeRef> result = new HashMap<>();
 
-        RecordRef ecosType = ecosTypeService.getEcosType(caseRef);
         typeDefService.forEachAsc(ecosType, typeDef -> {
             typeDef.getModel()
-                .getRoles()
-                .forEach(role -> result.put(role.getId(), ecosRoleToNodeRef(caseRef, role.getId())));
+                    .getRoles()
+                    .forEach(role -> result.put(role.getId(), ecosRoleToNodeRef(caseRef, role.getId())));
             return false;
         });
 
+        return result;
+    }
+
+    private Map<String, NodeRef> getAlfRolesForCase(NodeRef caseRef) {
+        List<ChildAssociationRef> assocs = nodeService.getChildAssocs(caseRef, ICaseRoleModel.ASSOC_ROLES,
+                RegexQNamePattern.MATCH_ALL);
+        Map<String, NodeRef> result = new HashMap<>();
+        for (ChildAssociationRef assoc : assocs) {
+            result.put(getRoleId(assoc.getChildRef()), assoc.getChildRef());
+        }
         return result;
     }
 
@@ -201,9 +231,9 @@ public class CaseRoleServiceImpl implements CaseRoleService {
         if (isAlfRole(roleRef)) {
             Map<QName, Serializable> props = nodeService.getProperties(roleRef);
             return RoleDef.create()
-                .withId((String) props.get(ICaseRoleModel.PROP_VARNAME))
-                .withName(new MLText((String) props.get(ContentModel.PROP_TITLE)))
-                .build();
+                    .withId((String) props.get(ICaseRoleModel.PROP_VARNAME))
+                    .withName(new MLText((String) props.get(ContentModel.PROP_TITLE)))
+                    .build();
         }
 
         NodeRef caseRef = new NodeRef("workspace://SpacesStore/" + roleRef.getStoreRef().getIdentifier());
@@ -249,9 +279,9 @@ public class CaseRoleServiceImpl implements CaseRoleService {
         List<NodeRef> userRoles = getUserRoleRefs(caseRef, userName);
 
         return userRoles.stream()
-            .map(this::getRoleId)
-            .filter(StringUtils::isNotBlank)
-            .collect(Collectors.toList());
+                .map(this::getRoleId)
+                .filter(StringUtils::isNotBlank)
+                .collect(Collectors.toList());
     }
 
     @Override
@@ -341,9 +371,16 @@ public class CaseRoleServiceImpl implements CaseRoleService {
 
     private NodeRef normalizeRoleRefImpl(NodeRef roleRef) {
 
-        String roleId = getRoleId(roleRef);
         NodeRef caseRef = getRoleCaseRef(roleRef);
-        Map<String, NodeRef> etypeRoles = getEcosTypeRolesForCase(caseRef);
+
+        RecordRef ecosType = ecosTypeService.getEcosType(caseRef);
+        TypeDto typeDto = typesManager.getType(ecosType);
+        if (isPrioritizingAlfRolesOptionEnabled(typeDto) && isAlfRole(roleRef)) {
+            return roleRef;
+        }
+
+        String roleId = getRoleId(roleRef);
+        Map<String, NodeRef> etypeRoles = getEcosTypeRolesForCase(ecosType, caseRef);
 
         return etypeRoles.getOrDefault(roleId, roleRef);
     }
@@ -365,16 +402,16 @@ public class CaseRoleServiceImpl implements CaseRoleService {
         NodeRef finalRoleRef = roleRef;
 
         return RequestContext.doWithCtx(recordsServiceFactory, requestContext ->
-            AuthenticationUtil.runAsSystem(() ->
-                SystemContextUtil.doAsSystemJ(() ->
-                    roleService.getAssignees(caseRef, finalRoleRef.getId())
-                        .stream()
-                        .map(authorityUtils::getNodeRef)
-                        .filter(Objects::nonNull)
-                        .collect(Collectors.toSet()),
-                    requestContext
+                AuthenticationUtil.runAsSystem(() ->
+                        SystemContextUtil.doAsSystemJ(() ->
+                                        roleService.getAssignees(caseRef, finalRoleRef.getId())
+                                                .stream()
+                                                .map(authorityUtils::getNodeRef)
+                                                .filter(Objects::nonNull)
+                                                .collect(Collectors.toSet()),
+                                requestContext
+                        )
                 )
-            )
         );
     }
 
@@ -639,8 +676,8 @@ public class CaseRoleServiceImpl implements CaseRoleService {
             }
             if (idx == ASSIGNEE_DELEGATION_DEPTH_LIMIT) {
                 log.error("ROLE ASSIGNEE DELEGATION ERROR! " +
-                             "Role assignees delegates is looped. " +
-                             "RoleRef: " + roleRef + " AssigneeRef: " + assigneeRef);
+                        "Role assignees delegates is looped. " +
+                        "RoleRef: " + roleRef + " AssigneeRef: " + assigneeRef);
             }
             if (nodeService.exists(delegateRef)) {
                 delegates.add(delegateRef);
@@ -753,6 +790,11 @@ public class CaseRoleServiceImpl implements CaseRoleService {
     @Autowired
     public void setRecordsServiceFactory(RecordsServiceFactory recordsServiceFactory) {
         this.recordsServiceFactory = recordsServiceFactory;
+    }
+
+    @Autowired
+    public void setTypesManager(TypesManager typesManager) {
+        this.typesManager = typesManager;
     }
 
     @Autowired
