@@ -387,6 +387,7 @@ public class AlfNodesRecordsDAO extends LocalRecordsDao
 
         final boolean isNewNodeConst = isNewNode;
         SystemContextUtil.doAsSystemJ(() -> {
+            updateNodeDispName(resultRecord.getId());
             if (isNewNodeConst) {
                 ComputedUtils.doWithNewRecordJ(() -> {
                     storeComputedAttsForNewNode(finalNodeRef, initialAtts);
@@ -394,7 +395,6 @@ public class AlfNodesRecordsDAO extends LocalRecordsDao
                 });
                 return null;
             }
-            updateNodeDispName(resultRecord.getId());
             return null;
         });
 
