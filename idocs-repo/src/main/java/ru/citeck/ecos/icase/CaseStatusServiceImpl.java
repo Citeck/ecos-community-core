@@ -66,12 +66,12 @@ public class CaseStatusServiceImpl implements CaseStatusService {
 
     private void clearBeforeCaseStatus(NodeRef caseRef) {
         NodeRef beforeCaseStatus = caseStatusAssocDao.getStatusByAssoc(caseRef, ICaseModel.ASSOC_CASE_STATUS_BEFORE);
-        if (isAlfRef(beforeCaseStatus)) {
-            if (beforeCaseStatus != null) {
+        if (beforeCaseStatus != null) {
+            if (isAlfRef(beforeCaseStatus)) {
                 nodeService.removeAssociation(caseRef, beforeCaseStatus, ICaseModel.ASSOC_CASE_STATUS_BEFORE);
+            } else {
+                nodeService.setProperty(caseRef, ICaseModel.ASSOC_CASE_STATUS_BEFORE_PROP, null);
             }
-        } else {
-            nodeService.setProperty(caseRef, ICaseModel.ASSOC_CASE_STATUS_BEFORE_PROP, null);
         }
     }
 
