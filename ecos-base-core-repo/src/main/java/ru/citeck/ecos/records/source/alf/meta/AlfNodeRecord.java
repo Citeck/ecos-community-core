@@ -430,7 +430,7 @@ public class AlfNodeRecord implements MetaValue {
 
         String statusName = statusDef.getName().getClosestValue(I18NUtil.getLocale());
         return new StatusMetaValue(
-            statusMetaDto.getId(),
+            statusMetaDto.getEcosId(),
             statusName,
             new NodeRef("et-status://virtual/" + ecosStatusId)
         );
