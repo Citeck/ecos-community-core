@@ -1,4 +1,4 @@
-package alfresco.extension.emtypes.workflow
+package alfresco.extension.eapps.types.workflow
 
 import kotlin.Unit
 import kotlin.jvm.functions.Function1
@@ -10,7 +10,8 @@ import org.w3c.dom.Document
 import org.w3c.dom.NamedNodeMap
 import org.w3c.dom.Node
 import org.xml.sax.SAXException
-import ru.citeck.ecos.apps.module.controller.ModuleController
+import ru.citeck.ecos.apps.artifact.ArtifactMeta
+import ru.citeck.ecos.apps.artifact.controller.ArtifactController
 import ru.citeck.ecos.commons.io.file.EcosFile
 import ru.citeck.ecos.commons.utils.FileUtils
 import ru.citeck.ecos.commons.json.Json
@@ -20,9 +21,9 @@ import javax.xml.parsers.DocumentBuilderFactory
 import javax.xml.parsers.ParserConfigurationException
 import java.util.stream.Collectors
 
-return new ModuleController<Module, Unit>() {
+return new ArtifactController<Module, Unit>() {
 
-    private static final Logger log = LoggerFactory.getLogger(ModuleController.class)
+    private static final Logger log = LoggerFactory.getLogger(ArtifactController.class)
     private static final String MODULE_FILE_PATTERN = "*-module.json"
 
     private static final Set<String> VALID_DEF_EXT = new HashSet<>(Arrays.asList("xml", "bpmn"))
@@ -125,6 +126,13 @@ return new ModuleController<Module, Unit>() {
         wfDir.createFile(bpmnName, (Function1<OutputStream, Unit>) {
             OutputStream out -> out.write(module.xmlData)
         })
+    }
+
+    @Override
+    ArtifactMeta getMeta(Module module, Unit config) {
+        return ArtifactMeta.create()
+            .withId(module.id)
+            .build()
     }
 
     static class Module {

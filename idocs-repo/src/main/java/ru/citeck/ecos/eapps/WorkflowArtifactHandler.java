@@ -11,12 +11,9 @@ import org.alfresco.service.cmr.search.SearchService;
 import org.alfresco.service.namespace.NamespaceService;
 import org.alfresco.service.namespace.QName;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import ru.citeck.ecos.apps.module.handler.EcosModuleHandler;
-import ru.citeck.ecos.apps.module.handler.ModuleMeta;
-import ru.citeck.ecos.apps.module.handler.ModuleWithMeta;
+import ru.citeck.ecos.apps.app.domain.handler.EcosArtifactHandler;
 import ru.citeck.ecos.model.EcosBpmModel;
 import ru.citeck.ecos.search.ftsquery.FTSQuery;
 import ru.citeck.ecos.workflow.EcosBpmAppModelUtils;
@@ -29,25 +26,25 @@ import java.util.function.Consumer;
 
 @Slf4j
 @Component
-public class WorkflowPublisher implements EcosModuleHandler<WorkflowModule> {
+public class WorkflowArtifactHandler implements EcosArtifactHandler<WorkflowArtifact> {
 
     private static final NodeRef ROOT = new NodeRef("workspace://SpacesStore/ecos-bpm-process-root");
     private static final NodeRef CATEGORY = new NodeRef("workspace://SpacesStore/cat-doc-kind-ecos-bpm-default");
 
-    private NodeService nodeService;
-    private SearchService searchService;
-    private ContentService contentService;
+    private final NodeService nodeService;
+    private final SearchService searchService;
+    private final ContentService contentService;
     private EcosBpmAppModelUtils bpmAppUtils;
 
     @Autowired
-    public WorkflowPublisher(ServiceRegistry serviceRegistry) {
+    public WorkflowArtifactHandler(ServiceRegistry serviceRegistry) {
         this.nodeService = serviceRegistry.getNodeService();
         this.searchService = serviceRegistry.getSearchService();
         this.contentService = serviceRegistry.getContentService();
     }
 
     @Override
-    public void deployModule(@NotNull WorkflowModule module) {
+    public void deployArtifact(@NotNull WorkflowArtifact module) {
 
         String[] engineAndId = module.getId().split("\\$");
         String processId = engineAndId[1];
@@ -97,20 +94,8 @@ public class WorkflowPublisher implements EcosModuleHandler<WorkflowModule> {
         bpmAppUtils.deployProcess(finalNode);
     }
 
-    @NotNull
     @Override
-    public ModuleWithMeta<WorkflowModule> getModuleMeta(@NotNull WorkflowModule workflowModule) {
-        return new ModuleWithMeta<>(workflowModule, new ModuleMeta(workflowModule.getId()));
-    }
-
-    @Override
-    public void listenChanges(@NotNull Consumer<WorkflowModule> consumer) {
-    }
-
-    @Nullable
-    @Override
-    public ModuleWithMeta<WorkflowModule> prepareToDeploy(@NotNull WorkflowModule workflowModule) {
-        return getModuleMeta(workflowModule);
+    public void listenChanges(@NotNull Consumer<WorkflowArtifact> consumer) {
     }
 
     @Autowired
@@ -120,7 +105,7 @@ public class WorkflowPublisher implements EcosModuleHandler<WorkflowModule> {
 
     @NotNull
     @Override
-    public String getModuleType() {
+    public String getArtifactType() {
         return "workflow";
     }
 }

@@ -1,22 +1,19 @@
 package ru.citeck.ecos.eapps;
 
-import org.jetbrains.annotations.NotNull;
+import com.netflix.discovery.converters.Auto;
 import lombok.extern.slf4j.Slf4j;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import ru.citeck.ecos.apps.EcosAppsServiceFactory;
-import ru.citeck.ecos.apps.app.EcosAppsService;
-import ru.citeck.ecos.apps.app.provider.EcosAppsProvider;
-import ru.citeck.ecos.apps.module.controller.ModuleControllerService;
-import ru.citeck.ecos.apps.module.handler.ModuleHandlersService;
-import ru.citeck.ecos.apps.module.local.LocalModulesService;
-import ru.citeck.ecos.apps.module.remote.RemoteModulesService;
-import ru.citeck.ecos.apps.module.type.ModuleTypeService;
-import ru.citeck.ecos.apps.module.type.provider.ModuleTypesProvider;
+import ru.citeck.ecos.apps.app.domain.handler.ArtifactHandlerService;
+import ru.citeck.ecos.apps.app.service.LocalAppService;
+import ru.citeck.ecos.apps.artifact.ArtifactService;
+import ru.citeck.ecos.apps.artifact.type.ArtifactTypeService;
+import ru.citeck.ecos.apps.eapps.service.RemoteEappsService;
 import ru.citeck.ecos.commands.CommandsServiceFactory;
-import ru.citeck.ecos.commands.CommandsServiceFactoryConfig;
-import ru.citeck.ecos.metarepo.MetaRepoServiceFactoryConfig;
+import ru.citeck.ecos.records3.RecordsServiceFactory;
 
 import javax.annotation.PostConstruct;
 import java.util.HashMap;
@@ -26,75 +23,62 @@ import java.util.Map;
 @Configuration
 public class EcosAppsFactoryConfig extends EcosAppsServiceFactory {
 
-    @Autowired
-    private CommandsServiceFactoryConfig commandsConfig;
-    @Autowired
-    private MetaRepoServiceFactoryConfig ecosMetaConfig;
-    @Autowired
-    private EcosAppsModulesProviderImpl appsProvider;
-
     @PostConstruct
     public void init() {
         super.init();
     }
 
+    @Bean
     @NotNull
     @Override
-    public CommandsServiceFactory getCommandsServiceFactory() {
-        return commandsConfig;
-    }
-
-    @NotNull
-    public ModuleTypesProvider createModuleTypesProvider() {
-        return appsProvider;
-    }
-
-    @NotNull
-    public EcosAppsProvider createEcosAppsProvider() {
-        return appsProvider;
+    protected ArtifactHandlerService createArtifactHandlerService() {
+        return super.createArtifactHandlerService();
     }
 
     @Bean
     @NotNull
-    public ModuleTypeService createModuleTypeService() {
-        return super.createModuleTypeService();
-    }
+    @Override
+    protected ArtifactService createArtifactService() {
 
-    @Bean
-    @NotNull
-    public ModuleControllerService createModuleControllerService() {
-        return super.createModuleControllerService();
-    }
-
-    @Bean
-    @NotNull
-    public LocalModulesService createLocalModulesService() {
-
-        LocalModulesService localModulesService = super.createLocalModulesService();
+        ArtifactService artifactService = super.createArtifactService();
 
         Map<String, String> mapping = new HashMap<>();
         mapping.put("ui/form", "ecos-forms");
         mapping.put("process/cmmn", "case/templates");
 
-        localModulesService.setModuleLocations(mapping);
-        return localModulesService;
+        artifactService.setArtifactLocations(mapping);
+
+        return artifactService;
     }
 
     @Bean
     @NotNull
-    public RemoteModulesService createRemoteModulesService() {
-        return super.createRemoteModulesService();
+    @Override
+    protected ArtifactTypeService createArtifactTypeService() {
+        return super.createArtifactTypeService();
     }
 
     @Bean
     @NotNull
-    public EcosAppsService createEcosAppsService() {
-        return super.createEcosAppsService();
+    @Override
+    protected LocalAppService createLocalAppService() {
+        return super.createLocalAppService();
     }
 
     @Bean
     @NotNull
-    public ModuleHandlersService createModuleHandlers() {
-        return super.createModuleHandlers();
+    @Override
+    protected RemoteEappsService createRemoteEappsService() {
+        return super.createRemoteEappsService();
+    }
+
+    @Autowired
+    public void injectCommandsServices(CommandsServiceFactory services) {
+        setCommandsServices(services);
+    }
+
+    @Autowired
+    public void injectRecordsServices(RecordsServiceFactory services) {
+        setRecordsServices(services);
     }
 }

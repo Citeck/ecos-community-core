@@ -3,20 +3,20 @@ package ru.citeck.ecos.eapps;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import ru.citeck.ecos.apps.module.handler.EcosModuleHandler;
-import ru.citeck.ecos.apps.module.handler.ModuleHandlersService;
+import ru.citeck.ecos.apps.app.domain.handler.ArtifactHandlerService;
+import ru.citeck.ecos.apps.app.domain.handler.EcosArtifactHandler;
 
 import javax.annotation.PostConstruct;
 import java.util.List;
 
 @Slf4j
 @Component
-public class EcosModuleHandlerRegistrar {
+public class EcosArtifactHandlerRegistrar {
 
-    private List<EcosModuleHandler<?>> handlers = null;
+    private List<EcosArtifactHandler<?>> handlers = null;
 
     @Autowired
-    private ModuleHandlersService handlersService;
+    private ArtifactHandlerService handlerService;
 
     @PostConstruct
     public void registerAll() {
@@ -25,16 +25,16 @@ public class EcosModuleHandlerRegistrar {
         }
     }
 
-    private void register(EcosModuleHandler<?> handler) {
+    private void register(EcosArtifactHandler<?> handler) {
 
-        log.info("Found and registered '" + handler.getModuleType() + "' handler "
+        log.info("Found and registered '" + handler.getArtifactType() + "' handler "
             + "with name: " + handler.getClass().getSimpleName());
 
-        handlersService.register(handler);
+        handlerService.register(handler);
     }
 
     @Autowired(required = false)
-    public void setHandlers(List<EcosModuleHandler<?>> handlers) {
+    public void setHandlers(List<EcosArtifactHandler<?>> handlers) {
         this.handlers = handlers;
     }
 }

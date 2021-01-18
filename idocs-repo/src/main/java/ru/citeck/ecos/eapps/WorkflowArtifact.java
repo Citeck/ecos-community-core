@@ -3,7 +3,7 @@ package ru.citeck.ecos.eapps;
 import lombok.Data;
 
 @Data
-public class WorkflowModule {
+public class WorkflowArtifact {
     private String id;
     private byte[] xmlData;
 }
