@@ -9,6 +9,7 @@ import org.springframework.stereotype.Component;
 import ru.citeck.ecos.apps.app.domain.artifact.source.ArtifactSourceInfo;
 import ru.citeck.ecos.apps.app.domain.artifact.source.ArtifactSourceProvider;
 import ru.citeck.ecos.apps.app.domain.artifact.source.ArtifactSourceType;
+import ru.citeck.ecos.apps.app.domain.artifact.source.SourceKey;
 import ru.citeck.ecos.apps.app.service.LocalAppService;
 import ru.citeck.ecos.apps.app.util.AppDirWatchUtils;
 import ru.citeck.ecos.apps.artifact.ArtifactService;
@@ -111,9 +112,8 @@ public class EcosArtifactSourceProviderImpl implements ArtifactSourceProvider {
                         source.lastModified = Instant.now();
 
                         remoteEappsService.artifactsForceUpdate(ArtifactSourceInfo.create(builder -> {
-                            builder.withId(sourceId);
+                            builder.withKey(sourceId, ArtifactSourceType.APPLICATION);
                             builder.withLastModified(source.lastModified);
-                            builder.withType(ArtifactSourceType.APPLICATION);
                             return Unit.INSTANCE;
                         }));
                     }
@@ -135,8 +135,7 @@ public class EcosArtifactSourceProviderImpl implements ArtifactSourceProvider {
 
         sources.forEach((sourceId, source) ->
             result.add(ArtifactSourceInfo.create(builder -> {
-                builder.withType(ArtifactSourceType.APPLICATION);
-                builder.withId(sourceId);
+                builder.withKey(sourceId, ArtifactSourceType.APPLICATION);
                 builder.withLastModified(source.lastModified);
                 return Unit.INSTANCE;
             }))
@@ -147,13 +146,13 @@ public class EcosArtifactSourceProviderImpl implements ArtifactSourceProvider {
 
     @NotNull
     @Override
-    public Map<String, List<Object>> getArtifacts(@NotNull String sourceId,
+    public Map<String, List<Object>> getArtifacts(@NotNull SourceKey sourceKey,
                                                   @NotNull List<? extends TypeContext> types,
                                                   @NotNull Instant since) {
 
 
 
-        ModuleArtifactsSource source = sources.get(sourceId);
+        ModuleArtifactsSource source = sources.get(sourceKey.getId());
         if (source == null) {
             return Collections.emptyMap();
         }
