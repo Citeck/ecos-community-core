@@ -1,5 +1,7 @@
 id: workflow
 
+system: true
+
 name:
-    en: Workflow
-    ru: Бизнес-процесс
+  en: Workflow
+  ru: Бизнес-процесс

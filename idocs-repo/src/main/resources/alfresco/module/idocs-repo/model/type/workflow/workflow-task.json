@@ -1,7 +1,11 @@
 {
   "id": "workflow-task",
-  "name": "Задача бизнес-процесса",
-  "parent": "emodel/type@base",
+  "name": {
+    "ru": "Задача бизнес-процесса",
+    "en": "Workflow task"
+  },
+  "system": true,
+  "parentRef": "emodel/type@base",
   "inheritActions": true,
   "actions": [
     "uiserv/action@open-workflow-by-wftask"

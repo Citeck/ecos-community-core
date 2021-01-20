@@ -3,6 +3,9 @@ model-version: "1.0"
 
 source-id: ""
 
+# return 'false' value when processes will deploy to ecos-process
+internal: true
+
 controller:
     type: script
     config:
