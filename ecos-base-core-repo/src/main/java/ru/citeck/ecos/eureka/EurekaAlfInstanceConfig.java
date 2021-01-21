@@ -137,7 +137,7 @@ public class EurekaAlfInstanceConfig extends AbstractEurekaConfig implements Eur
         if (StringUtils.isNotBlank(userUrl)) {
             metadata.put("records-user-base-url", userUrl);
         } else {
-            metadata.put("records-user-base-url", "/share/proxy/alfresco/citeck/ecos/records/");
+            metadata.put("records-user-base-url", "/alfresco/s/citeck/ecos/records/");
         }
 
         return metadata;
