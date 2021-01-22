@@ -14,7 +14,7 @@
     <parent>
         <groupId>ru.citeck.ecos.community</groupId>
         <artifactId>ecos-community-core</artifactId>
-        <version>3.32.5</version>
+        <version>3.32.6-SNAPSHOT</version>
     </parent>
 
     <dependencies>
