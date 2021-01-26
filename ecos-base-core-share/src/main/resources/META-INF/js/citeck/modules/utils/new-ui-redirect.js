@@ -1,6 +1,7 @@
 
 define([
-    'js/citeck/modules/utils/citeck'
+    'js/citeck/modules/utils/citeck',
+    'ecosui!ecos-records'
 ], function () {
 
     var siteDashboardPattern = /^\/share\/page\/site\/([^\/]*)\/dashboard\/?$/;
