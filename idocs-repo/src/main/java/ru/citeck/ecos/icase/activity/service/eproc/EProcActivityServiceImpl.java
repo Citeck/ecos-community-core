@@ -86,6 +86,11 @@ public class EProcActivityServiceImpl implements EProcActivityService {
                 .build(CacheLoader.from(this::getProcessDefByRevIdFromMicroservice));
     }
 
+    public void resetCache() {
+        typesToRevisionIdCache.invalidateAll();
+        revisionIdToProcessDefinitionCache.invalidateAll();
+    }
+
     @Override
     public Optional<Pair<String, OptimizedProcessDefinition>> getOptimizedDefinitionWithRevisionId(RecordRef caseRef) {
 
