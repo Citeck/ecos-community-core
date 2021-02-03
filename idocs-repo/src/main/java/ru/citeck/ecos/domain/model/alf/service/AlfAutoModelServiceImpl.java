@@ -15,7 +15,6 @@ import ru.citeck.ecos.domain.model.alf.dao.AlfAutoModelsDao;
 import ru.citeck.ecos.domain.model.alf.dao.TypeModelInfo;
 import ru.citeck.ecos.model.lib.attributes.dto.AttributeDef;
 import ru.citeck.ecos.model.lib.attributes.dto.AttributeType;
-import ru.citeck.ecos.model.lib.type.repo.TypesRepo;
 import ru.citeck.ecos.model.lib.type.service.TypeDefService;
 import ru.citeck.ecos.model.lib.type.service.utils.TypeUtils;
 import ru.citeck.ecos.records2.RecordRef;
@@ -28,7 +27,6 @@ public class AlfAutoModelServiceImpl implements AlfAutoModelService {
 
     private static final String ASPECT_LOCAL_NAME = "type-aspect";
 
-    private final TypesRepo typesRepo;
     private final DictionaryDAO dictionaryDao;
     private final AlfAutoModelsDao alfAutoModelsDao;
     private final NamespaceService namespaceService;
@@ -37,7 +35,6 @@ public class AlfAutoModelServiceImpl implements AlfAutoModelService {
     @Autowired
     public AlfAutoModelServiceImpl(@Qualifier("dictionaryDAO")
                                    DictionaryDAO dictionaryDao,
-                                   TypesRepo typesRepo,
                                    AlfAutoModelsDao alfAutoModelsDao,
                                    NamespaceService namespaceService,
                                    TypeDefService typeDefService) {
@@ -46,7 +43,6 @@ public class AlfAutoModelServiceImpl implements AlfAutoModelService {
         this.namespaceService = namespaceService;
         this.typeDefService = typeDefService;
         this.dictionaryDao = dictionaryDao;
-        this.typesRepo = typesRepo;
     }
 
     @Override
@@ -146,9 +142,8 @@ public class AlfAutoModelServiceImpl implements AlfAutoModelService {
                 updateOrCreateProp(aspect, att, modelDef);
             }
 
-            dictionaryDao.putModel(modelDef.info.getModel());
-
             if (modelDef.wasChanged) {
+                dictionaryDao.putModel(modelDef.info.getModel());
                 alfAutoModelsDao.save(modelInfo.withModel(modelDef.info.getModel()));
             }
 

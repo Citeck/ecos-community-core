@@ -26,7 +26,10 @@ public class EmptyPredicateToFtsConverter implements PredicateToFtsConverter {
 
     @Override
     public void convert(Predicate predicate, FTSQuery query, PredToFtsContext context) {
+
         String attribute = ((EmptyPredicate) predicate).getAttribute();
+        attribute = context.getAttsMapping().getOrDefault(attribute, attribute);
+
         ClassAttributeDefinition attDef = dictUtils.getAttDefinition(attribute);
 
         if (isTextField(attDef)) {
