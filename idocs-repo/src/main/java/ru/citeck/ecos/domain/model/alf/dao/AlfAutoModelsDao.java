@@ -34,6 +34,7 @@ import java.io.OutputStream;
 import java.io.Serializable;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
@@ -41,8 +42,8 @@ import java.util.stream.Collectors;
 @Component
 public class AlfAutoModelsDao {
 
-    private static final QName MODELS_COUNTER_LOCK_KEY = QName.createQName(
-        "", AlfAutoModelsDao.class.getName() + "-models-counter");
+    private static final QName MODELS_LOCK_KEY = QName.createQName(
+        "", AlfAutoModelsDao.class.getName() + "-models-key");
 
     private static final String MODELS_ROOT = "/app:company_home/app:dictionary/cm:ecos-auto-models";
     private static final String MODEL_URI = "http://www.citeck.ru/automodel/%s/1.0";
@@ -55,6 +56,7 @@ public class AlfAutoModelsDao {
     private final JobLockService jobLockService;
 
     private final LoadingCache<RecordRef, Optional<QName>> modelQNameByTypeRefCache;
+    private final Map<RecordRef, NodeRef> modelNodeRefByType = new ConcurrentHashMap<>();
 
     @Autowired
     public AlfAutoModelsDao(
@@ -91,33 +93,6 @@ public class AlfAutoModelsDao {
         String modelPrefix = nodeUtils.getProperty(nodeRef, EcosAutoModel.PROP_MODEL_PREFIX);
         String modelUri = String.format(MODEL_URI, modelPrefix);
         return Optional.of(QName.createQName(modelUri, modelPrefix));
-    }
-
-    private synchronized long getModelsCounterValue() {
-
-        String lock = jobLockService.getLock(MODELS_COUNTER_LOCK_KEY, 5_000, 1_000, 3);
-
-        try {
-
-            return transactionService.getRetryingTransactionHelper().doInTransaction(() -> {
-
-                NodeRef modelsRoot = nodeUtils.getNodeRef(MODELS_ROOT);
-                Long counterValue = nodeUtils.getProperty(modelsRoot, EcosAutoModel.PROP_MODELS_COUNTER);
-                if (counterValue == null) {
-                    counterValue = 0L;
-                }
-                nodeService.setProperty(modelsRoot, EcosAutoModel.PROP_MODELS_COUNTER, counterValue + 1);
-                return counterValue;
-
-            }, false, true);
-
-        } finally {
-            try {
-                jobLockService.releaseLock(lock, MODELS_COUNTER_LOCK_KEY);
-            } catch (Exception e) {
-                log.debug("Lock release failed. Lock: " + lock + " Key: " + MODELS_COUNTER_LOCK_KEY, e);
-            }
-        }
     }
 
     public List<TypeModelInfo> getAllModels() {
@@ -168,49 +143,16 @@ public class AlfAutoModelsDao {
     }
 
     @NotNull
-    public TypeModelInfo getOrCreateModelByTypeRef(@NotNull RecordRef typeRef) {
+    public synchronized TypeModelInfo getOrCreateModelByTypeRef(@NotNull RecordRef typeRef) {
 
-        NodeRef modelRef = getModelRefByTypeRef(typeRef);
-
-        if (modelRef == null) {
-
-            String typeRefStr = typeRef.toString();
-            Digest digest = DigestUtils.getDigest(typeRefStr.getBytes(StandardCharsets.UTF_8), DigestAlgorithm.MD5);
-            String modelPrefix = "p-" + digest.getHash().substring(0, 4).toLowerCase() + "-" + getModelsCounterValue();
-
-            NodeRef parentRef = nodeUtils.getNodeRef(MODELS_ROOT);
-            Map<QName, Serializable> props = new HashMap<>();
-
-            String validNodeName = NameUtils.escape(typeRefStr);
-            props.put(ContentModel.PROP_NAME, validNodeName + ".xml");
-            props.put(EcosAutoModel.PROP_ECOS_TYPE_REF, typeRefStr);
-            props.put(EcosAutoModel.PROP_MODEL_PREFIX, modelPrefix);
-
-            QName assocName = QName.createQNameWithValidLocalName(
-                NamespaceService.CONTENT_MODEL_1_0_URI, validNodeName);
-
-            modelRef = nodeService.createNode(
-                parentRef,
-                ContentModel.ASSOC_CONTAINS,
-                assocName,
-                EcosAutoModel.TYPE_MODEL_DEF,
-                props
-            ).getChildRef();
-
-            String modelUri = String.format(MODEL_URI, modelPrefix);
-            M2Model model = M2Model.createModel(modelPrefix + ":model");
-            model.createNamespace(modelUri, modelPrefix);
-            model.createImport(NamespaceService.DICTIONARY_MODEL_1_0_URI, "d");
-            saveModelInfo(modelRef, model);
-
-            AlfrescoTransactionSupport.bindListener(new TransactionListenerAdapter() {
-                @Override
-                public void afterCommit() {
-                    modelQNameByTypeRefCache.invalidate(typeRef);
-                }
-            });
-
-            modelQNameByTypeRefCache.invalidate(typeRef);
+        NodeRef modelRef = modelNodeRefByType.computeIfAbsent(typeRef, this::getOrCreateModelByTypeRefImpl);
+        if (!nodeService.exists(modelRef)) {
+            modelNodeRefByType.remove(typeRef);
+            modelRef = modelNodeRefByType.computeIfAbsent(typeRef, this::getOrCreateModelByTypeRefImpl);
+            if (!nodeService.exists(modelRef)) {
+                throw new RuntimeException("Model nodeRef doesn't exists " +
+                    "for type: " + typeRef + ". NodeRef: " + modelRef);
+            }
         }
 
         NodeRef finalModelRef = modelRef;
@@ -218,6 +160,98 @@ public class AlfAutoModelsDao {
         return readModel(modelRef)
             .orElseThrow(() -> new IllegalStateException(
                 "Model read failed for type " + typeRef + " ModelRef: " + finalModelRef));
+    }
+
+    @NotNull
+    private NodeRef getOrCreateModelByTypeRefImpl(@NotNull RecordRef typeRef) {
+
+        NodeRef modelRef = getModelRefByTypeRef(typeRef);
+
+        if (modelRef != null) {
+            return modelRef;
+        }
+
+        String lock = jobLockService.getLock(MODELS_LOCK_KEY, 5_000, 500, 6);
+
+        try {
+
+            return transactionService.getRetryingTransactionHelper().doInTransaction(() -> {
+
+                NodeRef newModelRef = getModelRefByTypeRef(typeRef);
+                if (newModelRef != null) {
+                    return newModelRef;
+                }
+
+                newModelRef = createNewModel(typeRef);
+
+                AlfrescoTransactionSupport.bindListener(new TransactionListenerAdapter() {
+                    @Override
+                    public void afterCommit() {
+                        modelQNameByTypeRefCache.invalidate(typeRef);
+                    }
+                });
+
+                modelQNameByTypeRefCache.invalidate(typeRef);
+
+                return newModelRef;
+
+            }, false, true);
+        } finally {
+            try {
+                jobLockService.releaseLock(lock, MODELS_LOCK_KEY);
+            } catch (Exception e) {
+                log.debug("Lock release failed. Lock: " + lock + " Key: " + MODELS_LOCK_KEY, e);
+            }
+        }
+    }
+
+    private NodeRef createNewModel(RecordRef typeRef) {
+
+        String typeRefStr = typeRef.toString();
+        Digest digest = DigestUtils.getDigest(
+            typeRefStr.getBytes(StandardCharsets.UTF_8),
+            DigestAlgorithm.MD5
+        );
+        String hash = digest.getHash().substring(0, 4).toLowerCase();
+        String modelPrefix = "p-" + hash + "-" + getNextModelsCounter();
+
+        NodeRef parentRef = nodeUtils.getNodeRef(MODELS_ROOT);
+        Map<QName, Serializable> props = new HashMap<>();
+
+        String validNodeName = NameUtils.escape(typeRefStr);
+        props.put(ContentModel.PROP_NAME, validNodeName + ".xml");
+        props.put(EcosAutoModel.PROP_ECOS_TYPE_REF, typeRefStr);
+        props.put(EcosAutoModel.PROP_MODEL_PREFIX, modelPrefix);
+
+        QName assocName = QName.createQNameWithValidLocalName(
+            NamespaceService.CONTENT_MODEL_1_0_URI, validNodeName);
+
+        NodeRef newModelRef = nodeService.createNode(
+            parentRef,
+            ContentModel.ASSOC_CONTAINS,
+            assocName,
+            EcosAutoModel.TYPE_MODEL_DEF,
+            props
+        ).getChildRef();
+
+        String modelUri = String.format(MODEL_URI, modelPrefix);
+        M2Model model = M2Model.createModel(modelPrefix + ":model");
+        model.createNamespace(modelUri, modelPrefix);
+        model.createImport(NamespaceService.DICTIONARY_MODEL_1_0_URI, "d");
+        saveModelInfo(newModelRef, model);
+
+        return newModelRef;
+    }
+
+    private long getNextModelsCounter() {
+
+        NodeRef modelsRoot = nodeUtils.getNodeRef(MODELS_ROOT);
+        Long counterValue = nodeUtils.getProperty(modelsRoot, EcosAutoModel.PROP_MODELS_COUNTER);
+        if (counterValue == null) {
+            counterValue = 0L;
+        }
+        nodeService.setProperty(modelsRoot, EcosAutoModel.PROP_MODELS_COUNTER, counterValue + 1);
+        return counterValue;
     }
 
     @Nullable
