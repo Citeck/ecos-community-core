@@ -72,7 +72,7 @@ public class TransactionUtils {
             AlfrescoTransactionSupport.bindListener(new TransactionListenerAdapter() {
                 @Override
                 public void afterCommit() {
-                    executeAfterCommitJobsThread(finalJobs, currentUser, locale);
+                    executeAfterCommitJobs(finalJobs, currentUser, locale);
                 }
             });
         }
@@ -138,35 +138,47 @@ public class TransactionUtils {
         }
     }
 
-    private static void executeAfterCommitJobsThread(List<Job> jobs, final String currentUser, final Locale locale) {
+    private static void executeAfterCommitJobs(List<Job> jobs, final String currentUser, final Locale locale) {
 
         taskExecutor.execute(() -> {
-            AuthenticationUtil.setRunAsUser(currentUser);
+
+            Locale localeBefore = I18NUtil.getLocale();
             I18NUtil.setLocale(locale);
 
-            AuthenticationUtil.runAsSystem(() -> {
-
-                for (int i = 0; i < jobs.size(); i++) {
-                    Job job = jobs.get(i);
-                    try {
-                        List<Job> newJobs = new ArrayList<>();
-                        doInTransaction(() -> {
-                            newJobs.clear();
-                            AlfrescoTransactionSupport.bindResource(AFTER_COMMIT_JOBS_KEY, newJobs);
-                            job.runnable.run();
-                        });
-                        jobs.addAll(newJobs);
-                    } catch (Exception e) {
-                        LOG.error("Exception while job running", e);
-                        if (job.errorHandler != null) {
-                            doInTransaction(() -> job.errorHandler.accept(e));
-                        }
-                    }
-                }
-                return null;
-            });
+            try {
+                AuthenticationUtil.clearCurrentSecurityContext();
+                AuthenticationUtil.runAs(() -> {
+                    AuthenticationUtil.runAsSystem(() -> {
+                        executeAfterCommitJobsImpl(jobs);
+                        return null;
+                    });
+                    return null;
+                }, currentUser);
+            } finally {
+                I18NUtil.setLocale(localeBefore);
+            }
         });
+    }
 
+    private static void executeAfterCommitJobsImpl(List<Job> jobs) {
+
+        for (int i = 0; i < jobs.size(); i++) {
+            Job job = jobs.get(i);
+            try {
+                List<Job> newJobs = new ArrayList<>();
+                doInTransaction(() -> {
+                    newJobs.clear();
+                    AlfrescoTransactionSupport.bindResource(AFTER_COMMIT_JOBS_KEY, newJobs);
+                    job.runnable.run();
+                });
+                jobs.addAll(newJobs);
+            } catch (Exception e) {
+                LOG.error("Exception while job running", e);
+                if (job.errorHandler != null) {
+                    doInTransaction(() -> job.errorHandler.accept(e));
+                }
+            }
+        }
     }
 
     private static void doInTransaction(final Runnable job) {
