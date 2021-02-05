@@ -579,7 +579,7 @@ public class AlfNodesRecordsDAO extends LocalRecordsDao
         Map<Locale, String> dispName;
 
         if (typeDto.getDispNameTemplate() != null) {
-            dispName = typeDto.getDispNameTemplate().getAsMap();
+            dispName = typeDto.getDispNameTemplate().getValues();
         } else {
             dispName = Collections.emptyMap();
         }
@@ -611,7 +611,7 @@ public class AlfNodesRecordsDAO extends LocalRecordsDao
         if (name == null) {
 
             if (dispName.isEmpty() && typeDto.getName() != null) {
-                dispName = typeDto.getName().getAsMap();
+                dispName = typeDto.getName().getValues();
             }
 
             String newName;
