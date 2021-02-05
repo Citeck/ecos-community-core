@@ -86,29 +86,23 @@ var utils = {
     restartActivity: function(name) {
         var activity = this.getActivityByName(name);
         if (activity) {
-            caseActivityService.reset(activity);
-            caseActivityService.startActivity(activity);
+            CaseActivityService.reset(activity);
+            CaseActivityService.startActivity(activity);
         }
     },
 
     resetActivity: function(name) {
         var activity = this.getActivityByName(name);
-        if (activity) caseActivityService.reset(activity);
+        if (activity) CaseActivityService.reset(activity);
     },
 
     startActivity: function(name) {
         var activity = this.getActivityByName(name);
-        if (activity) caseActivityService.startActivity(activity);
+        if (activity) CaseActivityService.startActivity(activity);
     },
 
-    //TODO: use caseActivityService
     getActivityByName: function(name) {
-        var activities = document.childAssocs['activ:activities'] || [];
-        for (var i in activities) {
-            if (activities[i].properties['cm:name'] == name) {
-                return activities[i];
-            }
-        }
+        return CaseActivityService.getActivityByName(document, name)
     },
 
     getActiveWorkflowByTaskType: function(taskType) {
@@ -248,7 +242,7 @@ var utils = {
 
     resetCase: function () {
         //reset activities
-        caseActivityService.reset(document);
+        CaseActivityService.reset(document);
 
         historyService.removeEventsByDocument(document);
 
