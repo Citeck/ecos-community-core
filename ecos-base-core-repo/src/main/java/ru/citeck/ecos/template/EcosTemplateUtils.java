@@ -4,7 +4,7 @@ import lombok.Setter;
 import org.alfresco.repo.template.BaseTemplateProcessorExtension;
 import org.alfresco.web.scripts.WebScriptUtils;
 
-public class LocaleTemplate extends BaseTemplateProcessorExtension {
+public class EcosTemplateUtils extends BaseTemplateProcessorExtension {
     @Setter
     private WebScriptUtils utilsScript;
 
