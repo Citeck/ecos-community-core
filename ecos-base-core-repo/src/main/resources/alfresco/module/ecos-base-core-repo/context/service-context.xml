@@ -303,7 +303,7 @@
     <bean id="ecosLocaleTemplate"
           class="ru.citeck.ecos.template.EcosTemplateUtils"
           parent="baseTemplateImplementation">
-        <property name="extensionName" value="ecosTemplateUtils" />
+        <property name="extensionName" value="ecosUtils" />
         <property name="utilsScript" ref="utilsScript" />
     </bean>
 
