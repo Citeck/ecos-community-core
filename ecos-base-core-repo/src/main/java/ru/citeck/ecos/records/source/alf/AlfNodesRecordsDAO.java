@@ -392,7 +392,6 @@ public class AlfNodesRecordsDAO extends LocalRecordsDao
                     storeComputedAttsForNewNode(finalNodeRef, initialAtts);
                     return null;
                 });
-                return null;
             }
             updateNodeDispName(resultRecord.getId());
             return null;
