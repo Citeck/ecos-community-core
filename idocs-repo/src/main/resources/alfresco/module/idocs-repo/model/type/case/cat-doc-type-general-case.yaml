@@ -1,0 +1,15 @@
+
+id: cat-doc-type-general-case
+name:
+  en: General     case
+  ru: Стандартный  кейс
+
+parent: emodel/type@case
+sourceId: alfresco/
+
+inheritActions: true
+
+journalRef: "uiserv/journal@general-case"
+formRef: "uiserv/eform@a5280678-0d7e-4f60-abbc-f7929da00980"
+
+defaultCreateVariant: true

@@ -2,8 +2,8 @@ package ru.citeck.ecos.records.source.alf.meta;
 
 import org.jetbrains.annotations.Nullable;
 import ru.citeck.ecos.graphql.AlfGqlContext;
-import ru.citeck.ecos.model.lib.role.service.StatusService;
 import ru.citeck.ecos.model.lib.status.dto.StatusDef;
+import ru.citeck.ecos.model.lib.status.service.StatusService;
 import ru.citeck.ecos.records2.RecordRef;
 import ru.citeck.ecos.records2.graphql.meta.value.MetaValue;
 import ru.citeck.ecos.records2.graphql.meta.value.SimpleMetaEdge;

@@ -17,7 +17,7 @@ import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 import ru.citeck.ecos.graphql.node.GqlAlfNode;
 import ru.citeck.ecos.graphql.node.GqlQName;
-import ru.citeck.ecos.model.lib.role.service.StatusService;
+import ru.citeck.ecos.model.lib.status.service.StatusService;
 import ru.citeck.ecos.records2.RecordsService;
 import ru.citeck.ecos.records2.graphql.GqlContext;
 import ru.citeck.ecos.security.EcosPermissionService;

@@ -27,9 +27,9 @@ import ru.citeck.ecos.graphql.node.Attribute;
 import ru.citeck.ecos.graphql.node.GqlAlfNode;
 import ru.citeck.ecos.graphql.node.GqlQName;
 import ru.citeck.ecos.model.EcosModel;
-import ru.citeck.ecos.model.lib.role.service.StatusService;
-import ru.citeck.ecos.model.lib.status.constants.StatusAtts;
+import ru.citeck.ecos.model.lib.status.constants.StatusConstants;
 import ru.citeck.ecos.model.lib.status.dto.StatusDef;
+import ru.citeck.ecos.model.lib.status.service.StatusService;
 import ru.citeck.ecos.node.AlfNodeContentPathRegistry;
 import ru.citeck.ecos.node.AlfNodeInfo;
 import ru.citeck.ecos.node.DisplayNameService;
@@ -321,7 +321,7 @@ public class AlfNodeRecord implements MetaValue {
                 attribute = MetaUtils.toMetaValues(docSumService.getSum(nodeRef), context, field);
                 break;
 
-            case StatusAtts.STATUS: {
+            case StatusConstants.ATT_STATUS: {
 
                 StatusMetaValue statusMeta = getCaseStatusMeta(context);
                 if (statusMeta != null) {
@@ -528,10 +528,9 @@ public class AlfNodeRecord implements MetaValue {
 
     @Override
     public MetaEdge getEdge(String name, MetaField field) {
-        if (name.equals(StatusAtts.STATUS)) {
+        if (name.equals(StatusConstants.ATT_STATUS)) {
             return new EcosStatusEdge(recordRef, context, this);
         }
-
         return getAlfNodeMetaEdge(name);
     }
 

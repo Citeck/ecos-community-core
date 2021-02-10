@@ -4,34 +4,21 @@
     "ru": "Контрагент",
     "en": "Contractor"
   },
-  "description": {
-    "en": ""
-  },
-  "parentRef": "emodel/type@base",
   "formRef": "uiserv/eform@02347243-639c-4da4-b261-8b47cbca2362",
-  "journalRef": "",
-  "system": false,
+  "journalRef": "uiserv/journal@idocs-contractor",
+
   "inheritActions": false,
   "inheritForm": true,
-  "dispNameTemplate": {
-    "ru": "",
-    "en": ""
-  },
-  "numTemplateRef": "",
+
   "inheritNumTemplate": false,
   "createVariants": [
     {
       "id": "main-form",
       "name": {
-        "ru": "Main form",
-        "en": "Main form"
+        "ru": "Создать контрагента",
+        "en": "Create contractor"
       },
-      "formRef": "uiserv/eform@02347243-639c-4da4-b261-8b47cbca2362",
-      "recordRef": "dict@idocs:contractor",
-      "attributes": {}
+      "recordRef": "alfresco/dict@idocs:contractor"
     }
-  ],
-  "attributes": {},
-  "configFormRef": "",
-  "config": {}
+  ]
 }

@@ -227,64 +227,6 @@
         </headers>
     </journal>
 
-    <journal id="general-case">
-        <option name="type">ecos:case</option>
-        <option name="doubleClickId">nodeRef</option>
-        <option name="doubleClickLink">card-details?nodeRef={id}</option>
-        <option name="typeRef">emodel/type@cat-doc-type-general-case</option>
-        <headers>
-            <header key="tk:kind" default="true" >
-                <criterion>
-                    <region name="input" template="select" />
-                        <invariant on="options" language="javascript"><![CDATA[
-                    (function() {
-                        var filterHelper = {
-                            loadTypes : function () {
-                                var url = Alfresco.constants.PROXY_URI + 'citeck/node/child-assocs?nodeRef=' +
-                                'workspace://SpacesStore/cat-doc-type-general-case' +
-                                '&amp;assocType=cm:subcategories';
-                                var request = new XMLHttpRequest();
-                                request.open('GET', url, false);
-                                request.send(null);
-                                if (request.status === 200) {
-                                    var jsonResult = JSON.parse(request.response);
-                                    if (jsonResult && jsonResult.nodes && jsonResult.nodes.length > 0) {
-                                        return jsonResult.nodes;
-                                    }
-                                }
-                            }
-                        };
-                        return filterHelper.loadTypes();
-                    })()
-                    ]]></invariant>
-                </criterion>
-            </header>
-            <header key="cm:name" default="true" />
-            <header key="idocs:note" default="true" />
-            <header key="ecos:documentNumber" default="true" />
-            <header key="ecos:documentDate" default="true" />
-            <header key="idocs:legalEntity" default="true" />
-            <header key="idocs:contractor" default="true" />
-            <header key="ecos:documentAmount" default="true" />
-            <header key="idocs:currencyDocument" default="true" />
-            <header key="ecos:VAT" default="true" />
-            <header key="ecos:startDate" default="true" />
-            <header key="ecos:stopDate" default="true" />
-        </headers>
-    </journal>
-
-    <journal id="routes">
-        <option name="type">route:route</option>
-        <option name="doubleClickId">nodeRef</option>
-        <option name="doubleClickLink">card-details?nodeRef={id}</option>
-        <option name="formId">filters</option>
-        <headers>
-            <header key="cm:name" default="true" />
-            <header key="route:stages" default="true" />
-            <header key="cm:taggable" default="true" />
-        </headers>
-    </journal>
-
     <journal id="business-calendar">
         <option name="type">bcal:calendar</option>
         <option name="doubleClickId">nodeRef</option>
