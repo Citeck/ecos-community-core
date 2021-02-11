@@ -1,0 +1,11 @@
+
+id: country-iso3166
+
+journalRef: uiserv/journal@country-iso3166
+
+sourceId: alfresco/
+
+createVariants:
+  - id: create
+    attributes:
+      TYPE: 'idocs:countryISO3166'

@@ -1,8 +1,8 @@
 
 id: cat-doc-type-general-case
 name:
-  en: General     case
-  ru: Стандартный  кейс
+  en: General case
+  ru: Стандартный кейс
 
 parent: emodel/type@case
 sourceId: alfresco/

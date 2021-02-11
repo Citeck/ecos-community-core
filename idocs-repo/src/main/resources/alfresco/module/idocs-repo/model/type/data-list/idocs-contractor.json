@@ -4,6 +4,7 @@
     "ru": "Контрагент",
     "en": "Contractor"
   },
+  "sourceId": "alfresco/",
   "formRef": "uiserv/eform@02347243-639c-4da4-b261-8b47cbca2362",
   "journalRef": "uiserv/journal@idocs-contractor",
 
@@ -18,7 +19,9 @@
         "ru": "Создать контрагента",
         "en": "Create contractor"
       },
-      "recordRef": "alfresco/dict@idocs:contractor"
+      "attributes": {
+        "TYPE": "idocs:contractor"
+      }
     }
   ]
 }
