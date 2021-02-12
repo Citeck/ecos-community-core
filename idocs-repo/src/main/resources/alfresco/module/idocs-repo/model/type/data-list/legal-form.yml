@@ -1,0 +1,17 @@
+
+id: legal-form
+
+name:
+  en: Legal Form
+  ru: Организационно-правовая форма
+
+parentRef: emodel/type@data-list
+journalRef: uiserv/journal@legal-form
+formRef: uiserv/eform@legal-form-form
+
+createVariants:
+  - id: create
+    attributes:
+      TYPE: idocs:legalForm
+      _parent: /app:company_home/app:dictionary/cm:dataLists/cm:legal-form
+

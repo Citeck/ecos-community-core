@@ -1,0 +1,19 @@
+
+id: currency
+label: { ru: Валюта, en: Currency }
+
+actions:
+  - uiserv/action@edit
+
+predicate:
+  t: and
+  val:
+    - { t: eq, att: _type, val: ''}
+    - { t: eq, att: TYPE, val: idocs:currency }
+
+columns:
+  - name: idocs:currencyCode
+  - name: idocs:currencyName
+    visible: false
+  - name: cm:title
+  - name: idocs:currencyRate

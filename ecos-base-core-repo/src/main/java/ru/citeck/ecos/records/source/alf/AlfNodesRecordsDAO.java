@@ -125,6 +125,16 @@ public class AlfNodesRecordsDAO extends LocalRecordsDao
     private RecordMeta processSingleRecord(RecordMeta record) {
 
         ObjectData initialAtts = record.getAtts().deepCopy();
+        initialAtts.forEachJ((k, v) -> {
+            if (v.isTextual()) {
+                String textValue = v.asText();
+                if (textValue.startsWith("alfresco/@")) {
+                    initialAtts.set(k, textValue.replaceFirst("alfresco/@", ""));
+                }
+            }
+        });
+
+        ObjectData attributes = initialAtts.deepCopy();
 
         RecordMeta resultRecord;
         Map<QName, Serializable> props = new HashMap<>();
@@ -138,8 +148,6 @@ public class AlfNodesRecordsDAO extends LocalRecordsDao
         if (record.getId().getId().startsWith("workspace://SpacesStore/")) {
             nodeRef = new NodeRef(record.getId().getId());
         }
-
-        ObjectData attributes = record.getAttributes();
 
         // if we get "att_add_someAtt" and "someAtt", then ignore "att_add_*"
         attributes.forEachJ((name, value) -> {
@@ -663,7 +671,7 @@ public class AlfNodesRecordsDAO extends LocalRecordsDao
         if (type.isEmpty()) {
             type = record.getAttribute(RecordConstants.ATT_TYPE, "");
             if (type.startsWith("emodel")) {
-                type = "";
+                type = "ecos:case";
             }
         }
 
@@ -683,6 +691,9 @@ public class AlfNodesRecordsDAO extends LocalRecordsDao
 
         String parent = record.getAttribute(RecordConstants.ATT_PARENT, "");
         if (!parent.isEmpty()) {
+            if (parent.startsWith("alfresco/@")) {
+                parent = parent.replaceFirst("alfresco/@", "");
+            }
             if (parent.startsWith("workspace")) {
                 return new NodeRef(parent);
             }

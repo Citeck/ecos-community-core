@@ -1,0 +1,23 @@
+
+id: ecosConfig
+
+label: { ru: Конфигурация, en: Config }
+
+predicate:
+  t: and
+  val:
+    - t: eq
+      att: TYPE
+      val: config:ecosConfig
+    - t: eq
+      att: _type
+      val: ''
+
+actions:
+  - uiserv/action@edit
+
+columns:
+  - name: cm:title
+  - name: config:key
+  - name: config:value
+  - name: cm:description

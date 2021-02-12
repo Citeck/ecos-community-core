@@ -1,0 +1,14 @@
+
+id: ecos-config-type
+
+name: { ru: Конфигурация, en: Config }
+
+parentRef: emodel/type@data-list
+formRef: uiserv/eform@config_ecosConfig
+journalRef: uiserv/journal@ecosConfig
+
+createVariants:
+  - id: create
+    attributes:
+      TYPE: config:ecosConfig
+      _parent: /app:company_home/app:dictionary/cm:IDocsRoot/cm:ecos-config-root
