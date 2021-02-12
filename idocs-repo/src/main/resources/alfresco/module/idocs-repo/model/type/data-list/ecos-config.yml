@@ -1,0 +1,13 @@
+
+id: ecos-config-type
+
+name: { ru: Конфигурация, en: Config }
+
+sourceId: alfresco/
+
+journalRef: uiserv/journal@ecosConfig
+
+createVariants:
+  - id: create
+    attributes:
+      TYPE: config:ecosConfig

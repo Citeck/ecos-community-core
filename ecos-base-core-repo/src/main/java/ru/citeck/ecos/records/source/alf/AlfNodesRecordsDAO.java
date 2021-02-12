@@ -683,6 +683,9 @@ public class AlfNodesRecordsDAO extends LocalRecordsDao
 
         String parent = record.getAttribute(RecordConstants.ATT_PARENT, "");
         if (!parent.isEmpty()) {
+            if (parent.startsWith("alfresco/@")) {
+                parent = parent.replaceFirst("alfresco/@", "");
+            }
             if (parent.startsWith("workspace")) {
                 return new NodeRef(parent);
             }
