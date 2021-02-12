@@ -29,46 +29,6 @@
         </headers>
     </journal>
 
-    <journal id="legal-entities">
-        <option name="type">idocs:legalEntity</option>
-        <option name="doubleClickId">nodeRef</option>
-        <option name="doubleClickLink">card-details?nodeRef={id}</option>
-        <option name="createVariantRedirectionMethod">back</option>
-        <headers>
-            <header key="idocs:fullOrganizationName" default="true" />
-            <header key="idocs:shortOrganizationName" />
-            <header key="idocs:inn" default="true" />
-            <header key="idocs:kpp" default="true" />
-            <header key="idocs:okpo" />
-            <header key="idocs:ogrn" />
-            <header key="idocs:juridicalAddress" />
-            <header key="idocs:postAddress" />
-            <header key="idocs:generalDirector" default="true" />
-            <header key="idocs:accountantGeneral" />
-            <header key="idocs:phoneNumber" />
-        </headers>
-    </journal>
-    <journal id="idocs-contractor">
-        <option name="type">idocs:contractor</option>
-        <option name="doubleClickId">nodeRef</option>
-        <option name="doubleClickLink">card-details?nodeRef={id}</option>
-        <option name="createVariantRedirectionMethod">back</option>
-        <headers>
-            <header key="idocs:fullOrganizationName" default="true" />
-            <header key="idocs:shortOrganizationName" />
-            <header key="idocs:contractorType" default="true" />
-            <header key="idocs:inn" default="true" />
-            <header key="idocs:kpp" default="true" />
-            <header key="idocs:ogrn"/>
-            <header key="idocs:juridicalAddress" />
-            <header key="idocs:postAddress" />
-            <header key="idocs:phone" />
-            <header key="idocs:fax" />
-            <header key="idocs:email" />
-            <header key="idocs:CEOname" default="true" />
-            <header key="icase:caseStatusAssoc" default="true" sortable="false"/>
-        </headers>
-    </journal>
     <journal id="files-nomenclature">
         <option name="type">idocs:filesNomenclature</option>
         <option name="formId">search</option>
@@ -82,6 +42,7 @@
             <header key="idocs:fileYear" default="true" />
         </headers>
     </journal>
+
     <journal id="currency">
         <option name="type">idocs:currency</option>
         <option name="doubleClickId">nodeRef</option>
@@ -94,6 +55,7 @@
             <header key="idocs:currencyRate" default="true" />
         </headers>
     </journal>
+
     <journal id="currency-rates">
         <option name="type">idocs:currencyRateRecord</option>
         <option name="doubleClickId">nodeRef</option>
@@ -275,18 +237,6 @@
         </headers>
     </journal>
 
-    <journal id="legal-form">
-        <option name="type">idocs:legalForm</option>
-        <option name="doubleClickId">nodeRef</option>
-        <option name="doubleClickLink">card-details?nodeRef={id}</option>
-        <option name="createVariantRedirectionMethod">back</option>
-        <headers>
-            <header key="idocs:legalFormName" default="true"/>
-            <header key="idocs:legalFormDescription" default="true"/>
-            <header key="idocs:legalFormCountry" default="true"/>
-        </headers>
-    </journal>
-
     <journal id="attorney">
         <option name="type">idocs:personAttorney</option>
         <option name="doubleClickId">nodeRef</option>
@@ -297,18 +247,6 @@
             <header key="idocs:numberPass" default="true"/>
             <header key="idocs:whoIssuedPass" default="true"/>
             <header key="idocs:passIssueDate" default="true"/>
-        </headers>
-    </journal>
-
-    <journal id="country-iso3166">
-        <option name="type">idocs:countryISO3166</option>
-        <option name="doubleClickId">nodeRef</option>
-        <option name="doubleClickLink">card-details?nodeRef={id}</option>
-        <option name="createVariantRedirectionMethod">back</option>
-        <headers>
-            <header key="cm:title" default="true"/>
-            <header key="idocs:countryISO3166Name" default="true"/>
-            <header key="idocs:countryISO31661Code" default="true"/>
         </headers>
     </journal>
 

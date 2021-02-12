@@ -10,7 +10,7 @@ import ru.citeck.ecos.commons.data.ObjectData;
 import ru.citeck.ecos.model.lib.type.dto.DocLibDef;
 import ru.citeck.ecos.model.lib.type.dto.TypeModelDef;
 import ru.citeck.ecos.records2.RecordRef;
-import ru.citeck.ecos.records2.graphql.meta.annotation.MetaAtt;
+import ru.citeck.ecos.records3.record.op.atts.service.schema.annotation.AttName;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -49,16 +49,21 @@ public class TypeDto {
     private RecordRef configFormRef;
     private ObjectData config = ObjectData.create();
 
-    @MetaAtt("model?json")
+    @AttName("model?json")
     private TypeModelDef model;
 
-    @MetaAtt("_type?id")
+    @AttName("_type?id")
     private RecordRef ecosType;
 
-    @MetaAtt("docLib?json")
+    @AttName("docLib?json")
     private DocLibDef docLib;
 
-    @MetaAtt("_type")
+    @AttName("?disp")
+    public MLText getDisplayName() {
+        return name;
+    }
+
+    @AttName("_type")
     public RecordRef getEcosType() {
         return ecosType;
     }

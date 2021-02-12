@@ -1,6 +1,6 @@
 {
-    "id": "e45afae4-a970-420e-b3f0-7f4888e2fb85",
-    "formKey": "alf_idocs:legalForm",
+    "id": "legal-form-form",
+    "formKey": "",
     "title": {
         "en": "Legal form form"
     },

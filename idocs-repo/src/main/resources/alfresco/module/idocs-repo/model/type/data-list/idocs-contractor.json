@@ -4,8 +4,8 @@
     "ru": "Контрагент",
     "en": "Contractor"
   },
-  "sourceId": "alfresco/",
-  "formRef": "uiserv/eform@02347243-639c-4da4-b261-8b47cbca2362",
+  "parentRef": "emodel/type@data-list",
+  "formRef": "uiserv/eform@idocs-contractor-form",
   "journalRef": "uiserv/journal@idocs-contractor",
 
   "inheritActions": false,
@@ -20,7 +20,8 @@
         "en": "Create contractor"
       },
       "attributes": {
-        "TYPE": "idocs:contractor"
+        "TYPE": "idocs:contractor",
+        "_parent": "/app:company_home/app:dictionary/cm:dataLists/cm:contractors"
       }
     }
   ]

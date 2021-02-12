@@ -5,6 +5,12 @@ label: { ru: Страны, en: Countries }
 actions:
   - uiserv/action@edit
 
+predicate:
+  t: and
+  val:
+    - { t: eq, att: _type, val: ''}
+    - { t: eq, att: TYPE, val: idocs:countryISO3166 }
+
 columns:
   - name: cm:title
   - name: idocs:countryISO3166Name

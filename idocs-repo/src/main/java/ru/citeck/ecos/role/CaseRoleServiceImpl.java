@@ -26,6 +26,7 @@ import org.springframework.extensions.surf.util.I18NUtil;
 import org.springframework.extensions.surf.util.ParameterCheck;
 import ru.citeck.ecos.commons.data.MLText;
 import ru.citeck.ecos.commons.data.ObjectData;
+import ru.citeck.ecos.model.lib.role.constants.RoleConstants;
 import ru.citeck.ecos.model.lib.role.dto.RoleDef;
 import ru.citeck.ecos.model.lib.role.service.RoleService;
 import ru.citeck.ecos.model.lib.type.service.TypeDefService;
@@ -270,6 +271,9 @@ public class CaseRoleServiceImpl implements CaseRoleService {
         if (log.isDebugEnabled()) {
             log.debug("User roles: " + userRoleRefs);
         }
+
+        userRoleRefs.add(ecosRoleToNodeRef(caseRef, RoleConstants.ROLE_ALL));
+
         return userRoleRefs;
     }
 
@@ -396,6 +400,10 @@ public class CaseRoleServiceImpl implements CaseRoleService {
 
         if (isAlfRole(roleRef)) {
             return getTargets(roleRef, ICaseRoleModel.ASSOC_ASSIGNEES);
+        }
+
+        if (RoleConstants.ROLE_ALL.equals(roleRef.getId())) {
+            return Collections.emptySet();
         }
 
         RecordRef caseRef = RecordRef.valueOf(String.valueOf(getRoleCaseRef(roleRef)));
