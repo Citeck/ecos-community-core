@@ -201,7 +201,13 @@ public class NodeUtils {
             targets = Collections.emptySet();
         }
 
-        Set<NodeRef> targetsSet = new HashSet<>(targets);
+        Set<NodeRef> targetsSet = targets.stream().map(ref -> {
+            String protocol = ref.getStoreRef().getProtocol();
+            if (protocol.startsWith("alfresco/@") && protocol.contains("workspace")) {
+                return new NodeRef(StoreRef.STORE_REF_WORKSPACE_SPACESSTORE, ref.getId());
+            }
+            return ref;
+        }).collect(Collectors.toSet());
 
         AssociationDefinition assocDef = dictionaryService.getAssociation(assocName);
 

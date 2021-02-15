@@ -118,12 +118,15 @@ public class AlfNodeRecord implements MetaValue {
 
     @Override
     public String getId() {
+        if (recordRef.getAppName().isEmpty() && recordRef.getSourceId().isEmpty()) {
+            return "alfresco/@" + recordRef.toString();
+        }
         return recordRef.toString();
     }
 
     @Override
     public String getString() {
-        return node.nodeRef();
+        return getId();
     }
 
     @Override
