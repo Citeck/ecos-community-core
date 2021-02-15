@@ -4,6 +4,8 @@ name: { ru: Задача бизнес-процесса, en: Workflow task }
 
 parentRef: emodel/type@base
 
+sourceId: alfresco/
+
 system: true
 inheritActions: true
 

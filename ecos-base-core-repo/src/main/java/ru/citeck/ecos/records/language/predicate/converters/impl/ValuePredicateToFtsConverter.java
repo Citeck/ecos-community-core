@@ -136,10 +136,52 @@ public class ValuePredicateToFtsConverter implements PredicateToFtsConverter {
                 break;
             }
             default: {
-                processDefaultAttribute(query, valuePredicate, context);
+                if (IN.equals(valuePredicate.getType())) {
+                    processInAttribute(query, valuePredicate, context);
+                } else {
+                    processDefaultAttribute(query, valuePredicate, context);
+                }
                 break;
             }
         }
+    }
+
+    private void processInAttribute(FTSQuery query, ValuePredicate valuePredicate, PredToFtsContext context) {
+
+        DataValue value = valuePredicate.getValue();
+        List<DataValue> elements = new ArrayList<>();
+
+        if (value.isArray()) {
+            for (DataValue arrValue : value) {
+                elements.add(arrValue);
+            }
+        } else {
+            elements.add(value);
+        }
+
+        List<DataValue> expandedElements = new ArrayList<>();
+
+        for (DataValue elem : elements) {
+            if (elem.isTextual()) {
+                String elemStr = elem.asText();
+                if ("$CURRENT_AUTHORITIES_REFS".equals(elemStr)) {
+                    authorityUtils.getUserAuthoritiesRefs()
+                        .forEach(auth -> expandedElements.add(DataValue.createStr(auth.toString())));
+                } else {
+                    expandedElements.add(elem);
+                }
+            } else {
+                expandedElements.add(elem);
+            }
+        }
+
+        query.open();
+        expandedElements.forEach(elem -> {
+            ValuePredicate newPred = new ValuePredicate(valuePredicate.getAttribute(), EQ, elem);
+            processDefaultAttribute(query, newPred, context);
+            query.or();
+        });
+        query.close();
     }
 
     private void processAllAttribute(FTSQuery query, String value) {
@@ -489,10 +531,7 @@ public class ValuePredicateToFtsConverter implements PredicateToFtsConverter {
 
         boolean valueContainsSlash = predicateValue.contains(SLASH_DELIMITER);
         if (valueEqualEq && valueContainsSlash) {
-            ComposedPredicate intervalPredicate = getIntervalPredicate(predicateValue, attribute, attDef);
-            if (intervalPredicate != null) {
-                return intervalPredicate;
-            }
+            return getIntervalPredicate(predicateValue, attribute, attDef);
         }
 
         return null;
