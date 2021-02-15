@@ -1,0 +1,96 @@
+---
+id: active-tasks
+
+label:
+  ru: Активные задачи
+  en: Active tasks
+
+predicate:
+  t: and
+  val:
+    - { t: eq, att: _type, val: ''}
+    - { t: eq, att: TYPE, val: bpm:task }
+    - { t: eq, att: _actors, val: $CURRENT }
+    - { t: or, val: [ #todo: replace with 'empty' predicate
+        { t: like, att: ISNULL, val: bpm:completionDate },
+        { t: like, att: ISUNSET, val: bpm:completionDate }
+    ] }
+    - { t: not-eq, att: samwf:processingStatus, val: FULLY_PROCESSED }
+
+actions:
+  - uiserv/action@view-task
+  - uiserv/action@view-task-in-background
+  - uiserv/action@edit-task
+
+columns:
+
+  - name: bpm:priority
+    label:
+      en: Priority
+      ru: Приоритет
+    formatter:
+      type: workflowPriority
+  - name: cm:title
+    label:
+      en: Task name
+      ru: Название задачи
+    sortable: false
+
+  #  <header key="cm:title" default="true" sortable="false" >
+  #  <option  name="formatter">taskTitle</option>
+  # </header>
+
+  - name: wfm:document
+    searchable: false
+    sortable: false
+    formatter:
+      type: assoc
+
+  - name: wfm:counterparty
+    searhable: false
+    sortable: false
+    formatter:
+      type: assoc
+
+  - name: wfm:documentTypeTitle
+  - name: wfm:documentKindTitle
+
+  - name: bpm:dueDate
+
+  - name: cwf:senderName
+    searchable: false
+    visible: false
+  - name: cwf:sender
+    visible: false
+  - name: wfm:assignee
+    sortable: false
+    visible: false
+    editor:
+      type: authority
+      config:
+        allowedAuthorityType: USER
+
+  - name: bpm:status
+    visible: false
+
+  - name: bpm:pooledActors
+    sortable: false
+    visible: false
+    editor:
+      type: authority
+      config:
+        allowedAuthorityType: USER,GROUP
+
+  - name: bpm:startDate
+    visible: false
+  - name: bpm:comment
+    visible: false
+  - name: cwf:taskTitle
+    visible: false
+
+  - name: cm:name
+    visible: false
+    searchable: false
+  - name: wfm:taskType
+    visible: false
+    searchable: false
