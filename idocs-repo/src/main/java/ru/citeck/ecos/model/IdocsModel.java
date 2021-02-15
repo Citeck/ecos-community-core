@@ -42,6 +42,7 @@ public interface IdocsModel {
     QName TYPE_CURRENCY_RATE_INTERNAL_RECORD = QName.createQName(IDOCS_NAMESPACE, "currencyRateInternalRecord");
     QName TYPE_CURRENCY_RATES_XML = QName.createQName(IDOCS_NAMESPACE, "currencyRatesXML");
     QName TYPE_ABSTRACT_ATTORNEY = QName.createQName(IDOCS_NAMESPACE, "abstractAttorney");
+    QName TYPE_ABSTRACT_CONTRACTOR = QName.createQName(IDOCS_NAMESPACE, "abstractContractor");
     QName TYPE_CONTRACTOR = QName.createQName(IDOCS_NAMESPACE, "contractor");
     QName TYPE_COUNTRY = QName.createQName(IDOCS_NAMESPACE, "countryISO3166");
     QName TYPE_GROUP_OF_COUNTRIES = QName.createQName(IDOCS_NAMESPACE, "groupOfCountries");
