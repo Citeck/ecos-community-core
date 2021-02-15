@@ -108,6 +108,7 @@ public interface IdocsModel {
     QName PROP_COUNTRY_ISO3166_NAME = QName.createQName(IDOCS_NAMESPACE, "countryISO3166Name");
     QName PROP_COUNTRY_ISO3166_CODE = QName.createQName(IDOCS_NAMESPACE, "countryISO31661Code");
     QName PROP_GOC_NAME = QName.createQName(IDOCS_NAMESPACE, "gocName");
+    QName PROP_GLN = QName.createQName(IDOCS_NAMESPACE, "gln");
 
     //assocs
     QName ASSOC_GENERAL_DIRECTOR = QName.createQName(IDOCS_NAMESPACE, "generalDirector");
