@@ -5,6 +5,11 @@ label:
   ru: Активные задачи
   en: Active tasks
 
+typeRef: emodel/type@workflow-task
+
+sourceId: alfresco/workflow-tasks
+metaRecord: alfresco/@
+
 predicate:
   t: and
   val:
@@ -43,14 +48,10 @@ columns:
   - name: wfm:document
     searchable: false
     sortable: false
-    formatter:
-      type: assoc
 
   - name: wfm:counterparty
     searhable: false
     sortable: false
-    formatter:
-      type: assoc
 
   - name: wfm:documentTypeTitle
   - name: wfm:documentKindTitle
@@ -66,9 +67,9 @@ columns:
     sortable: false
     visible: false
     editor:
-      type: authority
+      type: orgstruct
       config:
-        allowedAuthorityType: USER
+        allowedAuthorityTypes: USER
 
   - name: bpm:status
     visible: false
@@ -77,9 +78,9 @@ columns:
     sortable: false
     visible: false
     editor:
-      type: authority
+      type: orgstruct
       config:
-        allowedAuthorityType: USER,GROUP
+        allowedAuthorityTypes: USER,GROUP
 
   - name: bpm:startDate
     visible: false
