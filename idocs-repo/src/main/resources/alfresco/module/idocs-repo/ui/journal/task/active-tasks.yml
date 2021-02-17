@@ -47,11 +47,9 @@ columns:
 
   - name: wfm:document
     searchable: false
-    sortable: false
 
   - name: wfm:counterparty
     searhable: false
-    sortable: false
 
   - name: wfm:documentTypeTitle
   - name: wfm:documentKindTitle
@@ -64,7 +62,6 @@ columns:
   - name: cwf:sender
     visible: false
   - name: wfm:assignee
-    sortable: false
     visible: false
     editor:
       type: orgstruct

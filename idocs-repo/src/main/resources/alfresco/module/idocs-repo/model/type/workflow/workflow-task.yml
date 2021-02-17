@@ -12,3 +12,9 @@ inheritActions: true
 actions:
   - uiserv/action@open-workflow-by-wftask
 
+model:
+  attributes:
+    - id: wfm:counterparty
+      type: ASSOC
+      config:
+        typeRef: emodel/type@idocs-contractor
