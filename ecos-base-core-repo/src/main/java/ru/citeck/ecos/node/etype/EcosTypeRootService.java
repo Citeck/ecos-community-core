@@ -21,6 +21,7 @@ import ru.citeck.ecos.search.ftsquery.FTSQuery;
 import ru.citeck.ecos.utils.NodeUtils;
 
 import java.io.Serializable;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
@@ -72,7 +73,7 @@ public class EcosTypeRootService {
 
                 NodeRef rootRef = nodeUtils.getNodeRef(rootPath);
 
-                if (!nodeService.hasAspect(rootRef, EcosTypeModel.ASPECT_TYPE_ROOT)) {
+                if (createIfNotExists && !nodeService.hasAspect(rootRef, EcosTypeModel.ASPECT_TYPE_ROOT)) {
 
                     setTypesRootPermissions(rootRef);
                     Map<QName, Serializable> props = new HashMap<>();
@@ -184,23 +185,12 @@ public class EcosTypeRootService {
 
         permissionService.setInheritParentPermissions(rootRef, false);
 
-        permissionService.setPermission(
-            rootRef,
-            "GROUP_EVERYONE",
+        Arrays.asList(
             PermissionService.ADD_CHILDREN,
-            true
-        );
-        permissionService.setPermission(
-            rootRef,
-            "GROUP_EVERYONE",
             PermissionService.CREATE_CHILDREN,
-            true
-        );
-        permissionService.setPermission(
-            rootRef,
-            "GROUP_EVERYONE",
-            PermissionService.READ,
-            true
+            PermissionService.READ
+        ).forEach(permission ->
+            permissionService.setPermission(rootRef, "GROUP_EVERYONE", permission, true)
         );
     }
 
