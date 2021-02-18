@@ -30,11 +30,9 @@ actions:
 columns:
 
   - name: bpm:priority
-    label:
-      en: Priority
-      ru: Приоритет
     formatter:
       type: workflowPriority
+
   - name: cm:title
     label:
       en: Task name
@@ -59,8 +57,10 @@ columns:
   - name: cwf:senderName
     searchable: false
     visible: false
+
   - name: cwf:sender
     visible: false
+
   - name: wfm:assignee
     visible: false
     editor:
@@ -81,14 +81,17 @@ columns:
 
   - name: bpm:startDate
     visible: false
+
   - name: bpm:comment
     visible: false
+
   - name: cwf:taskTitle
     visible: false
 
   - name: cm:name
     visible: false
     searchable: false
+
   - name: wfm:taskType
     visible: false
     searchable: false

@@ -1,0 +1,68 @@
+---
+id: controlled
+
+label: {ru: На контроле, en: Controlled}
+
+predicate:
+  t: and
+  val:
+    - {att: TYPE, val: 'bpm:task', t: eq}
+    - {att: 'wfm:workflowName', val: activiti$perform, t: in}
+    - {att: '_type', val: '', t: eq}
+
+typeRef: emodel/type@workflow-task
+
+editable: false
+
+columns:
+
+  - name: bpm:priority
+    formatter: {type: workflowPriority}
+
+  - name: wfm:taskType
+    label: {ru: Название задачи, en: Task name}
+
+  - name: 'cwf:senderName'
+    visible: false
+    searchable: false
+
+  - name: 'wfm:assignee'
+    editor:
+      type: orgstruct
+      config:
+        allowedAuthorityTypes: USER
+
+  - name: 'bpm:status'
+
+  - name: 'bpm:pooledActors'
+    visible: false
+    editor:
+      type: orgstruct
+      config:
+        allowedAuthorityTypes: USER,GROUP
+
+  - name: 'wfm:document'
+    searchable: false
+
+  - name: 'wfm:counterparty'
+
+  - name: 'wfm:documentTypeTitle'
+
+  - name: 'wfm:documentKindTitle'
+
+  - name: 'bpm:startDate'
+    visible: false
+
+  - name: 'bpm:dueDate'
+
+  - name: 'bpm:comment'
+    visible: false
+
+  - name: 'wfm:workflowInitiator'
+    visible: false
+
+  - name: 'cwf:taskTitle'
+    visible: false
+
+  - name: 'cm:title'
+    visible: false
