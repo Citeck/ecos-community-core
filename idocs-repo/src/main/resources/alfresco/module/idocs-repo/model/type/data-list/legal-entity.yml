@@ -13,5 +13,3 @@ createVariants:
   - id: create
     attributes:
       TYPE: 'idocs:legalEntity'
-      _parent: /app:company_home/app:dictionary/cm:dataLists/cm:legal-entities
-

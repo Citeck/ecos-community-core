@@ -9,4 +9,3 @@ createVariants:
   - id: create
     attributes:
       TYPE: idocs:filesNomenclature
-      _parent: /app:company_home/cm:dataLists/cm:filesNomenclature

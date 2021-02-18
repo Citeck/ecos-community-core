@@ -9,4 +9,3 @@ createVariants:
   - id: create
     attributes:
       TYPE: ecos:document
-      _parent: /app:company_home/st:sites/cm:common-documents/cm:documentLibrary/cm:ecos-documents

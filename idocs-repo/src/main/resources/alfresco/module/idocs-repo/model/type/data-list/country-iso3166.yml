@@ -13,4 +13,3 @@ createVariants:
   - id: create
     attributes:
       TYPE: idocs:countryISO3166
-      _parent: /app:company_home/app:dictionary/cm:dataLists/cm:country-iso3166

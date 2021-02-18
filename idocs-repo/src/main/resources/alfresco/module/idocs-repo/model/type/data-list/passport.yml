@@ -9,4 +9,3 @@ createVariants:
   - id: create
     attributes:
       TYPE: pass:passport
-      _parent: /app:company_home/app:dictionary/cm:dataLists/cm:passports

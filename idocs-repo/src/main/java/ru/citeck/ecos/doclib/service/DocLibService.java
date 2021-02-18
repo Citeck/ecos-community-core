@@ -23,6 +23,7 @@ import ru.citeck.ecos.model.lib.type.dto.TypeDef;
 import ru.citeck.ecos.model.lib.type.service.TypeDefService;
 import ru.citeck.ecos.model.lib.type.service.utils.TypeUtils;
 import ru.citeck.ecos.node.EcosTypeService;
+import ru.citeck.ecos.node.etype.EcosTypeRootService;
 import ru.citeck.ecos.records.source.alf.AlfNodesRecordsDAO;
 import ru.citeck.ecos.records.source.alf.meta.AlfNodeRecord;
 import ru.citeck.ecos.records2.RecordConstants;
@@ -64,7 +65,7 @@ public class DocLibService {
         () -> null
     );
 
-    private final EcosTypeService ecosTypeService;
+    private final EcosTypeRootService ecosTypeRootService;
     private final TypeDefService typeDefService;
     private final RecordsService recordsService;
     private final NamespaceService namespaceService;
@@ -72,7 +73,7 @@ public class DocLibService {
     private final NodeService nodeService;
 
     @Autowired
-    public DocLibService(EcosTypeService ecosTypeService,
+    public DocLibService(EcosTypeRootService ecosTypeRootService,
                          TypeDefService typeDefService,
                          RecordsService recordsService,
                          NamespaceService namespaceService,
@@ -80,11 +81,11 @@ public class DocLibService {
                          NodeService nodeService) {
 
         this.nodeService = nodeService;
-        this.ecosTypeService = ecosTypeService;
         this.typeDefService = typeDefService;
         this.recordsService = recordsService;
         this.namespaceService = namespaceService;
         this.alfNodesRecordsDao = alfNodesRecordsDao;
+        this.ecosTypeRootService = ecosTypeRootService;
     }
 
     public RecordRef createEntity(ObjectData attributes) {
@@ -129,7 +130,7 @@ public class DocLibService {
         String parentNodeRefStr = parentEntityId.getLocalId();
         NodeRef parentNodeRef = null;
         if (parentNodeRefStr.isEmpty()) {
-            parentNodeRef = ecosTypeService.getRootForType(docLibTypeRef, true);
+            parentNodeRef = ecosTypeRootService.getRootForType(docLibTypeRef, true);
         } else if (NodeRef.isNodeRef(parentNodeRefStr)) {
             parentNodeRef = new NodeRef(parentNodeRefStr);
         }
@@ -166,7 +167,7 @@ public class DocLibService {
             return resultPath;
         }
 
-        NodeRef rootNodeRef = ecosTypeService.getRootForType(entityId.getTypeRef(), false);
+        NodeRef rootNodeRef = ecosTypeRootService.getRootForType(entityId.getTypeRef(), false);
         if (rootNodeRef == null) {
             return resultPath;
         }
@@ -297,7 +298,7 @@ public class DocLibService {
 
         NodeRef parentNodeRef = null;
         if (entityId.localId.isEmpty()) {
-            parentNodeRef = ecosTypeService.getRootForType(entityId.getTypeRef(), false);
+            parentNodeRef = ecosTypeRootService.getRootForType(entityId.getTypeRef(), false);
         } else if (NodeRef.isNodeRef(entityId.localId)) {
             parentNodeRef = new NodeRef(entityId.localId);
         }

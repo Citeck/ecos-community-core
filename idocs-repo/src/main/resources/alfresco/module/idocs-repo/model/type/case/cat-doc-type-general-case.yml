@@ -12,7 +12,4 @@ inheritActions: true
 journalRef: "uiserv/journal@general-case"
 formRef: "uiserv/eform@cat-doc-type-general-case-form"
 
-createVariants:
-  - id: create
-    attributes:
-      _parent: /app:company_home/st:sites/cm:cases/cm:documentLibrary/tk:cat-doc-type-general-case
+defaultCreateVariant: true

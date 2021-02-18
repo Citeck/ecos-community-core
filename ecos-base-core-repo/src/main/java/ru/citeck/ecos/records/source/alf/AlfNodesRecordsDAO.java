@@ -2,6 +2,7 @@ package ru.citeck.ecos.records.source.alf;
 
 import lombok.extern.slf4j.Slf4j;
 import org.alfresco.model.ContentModel;
+import org.alfresco.repo.security.authentication.AuthenticationUtil;
 import org.alfresco.service.ServiceRegistry;
 import org.alfresco.service.cmr.dictionary.*;
 import org.alfresco.service.cmr.repository.*;
@@ -25,6 +26,7 @@ import ru.citeck.ecos.model.lib.type.service.TypeDefService;
 import ru.citeck.ecos.node.AlfNodeInfo;
 import ru.citeck.ecos.node.AlfNodeInfoImpl;
 import ru.citeck.ecos.node.EcosTypeService;
+import ru.citeck.ecos.node.etype.EcosTypeRootService;
 import ru.citeck.ecos.records.source.alf.file.AlfNodeContentFileHelper;
 import ru.citeck.ecos.records.source.alf.meta.AlfNodeRecord;
 import ru.citeck.ecos.records.source.alf.search.AlfNodesSearch;
@@ -92,6 +94,7 @@ public class AlfNodesRecordsDAO extends LocalRecordsDao
     private NodeService nodeService;
     private SearchService searchService;
     private EcosTypeService ecosTypeService;
+    private EcosTypeRootService ecosTypeRootService;
     private NamespaceService namespaceService;
     private DictionaryService dictionaryService;
     private GroupActionService groupActionService;
@@ -701,7 +704,7 @@ public class AlfNodesRecordsDAO extends LocalRecordsDao
         }
 
         if (RecordRef.isNotEmpty(ecosType)) {
-            return ecosTypeService.getRootForType(ecosType, true);
+            return ecosTypeRootService.getRootForType(ecosType, true);
         }
 
         NodeRef parentRef = defaultParentByType.get(type);
@@ -726,8 +729,10 @@ public class AlfNodesRecordsDAO extends LocalRecordsDao
     private NodeRef getByPath(String path) {
 
         NodeRef root = nodeService.getRootNode(StoreRef.STORE_REF_WORKSPACE_SPACESSTORE);
-        List<NodeRef> results = searchService.selectNodes(root, path, null,
-            namespaceService, false);
+
+        List<NodeRef> results = AuthenticationUtil.runAsSystem(() ->
+            searchService.selectNodes(root, path, null, namespaceService, false)
+        );
         if (results.isEmpty()) {
             throw new IllegalArgumentException("Node not found by path: " + path);
         }
@@ -904,5 +909,10 @@ public class AlfNodesRecordsDAO extends LocalRecordsDao
     @Autowired
     public void setContentFileHelper(AlfNodeContentFileHelper contentFileHelper) {
         this.contentFileHelper = contentFileHelper;
+    }
+
+    @Autowired
+    public void setEcosTypeRootService(EcosTypeRootService ecosTypeRootService) {
+        this.ecosTypeRootService = ecosTypeRootService;
     }
 }

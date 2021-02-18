@@ -20,8 +20,7 @@
         "en": "Create contractor"
       },
       "attributes": {
-        "TYPE": "idocs:contractor",
-        "_parent": "/app:company_home/app:dictionary/cm:dataLists/cm:contractors"
+        "TYPE": "idocs:contractor"
       }
     }
   ]
