@@ -1,0 +1,12 @@
+---
+id: absence-reason
+name: { ru: Причина отсутствия, en: Absence Reason }
+
+parentRef: emodel/type@data-list
+journalRef: uiserv/journal@reasons-absence
+
+createVariants:
+  - id: create
+    attributes:
+      TYPE: deputy:absenceReason
+      _parent: /app:company_home/app:dictionary/cm:dataLists/cm:reasons-absence

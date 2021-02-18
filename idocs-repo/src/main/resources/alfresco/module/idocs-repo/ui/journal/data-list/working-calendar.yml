@@ -1,0 +1,20 @@
+
+id: working-calendar
+label: { ru: Производственный календарь, en: Working Calendar }
+
+actions:
+  - uiserv/action@edit
+
+predicate:
+  t: and
+  val:
+    - { t: eq, att: _type, val: ''}
+    - { t: eq, att: TYPE, val: wcal:calendar }
+
+columns:
+  - name: wcal:name
+  - name: wcal:year
+  - name: wcal:workingDayBegin
+  - name: wcal:workingDayEnd
+  - name: wcal:country
+  - name: wcal:scheduleName

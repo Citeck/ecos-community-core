@@ -1,0 +1,12 @@
+---
+id: currency-rate-internal
+name: { ru: Курс валют внутренний, en: Currency rate Internal }
+
+parentRef: emodel/type@data-list
+journalRef: uiserv/journal@currency-rates-internal
+
+createVariants:
+  - id: create
+    attributes:
+      TYPE: idocs:currencyRateInternalRecord
+      _parent: /app:company_home/app:dictionary/cm:dataLists/cm:currency-rates-internal

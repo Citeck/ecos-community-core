@@ -1,0 +1,18 @@
+
+id: business-calendar
+label: { ru: Рабочий календарь, en: Business Calendar }
+
+actions:
+  - uiserv/action@edit
+
+predicate:
+  t: and
+  val:
+    - { t: eq, att: _type, val: ''}
+    - { t: eq, att: TYPE, val: bcal:calendar }
+
+columns:
+  - name: bcal:dateFrom
+  - name: bcal:dateTo
+  - name: bcal:remark
+

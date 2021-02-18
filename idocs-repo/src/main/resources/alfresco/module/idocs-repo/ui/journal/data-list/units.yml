@@ -1,0 +1,17 @@
+
+id: units
+label: { ru: Единицы измерения, en: Units }
+
+actions:
+  - uiserv/action@edit
+
+predicate:
+  t: and
+  val:
+    - { t: eq, att: _type, val: ''}
+    - { t: eq, att: TYPE, val: pas:unit }
+
+columns:
+  - name: pas:unitShortName
+  - name: pas:unitName
+

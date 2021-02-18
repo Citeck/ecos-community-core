@@ -1,0 +1,12 @@
+---
+id: bank-account
+name: { ru: Банковский счет, en: Bank Accounts }
+
+parentRef: emodel/type@data-list
+journalRef: uiserv/journal@bank-accounts
+
+createVariants:
+  - id: create
+    attributes:
+      TYPE: idocs:bankAccount
+      _parent: /app:company_home/app:dictionary/cm:dataLists/cm:bank-accounts

@@ -1,0 +1,12 @@
+---
+id: files-nomenclature
+name: { ru: Номенклатура дел, en: Files Register }
+
+parentRef: emodel/type@data-list
+journalRef: uiserv/journal@files-nomenclature
+
+createVariants:
+  - id: create
+    attributes:
+      TYPE: idocs:filesNomenclature
+      _parent: /app:company_home/cm:dataLists/cm:filesNomenclature

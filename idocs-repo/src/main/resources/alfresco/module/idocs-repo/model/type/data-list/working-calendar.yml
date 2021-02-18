@@ -1,0 +1,12 @@
+---
+id: working-calendar
+name: { ru: Производственный календарь, en: Working Calendar }
+
+parentRef: emodel/type@data-list
+journalRef: uiserv/journal@working-calendar
+
+createVariants:
+  - id: create
+    attributes:
+      TYPE: wcal:calendar
+      _parent: /app:company_home/app:dictionary/cm:working-calendar

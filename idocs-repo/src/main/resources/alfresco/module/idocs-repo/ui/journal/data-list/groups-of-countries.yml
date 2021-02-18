@@ -1,0 +1,17 @@
+
+id: groups-of-countries
+label: { ru: Группы стран, en: Groups of Countries }
+
+actions:
+  - uiserv/action@edit
+
+predicate:
+  t: and
+  val:
+    - { t: eq, att: _type, val: ''}
+    - { t: eq, att: TYPE, val: idocs:groupOfCountries }
+
+columns:
+  - name: idocs:gocName
+  - name: idocs:gocCountries
+

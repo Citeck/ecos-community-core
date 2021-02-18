@@ -1,0 +1,23 @@
+
+id: passports
+label: { ru: Паспорт, en: Passport }
+
+actions:
+  - uiserv/action@edit
+
+predicate:
+  t: and
+  val:
+    - { t: eq, att: _type, val: ''}
+    - { t: eq, att: TYPE, val: pass:passport }
+
+columns:
+  - name: pass:person
+  - name: tk:kind
+  - name: pass:series
+  - name: pass:number
+  - name: pass:issueDate
+  - name: pass:issuingAuthority
+    visible: false
+  - name: pass:info
+    visible: false

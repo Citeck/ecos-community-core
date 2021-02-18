@@ -1,0 +1,12 @@
+---
+id: unit
+name: { ru: Единица измерения, en: Unit }
+
+parentRef: emodel/type@data-list
+journalRef: uiserv/journal@units
+
+createVariants:
+  - id: create
+    attributes:
+      TYPE: pas:unit
+      _parent: /app:company_home/app:dictionary/cm:dataLists/cm:units

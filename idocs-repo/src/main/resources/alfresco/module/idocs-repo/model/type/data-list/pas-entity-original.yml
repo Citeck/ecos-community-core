@@ -1,0 +1,12 @@
+---
+id: pas-entity-original
+name: { ru: Продукты и услуги, en: Products and services }
+
+parentRef: emodel/type@data-list
+journalRef: uiserv/journal@products-and-services
+
+createVariants:
+  - id: create
+    attributes:
+      TYPE: pas:pasEntityOriginal
+      _parent: /app:company_home/app:dictionary/cm:dataLists/cm:products-and-services

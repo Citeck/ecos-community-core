@@ -1,0 +1,12 @@
+---
+id: currency-rate
+name: { ru: Курс вылюты ЦБ, en: Currency rate Central Bank }
+
+parentRef: emodel/type@data-list
+journalRef: uiserv/journal@currency-rates
+
+createVariants:
+  - id: create
+    attributes:
+      TYPE: idocs:currencyRateRecord
+      _parent: /app:company_home/app:dictionary/cm:dataLists/cm:currency-rates

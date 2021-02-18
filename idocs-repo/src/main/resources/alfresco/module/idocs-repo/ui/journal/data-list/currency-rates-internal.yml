@@ -1,0 +1,19 @@
+
+id: currency-rates-internal
+label: { ru: Курс валют внутренний, en: Currency rate Internal }
+
+actions:
+  - uiserv/action@edit
+
+predicate:
+  t: and
+  val:
+    - { t: eq, att: _type, val: ''}
+    - { t: eq, att: TYPE, val: idocs:currencyRateInternalRecord }
+
+columns:
+  - name: idocs:crrInternalBaseCurrency
+  - name: idocs:crrInternalTargetCurrency
+  - name: idocs:crrInternalValue
+  - name: idocs:crrInternalMonth
+  - name: idocs:crrInternalYear

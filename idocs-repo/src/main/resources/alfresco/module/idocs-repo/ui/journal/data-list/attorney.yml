@@ -1,0 +1,18 @@
+---
+id: attorney
+label: { ru: Поверенный, en: Attorney }
+
+actions:
+  - uiserv/action@edit
+
+predicate:
+  t: and
+  val:
+    - { t: eq, att: _type, val: ''}
+    - { t: eq, att: TYPE, val: idocs:personAttorney }
+
+columns:
+  - name: idocs:personFullName
+  - name: idocs:numberPass
+  - name: idocs:whoIssuedPass
+  - name: idocs:passIssueDate
