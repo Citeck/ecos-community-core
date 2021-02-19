@@ -182,8 +182,8 @@ public class NewUIUtils {
         }
         AtomicReference<String> uiType = new AtomicReference<>();
         ecosTypeService.forEachAsc(ecosTypeRef, type -> {
-            if (type.getAttributes() != null) {
-                String parentUiType = type.getAttributes().get(UI_TYPE_ATT).asText();
+            if (type.getProperties() != null) {
+                String parentUiType = type.getProperties().get(UI_TYPE_ATT).asText();
                 if (StringUtils.isNotBlank(parentUiType)) {
                     uiType.set(parentUiType);
                     return true;

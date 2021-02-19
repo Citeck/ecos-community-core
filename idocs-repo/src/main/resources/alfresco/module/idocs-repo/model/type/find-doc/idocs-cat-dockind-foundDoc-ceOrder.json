@@ -1,6 +1,5 @@
 {
     "id": "idocs-cat-doctype-foundDoc/idocs-cat-dockind-foundDoc-ceOrder",
     "name": "Приказ о назначении ген.директора",
-    "parent": "emodel/type@idocs-cat-doctype-foundDoc",
-    "inheritActions": true
+    "parent": "emodel/type@idocs-cat-doctype-foundDoc"
 }

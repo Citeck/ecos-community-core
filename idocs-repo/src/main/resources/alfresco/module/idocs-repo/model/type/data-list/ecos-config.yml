@@ -7,7 +7,6 @@ parentRef: emodel/type@data-list
 formRef: uiserv/eform@config_ecosConfig
 journalRef: uiserv/journal@ecosConfig
 
-createVariants:
-  - id: create
-    attributes:
-      TYPE: config:ecosConfig
+properties:
+  alfType: config:ecosConfig
+  alfRoot: /app:company_home/app:dictionary/cm:IDocsRoot/cm:ecos-config-root

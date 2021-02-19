@@ -1,6 +1,5 @@
 {
     "id": "category-document-type/cat-document-commercial-offer",
     "name": "Коммерческое предложение",
-    "parent": "emodel/type@category-document-type",
-    "inheritActions": true
+    "parent": "emodel/type@category-document-type"
 }

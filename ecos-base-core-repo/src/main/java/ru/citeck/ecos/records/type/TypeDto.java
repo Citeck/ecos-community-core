@@ -44,7 +44,7 @@ public class TypeDto {
     private List<AssociationDto> associations = new ArrayList<>();
     private List<CreateVariantDto> createVariants = new ArrayList<>();
 
-    private ObjectData attributes = ObjectData.create();
+    private ObjectData properties = ObjectData.create();
 
     private RecordRef configFormRef;
     private ObjectData config = ObjectData.create();

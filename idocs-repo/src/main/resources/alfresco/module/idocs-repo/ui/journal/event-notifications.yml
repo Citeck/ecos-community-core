@@ -5,16 +5,6 @@ label:
   ru: Уведомления о событиях
   en: Event notifications
 
-predicate:
-  t: and
-  val:
-    - t: eq
-      att: TYPE
-      val: dms:notificationTemplate
-    - t: eq
-      att: _type
-      val: ''
-
 actions:
   - uiserv/action@view-dashboard
   - uiserv/action@edit

@@ -13,8 +13,6 @@ metaRecord: alfresco/@
 predicate:
   t: and
   val:
-    - { t: eq, att: _type, val: ''}
-    - { t: eq, att: TYPE, val: bpm:task }
     - { t: eq, att: _actors, val: $CURRENT }
     - { t: or, val: [ #todo: replace with 'empty' predicate
         { t: like, att: ISNULL, val: bpm:completionDate },

@@ -135,11 +135,11 @@ public class CaseRoleServiceImpl implements CaseRoleService {
         if (typeDto == null) {
             return false;
         }
-        ObjectData attributes = typeDto.getAttributes();
-        if (attributes == null) {
+        ObjectData properties = typeDto.getProperties();
+        if (properties == null) {
             return false;
         }
-        String priorityUseAlfRoles = attributes.get("priorityUseAlfRoles").asText();
+        String priorityUseAlfRoles = properties.get("priorityUseAlfRoles").asText();
         return BooleanUtils.toBoolean(priorityUseAlfRoles);
     }
 

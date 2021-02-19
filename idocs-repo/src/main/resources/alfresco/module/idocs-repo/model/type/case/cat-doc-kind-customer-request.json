@@ -1,6 +1,0 @@
-{
-    "id": "cat-doc-type-general-case/cat-doc-kind-customer-request",
-    "name": "Обращение клиента",
-    "parent": "emodel/type@cat-doc-type-general-case",
-    "inheritActions": true
-}

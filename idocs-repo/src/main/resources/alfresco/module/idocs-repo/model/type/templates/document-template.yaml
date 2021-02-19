@@ -5,10 +5,7 @@ name:
   ru: Шаблон документа
   en: Document template
 
-createVariants:
-  - id: create-template
-    name:
-      ru: Создать шаблон
-      en: Create template
-    attributes:
-      TYPE: dms:template
+properties:
+  alfType: dms:template
+  alfRoot: /app:company_home/app:dictionary/cm:templates
+

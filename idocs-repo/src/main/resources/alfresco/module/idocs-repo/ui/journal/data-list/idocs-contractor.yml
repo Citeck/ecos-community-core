@@ -5,16 +5,6 @@ label:
   ru: Контрагенты
   en: Contractors
 
-predicate:
-  t: and
-  val:
-    - t: eq
-      att: TYPE
-      val: idocs:contractor
-    - t: eq
-      att: _type
-      val: ''
-
 actions:
   - uiserv/action@edit
   - uiserv/action@view-dashboard

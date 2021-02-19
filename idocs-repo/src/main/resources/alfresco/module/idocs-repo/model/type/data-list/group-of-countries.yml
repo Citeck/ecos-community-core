@@ -5,7 +5,6 @@ name: { ru: Группа стран, en: Group of Countries }
 parentRef: emodel/type@data-list
 journalRef: uiserv/journal@groups-of-countries
 
-createVariants:
-  - id: create
-    attributes:
-      TYPE: idocs:groupOfCountries
+properties:
+  alfType: idocs:groupOfCountries
+  alfRoot: /app:company_home/app:dictionary/cm:dataLists/cm:groups-of-countries

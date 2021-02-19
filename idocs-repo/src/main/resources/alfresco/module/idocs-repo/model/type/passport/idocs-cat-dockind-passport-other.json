@@ -1,6 +1,5 @@
 {
     "id": "idocs-cat-doctype-passport/idocs-cat-dockind-passport-other",
     "name": "Другой паспорт",
-    "parent": "emodel/type@idocs-cat-doctype-passport",
-    "inheritActions": true
+    "parent": "emodel/type@idocs-cat-doctype-passport"
 }

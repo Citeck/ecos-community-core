@@ -5,7 +5,7 @@ label: { ru: Рабочий календарь, en: Business Calendar }
 parentRef: emodel/type@data-list
 journalRef: uiserv/journal@business-calendar
 
-createVariants:
-  - id: create
-    attributes:
-      TYPE: bcal:calendar
+properties:
+  alfType: bcal:calendar
+  alfRoot: /app:company_home/app:dictionary/cm:business-calendar
+

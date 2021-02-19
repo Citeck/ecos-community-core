@@ -10,8 +10,6 @@ typeRef: emodel/type@workflow-task
 predicate:
   t: and
   val:
-    - { t: eq, att: _type, val: ''}
-    - { t: eq, att: TYPE, val: bpm:task }
     - { t: eq, att: _actors, val: $CURRENT }
     - { t: not-empty, att: bpm:completionDate }
 

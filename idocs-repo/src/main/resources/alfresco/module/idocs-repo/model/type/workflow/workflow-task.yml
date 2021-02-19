@@ -7,7 +7,7 @@ parentRef: emodel/type@base
 sourceId: alfresco/
 
 system: true
-inheritActions: true
+defaultCreateVariant: false
 
 actions:
   - uiserv/action@open-workflow-by-wftask
@@ -18,3 +18,6 @@ model:
       type: ASSOC
       config:
         typeRef: emodel/type@idocs-contractor
+
+properties:
+  alfType: bpm:task

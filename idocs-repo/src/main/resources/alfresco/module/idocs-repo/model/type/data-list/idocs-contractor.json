@@ -11,17 +11,8 @@
   "inheritActions": false,
   "inheritForm": true,
 
-  "inheritNumTemplate": false,
-  "createVariants": [
-    {
-      "id": "main-form",
-      "name": {
-        "ru": "Создать контрагента",
-        "en": "Create contractor"
-      },
-      "attributes": {
-        "TYPE": "idocs:contractor"
-      }
-    }
-  ]
+  "properties": {
+    "alfType": "idocs:contractor",
+    "alfRoot": "/app:company_home/app:dictionary/cm:dataLists/cm:contractors"
+  }
 }

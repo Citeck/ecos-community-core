@@ -6,9 +6,7 @@ label: {ru: Созданные задачи, en: Created Tasks}
 predicate:
   t: and
   val:
-    - {att: TYPE, val: 'bpm:task', t: eq}
     - {att: 'wfm:workflowInitiator', val: $CURRENT_AUTHORITIES_REFS, t: in}
-    - {att: '_type', val: '', t: eq}
 
 typeRef: emodel/type@workflow-task
 

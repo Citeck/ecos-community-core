@@ -9,7 +9,7 @@ parentRef: emodel/type@data-list
 formRef: uiserv/eform@legal-entity-form
 journalRef: uiserv/journal@legal-entities
 
-createVariants:
-  - id: create
-    attributes:
-      TYPE: 'idocs:legalEntity'
+properties:
+  alfType: idocs:legalEntity
+  alfRoot: /app:company_home/app:dictionary/cm:dataLists/cm:legal-entities
+

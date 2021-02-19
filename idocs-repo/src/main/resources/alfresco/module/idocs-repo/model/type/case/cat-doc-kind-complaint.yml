@@ -1,0 +1,10 @@
+---
+id: cat-doc-type-general-case/cat-doc-kind-complaint
+
+name:
+  ru: Жалоба
+  en: Complaint
+
+parentRef: emodel/type@cat-doc-type-general-case
+
+defaultCreateVariant: false

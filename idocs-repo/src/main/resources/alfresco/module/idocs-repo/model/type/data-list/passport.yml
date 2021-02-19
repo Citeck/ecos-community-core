@@ -5,7 +5,7 @@ name: { ru: Паспорт, en: Passport }
 parentRef: emodel/type@data-list
 journalRef: uiserv/journal@passports
 
-createVariants:
-  - id: create
-    attributes:
-      TYPE: pass:passport
+properties:
+  alfType: pass:passport
+  alfRoot: /app:company_home/app:dictionary/cm:dataLists/cm:passports
+

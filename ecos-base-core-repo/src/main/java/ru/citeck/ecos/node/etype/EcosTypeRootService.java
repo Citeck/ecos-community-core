@@ -12,12 +12,11 @@ import org.alfresco.service.cmr.site.SiteVisibility;
 import org.alfresco.service.namespace.NamespaceService;
 import org.alfresco.service.namespace.QName;
 import org.apache.commons.lang.StringUtils;
-import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import ru.citeck.ecos.commons.data.ObjectData;
 import ru.citeck.ecos.model.EcosTypeModel;
 import ru.citeck.ecos.model.lib.type.service.TypeDefService;
-import ru.citeck.ecos.model.lib.type.service.utils.TypeUtils;
 import ru.citeck.ecos.records2.RecordRef;
 import ru.citeck.ecos.search.ftsquery.FTSQuery;
 import ru.citeck.ecos.utils.NodeUtils;
@@ -28,7 +27,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.atomic.AtomicReference;
 
 @Service
 public class EcosTypeRootService {
@@ -42,8 +40,7 @@ public class EcosTypeRootService {
     private final TypeDefService typeDefService;
     private final NodeUtils nodeUtils;
 
-    private final Map<RecordRef, String> rootPathByType = new ConcurrentHashMap<>();
-    private final Map<String, NodeRef> rootByPath = new ConcurrentHashMap<>();
+    private final Map<String, NodeRef> nodeByPath = new ConcurrentHashMap<>();
 
     @Autowired
     public EcosTypeRootService(
@@ -71,23 +68,15 @@ public class EcosTypeRootService {
         // todo: add tenant support
         String currentTenant = "";
 
-        String path = rootPathByType.get(typeRef);
-        if (path == null) {
-            AtomicReference<String> rootPath = new AtomicReference<>();
-            typeDefService.forEachAsc(typeRef, typeDef -> {
-                RecordRef parentRef = TypeUtils.getTypeRef(typeDef.getId());
-                rootPath.set(rootPathByType.get(parentRef));
-                return StringUtils.isNotBlank(rootPath.get());
-            });
-            path = rootPath.get();
-            if (StringUtils.isNotBlank(path)) {
-                rootPathByType.put(typeRef, path);
-            }
+        ObjectData typeProps = typeDefService.getResolvedProperties(typeRef);
+        String alfRootPath = typeProps.get("alfRoot").asText();
+        if (!alfRootPath.isEmpty()) {
+            return nodeByPath.computeIfAbsent(alfRootPath, nodeUtils::getNodeRef);
         }
 
-        if (path != null) {
+        if (StringUtils.isNotBlank(alfRootPath)) {
 
-            return rootByPath.computeIfAbsent(path, rootPath -> {
+            return nodeByPath.computeIfAbsent(alfRootPath, rootPath -> {
 
                 NodeRef rootRef = nodeUtils.getNodeRef(rootPath);
 
@@ -227,9 +216,5 @@ public class EcosTypeRootService {
         return expectedProps.entrySet()
             .stream()
             .allMatch(it -> Objects.equals(it.getValue(), baseProps.get(it.getKey())));
-    }
-
-    public void registerRoot(@NotNull RecordRef typeRef, @NotNull String path) {
-        rootPathByType.put(typeRef, path);
     }
 }

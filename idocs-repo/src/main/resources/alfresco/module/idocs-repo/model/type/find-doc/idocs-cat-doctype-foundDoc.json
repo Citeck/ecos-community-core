@@ -1,6 +1,5 @@
 {
     "id": "idocs-cat-doctype-foundDoc",
     "name": "Учредительные документы",
-    "parent": "emodel/type@user-base",
-    "inheritActions": true
+    "parent": "emodel/type@user-base"
 }

@@ -9,7 +9,7 @@ parentRef: emodel/type@data-list
 journalRef: uiserv/journal@currency
 formRef: uiserv/eform@currency-form
 
-createVariants:
-  - id: create
-    attributes:
-      TYPE: idocs:currency
+properties:
+  alfType: idocs:currency
+  alfRoot: /app:company_home/app:dictionary/cm:dataLists/cm:currency
+

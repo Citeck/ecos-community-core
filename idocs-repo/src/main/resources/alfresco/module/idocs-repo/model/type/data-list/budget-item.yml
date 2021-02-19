@@ -5,7 +5,6 @@ name: { ru: Статья бюджета, en: Budget Item }
 parentRef: emodel/type@data-list
 journalRef: uiserv/journal@budget-items
 
-createVariants:
-  - id: create
-    attributes:
-      TYPE: idocs:bankAccount
+properties:
+  alfType: budget:item
+  alfRoot: /app:company_home/app:dictionary/cm:dataLists/cm:budget-items

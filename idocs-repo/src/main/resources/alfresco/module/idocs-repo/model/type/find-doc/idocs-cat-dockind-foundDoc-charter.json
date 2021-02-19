@@ -1,6 +1,5 @@
 {
     "id": "idocs-cat-doctype-foundDoc/idocs-cat-dockind-foundDoc-charter",
     "name": "Устав",
-    "parent": "emodel/type@idocs-cat-doctype-foundDoc",
-    "inheritActions": true
+    "parent": "emodel/type@idocs-cat-doctype-foundDoc"
 }

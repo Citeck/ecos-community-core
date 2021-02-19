@@ -26,6 +26,7 @@ import ru.citeck.ecos.model.lib.type.service.TypeDefService;
 import ru.citeck.ecos.node.AlfNodeInfo;
 import ru.citeck.ecos.node.AlfNodeInfoImpl;
 import ru.citeck.ecos.node.EcosTypeService;
+import ru.citeck.ecos.node.etype.EcosTypeAlfTypeService;
 import ru.citeck.ecos.node.etype.EcosTypeRootService;
 import ru.citeck.ecos.records.source.alf.file.AlfNodeContentFileHelper;
 import ru.citeck.ecos.records.source.alf.meta.AlfNodeRecord;
@@ -105,6 +106,7 @@ public class AlfNodesRecordsDAO extends LocalRecordsDao
     private ServiceRegistry serviceRegistry;
     private RecordsTemplateService recordsTemplateService;
     private AlfAutoModelService alfAutoModelService;
+    private EcosTypeAlfTypeService ecosTypeAlfTypeService;
 
     private final Map<QName, NodeRef> defaultParentByType = new ConcurrentHashMap<>();
 
@@ -665,29 +667,16 @@ public class AlfNodesRecordsDAO extends LocalRecordsDao
 
     private QName getNodeType(RecordMeta record) {
 
-        QName typeQName;
-
         String type = record.getAttribute(AlfNodeRecord.ATTR_TYPE, "");
         if (type.isEmpty()) {
             type = record.getAttribute(AlfNodeRecord.ATTR_TYPE_UPPER, "");
         }
-        if (type.isEmpty()) {
-            type = record.getAttribute(RecordConstants.ATT_TYPE, "");
-            if (type.startsWith("emodel")) {
-                type = "ecos:case";
-            }
-        }
-
         if (!type.isEmpty()) {
-            typeQName = QName.resolveToQName(namespaceService, type);
-        } else {
-            typeQName = ContentModel.TYPE_CONTENT;
-        }
-        if (typeQName == null) {
-            throw new IllegalArgumentException("Incorrect type: " + type);
+            return QName.resolveToQName(namespaceService, type);
         }
 
-        return typeQName;
+        RecordRef typeRef = RecordRef.valueOf(record.getAttribute(RecordConstants.ATT_TYPE, ""));
+        return ecosTypeAlfTypeService.getAlfTypeToCreate(typeRef);
     }
 
     private NodeRef getParent(RecordMeta record, QName type, RecordRef ecosType) {
@@ -914,5 +903,10 @@ public class AlfNodesRecordsDAO extends LocalRecordsDao
     @Autowired
     public void setEcosTypeRootService(EcosTypeRootService ecosTypeRootService) {
         this.ecosTypeRootService = ecosTypeRootService;
+    }
+
+    @Autowired
+    public void setEcosTypeAlfTypeService(EcosTypeAlfTypeService ecosTypeAlfTypeService) {
+        this.ecosTypeAlfTypeService = ecosTypeAlfTypeService;
     }
 }

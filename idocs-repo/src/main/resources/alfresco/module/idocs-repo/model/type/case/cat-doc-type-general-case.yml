@@ -1,15 +1,16 @@
-
+---
 id: cat-doc-type-general-case
+
 name:
   en: General case
   ru: Стандартный кейс
 
-parent: emodel/type@case
-sourceId: alfresco/
+parentRef: emodel/type@case
 
-inheritActions: true
+sourceId: alfresco/
 
 journalRef: "uiserv/journal@general-case"
 formRef: "uiserv/eform@cat-doc-type-general-case-form"
 
-defaultCreateVariant: true
+properties:
+  alfRoot: /app:company_home/st:sites/cm:cases/cm:documentLibrary/tk:cat-doc-type-general-case

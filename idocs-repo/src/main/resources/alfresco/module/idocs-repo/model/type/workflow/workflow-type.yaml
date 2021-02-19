@@ -1,7 +1,10 @@
+---
 id: workflow
-
-system: true
-
 name:
   en: Workflow
   ru: Бизнес-процесс
+
+system: true
+
+defaultCreateVariant: false
+

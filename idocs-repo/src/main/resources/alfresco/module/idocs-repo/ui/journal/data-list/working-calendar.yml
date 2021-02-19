@@ -5,12 +5,6 @@ label: { ru: Производственный календарь, en: Working Ca
 actions:
   - uiserv/action@edit
 
-predicate:
-  t: and
-  val:
-    - { t: eq, att: _type, val: ''}
-    - { t: eq, att: TYPE, val: wcal:calendar }
-
 columns:
   - name: wcal:name
   - name: wcal:year

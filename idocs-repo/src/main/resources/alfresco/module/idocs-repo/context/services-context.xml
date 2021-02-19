@@ -617,33 +617,4 @@
         <property name="services" ref="ServiceRegistry" />
     </bean>
 
-    <bean class="ru.citeck.ecos.node.etype.EcosTypeRootRegistrar">
-        <property name="typeRoots">
-            <map>
-                <entry key="cat-doc-type-general-case" value="/app:company_home/st:sites/cm:cases/cm:documentLibrary/tk:cat-doc-type-general-case" />
-                <entry key="attorney" value="/app:company_home/app:dictionary/cm:dataLists/cm:attorney" />
-                <entry key="bank-account" value="/app:company_home/app:dictionary/cm:dataLists/cm:bank-accounts" />
-                <entry key="budget-item" value="/app:company_home/app:dictionary/cm:dataLists/cm:budget-items" />
-                <entry key="business-calendar" value="/app:company_home/app:dictionary/cm:business-calendar" />
-                <entry key="country-iso3166" value="/app:company_home/app:dictionary/cm:dataLists/cm:country-iso3166" />
-                <entry key="currency" value="/app:company_home/app:dictionary/cm:dataLists/cm:currency" />
-                <entry key="currency-rate" value="/app:company_home/app:dictionary/cm:dataLists/cm:currency-rates" />
-                <entry key="currency-rate-internal" value="/app:company_home/app:dictionary/cm:dataLists/cm:currency-rates-internal" />
-                <entry key="ecos-config-type" value="/app:company_home/app:dictionary/cm:IDocsRoot/cm:ecos-config-root" />
-                <entry key="files-nomenclature" value="/app:company_home/cm:dataLists/cm:filesNomenclature" />
-                <entry key="group-of-countries" value="/app:company_home/app:dictionary/cm:dataLists/cm:groups-of-countries" />
-                <entry key="idocs-contractor" value="/app:company_home/app:dictionary/cm:dataLists/cm:contractors" />
-                <entry key="legal-entity" value="/app:company_home/app:dictionary/cm:dataLists/cm:legal-entities" />
-                <entry key="legal-form" value="/app:company_home/app:dictionary/cm:dataLists/cm:legal-form" />
-                <entry key="pas-entity-original" value="/app:company_home/app:dictionary/cm:dataLists/cm:products-and-services" />
-                <entry key="passport" value="/app:company_home/app:dictionary/cm:dataLists/cm:passports" />
-                <entry key="absence-reason" value="/app:company_home/app:dictionary/cm:dataLists/cm:reasons-absence" />
-                <entry key="unit" value="/app:company_home/app:dictionary/cm:dataLists/cm:units" />
-                <entry key="working-calendar" value="/app:company_home/app:dictionary/cm:working-calendar" />
-                <entry key="document-template" value="/app:company_home/app:dictionary/cm:templates" />
-                <entry key="ecos-document" value="/app:company_home/st:sites/cm:common-documents/cm:documentLibrary/cm:ecos-documents" />
-            </map>
-        </property>
-    </bean>
-
 </beans>
