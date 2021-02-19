@@ -70,9 +70,6 @@ public class EcosTypeRootService {
 
         ObjectData typeProps = typeDefService.getResolvedProperties(typeRef);
         String alfRootPath = typeProps.get("alfRoot").asText();
-        if (!alfRootPath.isEmpty()) {
-            return nodeByPath.computeIfAbsent(alfRootPath, nodeUtils::getNodeRef);
-        }
 
         if (StringUtils.isNotBlank(alfRootPath)) {
 
@@ -84,7 +81,7 @@ public class EcosTypeRootService {
 
                     setTypesRootPermissions(rootRef);
                     Map<QName, Serializable> props = new HashMap<>();
-                    props.put(EcosTypeModel.PROP_TENANT, currentTenant);
+                    props.put(EcosTypeModel.PROP_TENANT, "");
                     props.put(EcosTypeModel.PROP_ROOT_FOR_TYPE, typeRef.getId());
 
                     nodeService.addAspect(rootRef, EcosTypeModel.ASPECT_TYPE_ROOT, props);
