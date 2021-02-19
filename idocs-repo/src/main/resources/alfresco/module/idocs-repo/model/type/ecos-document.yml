@@ -3,6 +3,7 @@ id: ecos-document
 name: { ru: Документ, en: Document }
 
 parentRef: emodel/type@data-list
+formRef: uiserv/eform@ecos-document-form
 journalRef: uiserv/journal@ecos-documents
 
 properties:
