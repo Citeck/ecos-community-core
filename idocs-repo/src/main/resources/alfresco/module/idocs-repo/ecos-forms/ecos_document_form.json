@@ -8,7 +8,7 @@
     "en": ""
   },
   "customModule": null,
-  "typeRef": "",
+  "typeRef": "emodel/type@category-document-type",
   "width": "default",
   "i18n": {
     "en": {
@@ -19,7 +19,7 @@
       "Note": "Note",
       "Name": "Name",
       "Generate": "Generate",
-      "Create": "Create",
+      "Submit": "Submit",
       "Cancel": "Cancel",
       "Save": "Save",
       "Content": "Content"
@@ -32,7 +32,7 @@
       "Note": "Примечание",
       "Name": "Имя",
       "Generate": "Генерировать",
-      "Create": "Создать",
+      "Submit": "Создать",
       "Cancel": "Отмена",
       "Save": "Сохранить",
       "Content": "Содержимое"
@@ -65,11 +65,14 @@
                                 "label": "Case kind",
                                 "dataSrc": "custom",
                                 "data": {
-                                  "custom": "const {typeGeneralCaseList = {}} = data;\nconst {records = []} = typeGeneralCaseList;\n\nfor (var i in records) {\n  values.push({label: records[i].key,value: records[i].id})\n}"
+                                  "custom": "const {typeGeneralCaseList = {}} = data;\nconst {records = []} = typeGeneralCaseList;\nvalues = records;"
                                 },
                                 "refreshOnEvent": true,
                                 "refreshEventName": "typeGeneralCaseEvent",
                                 "defaultValue": "",
+                                "refreshOn": [
+                                  "typeGeneralCaseList"
+                                ],
                                 "key": "tk_kind",
                                 "properties": {
                                   "attribute": "tk:kind"
@@ -225,7 +228,7 @@
                                 "labelPosition": "left-left",
                                 "defaultValue": true,
                                 "key": "Generate",
-                                "customConditional": "show = !(instance.options.readOnly && instance.options.viewAsHtml)",
+                                "customConditional": "const {options = {}} = instance;\nconst {viewAsHtml = false,\n       readOnly = false\n} = options;\n\nshow = !(readOnly && viewAsHtml)",
                                 "type": "checkbox",
                                 "input": true
                               }
@@ -314,19 +317,13 @@
                       {
                         "label": "idocs:legalEntity",
                         "journalId": "legal-entities",
-                        "refreshOn": "data",
-                        "clearOnRefresh": true,
                         "customDefaultValue": "value = data.defaultLegalEntity ? data.defaultLegalEntity.value : null;",
-                        "calculateValue": "value = data.defaultLegalEntity ? data.defaultLegalEntity.value : null;",
-                        "allowCalculateOverride": true,
                         "key": "idocs_legalEntity",
                         "properties": {
                           "attribute": "idocs:legalEntity"
                         },
                         "type": "selectJournal",
-                        "input": true,
-                        "defaultValue": null,
-                        "presetFilterPredicatesJs": null
+                        "input": true
                       },
                       {
                         "label": "idocs:contractor",
@@ -495,18 +492,26 @@
                   "type": "recordsQuery",
                   "recordsQuery": {
                     "attributes": {
-                      "key": ".disp"
+                      "label": ".disp",
+                      "value": ".id"
                     },
-                    "query": "var value = {\n  query: 'PARENT: \"' + data.tk_type + '\"',\n  language: 'fts-alfresco'\n}",
+                    "query": "const {tk_type = \"\"} = data;\nvar value = {\n  query: 'PARENT: \"' + tk_type + '\"',\n  language: 'fts-alfresco'\n}",
                     "isSingle": false
                   },
                   "forceLoad": false
                 },
                 "update": {
-                  "type": "any-change"
+                  "type": "once"
                 },
+                "refreshOn": [
+                  {
+                    "label": "tk_type",
+                    "value": "tk_type"
+                  }
+                ],
                 "triggerEventOnChange": true,
                 "eventName": "typeGeneralCaseEvent",
+                "executionCondition": "const {tk_type = \"\"} = data;\nvalue = !_.isEmpty(tk_type);",
                 "key": "typeGeneralCaseList",
                 "type": "asyncData",
                 "input": true,
@@ -543,13 +548,13 @@
                   "forceLoad": false
                 },
                 "update": {
-                  "type": "any-change"
+                  "type": "once"
                 },
                 "triggerEventOnChange": true,
+                "eventName": "currencyListEvent",
                 "key": "currencyList",
                 "type": "asyncData",
                 "input": true,
-                "eventName": "currencyListEvent",
                 "conditional": {
                   "show": null,
                   "when": null
@@ -591,7 +596,7 @@
                 "clearOnHide": false,
                 "hidden": true,
                 "defaultValue": "",
-                "customDefaultValue": "var deflt = 'workspace://SpacesStore/category-document-type';\nvalue = _.get(instance, 'options.params.tk_type', deflt); \n",
+                "calculateValue": "var deflt = 'workspace://SpacesStore/category-document-type';\nvalue = _.get(instance, 'options.params.tk_type', deflt); \n",
                 "key": "tk_type",
                 "properties": {
                   "attribute": "tk:type"
@@ -612,32 +617,7 @@
             "type": "column",
             "input": false,
             "key": "column5",
-            "components": [
-              {
-                "label": "defaultLegalEntity",
-                "source": {
-                  "type": "ajax",
-                  "ajax": {
-                    "url": "/citeck/ecosConfig/ecos-config-value",
-                    "data": "value = { configName: 'defaultLegalEntity' }",
-                    "method": "GET",
-                    "mapping": ""
-                  },
-                  "forceLoad": false
-                },
-                "update": {
-                  "type": "once"
-                },
-                "triggerEventOnChange": false,
-                "key": "defaultLegalEntity",
-                "type": "asyncData",
-                "input": true,
-                "conditional": {
-                  "show": null,
-                  "when": null
-                }
-              }
-            ],
+            "components": [],
             "clearOnHide": true,
             "conditional": {
               "show": null,
@@ -667,109 +647,6 @@
       {
         "columns": [
           {
-            "components": [],
-            "type": "column",
-            "input": false,
-            "key": "column",
-            "label": "Column",
-            "md": 3,
-            "clearOnHide": true,
-            "conditional": {
-              "show": null,
-              "when": null
-            },
-            "index": 0
-          },
-          {
-            "components": [
-              {
-                "label": "Cancel",
-                "removeIndents": true,
-                "action": "event",
-                "state": "",
-                "showValidations": false,
-                "event": "cancel",
-                "block": true,
-                "key": "submit2",
-                "type": "button",
-                "input": true
-              }
-            ],
-            "type": "column",
-            "input": false,
-            "key": "column",
-            "label": "Column",
-            "md": 3,
-            "clearOnHide": true,
-            "conditional": {
-              "show": null,
-              "when": null
-            },
-            "index": 1
-          },
-          {
-            "md": 3,
-            "type": "column",
-            "input": false,
-            "key": "column",
-            "label": "Column",
-            "components": [
-              {
-                "label": "Create",
-                "removeIndents": true,
-                "state": "",
-                "theme": "primary",
-                "block": true,
-                "disableOnInvalid": true,
-                "key": "Create",
-                "type": "button",
-                "input": true
-              }
-            ],
-            "clearOnHide": true,
-            "conditional": {
-              "show": null,
-              "when": null
-            },
-            "index": 2
-          },
-          {
-            "md": 3,
-            "type": "column",
-            "input": false,
-            "key": "column",
-            "label": "Column",
-            "components": [],
-            "clearOnHide": true,
-            "conditional": {
-              "show": null,
-              "when": null
-            },
-            "index": 3
-          }
-        ],
-        "key": "columns10",
-        "customConditional": "var isDraftStatus = false;\nif (data.caseStatus) {\n  isDraftStatus = data.caseStatus.status === \"draft\";\n}\nvar isCreateMode = instance.options.formMode === 'CREATE';\nshow = isDraftStatus || isCreateMode;",
-        "type": "columns",
-        "input": false
-      },
-      {
-        "columns": [
-          {
-            "components": [],
-            "type": "column",
-            "input": false,
-            "key": "column",
-            "label": "Column",
-            "md": 3,
-            "clearOnHide": true,
-            "conditional": {
-              "show": null,
-              "when": null
-            },
-            "index": 0
-          },
-          {
             "components": [
               {
                 "label": "Cancel",
@@ -794,7 +671,35 @@
               "show": null,
               "when": null
             },
+            "index": 0
+          },
+          {
+            "components": [],
+            "type": "column",
+            "input": false,
+            "key": "column",
+            "label": "Column",
+            "md": 3,
+            "clearOnHide": true,
+            "conditional": {
+              "show": null,
+              "when": null
+            },
             "index": 1
+          },
+          {
+            "md": 3,
+            "type": "column",
+            "input": false,
+            "key": "column",
+            "label": "Column",
+            "components": [],
+            "clearOnHide": true,
+            "conditional": {
+              "show": null,
+              "when": null
+            },
+            "index": 2
           },
           {
             "md": 3,
@@ -804,7 +709,6 @@
             "label": "Column",
             "components": [
               {
-                "label": "Save",
                 "removeIndents": true,
                 "state": "",
                 "theme": "primary",
@@ -820,25 +724,10 @@
               "show": null,
               "when": null
             },
-            "index": 2
-          },
-          {
-            "md": 3,
-            "type": "column",
-            "input": false,
-            "key": "column",
-            "label": "Column",
-            "components": [],
-            "clearOnHide": true,
-            "conditional": {
-              "show": null,
-              "when": null
-            },
             "index": 3
           }
         ],
         "key": "columns9",
-        "customConditional": "var isDraftStatus = false;\nif (data.caseStatus) {\n  isDraftStatus = data.caseStatus.status === \"draft\";\n}\nvar isCreateMode = instance.options.formMode === 'CREATE';\nshow = !isDraftStatus && !isCreateMode;",
         "type": "columns",
         "input": false
       }
