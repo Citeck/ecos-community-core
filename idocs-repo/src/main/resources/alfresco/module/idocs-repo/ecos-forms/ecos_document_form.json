@@ -431,19 +431,23 @@
                     "input": false,
                     "components": [
                       {
-                        "label": "dms:updateContent",
+                        "label": {
+                          "en": "dms:updateContent"
+                        },
                         "labelPosition": "left-left",
                         "clearOnHide": false,
                         "key": "dms_updateContent",
                         "properties": {
                           "attribute": "dms:updateContent"
                         },
-                        "customConditional": "const isCreate = instance.options.formMode === 'CREATE';\nshow = isCreate;\n\n",
+                        "customConditional": "const {options = {}} = instance;\nconst {formMode = \"\"} = options;\nconst isCreate = formMode === 'CREATE';\nshow = isCreate;\n\n",
                         "type": "checkbox",
                         "input": true
                       },
                       {
-                        "label": "cm:content",
+                        "label": {
+                          "en": "cm:content"
+                        },
                         "clearOnHide": false,
                         "onFileClick": "download",
                         "storage": "url",
@@ -456,7 +460,7 @@
                         "properties": {
                           "attribute": "cm:content"
                         },
-                        "customConditional": "show = instance.options.formMode != 'CREATE' || (!data.dms_updateContent && instance.options.formMode === 'CREATE');",
+                        "customConditional": "const {dms_updateContent = false} = data;\nconst {options = {}} = instance;\nconst {formMode = \"\"} = options;\n\n\nshow = formMode != 'CREATE' || (!dms_updateContent && formMode === 'CREATE');",
                         "type": "file",
                         "input": true
                       }
