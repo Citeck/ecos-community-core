@@ -16,6 +16,8 @@ import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import ru.citeck.ecos.model.EcosTypeModel;
+import ru.citeck.ecos.model.lib.type.service.TypeDefService;
+import ru.citeck.ecos.model.lib.type.service.utils.TypeUtils;
 import ru.citeck.ecos.records2.RecordRef;
 import ru.citeck.ecos.search.ftsquery.FTSQuery;
 import ru.citeck.ecos.utils.NodeUtils;
@@ -26,6 +28,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicReference;
 
 @Service
 public class EcosTypeRootService {
@@ -36,6 +39,7 @@ public class EcosTypeRootService {
     private final SiteService siteService;
     private final NodeService nodeService;
     private final PermissionService permissionService;
+    private final TypeDefService typeDefService;
     private final NodeUtils nodeUtils;
 
     private final Map<RecordRef, String> rootPathByType = new ConcurrentHashMap<>();
@@ -47,9 +51,11 @@ public class EcosTypeRootService {
         SearchService searchService,
         SiteService siteService,
         NodeService nodeService,
-        PermissionService permissionService
+        PermissionService permissionService,
+        TypeDefService typeDefService
     ) {
         this.nodeUtils = nodeUtils;
+        this.typeDefService = typeDefService;
         this.searchService = searchService;
         this.siteService = siteService;
         this.nodeService = nodeService;
@@ -66,6 +72,18 @@ public class EcosTypeRootService {
         String currentTenant = "";
 
         String path = rootPathByType.get(typeRef);
+        if (path == null) {
+            AtomicReference<String> rootPath = new AtomicReference<>();
+            typeDefService.forEachAsc(typeRef, typeDef -> {
+                RecordRef parentRef = TypeUtils.getTypeRef(typeDef.getId());
+                rootPath.set(rootPathByType.get(parentRef));
+                return StringUtils.isNotBlank(rootPath.get());
+            });
+            path = rootPath.get();
+            if (StringUtils.isNotBlank(path)) {
+                rootPathByType.put(typeRef, path);
+            }
+        }
 
         if (path != null) {
 
