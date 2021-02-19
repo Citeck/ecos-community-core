@@ -1,0 +1,742 @@
+{
+  "id": "ecos-document-form",
+  "formKey": "",
+  "title": {
+    "en": "Ecos document form"
+  },
+  "description": {},
+  "customModule": null,
+  "typeRef": "emodel/type@ecos-document",
+  "width": "default",
+  "i18n": {
+    "en": {
+      "Main": "Main",
+      "Case kind": "Case kind",
+      "Date of creation": "Date of creation",
+      "Additional": "Additional",
+      "Note": "Note",
+      "Name": "Name",
+      "Generate": "Generate",
+      "Submit": "Submit",
+      "Cancel": "Cancel",
+      "Save": "Save",
+      "Content": "Content"
+    },
+    "ru": {
+      "Main": "Основные",
+      "Case kind": "Вид кейса",
+      "Date of creation": "Дата создания",
+      "Additional": "Дополнительные",
+      "Note": "Примечание",
+      "Name": "Имя",
+      "Generate": "Генерировать",
+      "Submit": "Создать",
+      "Cancel": "Отмена",
+      "Save": "Сохранить",
+      "Content": "Содержимое"
+    }
+  },
+  "definition": {
+    "display": "form",
+    "components": [
+      {
+        "scrollableContent": true,
+        "key": "panel2",
+        "type": "panel",
+        "input": false,
+        "components": [
+          {
+            "columns": [
+              {
+                "components": [
+                  {
+                    "title": "Main",
+                    "key": "Main",
+                    "type": "panel",
+                    "input": false,
+                    "components": [
+                      {
+                        "columns": [
+                          {
+                            "components": [
+                              {
+                                "label": "Case kind",
+                                "dataSrc": "custom",
+                                "data": {
+                                  "custom": "const {typeGeneralCaseList = {}} = data;\nconst {records = []} = typeGeneralCaseList;\nvalues = records;"
+                                },
+                                "refreshOnEvent": true,
+                                "refreshEventName": "typeGeneralCaseEvent",
+                                "defaultValue": "",
+                                "refreshOn": [
+                                  "typeGeneralCaseList"
+                                ],
+                                "key": "tk_kind",
+                                "properties": {
+                                  "attribute": "tk:kind"
+                                },
+                                "type": "ecosSelect",
+                                "input": true
+                              }
+                            ],
+                            "type": "column",
+                            "input": false,
+                            "key": "column1",
+                            "clearOnHide": true,
+                            "conditional": {
+                              "show": null,
+                              "when": null
+                            },
+                            "index": 0
+                          },
+                          {
+                            "components": [
+                              {
+                                "label": "Date of creation",
+                                "format": "dd.MM.yyyy",
+                                "datePicker": {
+                                  "minDate": "",
+                                  "maxDate": ""
+                                },
+                                "enableTime": false,
+                                "defaultDate": "moment()",
+                                "defaultValue": "",
+                                "key": "dateOfCreation",
+                                "properties": {
+                                  "attribute": "ecos:documentDate"
+                                },
+                                "logic": [
+                                  {
+                                    "name": "setRequired",
+                                    "trigger": {
+                                      "type": "javascript",
+                                      "javascript": "const {tk_kind = \"\"} = data;\nresult = false;\nif (tk_kind == \"workspace://SpacesStore/cat-document-hr-documents\") {\n  result = true;\n}"
+                                    },
+                                    "actions": [
+                                      {
+                                        "name": "setRequired",
+                                        "type": "property",
+                                        "property": {
+                                          "label": "Required",
+                                          "value": "validate.required",
+                                          "type": "boolean"
+                                        },
+                                        "state": "true"
+                                      }
+                                    ]
+                                  }
+                                ],
+                                "type": "datetime",
+                                "input": true,
+                                "suffix": true
+                              }
+                            ],
+                            "type": "column",
+                            "input": false,
+                            "key": "column2",
+                            "clearOnHide": true,
+                            "conditional": {
+                              "show": null,
+                              "when": null
+                            },
+                            "index": 1
+                          }
+                        ],
+                        "key": "columns4",
+                        "type": "columns",
+                        "input": false
+                      },
+                      {
+                        "columns": [
+                          {
+                            "components": [
+                              {
+                                "label": {
+                                  "en": "ecos:documentNumber"
+                                },
+                                "defaultValue": "",
+                                "key": "ecos_documentNumber",
+                                "properties": {
+                                  "attribute": "ecos:documentNumber"
+                                },
+                                "logic": [
+                                  {
+                                    "name": "generate_event",
+                                    "trigger": {
+                                      "type": "simple",
+                                      "simple": {
+                                        "show": true,
+                                        "when": "Generate",
+                                        "eq": "true"
+                                      }
+                                    },
+                                    "actions": [
+                                      {
+                                        "name": "set_disabled",
+                                        "type": "property",
+                                        "property": {
+                                          "label": "Disabled",
+                                          "value": "disabled",
+                                          "type": "boolean"
+                                        },
+                                        "state": "true"
+                                      },
+                                      {
+                                        "name": "set_value",
+                                        "type": "value",
+                                        "value": "const {options = {}} = instance;\nconst {formMode = \"\"} = options;\n\nif (formMode === 'CREATE') {\n  value = '-';\n}"
+                                      }
+                                    ]
+                                  },
+                                  {
+                                    "name": "not_generate_event",
+                                    "trigger": {
+                                      "type": "simple",
+                                      "simple": {
+                                        "show": true,
+                                        "when": "Generate",
+                                        "eq": "false"
+                                      }
+                                    },
+                                    "actions": [
+                                      {
+                                        "name": "set_value",
+                                        "type": "value",
+                                        "value": "if ('-' == value) value = '';"
+                                      }
+                                    ]
+                                  }
+                                ],
+                                "type": "textfield",
+                                "input": true
+                              }
+                            ],
+                            "type": "column",
+                            "input": false,
+                            "key": "column1",
+                            "clearOnHide": true,
+                            "conditional": {
+                              "show": null,
+                              "when": null
+                            },
+                            "index": 0
+                          },
+                          {
+                            "components": [
+                              {
+                                "label": "Generate",
+                                "labelPosition": "left-left",
+                                "defaultValue": true,
+                                "key": "Generate",
+                                "customConditional": "const {options = {}} = instance;\nconst {viewAsHtml = false,\n       readOnly = false\n} = options;\n\nshow = !(readOnly && viewAsHtml)",
+                                "type": "checkbox",
+                                "input": true
+                              }
+                            ],
+                            "type": "column",
+                            "input": false,
+                            "key": "column2",
+                            "classes": "d-flex justify-content-start align-items-center",
+                            "clearOnHide": true,
+                            "conditional": {
+                              "show": null,
+                              "when": null
+                            },
+                            "index": 1
+                          }
+                        ],
+                        "key": "columns7",
+                        "type": "columns",
+                        "input": false
+                      },
+                      {
+                        "useNegativeIndents": false,
+                        "input": true,
+                        "key": "horizontalLine",
+                        "type": "horizontalLine",
+                        "conditional": {
+                          "show": null,
+                          "when": null
+                        }
+                      },
+                      {
+                        "label": "Name",
+                        "defaultValue": "",
+                        "validate": {
+                          "required": true
+                        },
+                        "key": "Name",
+                        "properties": {
+                          "attribute": "cm:name"
+                        },
+                        "type": "textfield",
+                        "input": true
+                      },
+                      {
+                        "useNegativeIndents": false,
+                        "input": true,
+                        "key": "horizontalLine4",
+                        "type": "horizontalLine",
+                        "conditional": {
+                          "show": null,
+                          "when": null
+                        }
+                      },
+                      {
+                        "label": "Note",
+                        "defaultValue": "",
+                        "key": "Note",
+                        "properties": {
+                          "attribute": "idocs:note"
+                        },
+                        "rows": 2,
+                        "type": "textarea",
+                        "input": true
+                      }
+                    ]
+                  }
+                ],
+                "type": "column",
+                "input": false,
+                "key": "column1",
+                "clearOnHide": true,
+                "conditional": {
+                  "show": null,
+                  "when": null
+                },
+                "index": 0
+              },
+              {
+                "components": [
+                  {
+                    "title": "Additional",
+                    "key": "Additional",
+                    "type": "panel",
+                    "input": false,
+                    "components": [
+                      {
+                        "label": {
+                          "en": "idocs:legalEntity"
+                        },
+                        "journalId": "legal-entities",
+                        "key": "idocs_legalEntity",
+                        "properties": {
+                          "attribute": "idocs:legalEntity"
+                        },
+                        "type": "selectJournal",
+                        "input": true
+                      },
+                      {
+                        "label": "idocs:contractor",
+                        "journalId": "idocs-contractor",
+                        "key": "idocs_contractor",
+                        "properties": {
+                          "attribute": "idocs:contractor"
+                        },
+                        "logic": [
+                          {
+                            "name": "setRequired",
+                            "trigger": {
+                              "type": "javascript",
+                              "javascript": "const {tk_kind = \"\"} = data;\nresult = false;\nif (tk_kind == \"workspace://SpacesStore/cat-document-hr-documents\") {\n  result = true;\n}"
+                            },
+                            "actions": [
+                              {
+                                "name": "setRequired",
+                                "type": "property",
+                                "property": {
+                                  "label": "Required",
+                                  "value": "validate.required",
+                                  "type": "boolean"
+                                },
+                                "state": "true"
+                              }
+                            ]
+                          }
+                        ],
+                        "type": "selectJournal",
+                        "input": true
+                      },
+                      {
+                        "useNegativeIndents": false,
+                        "input": true,
+                        "key": "horizontalLine2",
+                        "type": "horizontalLine",
+                        "conditional": {
+                          "show": null,
+                          "when": null
+                        }
+                      },
+                      {
+                        "columns": [
+                          {
+                            "components": [
+                              {
+                                "label": "idocs:currencyDocument",
+                                "dataSrc": "custom",
+                                "data": {
+                                  "custom": "const {currencyList = {}} = data;\nconst {records = []} = currencyList;\n\nfor (var i in records) {\n  values.push({label: records[i].key,value: records[i].id})\n}"
+                                },
+                                "refreshOnEvent": true,
+                                "refreshEventName": "currencyListEvent",
+                                "defaultValue": "",
+                                "key": "idocs_currencyDocument",
+                                "properties": {
+                                  "attribute": "idocs:currencyDocument"
+                                },
+                                "type": "ecosSelect",
+                                "input": true
+                              }
+                            ],
+                            "type": "column",
+                            "input": false,
+                            "key": "column5",
+                            "clearOnHide": true,
+                            "conditional": {
+                              "show": null,
+                              "when": null
+                            },
+                            "index": 0
+                          },
+                          {
+                            "components": [
+                              {
+                                "label": "ecos:documentAmount",
+                                "key": "ecos_documentAmount",
+                                "properties": {
+                                  "attribute": "ecos:documentAmount"
+                                },
+                                "type": "number",
+                                "input": true
+                              }
+                            ],
+                            "type": "column",
+                            "input": false,
+                            "key": "column6",
+                            "clearOnHide": true,
+                            "conditional": {
+                              "show": null,
+                              "when": null
+                            },
+                            "index": 1
+                          }
+                        ],
+                        "key": "columns5",
+                        "type": "columns",
+                        "input": false
+                      }
+                    ]
+                  },
+                  {
+                    "title": "Content",
+                    "key": "panel",
+                    "type": "panel",
+                    "input": false,
+                    "components": [
+                      {
+                        "label": {
+                          "en": "dms:updateContent"
+                        },
+                        "labelPosition": "left-left",
+                        "clearOnHide": false,
+                        "key": "dms_updateContent",
+                        "properties": {
+                          "attribute": "dms:updateContent"
+                        },
+                        "customConditional": "const {options = {}} = instance;\nconst {formMode = \"\"} = options;\nconst isCreate = formMode === 'CREATE';\nshow = isCreate;\n\n",
+                        "type": "checkbox",
+                        "input": true
+                      },
+                      {
+                        "label": {
+                          "en": "cm:content"
+                        },
+                        "clearOnHide": false,
+                        "onFileClick": "download",
+                        "storage": "url",
+                        "url": " /share/proxy/alfresco/eform/file",
+                        "options": "",
+                        "validate": {
+                          "required": true
+                        },
+                        "key": "cm_content",
+                        "properties": {
+                          "attribute": "cm:content"
+                        },
+                        "customConditional": "const {dms_updateContent = false} = data;\nconst {options = {}} = instance;\nconst {formMode = \"\"} = options;\n\n\nshow = formMode != 'CREATE' || (!dms_updateContent && formMode === 'CREATE');",
+                        "type": "file",
+                        "input": true
+                      }
+                    ]
+                  }
+                ],
+                "type": "column",
+                "input": false,
+                "key": "column2",
+                "clearOnHide": true,
+                "conditional": {
+                  "show": null,
+                  "when": null
+                },
+                "index": 1
+              }
+            ],
+            "key": "columns3",
+            "type": "columns",
+            "input": false
+          }
+        ]
+      },
+      {
+        "columns": [
+          {
+            "components": [
+              {
+                "label": "typeGeneralCaseList",
+                "source": {
+                  "type": "recordsQuery",
+                  "recordsQuery": {
+                    "attributes": {
+                      "label": ".disp",
+                      "value": ".id"
+                    },
+                    "query": "const {tk_type = \"\"} = data;\nvar value = {\n  query: 'PARENT: \"' + tk_type + '\"',\n  language: 'fts-alfresco'\n}",
+                    "isSingle": false
+                  },
+                  "forceLoad": false
+                },
+                "update": {
+                  "type": "once"
+                },
+                "refreshOn": [
+                  {
+                    "label": "tk_type",
+                    "value": "tk_type"
+                  }
+                ],
+                "triggerEventOnChange": true,
+                "eventName": "typeGeneralCaseEvent",
+                "executionCondition": "const {tk_type = \"\"} = data;\nvalue = !_.isEmpty(tk_type);",
+                "key": "typeGeneralCaseList",
+                "type": "asyncData",
+                "input": true,
+                "conditional": {
+                  "show": null,
+                  "when": null
+                }
+              }
+            ],
+            "type": "column",
+            "input": false,
+            "key": "column1",
+            "md": 2,
+            "clearOnHide": true,
+            "conditional": {
+              "show": null,
+              "when": null
+            },
+            "index": 0
+          },
+          {
+            "components": [
+              {
+                "label": "currencyList",
+                "source": {
+                  "type": "recordsQuery",
+                  "recordsQuery": {
+                    "attributes": {
+                      "key": "cm:title"
+                    },
+                    "query": "var value = {\r\n  query: 'TYPE:\"idocs:currency\"',\r\n  language: 'fts-alfresco'\r\n}",
+                    "isSingle": false
+                  },
+                  "forceLoad": false
+                },
+                "update": {
+                  "type": "once"
+                },
+                "triggerEventOnChange": true,
+                "eventName": "currencyListEvent",
+                "key": "currencyList",
+                "type": "asyncData",
+                "input": true,
+                "conditional": {
+                  "show": null,
+                  "when": null
+                }
+              }
+            ],
+            "type": "column",
+            "input": false,
+            "key": "column2",
+            "md": 2,
+            "clearOnHide": true,
+            "conditional": {
+              "show": null,
+              "when": null
+            },
+            "index": 1
+          },
+          {
+            "md": 2,
+            "type": "column",
+            "input": false,
+            "key": "column3",
+            "components": [],
+            "clearOnHide": true,
+            "conditional": {
+              "show": null,
+              "when": null
+            },
+            "index": 2
+          },
+          {
+            "md": 2,
+            "type": "column",
+            "input": false,
+            "key": "column4",
+            "components": [
+              {
+                "label": "tk:type",
+                "clearOnHide": false,
+                "hidden": true,
+                "defaultValue": "",
+                "calculateValue": "var deflt = 'workspace://SpacesStore/category-document-type';\nvalue = _.get(instance, 'options.params.tk_type', deflt); \n",
+                "key": "tk_type",
+                "properties": {
+                  "attribute": "tk:type"
+                },
+                "type": "textfield",
+                "input": true
+              }
+            ],
+            "clearOnHide": true,
+            "conditional": {
+              "show": null,
+              "when": null
+            },
+            "index": 3
+          },
+          {
+            "md": 2,
+            "type": "column",
+            "input": false,
+            "key": "column5",
+            "components": [],
+            "clearOnHide": true,
+            "conditional": {
+              "show": null,
+              "when": null
+            },
+            "index": 4
+          },
+          {
+            "md": 2,
+            "type": "column",
+            "input": false,
+            "key": "column6",
+            "components": [],
+            "clearOnHide": true,
+            "conditional": {
+              "show": null,
+              "when": null
+            },
+            "index": 5
+          }
+        ],
+        "hidden": true,
+        "key": "columns8",
+        "type": "columns",
+        "input": false
+      },
+      {
+        "columns": [
+          {
+            "components": [
+              {
+                "label": "Cancel",
+                "removeIndents": true,
+                "action": "event",
+                "state": "",
+                "showValidations": false,
+                "event": "cancel",
+                "block": true,
+                "key": "submit3",
+                "type": "button",
+                "input": true
+              }
+            ],
+            "type": "column",
+            "input": false,
+            "key": "column",
+            "label": "Column",
+            "md": 3,
+            "clearOnHide": true,
+            "conditional": {
+              "show": null,
+              "when": null
+            },
+            "index": 0
+          },
+          {
+            "components": [],
+            "type": "column",
+            "input": false,
+            "key": "column",
+            "label": "Column",
+            "md": 3,
+            "clearOnHide": true,
+            "conditional": {
+              "show": null,
+              "when": null
+            },
+            "index": 1
+          },
+          {
+            "md": 3,
+            "type": "column",
+            "input": false,
+            "key": "column",
+            "label": "Column",
+            "components": [],
+            "clearOnHide": true,
+            "conditional": {
+              "show": null,
+              "when": null
+            },
+            "index": 2
+          },
+          {
+            "md": 3,
+            "type": "column",
+            "input": false,
+            "key": "column",
+            "label": "Column",
+            "components": [
+              {
+                "removeIndents": true,
+                "state": "",
+                "theme": "primary",
+                "block": true,
+                "disableOnInvalid": true,
+                "key": "Create2",
+                "type": "button",
+                "input": true
+              }
+            ],
+            "clearOnHide": true,
+            "conditional": {
+              "show": null,
+              "when": null
+            },
+            "index": 3
+          }
+        ],
+        "key": "columns9",
+        "type": "columns",
+        "input": false
+      }
+    ]
+  },
+  "attributes": {}
+}
