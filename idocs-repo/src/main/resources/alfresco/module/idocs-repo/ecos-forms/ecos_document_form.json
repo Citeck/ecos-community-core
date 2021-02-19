@@ -1,14 +1,12 @@
 {
   "id": "ecos-document-form",
-  "formKey": "alf_ecos:document",
+  "formKey": "",
   "title": {
     "en": "Ecos document form"
   },
-  "description": {
-    "en": ""
-  },
+  "description": {},
   "customModule": null,
-  "typeRef": "emodel/type@category-document-type",
+  "typeRef": "emodel/type@ecos-document",
   "width": "default",
   "i18n": {
     "en": {
