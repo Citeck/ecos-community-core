@@ -151,7 +151,9 @@
                           {
                             "components": [
                               {
-                                "label": "ecos:documentNumber",
+                                "label": {
+                                  "en": "ecos:documentNumber"
+                                },
                                 "defaultValue": "",
                                 "key": "ecos_documentNumber",
                                 "properties": {
@@ -182,7 +184,7 @@
                                       {
                                         "name": "set_value",
                                         "type": "value",
-                                        "value": "if (instance.options.formMode === 'CREATE') {\n  value = '-';\n}"
+                                        "value": "const {options = {}} = instance;\nconst {formMode = \"\"} = options;\n\nif (formMode === 'CREATE') {\n  value = '-';\n}"
                                       }
                                     ]
                                   },
@@ -313,9 +315,10 @@
                     "input": false,
                     "components": [
                       {
-                        "label": "idocs:legalEntity",
+                        "label": {
+                          "en": "idocs:legalEntity"
+                        },
                         "journalId": "legal-entities",
-                        "customDefaultValue": "value = data.defaultLegalEntity ? data.defaultLegalEntity.value : null;",
                         "key": "idocs_legalEntity",
                         "properties": {
                           "attribute": "idocs:legalEntity"
