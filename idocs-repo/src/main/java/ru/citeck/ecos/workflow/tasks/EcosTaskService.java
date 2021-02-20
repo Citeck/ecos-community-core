@@ -142,12 +142,13 @@ public class EcosTaskService {
             if (value instanceof NativeJavaObject) {
                 value = ((NativeJavaObject) value).unwrap();
             }
-            exception = new RuntimeException(String.valueOf(value), exception);
+            StackTraceElement[] stackTrace = exception.getStackTrace();
+            exception = new RuntimeException(String.valueOf(value));
+            exception.setStackTrace(stackTrace);
         } else if (ex instanceof AlfrescoRuntimeException) {
             String msg = ((AlfrescoRuntimeException) ex).getMsgId();
             exception = new RuntimeException(msg, exception);
         }
-
         throw exception;
     }
 
