@@ -1,6 +1,5 @@
-
+---
 id: event-notifications
-
 name:
   ru: Уведомления о событиях
   en: Event notifications
@@ -13,199 +12,89 @@ actions:
 editable: false
 
 columns:
-  -   name: cm:name
-      label:
-        ru: Имя
-        en: Name
-      attribute: ''
-      type: text
-      searchable: true
-      sortable: true
-      groupable: false
-      editable: true
-      visible: true
-      hidden: false
-      attributes: {}
+  - id: cm:name
+    name:
+      ru: Имя
+      en: Name
+    type: TEXT
 
-  -   name: dms:notificationType
-      label:
-        ru: Тип уведомления
-        en: Notification type
-      attribute: ''
-      type: options
-      searchable: true
-      sortable: true
-      groupable: false
-      editable: true
-      visible: true
-      hidden: false
-      attributes: {}
+  - id: dms:notificationType
+    name:
+      ru: Тип уведомления
+      en: Notification type
+    type: TEXT
 
-  -   name: dms:ecosType
-      label:
-        ru: Тип ECOS
-        en: ECOS type
-      attribute: ''
-      type: assoc
-      searchable: true
-      sortable: true
-      groupable: false
-      editable: true
-      visible: true
-      hidden: false
-      attributes:
-        journalTypeId: ecos-types
+  - id: dms:ecosType
+    name:
+      ru: Тип ECOS
+      en: ECOS type
+    type: ASSOC
+    attributes:
+      journalTypeId: ecos-types
 
-  -   name: dms:workflowName
-      label:
-        ru: Название процесса
-        en: Workflow Name
-      attribute: ''
-      type: text
-      searchable: true
-      sortable: true
-      groupable: false
-      editable: true
-      visible: true
-      hidden: false
-      attributes: {}
+  - id: dms:workflowName
+    name:
+      ru: Название процесса
+      en: Workflow Name
+    type: TEXT
 
-  -   name: dms:taskName
-      label:
-        ru: Название задачи
-        en: Task name
-      attribute: ''
-      type: text
-      searchable: true
-      sortable: true
-      groupable: false
-      editable: true
-      visible: true
-      hidden: false
-      attributes: {}
+  - id: dms:taskName
+    name:
+      ru: Название задачи
+      en: Task name
+    type: TEXT
 
-  -   name: dms:notSearchable
-      label:
-        ru: Не доступен для поиска
-        en: Not searchable
-      attribute: ''
-      type: boolean
-      searchable: true
-      sortable: true
-      groupable: false
-      editable: true
-      visible: true
-      hidden: false
-      attributes: {}
+  - id: dms:notSearchable
+    name:
+      ru: Не доступен для поиска
+      en: Not searchable
+    type: BOOLEAN
 
-  -   name: dms:notificationDisabled
-      label:
-        ru: Уведомление отключено
-        en: Notification disabled
-      attribute: ''
-      type: boolean
-      searchable: true
-      sortable: true
-      groupable: false
-      editable: true
-      visible: false
-      hidden: false
-      attributes: {}
+  - id: dms:notificationDisabled
+    name:
+      ru: Уведомление отключено
+      en: Notification disabled
+    type: BOOLEAN
+    visible: false
 
-  -   name: dms:sendToOwner
-      label:
-        ru: Отправить автору документа
-        en: Send to owner
-      attribute: ''
-      type: boolean
-      searchable: true
-      sortable: true
-      groupable: false
-      editable: true
-      visible: true
-      hidden: false
-      attributes: {}
+  - id: dms:sendToOwner
+    name:
+      ru: Отправить автору документа
+      en: Send to owner
+    type: BOOLEAN
 
-  -   name: dms:sendToInitiator
-      label:
-        ru: Отправить инициатору
-        en: Send to initiator
-      attribute: ''
-      type: boolean
-      searchable: true
-      sortable: true
-      groupable: false
-      editable: true
-      visible: false
-      hidden: false
-      attributes: {}
+  - id: dms:sendToInitiator
+    name:
+      ru: Отправить инициатору
+      en: Send to initiator
+    type: BOOLEAN
+    visible: false
 
-  -   name: dms:sendToAssignee
-      label:
-        ru: Отправить исполнителю
-        en: Send to assignee
-      attribute: ''
-      type: boolean
-      searchable: true
-      sortable: true
-      groupable: false
-      editable: true
-      visible: false
-      hidden: false
-      attributes: {}
+  - id: dms:sendToAssignee
+    name:
+      ru: Отправить исполнителю
+      en: Send to assignee
+    type: BOOLEAN
+    visible: false
 
-  -   name: dms:taskSubscribers
-      label:
-        ru: Другие адресаты
-        en: Other recipients
-      attribute: ''
-      type: text
-      searchable: true
-      sortable: true
-      groupable: false
-      editable: true
-      visible: false
-      hidden: false
-      attributes: {}
+  - id: dms:taskSubscribers
+    name:
+      ru: Другие адресаты
+      en: Other recipients
+    type: TEXT
+    visible: false
 
-  -   name: dms:additionRecipients
-      label:
-        ru: Доп. адресаты (пользователи, группы)
-        en: Addition recipients
-      attribute: ''
-      type: text
-      searchable: true
-      sortable: true
-      groupable: false
-      editable: true
-      visible: false
-      hidden: false
-      attributes: {}
+  - id: dms:additionRecipients
+    name:
+      ru: Доп. адресаты (пользователи, группы)
+      en: Addition recipients
+    type: TEXT
+    visible: false
 
-  -   name: dms:ecosNotificationTemplate
-      label:
-        ru: Шаблон уведомления ECOS
-        en: ECOS notification template
-      attribute: ''
-      type: assoc
-      searchable: true
-      sortable: true
-      groupable: false
-      editable: true
-      visible: true
-      hidden: false
-      attributes:
-        journalTypeId: notification-templates
-
-attributes:
-  journalsListId: global-system
-
-createVariants:
-  -   id: create
-      name:
-        ru: Создать
-        en: Create
-      formRef: ''
-      recordRef: dict@dms:notificationTemplate
-      attributes:
-        _parent: /app:company_home/app:dictionary/app:email_templates/cm:workflownotification
+  - id: dms:ecosNotificationTemplate
+    name:
+      ru: Шаблон уведомления ECOS
+      en: ECOS notification template
+    type: ASSOC
+    properties:
+      journalTypeId: notification-templates

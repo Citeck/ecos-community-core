@@ -1,9 +1,6 @@
-
+---
 id: templates
 name: { ru: Шаблоны Документов, en: Document templates }
-
-attributes:
-  journalsListId: global-templates
 
 actions:
   - uiserv/action@view
