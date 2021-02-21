@@ -43,7 +43,6 @@ public class EcosAppsFactoryConfig extends EcosAppsServiceFactory {
         ArtifactService artifactService = super.createArtifactService();
 
         Map<String, String> mapping = new HashMap<>();
-        mapping.put("ui/form", "ecos-forms");
         mapping.put("process/cmmn", "case/templates");
 
         artifactService.setArtifactLocations(mapping);
