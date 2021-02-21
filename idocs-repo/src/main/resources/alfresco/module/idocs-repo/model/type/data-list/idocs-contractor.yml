@@ -5,7 +5,7 @@ name:
   en: Contractor
 
 parentRef: emodel/type@data-list
-formRef: uiserv/eform@idocs-contractor-form
+formRef: uiserv/form@idocs-contractor-form
 journalRef: uiserv/journal@idocs-contractor
 
 inheritActions: false

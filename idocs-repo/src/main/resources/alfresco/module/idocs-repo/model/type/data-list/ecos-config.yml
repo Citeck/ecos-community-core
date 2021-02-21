@@ -4,7 +4,7 @@ id: ecos-config-type
 name: { ru: Конфигурация, en: Config }
 
 parentRef: emodel/type@data-list
-formRef: uiserv/eform@config_ecosConfig
+formRef: uiserv/form@config_ecosConfig
 journalRef: uiserv/journal@ecosConfig
 
 properties:

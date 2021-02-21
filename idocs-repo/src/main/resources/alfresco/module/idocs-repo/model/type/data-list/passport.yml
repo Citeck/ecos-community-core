@@ -4,7 +4,7 @@ name: { ru: Паспорт, en: Passport }
 
 parentRef: emodel/type@data-list
 journalRef: uiserv/journal@passports
-formRef: uiserv/eform@ecos-pass-passport-form
+formRef: uiserv/form@ecos-pass-passport-form
 
 properties:
   alfType: pass:passport

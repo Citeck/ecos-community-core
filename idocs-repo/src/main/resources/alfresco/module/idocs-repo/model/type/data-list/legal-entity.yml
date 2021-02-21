@@ -6,7 +6,7 @@ name:
   ru: Юридическое лицо
 
 parentRef: emodel/type@data-list
-formRef: uiserv/eform@legal-entity-form
+formRef: uiserv/form@legal-entity-form
 journalRef: uiserv/journal@legal-entities
 
 properties:

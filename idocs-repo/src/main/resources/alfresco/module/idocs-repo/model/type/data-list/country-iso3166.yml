@@ -7,7 +7,7 @@ name:
 
 parentRef: emodel/type@data-list
 journalRef: uiserv/journal@country-iso3166
-formRef: uiserv/eform@country-iso3166
+formRef: uiserv/form@country-iso3166
 
 properties:
   alfType: idocs:countryISO3166

@@ -7,7 +7,7 @@ name:
 
 parentRef: emodel/type@data-list
 journalRef: uiserv/journal@legal-form
-formRef: uiserv/eform@legal-form-form
+formRef: uiserv/form@legal-form-form
 
 properties:
   alfType: idocs:legalForm

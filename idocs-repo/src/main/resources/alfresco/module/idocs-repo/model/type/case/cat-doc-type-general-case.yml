@@ -10,7 +10,7 @@ parentRef: emodel/type@case
 sourceId: alfresco/
 
 journalRef: "uiserv/journal@general-case"
-formRef: "uiserv/eform@cat-doc-type-general-case-form"
+formRef: "uiserv/form@cat-doc-type-general-case-form"
 
 properties:
   alfRoot: /app:company_home/st:sites/cm:cases/cm:documentLibrary/tk:cat-doc-type-general-case
