@@ -1,13 +1,13 @@
 
 id: general-case
-label: { ru: Стандартный кейс, en: General Case}
+name: { ru: Стандартный кейс, en: General Case}
 
 actions:
   - uiserv/action@view-dashboard
   - uiserv/action@edit
 
 columns:
-  - name: tk:kind
+  - id: tk:kind
     computed:
       - id: _options
         type: script
@@ -29,14 +29,14 @@ columns:
             }
             return [];
 
-  - name: cm:name
-  - name: idocs:note
-  - name: ecos:documentNumber
-  - name: ecos:documentDate
-  - name: idocs:legalEntity
-  - name: idocs:contractor
-  - name: ecos:documentAmount
-  - name: idocs:currencyDocument
-  - name: ecos:VAT
-  - name: ecos:startDate
-  - name: ecos:stopDate
+  - id: cm:name
+  - id: idocs:note
+  - id: ecos:documentNumber
+  - id: ecos:documentDate
+  - id: idocs:legalEntity
+  - id: idocs:contractor
+  - id: ecos:documentAmount
+  - id: idocs:currencyDocument
+  - id: ecos:VAT
+  - id: ecos:startDate
+  - id: ecos:stopDate

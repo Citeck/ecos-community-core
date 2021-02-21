@@ -1,6 +1,6 @@
 
 id: passports
-label: { ru: Паспорт, en: Passport }
+name: { ru: Паспорт, en: Passport }
 
 actions:
   - uiserv/action@edit
@@ -12,12 +12,12 @@ predicate:
     - { t: eq, att: TYPE, val: pass:passport }
 
 columns:
-  - name: pass:person
-  - name: tk:kind
-  - name: pass:series
-  - name: pass:number
-  - name: pass:issueDate
-  - name: pass:issuingAuthority
+  - id: pass:person
+  - id: tk:kind
+  - id: pass:series
+  - id: pass:number
+  - id: pass:issueDate
+  - id: pass:issuingAuthority
     visible: false
-  - name: pass:info
+  - id: pass:info
     visible: false

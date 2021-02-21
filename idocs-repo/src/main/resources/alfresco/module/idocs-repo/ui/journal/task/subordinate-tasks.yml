@@ -1,7 +1,7 @@
 ---
 id: subordinate-tasks
 
-label:
+name:
   ru: Задачи подчиненных
   en: Subordinate tasks
 
@@ -19,14 +19,14 @@ actions:
 
 columns:
 
-  - name: bpm:priority
-    label:
+  - id: bpm:priority
+    name:
       en: Priority
       ru: Приоритет
     formatter:
       type: workflowPriority
-  - name: cm:title
-    label:
+  - id: cm:title
+    name:
       en: Task name
       ru: Название задачи
     sortable: false
@@ -35,29 +35,29 @@ columns:
   #  <option  name="formatter">taskTitle</option>
   # </header>
 
-  - name: wfm:document
+  - id: wfm:document
     searchable: false
     sortable: false
     formatter:
       type: assoc
 
-  - name: wfm:counterparty
+  - id: wfm:counterparty
     searhable: false
     sortable: false
     formatter:
       type: assoc
 
-  - name: wfm:documentTypeTitle
-  - name: wfm:documentKindTitle
+  - id: wfm:documentTypeTitle
+  - id: wfm:documentKindTitle
 
-  - name: bpm:dueDate
+  - id: bpm:dueDate
 
-  - name: cwf:senderName
+  - id: cwf:senderName
     searchable: false
     visible: false
-  - name: cwf:sender
+  - id: cwf:sender
     visible: false
-  - name: wfm:assignee
+  - id: wfm:assignee
     sortable: false
     visible: false
     editor:
@@ -65,10 +65,10 @@ columns:
       config:
         allowedAuthorityType: USER
 
-  - name: bpm:status
+  - id: bpm:status
     visible: false
 
-  - name: bpm:pooledActors
+  - id: bpm:pooledActors
     sortable: false
     visible: false
     editor:
@@ -76,16 +76,16 @@ columns:
       config:
         allowedAuthorityType: USER,GROUP
 
-  - name: bpm:startDate
+  - id: bpm:startDate
     visible: false
-  - name: bpm:comment
+  - id: bpm:comment
     visible: false
-  - name: cwf:taskTitle
+  - id: cwf:taskTitle
     visible: false
 
-  - name: cm:name
+  - id: cm:name
     visible: false
     searchable: false
-  - name: wfm:taskType
+  - id: wfm:taskType
     visible: false
     searchable: false

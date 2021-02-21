@@ -1,6 +1,6 @@
 
 id: templates
-label: { ru: Шаблоны Документов, en: Document templates }
+name: { ru: Шаблоны Документов, en: Document templates }
 
 attributes:
   journalsListId: global-templates
@@ -14,14 +14,14 @@ typeRef: emodel/type@document-template
 
 columns:
 
-  - name: cm:name
-    label: { ru: Имя, en: Name }
+  - id: cm:name
+    name: { ru: Имя, en: Name }
 
-  - name: tk:appliesToType
-    label: { ru: Тип, en: Вид }
+  - id: tk:appliesToType
+    name: { ru: Тип, en: Вид }
 
-  - name: tk:appliesToKind
-    label: { ru: Вид, en: Kind }
+  - id: tk:appliesToKind
+    name: { ru: Вид, en: Kind }
 
-  - name: cm:taggable
-    label: { ru: Метки, en: Tags }
+  - id: cm:taggable
+    name: { ru: Метки, en: Tags }

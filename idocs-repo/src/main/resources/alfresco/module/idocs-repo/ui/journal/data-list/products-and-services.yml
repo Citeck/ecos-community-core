@@ -1,6 +1,6 @@
 
 id: products-and-services
-label: { ru: Продукты и услуги, en: Products and services }
+name: { ru: Продукты и услуги, en: Products and services }
 
 actions:
   - uiserv/action@edit
@@ -12,9 +12,9 @@ predicate:
     - { t: eq, att: TYPE, val: pas:pasEntityOriginal }
 
 columns:
-  - name: cm:title
-  - name: pas:pricePerUnit
-  - name: pas:entityUnit
-  - name: pas:type
-  - name: pas:currency
+  - id: cm:title
+  - id: pas:pricePerUnit
+  - id: pas:entityUnit
+  - id: pas:type
+  - id: pas:currency
 

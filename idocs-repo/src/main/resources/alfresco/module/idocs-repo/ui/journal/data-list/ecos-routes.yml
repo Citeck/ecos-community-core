@@ -1,6 +1,6 @@
 
 id: ecos-routes
-label: { ru: Шаблоны маршрута, en: Route templates }
+name: { ru: Шаблоны маршрута, en: Route templates }
 
 actions:
   - uiserv/action@edit
@@ -8,7 +8,7 @@ actions:
 metaRecord: alfresco/@
 
 columns:
-  - name: cm:name
-  - name: route:stages
-  - name: cm:taggable
+  - id: cm:name
+  - id: route:stages
+  - id: cm:taggable
 

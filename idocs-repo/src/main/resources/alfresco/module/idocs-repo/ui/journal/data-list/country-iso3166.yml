@@ -1,6 +1,6 @@
 
 id: country-iso3166
-label: { ru: Страны, en: Countries }
+name: { ru: Страны, en: Countries }
 
 actions:
   - uiserv/action@edit
@@ -12,6 +12,6 @@ predicate:
     - { t: eq, att: TYPE, val: idocs:countryISO3166 }
 
 columns:
-  - name: cm:title
-  - name: idocs:countryISO3166Name
-  - name: idocs:countryISO31661Code
+  - id: cm:title
+  - id: idocs:countryISO3166Name
+  - id: idocs:countryISO31661Code

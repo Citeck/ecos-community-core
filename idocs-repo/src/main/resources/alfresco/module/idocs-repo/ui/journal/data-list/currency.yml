@@ -1,6 +1,6 @@
 
 id: currency
-label: { ru: Валюта, en: Currency }
+name: { ru: Валюта, en: Currency }
 
 actions:
   - uiserv/action@edit
@@ -12,8 +12,8 @@ predicate:
     - { t: eq, att: TYPE, val: idocs:currency }
 
 columns:
-  - name: idocs:currencyCode
-  - name: idocs:currencyName
+  - id: idocs:currencyCode
+  - id: idocs:currencyName
     visible: false
-  - name: cm:title
-  - name: idocs:currencyRate
+  - id: cm:title
+  - id: idocs:currencyRate

@@ -1,7 +1,7 @@
 ---
 id: initiator-tasks
 
-label: {ru: Созданные задачи, en: Created Tasks}
+name: {ru: Созданные задачи, en: Created Tasks}
 
 predicate:
   t: and
@@ -13,13 +13,13 @@ typeRef: emodel/type@workflow-task
 editable: false
 
 columns:
-  - name: bpm:priority
+  - id: bpm:priority
     formatter: {type: workflowPriority}
-  - name: wfm:taskType
-    label: {ru: Название задачи, en: Task name}
+  - id: wfm:taskType
+    name: {ru: Название задачи, en: Task name}
   - {name: 'cwf:senderName', visible: false, searchable: false }
 
-  - name: 'wfm:assignee'
+  - id: 'wfm:assignee'
     editor:
       type: orgstruct
       config:

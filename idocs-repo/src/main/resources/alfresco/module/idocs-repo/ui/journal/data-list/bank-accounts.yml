@@ -1,6 +1,6 @@
 
 id: bank-accounts
-label: { ru: Банковский счет, en: Bank Accounts }
+name: { ru: Банковский счет, en: Bank Accounts }
 
 actions:
   - uiserv/action@edit
@@ -12,10 +12,10 @@ predicate:
     - { t: eq, att: TYPE, val: idocs:bankAccount }
 
 columns:
-  - name: idocs:legalEntity
-  - name: idocs:bankTitle
-  - name: idocs:bankId
-  - name: idocs:accountNumber
-  - name: idocs:corresponentBankTitle
-  - name: idocs:correspondentBankId
-  - name: idocs:corresponentAccountNumber
+  - id: idocs:legalEntity
+  - id: idocs:bankTitle
+  - id: idocs:bankId
+  - id: idocs:accountNumber
+  - id: idocs:corresponentBankTitle
+  - id: idocs:correspondentBankId
+  - id: idocs:corresponentAccountNumber

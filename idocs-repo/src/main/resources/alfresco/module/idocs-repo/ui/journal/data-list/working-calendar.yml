@@ -1,14 +1,14 @@
 
 id: working-calendar
-label: { ru: Производственный календарь, en: Working Calendar }
+name: { ru: Производственный календарь, en: Working Calendar }
 
 actions:
   - uiserv/action@edit
 
 columns:
-  - name: wcal:name
-  - name: wcal:year
-  - name: wcal:workingDayBegin
-  - name: wcal:workingDayEnd
-  - name: wcal:country
-  - name: wcal:scheduleName
+  - id: wcal:name
+  - id: wcal:year
+  - id: wcal:workingDayBegin
+  - id: wcal:workingDayEnd
+  - id: wcal:country
+  - id: wcal:scheduleName

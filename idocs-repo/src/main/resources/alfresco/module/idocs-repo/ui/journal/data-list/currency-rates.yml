@@ -1,6 +1,6 @@
 
 id: currency-rates
-label: { ru: Курс вылюты ЦБ, en: Currency rate Central Bank }
+name: { ru: Курс вылюты ЦБ, en: Currency rate Central Bank }
 
 actions:
   - uiserv/action@edit
@@ -12,7 +12,7 @@ predicate:
     - { t: eq, att: TYPE, val: idocs:currencyRateRecord }
 
 columns:
-  - name: idocs:crrBaseCurrency
-  - name: idocs:crrTargetCurrency
-  - name: idocs:crrValue
-  - name: idocs:crrDate
+  - id: idocs:crrBaseCurrency
+  - id: idocs:crrTargetCurrency
+  - id: idocs:crrValue
+  - id: idocs:crrDate

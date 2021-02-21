@@ -1,6 +1,6 @@
 ---
 id: audit-history-all
-label: { ru: Исторические события, en: History Events }
+name: { ru: Исторические события, en: History Events }
 
 sourceId: history
 
@@ -11,19 +11,19 @@ predicate:
     - { t: eq, att: TYPE, val: '{http://www.citeck.ru/ecos/journals/1.0}audit-history-all' }
 
 columns:
-  - name: historyEventId
-  - name: username
-  - name: documentId
-  - name: creationTime
-  - name: version
-  - name: comments
-  - name: eventType
-  - name: taskRole
-  - name: taskOutcome
-  - name: taskOutcome
-  - name: taskType
-  - name: taskAttachments
-  - name: taskInstanceId
-  - name: taskPooledActors
-  - name: taskTitle
+  - id: historyEventId
+  - id: username
+  - id: documentId
+  - id: creationTime
+  - id: version
+  - id: comments
+  - id: eventType
+  - id: taskRole
+  - id: taskOutcome
+  - id: taskOutcome
+  - id: taskType
+  - id: taskAttachments
+  - id: taskInstanceId
+  - id: taskPooledActors
+  - id: taskTitle
 

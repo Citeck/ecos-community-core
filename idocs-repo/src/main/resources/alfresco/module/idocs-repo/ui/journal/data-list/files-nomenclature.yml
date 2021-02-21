@@ -1,6 +1,6 @@
 ---
 id: files-nomenclature
-label: { ru: Номенклатура дел, en: Files Register }
+name: { ru: Номенклатура дел, en: Files Register }
 
 actions:
   - uiserv/action@edit
@@ -12,7 +12,7 @@ predicate:
     - { t: eq, att: TYPE, val: idocs:filesNomenclature }
 
 columns:
-  - name: idocs:fileIndex
-  - name: idocs:fileName
-  - name: idocs:fileYear
+  - id: idocs:fileIndex
+  - id: idocs:fileName
+  - id: idocs:fileYear
 

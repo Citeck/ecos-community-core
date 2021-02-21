@@ -1,6 +1,6 @@
 
 id: groups-of-countries
-label: { ru: Группы стран, en: Groups of Countries }
+name: { ru: Группы стран, en: Groups of Countries }
 
 actions:
   - uiserv/action@edit
@@ -12,6 +12,6 @@ predicate:
     - { t: eq, att: TYPE, val: idocs:groupOfCountries }
 
 columns:
-  - name: idocs:gocName
-  - name: idocs:gocCountries
+  - id: idocs:gocName
+  - id: idocs:gocCountries
 

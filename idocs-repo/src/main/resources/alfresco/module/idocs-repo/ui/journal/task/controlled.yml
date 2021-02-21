@@ -1,7 +1,7 @@
 ---
 id: controlled
 
-label: {ru: На контроле, en: Controlled}
+name: {ru: На контроле, en: Controlled}
 
 predicate:
   t: and
@@ -14,53 +14,53 @@ editable: false
 
 columns:
 
-  - name: bpm:priority
+  - id: bpm:priority
     formatter: {type: workflowPriority}
 
-  - name: wfm:taskType
-    label: {ru: Название задачи, en: Task name}
+  - id: wfm:taskType
+    name: {ru: Название задачи, en: Task name}
 
-  - name: 'cwf:senderName'
+  - id: 'cwf:senderName'
     visible: false
     searchable: false
 
-  - name: 'wfm:assignee'
+  - id: 'wfm:assignee'
     editor:
       type: orgstruct
       config:
         allowedAuthorityTypes: USER
 
-  - name: 'bpm:status'
+  - id: 'bpm:status'
 
-  - name: 'bpm:pooledActors'
+  - id: 'bpm:pooledActors'
     visible: false
     editor:
       type: orgstruct
       config:
         allowedAuthorityTypes: USER,GROUP
 
-  - name: 'wfm:document'
+  - id: 'wfm:document'
     searchable: false
 
-  - name: 'wfm:counterparty'
+  - id: 'wfm:counterparty'
 
-  - name: 'wfm:documentTypeTitle'
+  - id: 'wfm:documentTypeTitle'
 
-  - name: 'wfm:documentKindTitle'
+  - id: 'wfm:documentKindTitle'
 
-  - name: 'bpm:startDate'
+  - id: 'bpm:startDate'
     visible: false
 
-  - name: 'bpm:dueDate'
+  - id: 'bpm:dueDate'
 
-  - name: 'bpm:comment'
+  - id: 'bpm:comment'
     visible: false
 
-  - name: 'wfm:workflowInitiator'
+  - id: 'wfm:workflowInitiator'
     visible: false
 
-  - name: 'cwf:taskTitle'
+  - id: 'cwf:taskTitle'
     visible: false
 
-  - name: 'cm:title'
+  - id: 'cm:title'
     visible: false

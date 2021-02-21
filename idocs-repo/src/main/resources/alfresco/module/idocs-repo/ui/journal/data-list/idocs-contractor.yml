@@ -1,7 +1,7 @@
 
 id: idocs-contractor
 
-label:
+name:
   ru: Контрагенты
   en: Contractors
 
@@ -13,8 +13,8 @@ actions:
 editable: false
 
 columns:
-  - name: idocs_fullOrganizationName
-    label:
+  - id: idocs_fullOrganizationName
+    name:
       ru: 'Полное наименование'
       en: 'Full name'
     attribute: idocs:fullOrganizationName
@@ -25,8 +25,8 @@ columns:
     editable: false
     visible: true
 
-  - name: idocs_shortOrganizationName
-    label:
+  - id: idocs_shortOrganizationName
+    name:
       ru: 'Альтернативное наименование'
       en: 'Alternative name'
     attribute: idocs:shortOrganizationName
@@ -37,8 +37,8 @@ columns:
     editable: false
     visible: false
 
-  - name: idocs_contractorType
-    label:
+  - id: idocs_contractorType
+    name:
       ru: 'Тип контрагента'
       en: 'Contractor type'
     attribute: idocs:contractorType
@@ -49,8 +49,8 @@ columns:
     editable: false
     visible: true
 
-  - name: idocs_inn
-    label:
+  - id: idocs_inn
+    name:
       ru: 'ИНН'
       en: 'INN'
     attribute: idocs:inn
@@ -61,8 +61,8 @@ columns:
     editable: false
     visible: true
 
-  - name: idocs_kpp
-    label:
+  - id: idocs_kpp
+    name:
       ru: 'КПП'
       en: 'KPP'
     attribute: idocs:kpp
@@ -73,8 +73,8 @@ columns:
     editable: false
     visible: true
 
-  - name: idocs_ogrn
-    label:
+  - id: idocs_ogrn
+    name:
       ru: 'ОГРН'
       en: 'OGRN'
     attribute: idocs:ogrn
@@ -85,8 +85,8 @@ columns:
     editable: false
     visible: false
 
-  - name: idocs_juridicalAddress
-    label:
+  - id: idocs_juridicalAddress
+    name:
       ru: 'Юридический адрес'
       en: 'Juridical address'
     attribute: idocs:juridicalAddress
@@ -97,8 +97,8 @@ columns:
     editable: false
     visible: false
 
-  - name: idocs_postAddress
-    label:
+  - id: idocs_postAddress
+    name:
       ru: 'Фактический адрес'
       en: 'Post address'
     attribute: idocs:postAddress
@@ -109,8 +109,8 @@ columns:
     editable: false
     visible: false
 
-  - name: idocs_phone
-    label:
+  - id: idocs_phone
+    name:
       ru: 'Телефон'
       en: 'Phone'
     attribute: idocs:phone
@@ -121,8 +121,8 @@ columns:
     editable: false
     visible: false
 
-  - name: idocs_fax
-    label:
+  - id: idocs_fax
+    name:
       ru: 'Мобильный телефон'
       en: 'Mobile phone'
     attribute: idocs:fax
@@ -133,8 +133,8 @@ columns:
     editable: false
     visible: false
 
-  - name: idocs_email
-    label:
+  - id: idocs_email
+    name:
       ru: 'Адрес электронной почты'
       en: 'Email address'
     attribute: idocs:email
@@ -145,8 +145,8 @@ columns:
     editable: false
     visible: false
 
-  - name: idocs_CEOname
-    label:
+  - id: idocs_CEOname
+    name:
       ru: 'Генеральный директор'
       en: 'CEO name'
     attribute: idocs:CEOname
@@ -157,8 +157,8 @@ columns:
     editable: false
     visible: true
 
-  - name: icase_caseStatusAssoc
-    label:
+  - id: icase_caseStatusAssoc
+    name:
       ru: 'Статус'
       en: 'Status'
     attribute: icase:caseStatusAssoc
