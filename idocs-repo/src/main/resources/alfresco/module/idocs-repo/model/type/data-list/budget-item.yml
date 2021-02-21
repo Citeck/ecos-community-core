@@ -4,6 +4,7 @@ name: { ru: Статья бюджета, en: Budget Item }
 
 parentRef: emodel/type@data-list
 journalRef: uiserv/journal@budget-items
+formRef: uiserv/eform@budget-item-form
 
 properties:
   alfType: budget:item

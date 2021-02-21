@@ -445,13 +445,12 @@ public class AlfNodeRecord implements MetaValue {
         }
 
         DataValue caseStatusNode = recordsService.getAttribute(recordRef, CASE_STATUS_NAME_SCHEMA);
-        if (caseStatusNode == null || caseStatusNode.isNull()) {
+        if (caseStatusNode.isNull()) {
             return null;
         }
 
         return caseStatusNode.asText();
     }
-
 
     @Override
     public Object getAs(String type) {
@@ -550,7 +549,7 @@ public class AlfNodeRecord implements MetaValue {
 
     private MetaValue toMetaValue(Attribute att, Object value, MetaField field) {
         MetaValue metaValue;
-        if (value instanceof NodeRef || value instanceof String && NodeRef.isNodeRef((String) value)) {
+        if (context.getNodeUtils().isNodeRef(value)) {
             metaValue = new AlfNodeRecord(RecordRef.valueOf(value.toString()));
         } else if (value instanceof MLText) {
             metaValue = new MLTextValue((MLText) value);

@@ -1,0 +1,34 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+        http://www.springframework.org/schema/beans/spring-beans-3.0.xsd">
+
+    <bean id="idocs.import-spaces.4-3-0" abstract="true" parent="idocs.import-spaces">
+        <property name="sinceVersion" value="4.3.0"/>
+        <property name="appliesFromVersion" value="4.3.0"/>
+    </bean>
+
+    <bean id="idocs.import-scripts.4-3-0" abstract="true" parent="idocs.import-scripts">
+        <property name="sinceVersion" value="4.3.0"/>
+        <property name="appliesFromVersion" value="4.3.0"/>
+    </bean>
+
+    <bean id="ecos-community.module-component.enable-create-variants-cascad" parent="idocs.import-scripts.4-3-0">
+        <property name="name" value="enable-create-variants-cascad"/>
+        <property name="description" value="enable-create-variants-cascad"/>
+        <property name="dependsOn">
+            <list>
+                <ref bean="idocs.module-component.defaultUICreateMenu"/>
+            </list>
+        </property>
+        <property name="bootstrapScript" value="alfresco/module/idocs-repo/bootstrap/scripts/set-ecos-config.js"/>
+        <property name="args">
+            <map>
+                <entry key="key" value="default-ui-create-menu" />
+                <entry key="value" value="cascad" />
+            </map>
+        </property>
+    </bean>
+
+</beans>

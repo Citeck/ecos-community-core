@@ -9,4 +9,4 @@ journalRef: uiserv/journal@ecosConfig
 
 properties:
   alfType: config:ecosConfig
-  alfRoot: /app:company_home/app:dictionary/cm:IDocsRoot/cm:ecos-config-root
+  alfRoot: /cm:IDocsRoot/cm:ecos-config-root

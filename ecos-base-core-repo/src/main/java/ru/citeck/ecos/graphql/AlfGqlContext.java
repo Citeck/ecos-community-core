@@ -22,6 +22,7 @@ import ru.citeck.ecos.records2.RecordsService;
 import ru.citeck.ecos.records2.graphql.GqlContext;
 import ru.citeck.ecos.security.EcosPermissionService;
 import ru.citeck.ecos.service.CiteckServices;
+import ru.citeck.ecos.utils.NodeUtils;
 
 import java.util.Collection;
 import java.util.List;
@@ -48,6 +49,8 @@ public class AlfGqlContext extends GqlContext {
     private final MessageService messageService;
     @Getter
     private final EcosPermissionService ecosPermissionService;
+    @Getter
+    private final NodeUtils nodeUtils;
 
     private final StatusService statusService;
 
@@ -65,6 +68,8 @@ public class AlfGqlContext extends GqlContext {
         this.nodeService = serviceRegistry.getNodeService();
         this.messageService = serviceRegistry.getMessageService();
         this.ecosPermissionService = (EcosPermissionService) serviceRegistry.getService(EcosPermissionService.QNAME);
+        this.nodeUtils = (NodeUtils) serviceRegistry.getService(NodeUtils.QNAME);
+
         statusService = getStatusService(serviceRegistry);
 
         nodes = CacheBuilder.newBuilder()
@@ -99,8 +104,8 @@ public class AlfGqlContext extends GqlContext {
         NodeRef nodeRef = null;
         if (key instanceof NodeRef) {
             nodeRef = (NodeRef) key;
-        } else if (key instanceof String && NodeRef.isNodeRef((String) key)) {
-            nodeRef = new NodeRef((String) key);
+        } else if (nodeUtils.isNodeRef(key)) {
+            nodeRef = nodeUtils.getNodeRef(key);
         }
         return nodeRef == null ? Optional.empty() : Optional.of(nodes.getUnchecked(nodeRef));
     }
