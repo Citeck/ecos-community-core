@@ -13,160 +13,42 @@ actions:
 editable: false
 
 columns:
-  - id: idocs_fullOrganizationName
-    name:
-      ru: 'Полное наименование'
-      en: 'Full name'
-    attribute: idocs:fullOrganizationName
-    type: text
-    searchable: true
-    sortable: true
-    groupable: false
-    editable: false
-    visible: true
 
-  - id: idocs_shortOrganizationName
-    name:
-      ru: 'Альтернативное наименование'
-      en: 'Alternative name'
-    attribute: idocs:shortOrganizationName
-    type: text
-    searchable: true
-    sortable: true
-    groupable: false
-    editable: false
+  - id: idocs:fullOrganizationName
+
+  - id: idocs:shortOrganizationName
     visible: false
 
-  - id: idocs_contractorType
-    name:
-      ru: 'Тип контрагента'
-      en: 'Contractor type'
-    attribute: idocs:contractorType
+  - id: idocs:contractorType
     type: options
-    searchable: true
-    sortable: true
-    groupable: false
-    editable: false
-    visible: true
 
-  - id: idocs_inn
-    name:
-      ru: 'ИНН'
-      en: 'INN'
-    attribute: idocs:inn
-    type: text
-    searchable: true
-    sortable: true
-    groupable: false
-    editable: false
-    visible: true
+  - id: idocs:inn
 
-  - id: idocs_kpp
-    name:
-      ru: 'КПП'
-      en: 'KPP'
-    attribute: idocs:kpp
-    type: text
-    searchable: true
-    sortable: true
-    groupable: false
-    editable: false
-    visible: true
+  - id: idocs:kpp
 
-  - id: idocs_ogrn
-    name:
-      ru: 'ОГРН'
-      en: 'OGRN'
-    attribute: idocs:ogrn
-    type: text
-    searchable: true
-    sortable: true
-    groupable: false
-    editable: false
+  - id: idocs:ogrn
     visible: false
 
-  - id: idocs_juridicalAddress
-    name:
-      ru: 'Юридический адрес'
-      en: 'Juridical address'
-    attribute: idocs:juridicalAddress
-    type: text
-    searchable: true
-    sortable: true
-    groupable: false
-    editable: false
+  - id: idocs:juridicalAddress
     visible: false
 
-  - id: idocs_postAddress
-    name:
-      ru: 'Фактический адрес'
-      en: 'Post address'
-    attribute: idocs:postAddress
-    type: text
-    searchable: true
-    sortable: true
-    groupable: false
-    editable: false
+  - id: idocs:postAddress
     visible: false
 
-  - id: idocs_phone
-    name:
-      ru: 'Телефон'
-      en: 'Phone'
-    attribute: idocs:phone
-    type: text
-    searchable: true
-    sortable: true
-    groupable: false
-    editable: false
+  - id: idocs:phone
     visible: false
 
-  - id: idocs_fax
-    name:
-      ru: 'Мобильный телефон'
-      en: 'Mobile phone'
-    attribute: idocs:fax
-    type: text
-    searchable: true
-    sortable: true
-    groupable: false
-    editable: false
+  - id: idocs:fax
     visible: false
 
-  - id: idocs_email
-    name:
-      ru: 'Адрес электронной почты'
-      en: 'Email address'
-    attribute: idocs:email
-    type: text
-    searchable: true
-    sortable: true
-    groupable: false
-    editable: false
+  - id: idocs:email
     visible: false
 
-  - id: idocs_CEOname
-    name:
-      ru: 'Генеральный директор'
-      en: 'CEO name'
-    attribute: idocs:CEOname
-    type: text
-    searchable: true
-    sortable: true
-    groupable: false
-    editable: false
-    visible: true
+  - id: idocs:CEOname
 
-  - id: icase_caseStatusAssoc
-    name:
-      ru: 'Статус'
-      en: 'Status'
-    attribute: icase:caseStatusAssoc
-    type: assoc
-    searchable: true
-    sortable: false
-    groupable: false
-    editable: false
-    visible: true
-    attributes:
-      journalTypeId: alf_icase:caseStatus
+  - id: icase:caseStatusAssoc
+    editor:
+      type: journal
+      config:
+        journalId: case-status
+
