@@ -4,7 +4,7 @@ name:
   ru: Контрагент
   en: Contractor
 
-parentRef: emodel/type@data-list
+parentRef: emodel/type@case
 formRef: uiserv/form@idocs-contractor-form
 journalRef: uiserv/journal@idocs-contractor
 
