@@ -1,15 +1,9 @@
-
+---
 id: passports
 name: { ru: Паспорт, en: Passport }
 
 actions:
   - uiserv/action@edit
-
-predicate:
-  t: and
-  val:
-    - { t: eq, att: _type, val: ''}
-    - { t: eq, att: TYPE, val: pass:passport }
 
 columns:
   - id: pass:person

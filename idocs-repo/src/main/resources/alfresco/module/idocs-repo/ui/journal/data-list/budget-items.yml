@@ -1,15 +1,9 @@
-
+---
 id: budget-items
 name: { ru: Статья бюджета, en: Budget Item }
 
 actions:
   - uiserv/action@edit
-
-predicate:
-  t: and
-  val:
-    - { t: eq, att: _type, val: ''}
-    - { t: eq, att: TYPE, val: budget:item }
 
 columns:
   - id: budget:itemCode

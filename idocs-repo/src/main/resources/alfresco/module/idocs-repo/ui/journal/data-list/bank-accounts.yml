@@ -1,15 +1,9 @@
-
+---
 id: bank-accounts
 name: { ru: Банковский счет, en: Bank Accounts }
 
 actions:
   - uiserv/action@edit
-
-predicate:
-  t: and
-  val:
-    - { t: eq, att: _type, val: ''}
-    - { t: eq, att: TYPE, val: idocs:bankAccount }
 
 columns:
   - id: idocs:legalEntity

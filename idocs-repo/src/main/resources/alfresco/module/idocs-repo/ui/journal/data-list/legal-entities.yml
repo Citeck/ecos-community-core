@@ -1,15 +1,9 @@
-
+---
 id: legal-entities
 name: { ru: Юридические лица, en: Legal Entities }
 
 actions:
   - uiserv/action@edit
-
-predicate:
-  t: and
-  val:
-    - { t: eq, att: _type, val: ''}
-    - { t: eq, att: TYPE, val: idocs:legalEntity }
 
 columns:
 

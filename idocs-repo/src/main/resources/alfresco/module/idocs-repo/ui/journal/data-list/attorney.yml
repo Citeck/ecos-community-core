@@ -5,12 +5,6 @@ name: { ru: Поверенный, en: Attorney }
 actions:
   - uiserv/action@edit
 
-predicate:
-  t: and
-  val:
-    - { t: eq, att: _type, val: ''}
-    - { t: eq, att: TYPE, val: idocs:personAttorney }
-
 columns:
   - id: idocs:personFullName
   - id: idocs:numberPass

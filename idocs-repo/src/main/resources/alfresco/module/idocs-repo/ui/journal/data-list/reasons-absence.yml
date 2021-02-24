@@ -5,11 +5,5 @@ name: { ru: Причины отсутствия, en: Reasons Absence }
 actions:
   - uiserv/action@edit
 
-predicate:
-  t: and
-  val:
-    - { t: eq, att: _type, val: ''}
-    - { t: eq, att: TYPE, val: deputy:absenceReason }
-
 columns:
   - id: deputy:reason

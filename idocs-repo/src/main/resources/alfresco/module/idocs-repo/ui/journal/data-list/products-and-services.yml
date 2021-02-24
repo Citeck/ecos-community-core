@@ -1,15 +1,9 @@
-
+---
 id: products-and-services
 name: { ru: Продукты и услуги, en: Products and services }
 
 actions:
   - uiserv/action@edit
-
-predicate:
-  t: and
-  val:
-    - { t: eq, att: _type, val: ''}
-    - { t: eq, att: TYPE, val: pas:pasEntityOriginal }
 
 columns:
   - id: cm:title

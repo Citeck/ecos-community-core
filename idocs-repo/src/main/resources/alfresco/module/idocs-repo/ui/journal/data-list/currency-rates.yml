@@ -1,15 +1,9 @@
-
+---
 id: currency-rates
 name: { ru: Курс вылюты ЦБ, en: Currency rate Central Bank }
 
 actions:
   - uiserv/action@edit
-
-predicate:
-  t: and
-  val:
-    - { t: eq, att: _type, val: ''}
-    - { t: eq, att: TYPE, val: idocs:currencyRateRecord }
 
 columns:
   - id: idocs:crrBaseCurrency

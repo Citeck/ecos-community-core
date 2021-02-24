@@ -5,12 +5,6 @@ name: { ru: Номенклатура дел, en: Files Register }
 actions:
   - uiserv/action@edit
 
-predicate:
-  t: and
-  val:
-    - { t: eq, att: _type, val: ''}
-    - { t: eq, att: TYPE, val: idocs:filesNomenclature }
-
 columns:
   - id: idocs:fileIndex
   - id: idocs:fileName
