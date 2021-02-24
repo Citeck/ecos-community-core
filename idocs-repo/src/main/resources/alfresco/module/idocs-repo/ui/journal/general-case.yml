@@ -9,7 +9,7 @@ actions:
 columns:
   - id: tk:kind
     computed:
-      - id: _options
+      - id: options
         type: script
         config:
           script: |
@@ -28,6 +28,10 @@ columns:
               }
             }
             return [];
+    editor:
+      type: options
+      config:
+        options: '${$computed.options}'
 
   - id: cm:name
   - id: idocs:note
