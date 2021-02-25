@@ -13,6 +13,7 @@ import org.alfresco.service.namespace.NamespaceService;
 import org.alfresco.service.namespace.QName;
 import org.alfresco.util.Pair;
 import org.apache.commons.lang.StringUtils;
+import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -230,6 +231,7 @@ public class DictUtils {
         return getListOfValuesConstraint(dictionaryService.getProperty(propertyName));
     }
 
+    @Nullable
     public ListOfValuesConstraint getListOfValuesConstraint(PropertyDefinition propDef) {
 
         if (propDef != null) {

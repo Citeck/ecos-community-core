@@ -2,6 +2,8 @@ package ru.citeck.ecos.records.language.predicate.converters.impl;
 
 import lombok.extern.slf4j.Slf4j;
 import org.alfresco.model.ContentModel;
+import org.alfresco.repo.dictionary.constraint.ListOfValuesConstraint;
+import org.alfresco.repo.i18n.MessageService;
 import org.alfresco.repo.security.authentication.AuthenticationUtil;
 import org.alfresco.service.cmr.dictionary.*;
 import org.alfresco.service.cmr.repository.NodeRef;
@@ -50,6 +52,7 @@ public class ValuePredicateToFtsConverter implements PredicateToFtsConverter {
     private ConvertersDelegator delegator;
 
     private NodeService nodeService;
+    private MessageService messageService;
     private SearchService searchService;
     private EcosTypeService ecosTypeService;
     private NamespaceService namespaceService;
@@ -517,6 +520,7 @@ public class ValuePredicateToFtsConverter implements PredicateToFtsConverter {
 
     private ComposedPredicate getAdvantageComposedPredicate(ValuePredicate.Type valuePredType, String predicateValue,
                                                             String attribute, ClassAttributeDefinition attDef) {
+
         boolean valueContainsComma = predicateValue.contains(COMMA_DELIMITER);
         boolean valueEqualEq = EQ.equals(valuePredType);
         boolean valueEqualEqOrContainsPredType =  valueEqualEq || CONTAINS.equals(valuePredType);
@@ -532,6 +536,40 @@ public class ValuePredicateToFtsConverter implements PredicateToFtsConverter {
         boolean valueContainsSlash = predicateValue.contains(SLASH_DELIMITER);
         if (valueEqualEq && valueContainsSlash) {
             return getIntervalPredicate(predicateValue, attribute, attDef);
+        }
+
+        if (attDef instanceof PropertyDefinition
+                && ValuePredicate.Type.CONTAINS.equals(valuePredType)
+                && StringUtils.isNotBlank(predicateValue)) {
+
+            ListOfValuesConstraint constraint = dictUtils.getListOfValuesConstraint((PropertyDefinition) attDef);
+
+            if (constraint != null && !constraint.getAllowedValues().isEmpty()) {
+
+                String lowercaseValue = predicateValue.toLowerCase();
+                List<Predicate> values = new ArrayList<>();
+
+                for (String value : constraint.getAllowedValues()) {
+
+                    if (Objects.equals(value, predicateValue)) {
+                        values.clear();
+                        break;
+                    }
+
+                    String dispName = constraint.getDisplayLabel(value, messageService);
+
+                    if (value.toLowerCase().contains(lowercaseValue)
+                            || StringUtils.isNotBlank(dispName)
+                               && dispName.toLowerCase().contains(lowercaseValue)) {
+
+                        values.add(ValuePredicate.eq(attribute, value));
+                    }
+                }
+
+                if (!values.isEmpty()) {
+                    return OrPredicate.of(values);
+                }
+            }
         }
 
         return null;
@@ -770,5 +808,10 @@ public class ValuePredicateToFtsConverter implements PredicateToFtsConverter {
     @Autowired
     public void setAuthorityUtils(AuthorityUtils authorityUtils) {
         this.authorityUtils = authorityUtils;
+    }
+
+    @Autowired
+    public void setMessageService(MessageService messageService) {
+        this.messageService = messageService;
     }
 }
