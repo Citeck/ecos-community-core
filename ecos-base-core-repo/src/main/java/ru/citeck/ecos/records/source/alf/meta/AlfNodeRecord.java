@@ -28,8 +28,13 @@ import ru.citeck.ecos.graphql.node.GqlAlfNode;
 import ru.citeck.ecos.graphql.node.GqlQName;
 import ru.citeck.ecos.model.EcosModel;
 import ru.citeck.ecos.model.lib.status.constants.StatusConstants;
+import ru.citeck.ecos.model.lib.attributes.dto.AttributeDef;
+import ru.citeck.ecos.model.lib.attributes.dto.AttributeType;
+import ru.citeck.ecos.model.lib.role.service.StatusService;
+import ru.citeck.ecos.model.lib.status.constants.StatusAtts;
 import ru.citeck.ecos.model.lib.status.dto.StatusDef;
 import ru.citeck.ecos.model.lib.status.service.StatusService;
+import ru.citeck.ecos.model.lib.type.dto.TypeModelDef;
 import ru.citeck.ecos.node.AlfNodeContentPathRegistry;
 import ru.citeck.ecos.node.AlfNodeInfo;
 import ru.citeck.ecos.node.DisplayNameService;
@@ -39,6 +44,7 @@ import ru.citeck.ecos.records.meta.MetaUtils;
 import ru.citeck.ecos.records.source.alf.AlfNodeMetaEdge;
 import ru.citeck.ecos.records.source.alf.file.FileRepresentation;
 import ru.citeck.ecos.records.source.common.MLTextValue;
+import ru.citeck.ecos.records.type.TypeDto;
 import ru.citeck.ecos.records2.*;
 import ru.citeck.ecos.records2.graphql.meta.annotation.MetaAtt;
 import ru.citeck.ecos.records2.graphql.meta.value.MetaEdge;
@@ -92,6 +98,7 @@ public class AlfNodeRecord implements MetaValue {
     private final RecordRef recordRef;
     private GqlAlfNode node;
     private AlfGqlContext context;
+    private Map<String, AttributeDef> attributesDef = new HashMap<>();
 
     private Map<String, String> attributesMapping = Collections.emptyMap();
 
@@ -110,9 +117,22 @@ public class AlfNodeRecord implements MetaValue {
         this.node = this.context.getNode(nodeRef).orElse(null);
 
         RecordRef typeRef = getRecordType();
+
         if (RecordRef.isNotEmpty(typeRef)) {
-            AlfAutoModelService autoModelService = ((AlfGqlContext) context).getService(AlfAutoModelService.QNAME);
+
+            AlfGqlContext alfContext = (AlfGqlContext) context;
+            AlfAutoModelService autoModelService = alfContext.getService(AlfAutoModelService.QNAME);
             attributesMapping = autoModelService.getPropsMapping(typeRef);
+
+            EcosTypeService typeService = alfContext.getService(EcosTypeService.QNAME);
+            TypeDto typeDef = typeService.getTypeDef(typeRef);
+            if (typeDef != null) {
+                TypeModelDef model = typeDef.getModel();
+                if (model != null) {
+                    List<AttributeDef> attributes = model.getAttributes();
+                    attributes.forEach(att -> attributesDef.put(att.getId(), att));
+                }
+            }
         }
     }
 
@@ -200,6 +220,12 @@ public class AlfNodeRecord implements MetaValue {
 
         if (!context.getEcosPermissionService().isAttVisible(new NodeInfo(), name)) {
             return Collections.emptyList();
+        }
+
+        AttributeDef attDef = attributesDef.get(name);
+        AttributeType attType = null;
+        if (attDef != null) {
+            attType = attDef.getType();
         }
 
         name = attributesMapping.getOrDefault(name, name);
@@ -378,8 +404,13 @@ public class AlfNodeRecord implements MetaValue {
                 }
 
                 if (attribute == null) {
-                    attribute = nodeAtt.getValues()
-                        .stream()
+                    List<?> values = nodeAtt.getValues();
+                    if (attType != null && !AttributeType.TEXT.equals(attType)) {
+                        values = values.stream().filter(val ->
+                            val != null && (!(val instanceof String) || !((String) val).isEmpty())
+                        ).collect(Collectors.toList());
+                    }
+                    attribute = values.stream()
                         .map(v -> toMetaValue(nodeAtt, v, field))
                         .collect(Collectors.toList());
                 }
@@ -499,7 +530,7 @@ public class AlfNodeRecord implements MetaValue {
         }
         RecordRef ref = RecordRef.create("", nodeRef.toString());
         DataValue value = context.getRecordsService().getAttribute(ref, ".disp");
-        return value != null ? value.asText() : nodeRef.getId();
+        return value.asText();
     }
 
     private NodeRef getNodeRefFromProp(String propName) {
