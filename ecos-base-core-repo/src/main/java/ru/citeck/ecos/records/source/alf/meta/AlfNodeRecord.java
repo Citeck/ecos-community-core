@@ -30,8 +30,6 @@ import ru.citeck.ecos.model.EcosModel;
 import ru.citeck.ecos.model.lib.status.constants.StatusConstants;
 import ru.citeck.ecos.model.lib.attributes.dto.AttributeDef;
 import ru.citeck.ecos.model.lib.attributes.dto.AttributeType;
-import ru.citeck.ecos.model.lib.role.service.StatusService;
-import ru.citeck.ecos.model.lib.status.constants.StatusAtts;
 import ru.citeck.ecos.model.lib.status.dto.StatusDef;
 import ru.citeck.ecos.model.lib.status.service.StatusService;
 import ru.citeck.ecos.model.lib.type.dto.TypeModelDef;
