@@ -11,4 +11,8 @@ public interface RepoScriptAttValueCtx {
     String getLocalId();
 
     Object load(Object attributes);
+
+    void att(String att, Object value);
+
+    RepoScriptAttValueCtx save();
 }

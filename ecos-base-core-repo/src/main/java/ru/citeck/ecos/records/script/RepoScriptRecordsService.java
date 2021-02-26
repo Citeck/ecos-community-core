@@ -1,9 +1,12 @@
 package ru.citeck.ecos.records.script;
 
+import lombok.extern.slf4j.Slf4j;
 import org.alfresco.repo.jscript.ScriptNode;
 import org.alfresco.repo.template.TemplateNode;
+import org.alfresco.service.cmr.repository.NodeRef;
 import org.springframework.beans.factory.annotation.Autowired;
 import ru.citeck.ecos.commons.data.DataValue;
+import ru.citeck.ecos.commons.data.ObjectData;
 import ru.citeck.ecos.commons.json.Json;
 import ru.citeck.ecos.records2.RecordRef;
 import ru.citeck.ecos.records3.RecordsService;
@@ -44,7 +47,9 @@ public class RepoScriptRecordsService extends AlfrescoScopableProcessorExtension
         }
         Object javaRecord = jsUtils.toJava(record);
         RecordRef recordRef;
-        if (javaRecord instanceof RecordRef) {
+        if (javaRecord instanceof NodeRef) {
+            recordRef = RecordRef.valueOf(javaRecord.toString());
+        } else if (javaRecord instanceof RecordRef) {
             recordRef = (RecordRef) javaRecord;
         } else if (javaRecord instanceof String) {
             recordRef = RecordRef.valueOf((String) javaRecord);
@@ -155,6 +160,7 @@ public class RepoScriptRecordsService extends AlfrescoScopableProcessorExtension
         return attsMap;
     }
 
+    @Slf4j
     private static class EmptyRecord implements RepoScriptAttValueCtx {
 
         public static EmptyRecord INSTANCE = new EmptyRecord();
@@ -184,11 +190,23 @@ public class RepoScriptRecordsService extends AlfrescoScopableProcessorExtension
             attsMap.forEach((k, v) -> result.put(k, null));
             return result;
         }
+
+        @Override
+        public void att(String att, Object value) {
+            log.warn("Attribute can't be changed in EmptyRecord. Att: " + att + " value: " + value);
+        }
+
+        @Override
+        public RepoScriptAttValueCtx save() {
+            log.warn("Save is not allowed for EmptyRecord");
+            return this;
+        }
     }
 
     private class Record implements RepoScriptAttValueCtx {
 
         private final RecordRef recordRef;
+        private ObjectData mutateAtts;
 
         public Record(RecordRef recordRef) {
             this.recordRef = recordRef;
@@ -222,6 +240,27 @@ public class RepoScriptRecordsService extends AlfrescoScopableProcessorExtension
             } else {
                 return jsUtils.toScript(result.getAtts().asJavaObj());
             }
+        }
+
+        @Override
+        public void att(String att, Object value) {
+            Object javaValue = jsUtils.toJava(value);
+            if (mutateAtts == null) {
+                mutateAtts = ObjectData.create();
+            }
+            mutateAtts.set(att, javaValue);
+        }
+
+        @Override
+        public Record save() {
+            Record result;
+            if (mutateAtts == null || mutateAtts.size() == 0) {
+                result = this;
+            } else {
+                result = new Record(recordsService.mutate(recordRef, mutateAtts));
+            }
+            mutateAtts = null;
+            return result;
         }
     }
 }
