@@ -81,6 +81,14 @@ public class EcosTypeService {
         evaluators.register(nodeType, evaluator);
     }
 
+    @Nullable
+    public TypeDto getTypeDef(RecordRef typeRef) {
+        if (typesManager == null) {
+            return null;
+        }
+        return typesManager.getType(typeRef);
+    }
+
     public RecordRef getEcosType(NodeRef nodeRef) {
         RecordRef result = evaluators.eval(nodeRef);
         return result != null ? result : RecordRef.EMPTY;
