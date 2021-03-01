@@ -54,6 +54,7 @@ import ru.citeck.ecos.journals.xml.Journals.Imports.Import;
 import ru.citeck.ecos.model.ClassificationModel;
 import ru.citeck.ecos.model.JournalsModel;
 import ru.citeck.ecos.processor.TemplateExpressionEvaluator;
+import ru.citeck.ecos.records.RecordsUtils;
 import ru.citeck.ecos.records2.RecordRef;
 import ru.citeck.ecos.records2.RecordsService;
 import ru.citeck.ecos.records2.request.query.RecordsQueryResult;
@@ -399,11 +400,15 @@ class JournalServiceImpl implements JournalService {
         }
 
         if (NodeRef.isNodeRef(journalId)) {
-            NodeRef journalRef = new NodeRef(journalId);
-            NodeRef ecosType = (NodeRef) nodeService.getProperty(journalRef, ClassificationModel.PROP_RELATES_TO_TYPE);
-            if (ecosType != null) {
-                RecordRef typeRef = RecordRef.create("emodel", "type", ecosType.getId());
-                return getUITypeForRecordAndUser(typeRef, journalUserKey.getUserName());
+            RecordRef journalRef = RecordRef.valueOf(journalId);
+            NodeRef journalNode = RecordsUtils.toNodeRef(journalRef);
+            if (journalNode != null && nodeService.exists(journalNode)) {
+                journalId = journalNode.toString();
+                NodeRef ecosType = (NodeRef) nodeService.getProperty(journalNode, ClassificationModel.PROP_RELATES_TO_TYPE);
+                if (ecosType != null) {
+                    RecordRef typeRef = RecordRef.create("emodel", "type", ecosType.getId());
+                    return getUITypeForRecordAndUser(typeRef, journalUserKey.getUserName());
+                }
             }
         }
 
