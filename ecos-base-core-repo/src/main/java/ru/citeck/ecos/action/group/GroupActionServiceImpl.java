@@ -9,6 +9,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import ru.citeck.ecos.action.group.impl.CustomTxnGroupAction;
 import ru.citeck.ecos.action.group.impl.GroupActionExecutor;
 import ru.citeck.ecos.action.group.impl.GroupActionExecutorFactory;
+import ru.citeck.ecos.records.RecordsConfiguration;
+import ru.citeck.ecos.records3.record.request.RequestContext;
 import ru.citeck.ecos.utils.TransactionUtils;
 
 import java.util.*;
@@ -24,22 +26,24 @@ public class GroupActionServiceImpl implements GroupActionService {
     private static final String ALREADY_RUNNING_MSG = "The action is already running. " +
                                                       "You can not start several identical actions!";
 
-    private TransactionService transactionService;
+    private final TransactionService transactionService;
+    private final RecordsConfiguration recordsConfiguration;
 
     private Map<String, GroupActionFactory<?>> processorFactories = new HashMap<>();
 
     private Set<ActionExecution<?>> activeActions;
 
     @Autowired
-    public GroupActionServiceImpl(TransactionService transactionService) {
+    public GroupActionServiceImpl(TransactionService transactionService, RecordsConfiguration recordsConfiguration) {
         this.transactionService = transactionService;
+        this.recordsConfiguration = recordsConfiguration;
         activeActions = Collections.newSetFromMap(new ConcurrentHashMap<>());
     }
 
     private <T> ActionResults<T> executeImpl(ActionExecution<T> execution) {
         if (activeActions.add(execution)) {
             try {
-                return execution.run();
+                return RequestContext.doWithCtxJ(recordsConfiguration, b -> {}, ctx -> execution.run());
             } finally {
                 activeActions.remove(execution);
             }
