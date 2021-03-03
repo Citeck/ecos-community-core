@@ -391,6 +391,7 @@ public class WorkflowTaskRecords extends LocalRecordsDao
         public List<String> actors;
         public Boolean active;
         public String docStatus;
+        public NodeRef docEcosStatus;
         public List<String> docTypes;
         public String document;
         public List<String> priorities;

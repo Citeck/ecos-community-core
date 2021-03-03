@@ -66,11 +66,11 @@ public interface CaseStatusService {
     NodeRef getStatusByNameAndType(String statusName, RecordRef etype);
 
     /**
-     * Get ECOS case status name
+     * Get ECOS type and ECOS case status name
      *
      * @return ECOS virtual case status name or null if case status name is null
      */
-    NodeRef getEcosStatusByName(String statusName);
+    NodeRef getEcosStatus(String etype, String statusName);
 
     /**
      * Get case status before

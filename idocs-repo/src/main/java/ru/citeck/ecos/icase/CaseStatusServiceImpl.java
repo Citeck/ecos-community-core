@@ -66,12 +66,14 @@ public class CaseStatusServiceImpl implements CaseStatusService {
 
     private void clearBeforeCaseStatus(NodeRef caseRef) {
         NodeRef beforeCaseStatus = caseStatusAssocDao.getStatusByAssoc(caseRef, ICaseModel.ASSOC_CASE_STATUS_BEFORE);
-        if (beforeCaseStatus != null) {
-            if (isAlfRef(beforeCaseStatus)) {
-                nodeService.removeAssociation(caseRef, beforeCaseStatus, ICaseModel.ASSOC_CASE_STATUS_BEFORE);
-            } else {
-                nodeService.setProperty(caseRef, ICaseModel.ASSOC_CASE_STATUS_BEFORE_PROP, null);
-            }
+        if (beforeCaseStatus == null) {
+            return;
+        }
+
+        if (isAlfRef(beforeCaseStatus)) {
+            nodeService.removeAssociation(caseRef, beforeCaseStatus, ICaseModel.ASSOC_CASE_STATUS_BEFORE);
+        } else {
+            nodeService.setProperty(caseRef, ICaseModel.ASSOC_CASE_STATUS_BEFORE_PROP, null);
         }
     }
 
@@ -129,7 +131,7 @@ public class CaseStatusServiceImpl implements CaseStatusService {
             return getStatusByName(statusName);
         }
 
-        return caseStatusAssocDao.statusToNode(statusDef.getId());
+        return caseStatusAssocDao.getVirtualStatus(etype.getId(), statusDef.getId());
     }
 
     @Override
@@ -145,8 +147,8 @@ public class CaseStatusServiceImpl implements CaseStatusService {
     }
 
     @Override
-    public NodeRef getEcosStatusByName(String statusName) {
-        return caseStatusAssocDao.statusToNode(statusName);
+    public NodeRef getEcosStatus(String etype, String statusName) {
+        return caseStatusAssocDao.getVirtualStatus(etype, statusName);
     }
 
     @Override

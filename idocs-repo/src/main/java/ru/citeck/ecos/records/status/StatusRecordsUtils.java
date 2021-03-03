@@ -21,6 +21,7 @@ import ru.citeck.ecos.model.lib.status.dto.StatusDef;
 import ru.citeck.ecos.model.lib.status.service.StatusService;
 import ru.citeck.ecos.model.lib.type.service.TypeDefService;
 import ru.citeck.ecos.node.EcosTypeService;
+import ru.citeck.ecos.records.RecordsUtils;
 import ru.citeck.ecos.records2.RecordRef;
 import ru.citeck.ecos.records2.predicate.PredicateService;
 import ru.citeck.ecos.records2.predicate.model.Predicates;
@@ -100,7 +101,8 @@ class StatusRecordsUtils {
         List<StatusRecord> statusRecords = recordsService.query(query, Collections.singletonMap("id", ATT_FIELD + "?id"))
             .getRecords().stream().map(value -> {
                 String ref = value.getAtt("id").asText();
-                return getByStatusRef(new NodeRef(ref), statuses, ecosType);
+                NodeRef nodeRef = RecordsUtils.toNodeRef(RecordRef.valueOf(ref));
+                return getByStatusRef(nodeRef, statuses, ecosType);
             })
             .map(StatusRecord::new)
             .collect(Collectors.toList());
@@ -192,7 +194,7 @@ class StatusRecordsUtils {
     public StatusDto getEcosStatusById(String statusId, String etype) {
         RecordRef typeRef = RecordRef.create("emodel", "type", etype);
         Map<String, StatusDef> statuses = statusService.getStatusesByType(typeRef);
-        NodeRef statusNode = caseStatusAssocDao.statusToNode(statusId);
+        NodeRef statusNode = caseStatusAssocDao.getVirtualStatus(typeRef.getId(), statusId);
         return getEcosStatusDto(statusNode, statuses, typeRef);
     }
 
