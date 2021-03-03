@@ -110,9 +110,6 @@ public interface CaseStatusService {
 
 
     default boolean isAlfRef(NodeRef nodeRef) {
-        return
-            nodeRef == null
-                || StoreRef.STORE_REF_WORKSPACE_SPACESSTORE.equals(nodeRef.getStoreRef())
-                || ("alfresco/" + StoreRef.STORE_REF_WORKSPACE_SPACESSTORE).equals(nodeRef.getStoreRef());
+        return nodeRef == null || StoreRef.STORE_REF_WORKSPACE_SPACESSTORE.equals(nodeRef.getStoreRef());
     }
 }
