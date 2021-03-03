@@ -45,6 +45,7 @@ public class WorkflowTaskRecordsUtils {
     private final String COUNTERPARTY_ATTR;
     private final String DOCUMENT_ATTR;
     private final String CASE_STATUS_ATTR;
+    private final String CASE_STATUS_ATTR_PROP;
     private final String DOC_ECOS_TYPE_ATTR;
 
     private final AuthorityUtils authorityUtils;
@@ -68,6 +69,7 @@ public class WorkflowTaskRecordsUtils {
         COUNTERPARTY_ATTR = WorkflowMirrorModel.PROP_COUNTERPARTY.toPrefixString(namespaceService);
         DOCUMENT_ATTR = WorkflowMirrorModel.PROP_DOCUMENT.toPrefixString(namespaceService);
         CASE_STATUS_ATTR = WorkflowMirrorModel.PROP_CASE_STATUS.toPrefixString(namespaceService);
+        CASE_STATUS_ATTR_PROP = WorkflowMirrorModel.PROP_CASE_STATUS_PROP.toPrefixString(namespaceService);
         DOC_ECOS_TYPE_ATTR = WorkflowMirrorModel.PROP_DOCUMENT_ECOS_TYPE.toPrefixString(namespaceService);
     }
 
@@ -79,6 +81,7 @@ public class WorkflowTaskRecordsUtils {
         appendActorsPredicate(tasksQuery.actors, predicate);
         appendActivePredicate(tasksQuery.active, predicate);
         appendCaseStatusPredicate(tasksQuery.docStatus, predicate);
+        appendEcosCaseStatusPredicate(tasksQuery.docEcosStatus, predicate);
         appendDocTypesPredicate(tasksQuery.docTypes, predicate);
         appendDocumentParamPredicate(tasksQuery.document, predicate);
         appendPrioritiesPredicate(tasksQuery.priorities, predicate);
@@ -138,23 +141,32 @@ public class WorkflowTaskRecordsUtils {
             return;
         }
 
-        String caseEcosStatus = null;
         if (!NodeRef.isNodeRef(caseStatus)) {
             NodeRef ref = caseStatusService.getStatusByName(caseStatus.toLowerCase());
             if (ref != null) {
                 caseStatus = ref.toString();
             }
-
-            ref = caseStatusService.getEcosStatusByName(caseStatus.toLowerCase());
-            if (ref != null) {
-                caseEcosStatus = ref.toString();
-            }
         }
 
-        predicate.addPredicate(Predicates.or(
-            ValuePredicate.equal(CASE_STATUS_ATTR, caseStatus),
-            caseEcosStatus != null ? ValuePredicate.equal(CASE_STATUS_ATTR, caseEcosStatus) : null
-        ));
+        predicate.addPredicate(ValuePredicate.equal(CASE_STATUS_ATTR, caseStatus));
+    }
+
+    private void appendEcosCaseStatusPredicate(NodeRef docEcosStatus, AndPredicate predicate) {
+        if (docEcosStatus == null) {
+            return;
+        }
+
+        if (caseStatusService.isAlfRef(docEcosStatus)) {
+            String type = docEcosStatus.getStoreRef().toString();
+            String status = docEcosStatus.getId();
+
+            predicate.addPredicate(Predicates.and(
+                ValuePredicate.equal(CASE_STATUS_ATTR_PROP, status),
+                ValuePredicate.equal(DOC_ECOS_TYPE_ATTR, RecordRef.create("emodel", "type", type))
+            ));
+        } else {
+            predicate.addPredicate(ValuePredicate.equal(CASE_STATUS_ATTR, docEcosStatus));
+        }
     }
 
     private void appendDocTypesPredicate(List<String> docTypes, AndPredicate predicate) {

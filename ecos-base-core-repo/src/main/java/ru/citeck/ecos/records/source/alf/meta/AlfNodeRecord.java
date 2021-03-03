@@ -74,9 +74,6 @@ public class AlfNodeRecord implements MetaValue {
     private static final String ATTR_CASE_STATUS = "caseStatus";
     private static final String ATTR_CM_MODIFIED = "cm:modified";
     private static final String CASE_STATUS_NAME_SCHEMA = "icase:caseStatusAssoc.cm:name";
-    private static final String CASE_STATUS_ID_SCHEMA = "icase:caseStatusAssoc?str";
-    private static final String CASE_STATUS_DISP_SCHEMA = "icase:caseStatusAssoc?disp";
-    private static final String CASE_STATUS_PROP_SCHEMA = "icase:caseStatusAssoc-prop";
     private static final String ASSOC_SRC_ATTR_PREFIX = "assoc_src_";
     private static final String CONTENT_ATTRIBUTE_NAME = "_content";
     private static final String CM_CONTENT_ATTRIBUTE_NAME = "cm:content";
@@ -464,7 +461,7 @@ public class AlfNodeRecord implements MetaValue {
         return new StatusMetaValue(
             statusMetaDto.getEcosId(),
             statusName,
-            new NodeRef("et-status://virtual/" + ecosStatusId)
+            new NodeRef("et-status://" + statusMetaDto.getType() + "/" + ecosStatusId)
         );
     }
 
@@ -692,6 +689,8 @@ public class AlfNodeRecord implements MetaValue {
         private String name;
         @MetaAtt("icase:caseStatusAssoc?id")
         private String nodeRef;
+        @MetaAtt("_type?id")
+        private String type;
     }
 }
 

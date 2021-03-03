@@ -66,11 +66,11 @@ public interface CaseStatusService {
     NodeRef getStatusByNameAndType(String statusName, RecordRef etype);
 
     /**
-     * Get ECOS case status name
+     * Get ECOS type and ECOS case status name
      *
      * @return ECOS virtual case status name or null if case status name is null
      */
-    NodeRef getEcosStatusByName(String statusName);
+    NodeRef getEcosStatus(String etype, String statusName);
 
     /**
      * Get case status before
@@ -110,6 +110,9 @@ public interface CaseStatusService {
 
 
     default boolean isAlfRef(NodeRef nodeRef) {
-        return nodeRef == null || StoreRef.STORE_REF_WORKSPACE_SPACESSTORE.equals(nodeRef.getStoreRef());
+        return
+            nodeRef == null
+                || StoreRef.STORE_REF_WORKSPACE_SPACESSTORE.equals(nodeRef.getStoreRef())
+                || ("alfresco/" + StoreRef.STORE_REF_WORKSPACE_SPACESSTORE).equals(nodeRef.getStoreRef());
     }
 }
