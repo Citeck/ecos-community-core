@@ -7,10 +7,10 @@ import org.apache.commons.lang.StringUtils;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import ru.citeck.ecos.commons.data.ObjectData;
 import ru.citeck.ecos.model.lib.type.dto.TypeDef;
 import ru.citeck.ecos.model.lib.type.service.TypeDefService;
 import ru.citeck.ecos.records2.RecordRef;
+import ru.citeck.ecos.records3.RecordsService;
 
 @Service
 public class EcosTypeAlfTypeService {
@@ -18,11 +18,16 @@ public class EcosTypeAlfTypeService {
     private final QName DEFAULT_TYPE = ContentModel.TYPE_CMOBJECT;
 
     private final TypeDefService typeDefService;
+    private final RecordsService recordsService;
 
     private final NamespaceService namespaceService;
 
     @Autowired
-    public EcosTypeAlfTypeService(TypeDefService typeDefService, NamespaceService namespaceService) {
+    public EcosTypeAlfTypeService(TypeDefService typeDefService,
+                                  NamespaceService namespaceService,
+                                  RecordsService recordsService
+    ) {
+        this.recordsService = recordsService;
         this.typeDefService = typeDefService;
         this.namespaceService = namespaceService;
     }
@@ -33,9 +38,7 @@ public class EcosTypeAlfTypeService {
         if (RecordRef.isEmpty(typeRef)) {
             return DEFAULT_TYPE;
         }
-
-        ObjectData typeProps = typeDefService.getResolvedProperties(typeRef);
-        String alfType = typeProps.get("alfType").asText();
+        String alfType = recordsService.getAtt(typeRef, "inhAttributes.alfType?str").asText();
         if (StringUtils.isNotBlank(alfType)) {
             return QName.resolveToQName(namespaceService, alfType);
         }

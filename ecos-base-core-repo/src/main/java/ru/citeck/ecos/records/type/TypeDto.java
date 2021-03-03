@@ -45,6 +45,7 @@ public class TypeDto {
     private List<CreateVariantDto> createVariants = new ArrayList<>();
 
     private ObjectData properties = ObjectData.create();
+    private ObjectData inhAttributes = ObjectData.create();
 
     private RecordRef configFormRef;
     private ObjectData config = ObjectData.create();
