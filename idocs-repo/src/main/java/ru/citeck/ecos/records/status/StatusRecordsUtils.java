@@ -211,7 +211,7 @@ class StatusRecordsUtils {
         NodeRef statusRef = caseStatusService.getStatusRef(document);
 
         if (statusRef != null) {
-            RecordRef documentRef = RecordRef.valueOf(document.toString());
+            RecordRef documentRef = RecordRef.create("alfresco", "", document.toString());
             Map<String, StatusDef> statuses = statusService.getStatusesByDocument(documentRef);
             return getByStatusRef(statusRef, statuses, typeDefService.getTypeRef(documentRef));
         } else {
