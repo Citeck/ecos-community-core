@@ -1,12 +1,12 @@
 package ru.citeck.ecos.eapps;
 
-import com.netflix.discovery.converters.Auto;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import ru.citeck.ecos.apps.EcosAppsServiceFactory;
+import ru.citeck.ecos.apps.app.domain.ecostype.service.ModelTypeArtifactService;
 import ru.citeck.ecos.apps.app.domain.handler.ArtifactHandlerService;
 import ru.citeck.ecos.apps.app.service.LocalAppService;
 import ru.citeck.ecos.apps.artifact.ArtifactService;
@@ -48,6 +48,13 @@ public class EcosAppsFactoryConfig extends EcosAppsServiceFactory {
         artifactService.setArtifactLocations(mapping);
 
         return artifactService;
+    }
+
+    @Bean
+    @NotNull
+    @Override
+    protected ModelTypeArtifactService createModelTypeArtifactsService() {
+        return super.createModelTypeArtifactsService();
     }
 
     @Bean
