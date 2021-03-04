@@ -9,7 +9,6 @@ properties:
   alfType: idocs:bankAccount
   alfRoot: /app:company_home/app:dictionary/cm:dataLists/cm:bank-accounts
 
-
 model:
   attributes:
     - id: idocs:legalEntity
