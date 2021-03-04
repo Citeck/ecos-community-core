@@ -8,3 +8,10 @@ journalRef: uiserv/journal@groups-of-countries
 properties:
   alfType: idocs:groupOfCountries
   alfRoot: /app:company_home/app:dictionary/cm:dataLists/cm:groups-of-countries
+
+model:
+  attributes:
+    - id: idocs:gocCountries
+      type: ASSOC
+      config:
+        typeRef: emodel/type@country-iso3166

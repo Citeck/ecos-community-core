@@ -9,3 +9,13 @@ properties:
   alfType: idocs:currencyRateInternalRecord
   alfRoot: /app:company_home/app:dictionary/cm:dataLists/cm:currency-rates-internal
 
+model:
+  attributes:
+    - id: idocs:crrInternalBaseCurrency
+      type: ASSOC
+      config:
+        typeRef: emodel/type@currency
+    - id: idocs:crrInternalTargetCurrency
+      type: ASSOC
+      config:
+        typeRef: emodel/type@currency

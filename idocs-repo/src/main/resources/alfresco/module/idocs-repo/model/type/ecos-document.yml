@@ -9,3 +9,18 @@ journalRef: uiserv/journal@ecos-documents
 properties:
   alfType: ecos:document
   alfRoot: /app:company_home/st:sites/cm:common-documents/cm:documentLibrary/cm:ecos-documents
+
+model:
+  attributes:
+    - id: idocs:contractor
+      type: ASSOC
+      config:
+        typeRef: emodel/type@idocs-contractor
+    - id: idocs:currencyDocument
+      type: ASSOC
+      config:
+        typeRef: emodel/type@idocs-contractor
+    - id: idocs:legalEntity
+      type: ASSOC
+      config:
+        typeRef: emodel/type@legal-entity
