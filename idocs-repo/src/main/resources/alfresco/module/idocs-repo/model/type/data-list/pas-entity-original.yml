@@ -9,3 +9,13 @@ properties:
   alfType: pas:pasEntityOriginal
   alfRoot: /app:company_home/app:dictionary/cm:dataLists/cm:products-and-services
 
+model:
+  attributes:
+    - id: pas:currency
+      type: ASSOC
+      config:
+        typeRef: emodel/type@currency
+    - id: pas:entityUnit
+        type: ASSOC
+        config:
+          typeRef: emodel/type@currency

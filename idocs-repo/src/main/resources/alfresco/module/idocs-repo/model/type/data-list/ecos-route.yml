@@ -1,0 +1,16 @@
+---
+id: ecos-route
+name: { ru: Шаблон маршрута, en: Route template }
+
+parentRef: emodel/type@data-list
+journalRef: uiserv/journal@ecos-routes
+
+properties:
+  alfType: route:stage
+
+model:
+  attributes:
+    - id: route:stages
+      type: ASSOC
+      config:
+        typeRef: emodel/type@ecos-route

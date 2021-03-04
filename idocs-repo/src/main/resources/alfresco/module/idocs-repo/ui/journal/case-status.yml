@@ -1,0 +1,12 @@
+---
+id: case-status
+name: { ru: Статусы кейса, en: Case statuses }
+
+actions: []
+
+columns:
+  - id: cm:name
+    name: { ru: Имя, en: Name }
+
+  - id: cm:title
+    name: { ru: Заголовок, en: Title }
