@@ -80,7 +80,7 @@ public class CaseStatusAssocDao {
 
     @NotNull
     private RecordRef getTypeRefByCaseNode(NodeRef nodeRef) {
-        RecordRef nodeRecord = RecordRef.create("alfresco", nodeRef.toString());
+        RecordRef nodeRecord = RecordRef.create("alfresco", "", nodeRef.toString());
         return typeDefService.getTypeRef(nodeRecord);
     }
 
