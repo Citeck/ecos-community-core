@@ -16,6 +16,6 @@ model:
       config:
         typeRef: emodel/type@currency
     - id: pas:entityUnit
-        type: ASSOC
-        config:
-          typeRef: emodel/type@currency
+      type: ASSOC
+      config:
+        typeRef: emodel/type@currency
