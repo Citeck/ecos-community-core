@@ -2,7 +2,6 @@ package ru.citeck.ecos.records;
 
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Component;
 import ru.citeck.ecos.dto.SystemNotificationDto;
 import ru.citeck.ecos.records2.graphql.meta.value.MetaField;
@@ -13,7 +12,6 @@ import ru.citeck.ecos.records2.source.dao.local.LocalRecordsDao;
 import ru.citeck.ecos.records2.source.dao.local.v2.LocalRecordsQueryWithMetaDao;
 import ru.citeck.ecos.service.SystemNotificationService;
 
-import javax.annotation.PostConstruct;
 import java.util.List;
 
 /**
@@ -25,18 +23,10 @@ public class SystemNotificationRecords extends LocalRecordsDao
 
     private static final String ID = "system-notification";
 
-    private ApplicationContext context;
     private SystemNotificationService systemNotificationService;
 
     public SystemNotificationRecords() {
         setId(ID);
-    }
-
-    @PostConstruct
-    public void init() {
-        if (context.containsBean("systemNotificationService")) {
-            this.systemNotificationService = context.getBean(SystemNotificationService.class);
-        }
     }
 
     @Override
@@ -61,8 +51,8 @@ public class SystemNotificationRecords extends LocalRecordsDao
         return result;
     }
 
-    @Autowired
-    public void setApplicationContext(ApplicationContext context) {
-        this.context = context;
+    @Autowired(required = false)
+    public void setSystemNotificationService(SystemNotificationService systemNotificationService) {
+        this.systemNotificationService = systemNotificationService;
     }
 }
