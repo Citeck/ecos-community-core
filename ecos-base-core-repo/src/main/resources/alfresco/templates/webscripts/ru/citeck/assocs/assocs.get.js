@@ -31,10 +31,12 @@ const ASSOCS_LIMIT = 200; //sometimes assocs count is too high
     var dictionaryService = services.get("dictionaryService"),
         messageService = services.get("messageService");
 
-    var nodeRef = args['nodeRef'],
+    var recordRef = Packages.ru.citeck.ecos.records2.RecordRef.valueOf(args['nodeRef'] || ""),
         assocTypes = args['assocTypes'],
         contentTypes = args['contentTypes'] == undefined ? [] : args['contentTypes'].split(','),
         addAssocs = args['addAssocs']||"true";
+    var nodeRef = Packages.ru.citeck.ecos.records.RecordsUtils.toNodeRef(recordRef);
+
 
     if (assocTypes == undefined) assocTypes = "";
     var assocs = [];
