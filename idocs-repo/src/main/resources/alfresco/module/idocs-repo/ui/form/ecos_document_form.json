@@ -56,11 +56,17 @@
                     "input": false,
                     "components": [
                       {
+                        "label": {
+                          "ru": "Columns"
+                        },
                         "columns": [
                           {
                             "components": [
                               {
-                                "label": "Case kind",
+                                "label": {
+                                  "en": "Kind",
+                                  "ru": "Вид"
+                                },
                                 "dataSrc": "custom",
                                 "data": {
                                   "custom": "const {typeGeneralCaseList = {}} = data;\nconst {records = []} = typeGeneralCaseList;\nvalues = records;"
@@ -87,7 +93,8 @@
                               "show": null,
                               "when": null
                             },
-                            "index": 0
+                            "index": 0,
+                            "md": 8
                           },
                           {
                             "components": [
@@ -139,7 +146,8 @@
                               "show": null,
                               "when": null
                             },
-                            "index": 1
+                            "index": 1,
+                            "md": 4
                           }
                         ],
                         "key": "columns4",
@@ -147,12 +155,16 @@
                         "input": false
                       },
                       {
+                        "label": {
+                          "ru": "Columns"
+                        },
                         "columns": [
                           {
                             "components": [
                               {
                                 "label": {
-                                  "en": "ecos:documentNumber"
+                                  "ru": "Номер",
+                                  "en": "Document number"
                                 },
                                 "defaultValue": "",
                                 "key": "ecos_documentNumber",
@@ -219,7 +231,8 @@
                               "show": null,
                               "when": null
                             },
-                            "index": 0
+                            "index": 0,
+                            "md": 8
                           },
                           {
                             "components": [
@@ -242,7 +255,8 @@
                               "show": null,
                               "when": null
                             },
-                            "index": 1
+                            "index": 1,
+                            "md": 4
                           }
                         ],
                         "key": "columns7",
@@ -316,7 +330,8 @@
                     "components": [
                       {
                         "label": {
-                          "en": "idocs:legalEntity"
+                          "en": "Legal Entity",
+                          "ru": "Юридическое лицо"
                         },
                         "journalId": "legal-entities",
                         "key": "idocs_legalEntity",
