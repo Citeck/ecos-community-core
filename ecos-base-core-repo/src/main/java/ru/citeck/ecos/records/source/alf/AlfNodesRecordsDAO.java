@@ -47,6 +47,7 @@ import ru.citeck.ecos.records2.request.mutation.RecordsMutResult;
 import ru.citeck.ecos.records2.request.mutation.RecordsMutation;
 import ru.citeck.ecos.records2.request.query.RecordsQuery;
 import ru.citeck.ecos.records2.request.query.RecordsQueryResult;
+import ru.citeck.ecos.records2.request.query.SortBy;
 import ru.citeck.ecos.records2.source.dao.MutableRecordsDao;
 import ru.citeck.ecos.records2.source.dao.RecordsQueryDao;
 import ru.citeck.ecos.records2.source.dao.local.LocalRecordsDao;
@@ -750,9 +751,21 @@ public class AlfNodesRecordsDAO extends LocalRecordsDao
     @Override
     public RecordsQueryResult<RecordRef> queryRecords(RecordsQuery query) {
 
+        query = new RecordsQuery(query);
+
         if (query.getLanguage().isEmpty()) {
             query.setLanguage(SearchService.LANGUAGE_FTS_ALFRESCO);
         }
+
+        query.setSortBy(query.getSortBy().stream().map(s -> {
+            if (RecordConstants.ATT_MODIFIED.equals(s.getAttribute())) {
+                return new SortBy("cm:modified", s.isAscending());
+            }
+            if (RecordConstants.ATT_CREATED.equals(s.getAttribute())) {
+                return new SortBy("cm:created", s.isAscending());
+            }
+            return s;
+        }).collect(Collectors.toList()));
 
         AlfNodesSearch alfNodesSearch = needNodesSearch(query.getLanguage());
 
