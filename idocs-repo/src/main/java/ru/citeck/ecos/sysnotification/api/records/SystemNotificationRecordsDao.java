@@ -18,14 +18,14 @@ import java.util.List;
  * @author Pavel Tkachenko
  */
 @Component
-public class SystemNotificationRecords extends LocalRecordsDao
+public class SystemNotificationRecordsDao extends LocalRecordsDao
     implements LocalRecordsQueryWithMetaDao<SystemNotificationDto> {
 
     private static final String ID = "system-notification";
 
     private SystemNotificationService systemNotificationService;
 
-    public SystemNotificationRecords() {
+    public SystemNotificationRecordsDao() {
         setId(ID);
     }
 
