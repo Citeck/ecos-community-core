@@ -1,0 +1,11 @@
+id: case-status
+
+name: { ru: Статус, en: Status }
+
+parentRef: emodel/type@data-list
+formRef: uiserv/form@case-status
+journalRef: uiserv/journal@case-status
+
+properties:
+  alfType: icase:caseStatus
+  alfRoot: /app:company_home/app:dictionary/cm:dataLists/cm:case-status
