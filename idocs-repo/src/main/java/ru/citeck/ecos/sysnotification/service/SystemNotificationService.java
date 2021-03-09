@@ -1,6 +1,6 @@
-package ru.citeck.ecos.service;
+package ru.citeck.ecos.sysnotification.service;
 
-import ru.citeck.ecos.dto.SystemNotificationDto;
+import ru.citeck.ecos.sysnotification.dto.SystemNotificationDto;
 
 import java.util.List;
 

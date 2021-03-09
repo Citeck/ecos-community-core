@@ -1,4 +1,4 @@
-package ru.citeck.ecos.dto;
+package ru.citeck.ecos.sysnotification.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
