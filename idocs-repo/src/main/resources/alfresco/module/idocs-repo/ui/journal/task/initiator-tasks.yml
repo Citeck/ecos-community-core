@@ -1,4 +1,4 @@
-id: initiator-tasks-TEST
+id: initiator-tasks
 name: { ru: Созданные задачи, en: Created Tasks }
 
 typeRef: emodel/type@workflow-task
