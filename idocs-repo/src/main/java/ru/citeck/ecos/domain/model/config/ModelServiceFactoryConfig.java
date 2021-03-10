@@ -53,6 +53,7 @@ public class ModelServiceFactoryConfig extends ModelServiceFactory {
         return super.createPermsEvaluator();
     }
 
+    @Bean
     @NotNull
     @Override
     protected TypeRefService createTypeRefService() {
