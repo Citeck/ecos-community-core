@@ -7,6 +7,7 @@ import org.alfresco.service.cmr.repository.NodeRef;
 import org.alfresco.service.cmr.repository.NodeService;
 import org.alfresco.service.namespace.NamespaceService;
 import org.alfresco.service.namespace.QName;
+import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
@@ -26,7 +27,6 @@ import ru.citeck.ecos.icase.activity.service.eproc.EProcActivityService;
 import ru.citeck.ecos.icase.activity.service.eproc.EProcCaseActivityListenerManager;
 import ru.citeck.ecos.icase.activity.service.eproc.listeners.BeforeEventListener;
 import ru.citeck.ecos.model.EventModel;
-import ru.citeck.ecos.records.RecordsUtils;
 import ru.citeck.ecos.records2.RecordRef;
 import ru.citeck.ecos.spring.registry.MappingRegistry;
 import ru.citeck.ecos.utils.DictUtils;
@@ -95,7 +95,7 @@ public class AddCommentWithActionTagBehaviour implements EventPolicies.BeforeEve
             return;
         }
 
-        addCommentWithTag(additionalData, eventSource);
+        addCommentWithTag(additionalData, RecordRef.valueOf(eventSource.toString()));
     }
 
     @Override
@@ -120,7 +120,7 @@ public class AddCommentWithActionTagBehaviour implements EventPolicies.BeforeEve
             return;
         }
 
-        addCommentWithTag(additionalDataRef, RecordsUtils.toNodeRef(caseRef));
+        addCommentWithTag(additionalDataRef, caseRef);
     }
 
     private boolean isUserAction(SentryDefinition sentry) {
@@ -130,14 +130,20 @@ public class AddCommentWithActionTagBehaviour implements EventPolicies.BeforeEve
         return activityDefinition.getType() == ActivityType.USER_EVENT_LISTENER;
     }
 
-    private void addCommentWithTag(NodeRef additionalDataRef, NodeRef caseRef) {
-        QName commentProp = resolveCommentProp(additionalDataRef);
+    private void addCommentWithTag(NodeRef additionalDataRef, RecordRef caseRef) {
+        if (RecordRef.isEmpty(caseRef)) {
+            return;
+        }
 
+        QName commentProp = resolveCommentProp(additionalDataRef);
         String comment = (String) nodeService.getProperty(additionalDataRef, commentProp);
+        if (StringUtils.isBlank(comment)) {
+            return;
+        }
+
         MLText actionName = getActionTitle(additionalDataRef);
 
-        commentTagService.addCommentWithTag(RecordRef.valueOf(caseRef.toString()), comment, CommentTag.ACTION,
-            actionName);
+        commentTagService.addCommentWithTag(caseRef, comment, CommentTag.ACTION, actionName);
     }
 
     private QName resolveCommentProp(NodeRef additionalDataRef) {
