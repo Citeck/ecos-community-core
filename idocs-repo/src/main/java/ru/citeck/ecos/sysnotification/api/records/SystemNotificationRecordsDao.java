@@ -85,8 +85,8 @@ public class SystemNotificationRecordsDao extends LocalRecordsDao
         RecordsDelResult result = new RecordsDelResult();
 
         for (RecordRef recordRef: recordsDeletion.getRecords()) {
-            SystemNotificationDto deletedDto = systemNotificationService.delete(recordRef.getId());
-            result.addRecord(new RecordMeta(deletedDto.getId()));
+            systemNotificationService.delete(recordRef.getId());
+            result.addRecord(new RecordMeta(recordRef));
         }
 
         return result;

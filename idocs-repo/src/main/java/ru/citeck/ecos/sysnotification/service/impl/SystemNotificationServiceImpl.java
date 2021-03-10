@@ -7,6 +7,7 @@ import ru.citeck.ecos.sysnotification.dto.SystemNotificationDto;
 import ru.citeck.ecos.sysnotification.service.NoDaoException;
 import ru.citeck.ecos.sysnotification.service.SystemNotificationService;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -18,42 +19,39 @@ public class SystemNotificationServiceImpl implements SystemNotificationService 
 
     @Override
     public List<SystemNotificationDto> get(int maxItems, int skipCount, boolean onlyActive) throws NoDaoException {
-        checkDao();
-        return systemNotificationDao.get(maxItems, skipCount, onlyActive);
+        return systemNotificationDao != null
+            ? systemNotificationDao.get(maxItems, skipCount, onlyActive)
+            : new ArrayList<>();
     }
 
     @Override
     public SystemNotificationDto get(String id) throws NoDaoException {
-        checkDao();
-        return systemNotificationDao.get(id);
+        return systemNotificationDao != null ? systemNotificationDao.get(id) : null;
     }
 
     @Override
     public SystemNotificationDto save(SystemNotificationDto systemNotificationDto) throws NoDaoException {
-        checkDao();
+        if (systemNotificationDao == null) {
+            throw new NoDaoException("You should implement SystemNotificationDao before using this method");
+        }
+
         return systemNotificationDao.save(systemNotificationDto);
     }
 
     @Override
-    public SystemNotificationDto delete(String id) throws NoDaoException {
-        checkDao();
-        return systemNotificationDao.delete(id);
+    public void delete(String id) throws NoDaoException {
+        if (systemNotificationDao != null) {
+            systemNotificationDao.delete(id);
+        }
     }
 
     @Override
     public long getTotalCount() throws NoDaoException {
-        checkDao();
-        return systemNotificationDao.getTotalCount();
+        return systemNotificationDao != null ? systemNotificationDao.getTotalCount() : 0;
     }
 
     @Autowired(required = false)
     public void setSystemNotificationDao(SystemNotificationDao systemNotificationDao) {
         this.systemNotificationDao = systemNotificationDao;
-    }
-
-    private void checkDao() throws NoDaoException {
-        if (systemNotificationDao == null) {
-            throw new NoDaoException("You should implement SystemNotificationDao before using this service");
-        }
     }
 }

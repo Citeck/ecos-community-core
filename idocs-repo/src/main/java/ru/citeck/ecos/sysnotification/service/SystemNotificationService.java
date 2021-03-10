@@ -8,17 +8,17 @@ import java.util.List;
  * @author Pavel Tkachenko
  */
 public interface SystemNotificationService {
-    default List<SystemNotificationDto> get(int maxItems) throws NoDaoException {
+    default List<SystemNotificationDto> get(int maxItems) {
         return get(maxItems, 0, true);
     }
 
-    default List<SystemNotificationDto> get(int maxItems, int skipCount) throws NoDaoException {
+    default List<SystemNotificationDto> get(int maxItems, int skipCount) {
         return get(maxItems, skipCount, true);
     }
 
-    List<SystemNotificationDto> get(int maxItems, int skipCount, boolean onlyActive) throws NoDaoException;
-    SystemNotificationDto get(String id) throws NoDaoException;
+    List<SystemNotificationDto> get(int maxItems, int skipCount, boolean onlyActive);
+    SystemNotificationDto get(String id);
     SystemNotificationDto save(SystemNotificationDto systemNotificationDto) throws NoDaoException;
-    SystemNotificationDto delete(String id) throws NoDaoException;
-    long getTotalCount() throws NoDaoException;
+    void delete(String id);
+    long getTotalCount();
 }
