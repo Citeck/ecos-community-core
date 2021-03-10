@@ -1,5 +1,7 @@
 package ru.citeck.ecos.sysnotification.service.impl;
 
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import ru.citeck.ecos.sysnotification.dao.SystemNotificationDao;
@@ -17,6 +19,7 @@ import java.util.List;
 public class SystemNotificationServiceImpl implements SystemNotificationService {
     private SystemNotificationDao systemNotificationDao;
 
+    @NotNull
     @Override
     public List<SystemNotificationDto> get(int maxItems, int skipCount, boolean onlyActive) throws NoDaoException {
         return systemNotificationDao != null
@@ -24,13 +27,15 @@ public class SystemNotificationServiceImpl implements SystemNotificationService 
             : new ArrayList<>();
     }
 
+    @Nullable
     @Override
-    public SystemNotificationDto get(String id) throws NoDaoException {
+    public SystemNotificationDto get(@NotNull String id) throws NoDaoException {
         return systemNotificationDao != null ? systemNotificationDao.get(id) : null;
     }
 
+    @NotNull
     @Override
-    public SystemNotificationDto save(SystemNotificationDto systemNotificationDto) throws NoDaoException {
+    public SystemNotificationDto save(@NotNull SystemNotificationDto systemNotificationDto) throws NoDaoException {
         if (systemNotificationDao == null) {
             throw new NoDaoException("You should implement SystemNotificationDao before using this method");
         }
@@ -39,7 +44,7 @@ public class SystemNotificationServiceImpl implements SystemNotificationService 
     }
 
     @Override
-    public void delete(String id) throws NoDaoException {
+    public void delete(@NotNull String id) throws NoDaoException {
         if (systemNotificationDao != null) {
             systemNotificationDao.delete(id);
         }
