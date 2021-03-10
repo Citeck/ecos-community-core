@@ -1,40 +1,60 @@
----
-id: initiator-tasks
-
-name: {ru: Созданные задачи, en: Created Tasks}
-
-predicate:
-  t: and
-  val:
-    - {att: 'wfm:workflowInitiator', val: $CURRENT_AUTHORITIES_REFS, t: in}
+id: initiator-tasks-TEST
+name: { ru: Созданные задачи, en: Created Tasks }
 
 typeRef: emodel/type@workflow-task
+
+predicate: { t: in, att: 'wfm:workflowInitiator', val: $CURRENT_AUTHORITIES_REFS }
 
 editable: false
 
 columns:
   - id: bpm:priority
-    formatter: {type: workflowPriority}
-  - id: wfm:taskType
-    name: {ru: Название задачи, en: Task name}
-  - {name: 'cwf:senderName', visible: false, searchable: false }
+    formatter:
+      type: workflowPriority
 
-  - id: 'wfm:assignee'
+  - id: wfm:taskType
+    name: { ru: Название задачи, en: Task name }
+
+  - id: cwf:senderName
+    visible: false
+    searchable: false
+
+  - id: wfm:assignee
     editor:
       type: orgstruct
       config:
         allowedAuthorityTypes: USER
 
-  - {name: 'bpm:status'}
-  - {name: 'bpm:pooledActors', visible: false}
-  - {name: 'wfm:document'}
-  - {name: 'wfm:counterparty'}
-  - {name: 'wfm:documentTypeTitle'}
-  - {name: 'wfm:documentKindTitle'}
-  - {name: 'bpm:startDate', visible: false}
-  - {name: 'bpm:dueDate'}
-  - {name: 'bpm:comment', visible: false}
-  - {name: 'wfm_workflowDisplayName', searchable: false, sortable: false }
-  - {name: 'wfm:workflowInitiator', visible: false}
-  - {name: 'cwf:taskTitle', visible: false}
-  - {name: 'cm:title', visible: false}
+  - id: bpm:status
+
+  - id: bpm:pooledActors
+    visible: false
+
+  - id: wfm:document
+
+  - id: wfm:counterparty
+
+  - id: wfm:documentTypeTitle
+
+  - id: wfm:documentKindTitle
+
+  - id: bpm:startDate
+    visible: false
+
+  - id: bpm:dueDate
+
+  - id: bpm:comment
+    visible: false
+
+  - id: wfm_workflowDisplayName
+    searchable: false
+    sortable: false
+
+  - id: wfm:workflowInitiator
+    visible: false
+
+  - id: cwf:taskTitle
+    visible: false
+
+  - id: cm:title
+    visible: false
