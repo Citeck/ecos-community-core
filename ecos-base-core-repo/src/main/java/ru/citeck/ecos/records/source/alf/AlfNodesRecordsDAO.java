@@ -22,7 +22,7 @@ import ru.citeck.ecos.domain.model.alf.service.AlfAutoModelService;
 import ru.citeck.ecos.model.EcosModel;
 import ru.citeck.ecos.model.EcosTypeModel;
 import ru.citeck.ecos.model.InvariantsModel;
-import ru.citeck.ecos.model.lib.type.service.TypeDefService;
+import ru.citeck.ecos.model.lib.type.service.TypeRefService;
 import ru.citeck.ecos.node.AlfNodeInfo;
 import ru.citeck.ecos.node.AlfNodeInfoImpl;
 import ru.citeck.ecos.node.EcosTypeService;
@@ -52,10 +52,10 @@ import ru.citeck.ecos.records2.source.dao.RecordsQueryDao;
 import ru.citeck.ecos.records2.source.dao.local.LocalRecordsDao;
 import ru.citeck.ecos.records2.source.dao.local.v2.LocalRecordsMetaDao;
 import ru.citeck.ecos.records2.source.dao.local.v2.LocalRecordsQueryWithMetaDao;
-import ru.citeck.ecos.records3.record.op.atts.service.computed.ComputedAtt;
-import ru.citeck.ecos.records3.record.op.atts.service.computed.ComputedAttType;
-import ru.citeck.ecos.records3.record.op.atts.service.computed.ComputedUtils;
-import ru.citeck.ecos.records3.record.op.atts.service.computed.StoringType;
+import ru.citeck.ecos.records3.record.atts.computed.ComputedAtt;
+import ru.citeck.ecos.records3.record.atts.computed.ComputedAttType;
+import ru.citeck.ecos.records3.record.atts.computed.ComputedUtils;
+import ru.citeck.ecos.records3.record.atts.computed.StoringType;
 import ru.citeck.ecos.records3.record.request.context.SystemContextUtil;
 import ru.citeck.ecos.security.EcosPermissionService;
 import ru.citeck.ecos.utils.NodeUtils;
@@ -102,7 +102,7 @@ public class AlfNodesRecordsDAO extends LocalRecordsDao
     private AlfNodeContentFileHelper contentFileHelper;
     private EcosPermissionService ecosPermissionService;
     private TypesManager typeInfoProvider;
-    private TypeDefService typeDefService;
+    private TypeRefService typeRefService;
     private ServiceRegistry serviceRegistry;
     private RecordsTemplateService recordsTemplateService;
     private AlfAutoModelService alfAutoModelService;
@@ -438,7 +438,7 @@ public class AlfNodesRecordsDAO extends LocalRecordsDao
             return ObjectData.create();
         }
 
-        List<ComputedAtt> computedAtts = typeDefService.getComputedAtts(docTypeRef);
+        List<ComputedAtt> computedAtts = typeRefService.getComputedAtts(docTypeRef);
         Set<String> attsToStore = new HashSet<>();
 
         for (ComputedAtt att : computedAtts) {
@@ -471,7 +471,7 @@ public class AlfNodesRecordsDAO extends LocalRecordsDao
             counterProps.put(EcosModel.PROP_DOC_NUM.toPrefixString(namespaceService), number);
         }
 
-        List<ComputedAtt> computedAtts = typeDefService.getComputedAtts(docTypeRef);
+        List<ComputedAtt> computedAtts = typeRefService.getComputedAtts(docTypeRef);
 
         for (ComputedAtt att : computedAtts) {
 
@@ -853,8 +853,8 @@ public class AlfNodesRecordsDAO extends LocalRecordsDao
     }
 
     @Autowired
-    public void setTypeDefService(TypeDefService typeDefService) {
-        this.typeDefService = typeDefService;
+    public void setTypeRefService(TypeRefService typeRefService) {
+        this.typeRefService = typeRefService;
     }
 
     @Autowired

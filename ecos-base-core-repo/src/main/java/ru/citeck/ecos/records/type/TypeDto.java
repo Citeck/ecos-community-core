@@ -10,7 +10,7 @@ import ru.citeck.ecos.commons.data.ObjectData;
 import ru.citeck.ecos.model.lib.type.dto.DocLibDef;
 import ru.citeck.ecos.model.lib.type.dto.TypeModelDef;
 import ru.citeck.ecos.records2.RecordRef;
-import ru.citeck.ecos.records3.record.op.atts.service.schema.annotation.AttName;
+import ru.citeck.ecos.records3.record.atts.schema.annotation.AttName;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -30,7 +30,7 @@ public class TypeDto {
     private RecordRef parentRef;
     private RecordRef formRef;
     private RecordRef journalRef;
-    private RecordRef numTemplateRef;
+    private RecordRef inhNumTemplateRef;
     private boolean system;
     private String dashboardType;
     private boolean inheritActions;
@@ -53,11 +53,17 @@ public class TypeDto {
     @AttName("model?json")
     private TypeModelDef model;
 
+    @AttName("resolvedModel?json")
+    private TypeModelDef resolvedModel;
+
     @AttName("_type?id")
     private RecordRef ecosType;
 
     @AttName("docLib?json")
     private DocLibDef docLib;
+
+    @AttName("resolvedDocLib?json")
+    private DocLibDef resolvedDocLib;
 
     @AttName("?disp")
     public MLText getDisplayName() {

@@ -16,7 +16,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import ru.citeck.ecos.commons.data.ObjectData;
 import ru.citeck.ecos.model.EcosTypeModel;
-import ru.citeck.ecos.model.lib.type.service.TypeDefService;
+import ru.citeck.ecos.model.lib.type.service.TypeRefService;
+import ru.citeck.ecos.node.EcosTypeService;
 import ru.citeck.ecos.records2.RecordRef;
 import ru.citeck.ecos.search.ftsquery.FTSQuery;
 import ru.citeck.ecos.utils.NodeUtils;
@@ -37,7 +38,7 @@ public class EcosTypeRootService {
     private final SiteService siteService;
     private final NodeService nodeService;
     private final PermissionService permissionService;
-    private final TypeDefService typeDefService;
+    private final EcosTypeService ecosTypeService;
     private final NodeUtils nodeUtils;
 
     private final Map<String, NodeRef> nodeByPath = new ConcurrentHashMap<>();
@@ -49,10 +50,10 @@ public class EcosTypeRootService {
         SiteService siteService,
         NodeService nodeService,
         PermissionService permissionService,
-        TypeDefService typeDefService
+        EcosTypeService ecosTypeService
     ) {
         this.nodeUtils = nodeUtils;
-        this.typeDefService = typeDefService;
+        this.ecosTypeService = ecosTypeService;
         this.searchService = searchService;
         this.siteService = siteService;
         this.nodeService = nodeService;
@@ -68,7 +69,7 @@ public class EcosTypeRootService {
         // todo: add tenant support
         String currentTenant = "";
 
-        ObjectData typeProps = typeDefService.getResolvedProperties(typeRef);
+        ObjectData typeProps = ecosTypeService.getResolvedProperties(typeRef);
         String alfRootPath = typeProps.get("alfRoot").asText();
 
         if (StringUtils.isNotBlank(alfRootPath)) {

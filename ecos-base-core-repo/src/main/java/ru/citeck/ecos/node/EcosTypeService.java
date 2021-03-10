@@ -10,11 +10,11 @@ import org.apache.commons.lang.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import ru.citeck.ecos.commons.data.ObjectData;
 import ru.citeck.ecos.model.ClassificationModel;
-import ru.citeck.ecos.model.lib.ModelServiceFactory;
+import ru.citeck.ecos.model.lib.type.dto.DocLibDef;
+import ru.citeck.ecos.model.lib.type.service.utils.TypeUtils;
 import ru.citeck.ecos.records.type.NumTemplateDto;
 import ru.citeck.ecos.records.type.TypeDto;
 import ru.citeck.ecos.records.type.TypesManager;
@@ -36,7 +36,6 @@ public class EcosTypeService {
     public static final QName QNAME = QName.createQName("", "ecosTypeService");
     private static final RecordRef DEFAULT_TYPE = RecordRef.create("emodel", "type", "base");
 
-    private ModelServiceFactory modelServices;
     private final RecordsService recordsService;
     private final DictUtils dictUtils;
 
@@ -51,11 +50,46 @@ public class EcosTypeService {
 
         evaluators = new EvaluatorsByAlfNode<>(serviceRegistry, node -> DEFAULT_TYPE);
         this.recordsService = recordsService;
-        this. dictUtils = dictUtils;
+        this.dictUtils = dictUtils;
     }
 
     public void register(QName nodeType, Function<AlfNodeInfo, RecordRef> evaluator) {
         evaluators.register(nodeType, evaluator);
+    }
+
+    @NotNull
+    public List<RecordRef> expandTypeWithChildren(@Nullable RecordRef typeRef) {
+        if (RecordRef.isEmpty(typeRef) || typesManager == null) {
+            return Collections.singletonList(typeRef);
+        }
+        List<RecordRef> result = new ArrayList<>();
+        forEachDesc(typeRef, typeDto -> {
+            result.add(TypeUtils.getTypeRef(typeDto.getId()));
+            return false;
+        });
+        return result;
+    }
+
+    @NotNull
+    public DocLibDef getDocLib(RecordRef typeRef) {
+        TypeDto typeDef = getTypeDef(typeRef);
+        if (typeDef == null) {
+            return DocLibDef.EMPTY;
+        }
+        DocLibDef docLib = typeDef.getResolvedDocLib();
+        if (docLib == null) {
+            return DocLibDef.EMPTY;
+        }
+        return docLib;
+    }
+
+    public ObjectData getResolvedProperties(RecordRef typeRef) {
+        TypeDto typeDef = getTypeDef(typeRef);
+        if (typeDef == null) {
+            return ObjectData.create();
+        }
+        ObjectData inhAttributes = typeDef.getInhAttributes();
+        return inhAttributes == null ? ObjectData.create() : inhAttributes;
     }
 
     @Nullable
@@ -112,21 +146,18 @@ public class EcosTypeService {
 
     @Nullable
     public Long getNumberForDocument(@NotNull RecordRef docRef) {
-        return getNumberForDocument(docRef, null);
+        return getNumberForDocument(docRef, getNumTemplateByRecord(docRef));
     }
 
     @Nullable
     public Long getNumberForDocument(@NotNull RecordRef docRef, @Nullable RecordRef numTemplateRef) {
 
-        if (typesManager == null) {
-            throw new IllegalStateException("typesManager is null");
+        if (RecordRef.isEmpty(numTemplateRef)) {
+            return null;
         }
 
-        if (numTemplateRef == null) {
-            numTemplateRef = getNumTemplateByRecord(docRef);
-            if (RecordRef.isEmpty(numTemplateRef)) {
-                return null;
-            }
+        if (typesManager == null) {
+            throw new IllegalStateException("typesManager is null");
         }
 
         NumTemplateDto numTemplate = typesManager.getNumTemplate(numTemplateRef);
@@ -149,7 +180,8 @@ public class EcosTypeService {
         if (typeRef == null || RecordRef.isEmpty(typeRef)) {
             return null;
         }
-        return modelServices.getTypeDefService().getNumTemplate(typeRef);
+        TypeDto typeDef = getTypeDef(typeRef);
+        return typeDef != null ? typeDef.getInhNumTemplateRef() : null;
     }
 
     @Nullable
@@ -218,12 +250,6 @@ public class EcosTypeService {
         while (typeDto != null && !action.apply(typeDto)) {
             typeDto = typeDto.getParentRef() != null ? typesManager.getType(typeDto.getParentRef()) : null;
         }
-    }
-
-    @Lazy
-    @Autowired
-    public void setModelServices(ModelServiceFactory modelServices) {
-        this.modelServices = modelServices;
     }
 
     @Autowired(required = false)

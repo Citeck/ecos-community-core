@@ -16,7 +16,7 @@ import ru.citeck.ecos.records2.RecordRef;
 import ru.citeck.ecos.records2.graphql.meta.value.MetaField;
 import ru.citeck.ecos.records2.graphql.meta.value.MetaValue;
 import ru.citeck.ecos.records2.source.common.AttributesMixin;
-import ru.citeck.ecos.records3.record.op.atts.service.value.AttValue;
+import ru.citeck.ecos.records3.record.atts.value.AttValue;
 import ru.citeck.ecos.role.CaseRoleService;
 import ru.citeck.ecos.utils.AuthorityUtils;
 

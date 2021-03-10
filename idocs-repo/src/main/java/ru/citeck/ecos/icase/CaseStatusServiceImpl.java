@@ -13,7 +13,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import ru.citeck.ecos.model.ICaseModel;
 import ru.citeck.ecos.model.lib.status.dto.StatusDef;
 import ru.citeck.ecos.model.lib.status.service.StatusService;
-import ru.citeck.ecos.model.lib.type.service.TypeDefService;
+import ru.citeck.ecos.node.EcosTypeService;
 import ru.citeck.ecos.records2.RecordRef;
 import ru.citeck.ecos.utils.DictionaryUtils;
 import ru.citeck.ecos.utils.LazyNodeRef;
@@ -34,7 +34,7 @@ public class CaseStatusServiceImpl implements CaseStatusService {
     @Autowired @Setter
     private CaseStatusAssocDao caseStatusAssocDao;
     @Autowired @Setter
-    private TypeDefService typeDefService;
+    private EcosTypeService ecosTypeService;
     @Autowired @Setter
     private StatusService statusService;
 
@@ -114,7 +114,7 @@ public class CaseStatusServiceImpl implements CaseStatusService {
             return getStatusByName(statusName);
         }
 
-        RecordRef typeRef = typeDefService.getTypeRef(RecordRef.valueOf(node.toString()));
+        RecordRef typeRef = ecosTypeService.getEcosType(node);
         return getStatusByNameAndType(statusName, typeRef);
     }
 
@@ -195,8 +195,8 @@ public class CaseStatusServiceImpl implements CaseStatusService {
         if (StringUtils.isBlank(statusId)) {
             return null;
         }
-        RecordRef recordRef = RecordRef.valueOf(caseRef.toString());
-        return statusService.getStatusDefByDocument(recordRef, statusId);
+        RecordRef ecosTypeRef = ecosTypeService.getEcosType(caseRef);
+        return statusService.getStatusDefByType(ecosTypeRef, statusId);
     }
 
     @Override
