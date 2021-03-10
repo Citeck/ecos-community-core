@@ -1,7 +1,9 @@
 package ru.citeck.ecos.comment;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.extern.slf4j.Slf4j;
 import org.alfresco.model.ContentModel;
 import org.alfresco.service.ServiceRegistry;
 import org.alfresco.service.cmr.lock.LockService;
@@ -14,24 +16,26 @@ import org.alfresco.service.cmr.security.AccessStatus;
 import org.alfresco.service.cmr.security.AuthorityService;
 import org.alfresco.service.cmr.security.PermissionService;
 import org.alfresco.service.namespace.QName;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
-import ru.citeck.ecos.comment.model.CommentDTO;
+import ru.citeck.ecos.comment.model.CommentDto;
 import ru.citeck.ecos.comment.model.CommentPermissions;
+import ru.citeck.ecos.comment.model.CommentTagDto;
+import ru.citeck.ecos.model.EcosCommonModel;
 import ru.citeck.ecos.records.models.AuthorityDTO;
 import ru.citeck.ecos.records2.RecordRef;
 import ru.citeck.ecos.records2.RecordsService;
 
+import java.io.IOException;
 import java.io.Serializable;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 /**
  * @author Roman Makarskiy
  */
+@Slf4j
 @Component
 public class CommentFactory {
 
@@ -65,8 +69,8 @@ public class CommentFactory {
         this.serviceRegistry = serviceRegistry;
     }
 
-    public CommentDTO fromNode(NodeRef commentRef) {
-        CommentDTO dto = new CommentDTO();
+    public CommentDto fromNode(NodeRef commentRef) {
+        CommentDto dto = new CommentDto();
 
         Map<QName, Serializable> properties = nodeService.getProperties(commentRef);
 
@@ -83,7 +87,23 @@ public class CommentFactory {
         dto.setId(commentRef.getId());
         dto.setPermissions(getPermissions(commentRef));
 
+        String tagsJson = (String) properties.get(EcosCommonModel.PROP_TAG);
+        dto.setTags(getTagsFromJsonString(tagsJson));
+
         return dto;
+    }
+
+    private List<CommentTagDto> getTagsFromJsonString(String tagsJson) {
+        if (StringUtils.isBlank(tagsJson)) {
+            return Collections.emptyList();
+        }
+
+        try {
+            return mapper.readValue(tagsJson, new TypeReference<List<CommentTagDto>>() {
+            });
+        } catch (IOException e) {
+            throw new RuntimeException("Failed read comment tags from string", e);
+        }
     }
 
     private Boolean isEdited(Date createdAt, Date modifiedAt) {
@@ -136,9 +156,9 @@ public class CommentFactory {
             canDelete = false;
         } else {
             boolean canAccessAsSiteManager =
-                    permissionService.hasPermission(commentRef, SITE_MANAGER) == AccessStatus.ALLOWED;
+                permissionService.hasPermission(commentRef, SITE_MANAGER) == AccessStatus.ALLOWED;
             boolean canAccessAsCoordinator =
-                    permissionService.hasPermission(commentRef, PermissionService.COORDINATOR) == AccessStatus.ALLOWED;
+                permissionService.hasPermission(commentRef, PermissionService.COORDINATOR) == AccessStatus.ALLOWED;
             String author = (String) nodeService.getProperties(commentRef).get(ContentModel.PROP_CREATOR);
             String currentUser = serviceRegistry.getAuthenticationService().getCurrentUserName();
             canEdit = author.equals(currentUser) || canAccessAsSiteManager || canAccessAsCoordinator;

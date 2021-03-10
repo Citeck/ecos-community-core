@@ -9,6 +9,7 @@ import org.alfresco.repo.workflow.activiti.ActivitiConstants;
 import org.alfresco.repo.workflow.activiti.ActivitiScriptNode;
 import org.alfresco.repo.workflow.activiti.properties.ActivitiPropertyConverter;
 import org.alfresco.service.cmr.dictionary.DictionaryService;
+import org.alfresco.service.cmr.repository.MLText;
 import org.alfresco.service.cmr.repository.NodeRef;
 import org.alfresco.service.cmr.workflow.WorkflowInstance;
 import org.alfresco.service.cmr.workflow.WorkflowPath;
@@ -198,6 +199,12 @@ public class EcosActivitiTaskService implements EngineTaskService {
         public String getTitle() {
             WorkflowTask task = workflowService.getTaskById(ENGINE_PREFIX + getId());
             return workflowUtils.getTaskTitle(task);
+        }
+
+        @Override
+        public MLText getMlTitle() {
+            WorkflowTask task = workflowService.getTaskById(ENGINE_PREFIX + getId());
+            return workflowUtils.getTaskMLTitle(task);
         }
 
         @Override

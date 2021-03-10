@@ -1,6 +1,7 @@
 package ru.citeck.ecos.workflow.tasks;
 
 import org.alfresco.repo.security.authentication.AuthenticationUtil;
+import org.alfresco.service.cmr.repository.MLText;
 import org.alfresco.service.cmr.workflow.WorkflowInstance;
 import ru.citeck.ecos.records2.RecordRef;
 
@@ -20,6 +21,11 @@ public class EngineTaskInfo implements TaskInfo {
     @Override
     public String getTitle() {
         return AuthenticationUtil.runAsSystem(info::getTitle);
+    }
+
+    @Override
+    public MLText getMlTitle() {
+        return AuthenticationUtil.runAsSystem(info::getMlTitle);
     }
 
     @Override

@@ -25,6 +25,15 @@
             </properties>
         </aspect>
 
+        <aspect name="ecosComm:hasTag">
+            <properties>
+                <property name="ecosComm:tag">
+                    <title>Tag</title>
+                    <type>d:text</type>
+                </property>
+            </properties>
+        </aspect>
+
     </aspects>
 
 </model>

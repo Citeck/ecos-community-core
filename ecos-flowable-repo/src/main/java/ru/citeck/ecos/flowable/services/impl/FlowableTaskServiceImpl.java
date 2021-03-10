@@ -3,6 +3,7 @@ package ru.citeck.ecos.flowable.services.impl;
 import lombok.extern.log4j.Log4j;
 import org.alfresco.model.ContentModel;
 import org.alfresco.repo.workflow.WorkflowModel;
+import org.alfresco.service.cmr.repository.MLText;
 import org.alfresco.service.cmr.repository.NodeRef;
 import org.alfresco.service.cmr.repository.NodeService;
 import org.alfresco.service.cmr.workflow.WorkflowInstance;
@@ -287,6 +288,12 @@ public class FlowableTaskServiceImpl implements FlowableTaskService, EngineTaskS
         public String getTitle() {
             WorkflowTask task = workflowService.getTaskById(FlowableConstants.ENGINE_PREFIX + getId());
             return workflowUtils.getTaskTitle(task);
+        }
+
+        @Override
+        public MLText getMlTitle() {
+            WorkflowTask task = workflowService.getTaskById(FlowableConstants.ENGINE_PREFIX + getId());
+            return workflowUtils.getTaskMLTitle(task);
         }
 
         @Override

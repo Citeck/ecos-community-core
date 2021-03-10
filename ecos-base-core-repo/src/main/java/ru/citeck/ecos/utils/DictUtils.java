@@ -9,12 +9,15 @@ import org.alfresco.repo.i18n.MessageService;
 import org.alfresco.repo.transaction.TransactionalResourceHelper;
 import org.alfresco.service.ServiceRegistry;
 import org.alfresco.service.cmr.dictionary.*;
+import org.alfresco.service.cmr.repository.MLText;
 import org.alfresco.service.namespace.NamespaceService;
 import org.alfresco.service.namespace.QName;
 import org.alfresco.util.Pair;
 import org.apache.commons.lang.StringUtils;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.extensions.surf.util.I18NUtil;
 import org.springframework.stereotype.Component;
 
 import java.util.*;
@@ -150,6 +153,30 @@ public class DictUtils {
     public String getTypeTitle(QName typeName) {
         TypeDefinition type = dictionaryService.getType(typeName);
         return type.getTitle(messageService);
+    }
+
+    public MLText getTypeMlTitle(@NotNull QName typeName) {
+        TypeDefinition typeDefinition = dictionaryService.getType(typeName);
+
+        MLText result = new MLText();
+
+        final Locale primaryLocale = I18NUtil.getLocale();
+
+        for (Locale locale : EcosU18NUtils.LOCALES) {
+            I18NUtil.setLocale(locale);
+            String title = typeDefinition.getTitle(messageService);
+            if (StringUtils.isNotBlank(title)) {
+                result.put(locale, title);
+            }
+        }
+
+        if (result.isEmpty()) {
+            result.put(primaryLocale, typeName.toPrefixString());
+        }
+
+        I18NUtil.setLocale(primaryLocale);
+
+        return result;
     }
 
     public ClassAttributeDefinition getAttDefinition(String name) {

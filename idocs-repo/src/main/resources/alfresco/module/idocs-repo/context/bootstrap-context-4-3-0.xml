@@ -31,4 +31,40 @@
         </property>
     </bean>
 
+    <bean id="idocs.module-component.config.add-comment-with-tag-task.create" parent="module.baseComponent"
+          class="ru.citeck.ecos.config.patch.CreateConfig">
+        <property name="dependsOn">
+            <list>
+                <ref bean="ecos-base-core.module-component.ecos-config-root" />
+            </list>
+        </property>
+        <property name="configKey" value="add-comment-with-task-tag-enabled" />
+        <property name="configValue" value="true" />
+        <property name="configTitle" value="ecos-config.add-comment-with-task-tag-enabled.title" />
+        <property name="configDescription" value="ecos-config.add-comment-with-task-tag-enabled.description" />
+        <property name="moduleId" value="idocs-repo" />
+        <property name="name" value="idocs.module-component.config.add-comment-with-tag-task.create" />
+        <property name="description" value="idocs.module-component.config.add-comment-with-tag-task.create" />
+        <property name="sinceVersion" value="4.3.0" />
+        <property name="appliesFromVersion" value="4.3.0" />
+    </bean>
+
+    <bean id="idocs.module-component.config.add-comment-with-tag-action.create" parent="module.baseComponent"
+          class="ru.citeck.ecos.config.patch.CreateConfig">
+        <property name="dependsOn">
+            <list>
+                <ref bean="ecos-base-core.module-component.ecos-config-root" />
+            </list>
+        </property>
+        <property name="configKey" value="add-comment-with-action-tag-enabled" />
+        <property name="configValue" value="true" />
+        <property name="configTitle" value="ecos-config.add-comment-with-action-tag-enabled.title" />
+        <property name="configDescription" value="ecos-config.add-comment-with-action-tag-enabled.description" />
+        <property name="moduleId" value="idocs-repo" />
+        <property name="name" value="idocs.module-component.config.add-comment-with-tag-action.create" />
+        <property name="description" value="idocs.module-component.config.add-comment-with-tag-action.create" />
+        <property name="sinceVersion" value="4.3.0" />
+        <property name="appliesFromVersion" value="4.3.0" />
+    </bean>
+
 </beans>

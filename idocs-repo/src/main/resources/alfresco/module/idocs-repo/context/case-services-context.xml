@@ -116,4 +116,7 @@
         <property name="notificationService" ref="ecosNotificationService"/>
     </bean>
 
+    <bean id="case.actions.additional-data.add-comment-with-tag.mappingRegistry"
+          class="ru.citeck.ecos.spring.registry.MappingRegistry"/>
+
 </beans>
