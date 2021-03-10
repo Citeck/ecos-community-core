@@ -9,6 +9,7 @@ import org.alfresco.service.namespace.NamespaceService;
 import org.alfresco.service.namespace.QName;
 import ru.citeck.ecos.commons.data.MLText;
 import ru.citeck.ecos.graphql.AlfGqlContext;
+import ru.citeck.ecos.records.RecordsUtils;
 import ru.citeck.ecos.records2.RecordRef;
 import ru.citeck.ecos.records2.graphql.meta.value.CreateVariant;
 import ru.citeck.ecos.records2.graphql.meta.value.MetaValue;
@@ -283,11 +284,12 @@ public class AlfNodeMetaEdge extends SimpleMetaEdge {
         }
 
         String id = scope.getId();
-        if (id == null || !id.startsWith("workspace://")) {
+        if (id == null) {
             return null;
         }
 
-        return new NodeRef(id);
+        RecordRef recordRef = RecordRef.valueOf(id);
+        return RecordsUtils.toNodeRef(recordRef);
     }
 
     public static class AttOption implements MetaValue {
