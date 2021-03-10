@@ -217,6 +217,7 @@ public class AlfNodeContentFileHelper {
                         nodeService.setType(attachment.documentRef, assocTargetType);
                     }
                     nodeService.moveNode(attachment.documentRef, baseNodeRef, assocType, childAssocQName);
+                    processTypeKind(attachment, attachment.documentRef);
                 }
             }
 
