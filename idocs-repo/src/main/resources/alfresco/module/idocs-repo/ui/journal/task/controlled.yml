@@ -1,66 +1,61 @@
----
 id: controlled
+name: { ru: На контроле, en: Controlled }
 
-name: {ru: На контроле, en: Controlled}
-
-predicate:
-  t: and
-  val:
-    - {att: 'wfm:workflowName', val: activiti$perform, t: in}
+predicate: { t: in, att: 'wfm:workflowName', val: activiti$perform }
 
 typeRef: emodel/type@workflow-task
 
 editable: false
 
 columns:
-
   - id: bpm:priority
-    formatter: {type: workflowPriority}
+    formatter:
+      type: workflowPriority
 
   - id: wfm:taskType
-    name: {ru: Название задачи, en: Task name}
+    name: { ru: Название задачи, en: Task name }
 
-  - id: 'cwf:senderName'
+  - id: cwf:senderName
     visible: false
     searchable: false
 
-  - id: 'wfm:assignee'
+  - id: wfm:assignee
     editor:
       type: orgstruct
       config:
         allowedAuthorityTypes: USER
 
-  - id: 'bpm:status'
+  - id: bpm:status
 
-  - id: 'bpm:pooledActors'
+  - id: bpm:pooledActors
     visible: false
     editor:
       type: orgstruct
       config:
         allowedAuthorityTypes: USER,GROUP
 
-  - id: 'wfm:document'
+  - id: wfm:document
     searchable: false
 
-  - id: 'wfm:counterparty'
+  - id: wfm:counterparty
 
-  - id: 'wfm:documentTypeTitle'
+  - id: wfm:documentTypeTitle
 
-  - id: 'wfm:documentKindTitle'
+  - id: wfm:documentKindTitle
 
-  - id: 'bpm:startDate'
+  - id: bpm:startDate
     visible: false
 
-  - id: 'bpm:dueDate'
+  - id: bpm:dueDate
 
-  - id: 'bpm:comment'
+  - id: bpm:comment
     visible: false
 
-  - id: 'wfm:workflowInitiator'
+  - id: wfm:workflowInitiator
     visible: false
 
-  - id: 'cwf:taskTitle'
+  - id: cwf:taskTitle
     visible: false
 
-  - id: 'cm:title'
+  - id: cm:title
     visible: false

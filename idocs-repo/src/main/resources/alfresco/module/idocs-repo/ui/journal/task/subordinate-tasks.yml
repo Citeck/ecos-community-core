@@ -1,16 +1,9 @@
----
 id: subordinate-tasks
-
-name:
-  ru: Задачи подчиненных
-  en: Subordinate tasks
+name: { ru: Задачи подчиненных, en: Subordinate tasks }
 
 typeRef: emodel/type@workflow-task
 
-predicate:
-  t: and
-  val:
-    - { t: in, att: wfm:assigneeManager, val: $CURRENT_AUTHORITIES_REFS }
+predicate: { t: in, att: wfm:assigneeManager, val: $CURRENT_AUTHORITIES_REFS }
 
 actions:
   - uiserv/action@view-task
@@ -18,22 +11,18 @@ actions:
   - uiserv/action@edit-task
 
 columns:
-
   - id: bpm:priority
     name:
       en: Priority
       ru: Приоритет
     formatter:
       type: workflowPriority
+
   - id: cm:title
     name:
       en: Task name
       ru: Название задачи
     sortable: false
-
-  #  <header key="cm:title" default="true" sortable="false" >
-  #  <option  name="formatter">taskTitle</option>
-  # </header>
 
   - id: wfm:document
     searchable: false
@@ -48,6 +37,7 @@ columns:
       type: assoc
 
   - id: wfm:documentTypeTitle
+
   - id: wfm:documentKindTitle
 
   - id: bpm:dueDate
@@ -55,8 +45,10 @@ columns:
   - id: cwf:senderName
     searchable: false
     visible: false
+
   - id: cwf:sender
     visible: false
+
   - id: wfm:assignee
     sortable: false
     visible: false
@@ -78,14 +70,17 @@ columns:
 
   - id: bpm:startDate
     visible: false
+
   - id: bpm:comment
     visible: false
+
   - id: cwf:taskTitle
     visible: false
 
   - id: cm:name
     visible: false
     searchable: false
+
   - id: wfm:taskType
     visible: false
     searchable: false

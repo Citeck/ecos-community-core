@@ -1,9 +1,5 @@
----
 id: completed-tasks
-
-name:
-  ru: Завершенные задачи
-  en: Completed tasks
+name: { ru: Завершенные задачи, en: Completed tasks }
 
 typeRef: emodel/type@workflow-task
 
@@ -18,22 +14,18 @@ actions:
   - uiserv/action@view-task-in-background
 
 columns:
-
   - id: bpm:priority
     name:
       en: Priority
       ru: Приоритет
     formatter:
       type: workflowPriority
+
   - id: cm:title
     name:
       en: Task name
       ru: Название задачи
     sortable: false
-
-  #  <header key="cm:title" default="true" sortable="false" >
-  #  <option  name="formatter">taskTitle</option>
-  # </header>
 
   - id: wfm:document
     searchable: false
@@ -48,6 +40,7 @@ columns:
       type: assoc
 
   - id: wfm:documentTypeTitle
+
   - id: wfm:documentKindTitle
 
   - id: bpm:dueDate
