@@ -17,6 +17,7 @@ public interface SystemNotificationService {
     }
 
     List<SystemNotificationDto> get(int maxItems, int skipCount, boolean onlyActive) throws NoDaoException;
+    SystemNotificationDto get(String id) throws NoDaoException;
     SystemNotificationDto save(SystemNotificationDto systemNotificationDto) throws NoDaoException;
     SystemNotificationDto delete(String id) throws NoDaoException;
     long getTotalCount() throws NoDaoException;

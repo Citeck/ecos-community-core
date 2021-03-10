@@ -17,6 +17,7 @@ public interface SystemNotificationDao {
     }
 
     List<SystemNotificationDto> get(int maxItems, int skipCount, boolean onlyActive);
+    SystemNotificationDto get(String id);
     SystemNotificationDto save(SystemNotificationDto systemNotificationDto);
     SystemNotificationDto delete(String id);
     long getTotalCount();

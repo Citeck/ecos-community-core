@@ -23,6 +23,12 @@ public class SystemNotificationServiceImpl implements SystemNotificationService 
     }
 
     @Override
+    public SystemNotificationDto get(String id) throws NoDaoException {
+        checkDao();
+        return systemNotificationDao.get(id);
+    }
+
+    @Override
     public SystemNotificationDto save(SystemNotificationDto systemNotificationDto) throws NoDaoException {
         checkDao();
         return systemNotificationDao.save(systemNotificationDto);
