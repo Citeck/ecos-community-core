@@ -49,7 +49,7 @@ public class SystemNotificationRecordsDao extends LocalRecordsDao
 
         result.setRecords(notifications);
         result.setTotalCount(totalCount);
-        result.setHasMore(totalCount > maxItems + skipCount);
+        result.setHasMore((maxItems >= 0) && (totalCount > maxItems + skipCount));
 
         return result;
     }
