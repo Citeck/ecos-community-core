@@ -10,14 +10,14 @@ import ru.citeck.ecos.doclib.service.DocLibChildrenQuery;
 import ru.citeck.ecos.doclib.service.DocLibService;
 import ru.citeck.ecos.node.DisplayNameService;
 import ru.citeck.ecos.records2.RecordRef;
+import ru.citeck.ecos.records3.record.atts.dto.LocalRecordAtts;
 import ru.citeck.ecos.records3.record.dao.AbstractRecordsDao;
-import ru.citeck.ecos.records3.record.op.atts.dao.RecordAttsDao;
-import ru.citeck.ecos.records3.record.op.atts.dto.LocalRecordAtts;
-import ru.citeck.ecos.records3.record.op.mutate.dao.RecordMutateDao;
-import ru.citeck.ecos.records3.record.op.query.dao.RecordsQueryDao;
-import ru.citeck.ecos.records3.record.op.query.dto.RecsQueryRes;
-import ru.citeck.ecos.records3.record.op.query.dto.query.QueryPage;
-import ru.citeck.ecos.records3.record.op.query.dto.query.RecordsQuery;
+import ru.citeck.ecos.records3.record.dao.atts.RecordAttsDao;
+import ru.citeck.ecos.records3.record.dao.mutate.RecordMutateDao;
+import ru.citeck.ecos.records3.record.dao.query.RecordsQueryDao;
+import ru.citeck.ecos.records3.record.dao.query.dto.query.QueryPage;
+import ru.citeck.ecos.records3.record.dao.query.dto.query.RecordsQuery;
+import ru.citeck.ecos.records3.record.dao.query.dto.res.RecsQueryRes;
 
 import java.util.stream.Collectors;
 

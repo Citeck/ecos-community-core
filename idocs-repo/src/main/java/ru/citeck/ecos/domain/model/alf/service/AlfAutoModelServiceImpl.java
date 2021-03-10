@@ -15,8 +15,11 @@ import ru.citeck.ecos.domain.model.alf.dao.AlfAutoModelsDao;
 import ru.citeck.ecos.domain.model.alf.dao.TypeModelInfo;
 import ru.citeck.ecos.model.lib.attributes.dto.AttributeDef;
 import ru.citeck.ecos.model.lib.attributes.dto.AttributeType;
-import ru.citeck.ecos.model.lib.type.service.TypeDefService;
+import ru.citeck.ecos.model.lib.type.dto.TypeModelDef;
+import ru.citeck.ecos.model.lib.type.service.TypeRefService;
 import ru.citeck.ecos.model.lib.type.service.utils.TypeUtils;
+import ru.citeck.ecos.node.EcosTypeService;
+import ru.citeck.ecos.records.type.TypeDto;
 import ru.citeck.ecos.records2.RecordRef;
 
 import java.util.*;
@@ -30,19 +33,22 @@ public class AlfAutoModelServiceImpl implements AlfAutoModelService {
     private final DictionaryDAO dictionaryDao;
     private final AlfAutoModelsDao alfAutoModelsDao;
     private final NamespaceService namespaceService;
-    private final TypeDefService typeDefService;
+    private final EcosTypeService ecosTypeService;
+    private final TypeRefService typeRefService;
 
     @Autowired
     public AlfAutoModelServiceImpl(@Qualifier("dictionaryDAO")
                                    DictionaryDAO dictionaryDao,
                                    AlfAutoModelsDao alfAutoModelsDao,
                                    NamespaceService namespaceService,
-                                   TypeDefService typeDefService) {
+                                   EcosTypeService ecosTypeService,
+                                   TypeRefService typeRefService) {
 
         this.alfAutoModelsDao = alfAutoModelsDao;
         this.namespaceService = namespaceService;
-        this.typeDefService = typeDefService;
+        this.ecosTypeService = ecosTypeService;
         this.dictionaryDao = dictionaryDao;
+        this.typeRefService = typeRefService;
     }
 
     @Override
@@ -53,10 +59,13 @@ public class AlfAutoModelServiceImpl implements AlfAutoModelService {
         }
 
         List<AttributeDef> fullAttributes = new ArrayList<>();
-        typeDefService.forEachAsc(typeRef, typeDef -> {
-            fullAttributes.addAll(typeDef.getModel().getAttributes());
-            return false;
-        });
+        TypeDto typeDef = ecosTypeService.getTypeDef(typeRef);
+        if (typeDef != null) {
+            TypeModelDef model = typeDef.getResolvedModel();
+            if (model != null) {
+                fullAttributes.addAll(model.getAttributes());
+            }
+        }
 
         return getPropsMapping(typeRef, fullAttributes
             .stream()
@@ -73,7 +82,13 @@ public class AlfAutoModelServiceImpl implements AlfAutoModelService {
         Set<String> attsSet = new HashSet<>(attributes);
 
         Map<RecordRef, List<AttributeDef>> attsByType = new HashMap<>();
-        typeDefService.forEachAsc(typeRef, typeDef -> {
+
+        typeRefService.forEachAsc(typeRef, ref -> {
+
+            TypeDto typeDef = ecosTypeService.getTypeDef(ref);
+            if (typeDef == null || typeDef.getModel() == null) {
+                return null;
+            }
 
             List<AttributeDef> attributeDefs = typeDef.getModel()
                 .getAttributes()
@@ -86,7 +101,7 @@ public class AlfAutoModelServiceImpl implements AlfAutoModelService {
             if (!attributeDefs.isEmpty()) {
                 attsByType.put(TypeUtils.getTypeRef(typeDef.getId()), attributeDefs);
             }
-            return false;
+            return null;
         });
 
         if (attsByType.isEmpty()) {
@@ -223,6 +238,8 @@ public class AlfAutoModelServiceImpl implements AlfAutoModelService {
             case TEXT:
             case ASSOC:
                 return "d:text";
+            case MLTEXT:
+                return "d:mltext";
             case BOOLEAN:
                 return "d:boolean";
             case NUMBER:

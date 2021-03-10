@@ -66,15 +66,15 @@
         <yuicompressor.compress.skip>false</yuicompressor.compress.skip>
 
         <ecos.flowable.version>3.0.5.1</ecos.flowable.version>
-        <ecos.records.version>3.13.5</ecos.records.version>
-        <ecos.apps.lib.version>3.3.1</ecos.apps.lib.version>
+        <ecos.records.version>3.15.4</ecos.records.version>
+        <ecos.apps.lib.version>3.4.1</ecos.apps.lib.version>
         <ecos.jackson.version>2.10.4.3</ecos.jackson.version>
         <ecos.snakeyaml.version>2.1.3</ecos.snakeyaml.version>
         <ecos.commons.version>2.2.3</ecos.commons.version>
         <ecos.commands.version>2.1.1</ecos.commands.version>
         <ecos.meta-repo.version>1.1.0</ecos.meta-repo.version>
         <ecos.notifications.lib.version>2.0.0</ecos.notifications.lib.version>
-        <ecos.model-lib.version>2.1.3</ecos.model-lib.version>
+        <ecos.model-lib.version>2.3.0</ecos.model-lib.version>
 
         <spring.retry.version>1.2.4.RELEASE</spring.retry.version>
 

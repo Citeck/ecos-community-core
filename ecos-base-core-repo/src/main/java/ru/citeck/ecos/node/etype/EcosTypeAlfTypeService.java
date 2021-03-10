@@ -7,8 +7,9 @@ import org.apache.commons.lang.StringUtils;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import ru.citeck.ecos.model.lib.type.dto.TypeDef;
-import ru.citeck.ecos.model.lib.type.service.TypeDefService;
+import ru.citeck.ecos.commons.data.ObjectData;
+import ru.citeck.ecos.node.EcosTypeService;
+import ru.citeck.ecos.records.type.TypeDto;
 import ru.citeck.ecos.records2.RecordRef;
 import ru.citeck.ecos.records3.RecordsService;
 
@@ -17,18 +18,18 @@ public class EcosTypeAlfTypeService {
 
     private final QName DEFAULT_TYPE = ContentModel.TYPE_CMOBJECT;
 
-    private final TypeDefService typeDefService;
+    private final EcosTypeService ecosTypeService;
     private final RecordsService recordsService;
 
     private final NamespaceService namespaceService;
 
     @Autowired
-    public EcosTypeAlfTypeService(TypeDefService typeDefService,
+    public EcosTypeAlfTypeService(EcosTypeService ecosTypeService,
                                   NamespaceService namespaceService,
                                   RecordsService recordsService
     ) {
         this.recordsService = recordsService;
-        this.typeDefService = typeDefService;
+        this.ecosTypeService = ecosTypeService;
         this.namespaceService = namespaceService;
     }
 
@@ -48,13 +49,15 @@ public class EcosTypeAlfTypeService {
     @Nullable
     public String getAlfTypeToSearch(RecordRef typeRef) {
 
-        TypeDef typeDef = typeDefService.getTypeDef(typeRef);
+        TypeDto typeDef = ecosTypeService.getTypeDef(typeRef);
         if (typeDef == null) {
             return null;
         }
-
-        String alfType = typeDef.getProperties().get("alfType").asText();
-
+        ObjectData properties = typeDef.getProperties();
+        if (properties == null) {
+            return null;
+        }
+        String alfType = properties.get("alfType").asText();
         return StringUtils.isNotBlank(alfType) ? alfType : null;
     }
 }

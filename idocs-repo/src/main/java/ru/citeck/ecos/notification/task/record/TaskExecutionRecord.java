@@ -2,7 +2,7 @@ package ru.citeck.ecos.notification.task.record;
 
 import lombok.Data;
 import org.jetbrains.annotations.Nullable;
-import ru.citeck.ecos.records3.record.op.atts.service.value.AttValue;
+import ru.citeck.ecos.records3.record.atts.value.AttValue;
 
 import java.util.HashMap;
 import java.util.Map;

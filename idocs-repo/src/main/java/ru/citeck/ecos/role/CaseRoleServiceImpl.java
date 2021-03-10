@@ -29,7 +29,7 @@ import ru.citeck.ecos.commons.data.ObjectData;
 import ru.citeck.ecos.model.lib.role.constants.RoleConstants;
 import ru.citeck.ecos.model.lib.role.dto.RoleDef;
 import ru.citeck.ecos.model.lib.role.service.RoleService;
-import ru.citeck.ecos.model.lib.type.service.TypeDefService;
+import ru.citeck.ecos.model.lib.type.dto.TypeModelDef;
 import ru.citeck.ecos.node.EcosTypeService;
 import ru.citeck.ecos.records.type.TypeDto;
 import ru.citeck.ecos.records.type.TypesManager;
@@ -64,7 +64,6 @@ public class CaseRoleServiceImpl implements CaseRoleService {
     private NodeService nodeService;
 
     private TypesManager typesManager;
-    private TypeDefService typeDefService;
     private EcosTypeService ecosTypeService;
 
     private PolicyComponent policyComponent;
@@ -146,13 +145,16 @@ public class CaseRoleServiceImpl implements CaseRoleService {
     private Map<String, NodeRef> getEcosTypeRolesForCase(RecordRef ecosType, NodeRef caseRef) {
 
         Map<String, NodeRef> result = new HashMap<>();
+        TypeDto typeDef = ecosTypeService.getTypeDef(ecosType);
 
-        typeDefService.forEachAsc(ecosType, typeDef -> {
-            typeDef.getModel()
-                    .getRoles()
-                    .forEach(role -> result.put(role.getId(), ecosRoleToNodeRef(caseRef, role.getId())));
-            return false;
-        });
+        if (typeDef != null) {
+            TypeModelDef resolvedModel = typeDef.getResolvedModel();
+            if (resolvedModel != null) {
+                resolvedModel.getRoles().forEach(role ->
+                    result.put(role.getId(), ecosRoleToNodeRef(caseRef, role.getId()))
+                );
+            }
+        }
 
         return result;
     }
@@ -805,10 +807,7 @@ public class CaseRoleServiceImpl implements CaseRoleService {
         this.typesManager = typesManager;
     }
 
-    @Autowired
-    public void setTypeDefService(TypeDefService typeDefService) {
-        this.typeDefService = typeDefService;
-    }
+
 
     @Autowired
     public void setEcosTypeService(EcosTypeService ecosTypeService) {
