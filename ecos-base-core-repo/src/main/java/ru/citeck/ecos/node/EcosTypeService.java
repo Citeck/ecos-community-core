@@ -100,16 +100,19 @@ public class EcosTypeService {
         return typesManager.getType(typeRef);
     }
 
+    @NotNull
     public RecordRef getEcosType(NodeRef nodeRef) {
         RecordRef result = evaluators.eval(nodeRef);
         return result != null ? result : RecordRef.EMPTY;
     }
 
+    @NotNull
     public RecordRef getEcosType(AlfNodeInfo nodeInfo) {
         RecordRef result = evaluators.eval(nodeInfo);
         return result != null ? result : RecordRef.EMPTY;
     }
 
+    @Nullable
     public RecordRef getEcosType(String alfrescoType) {
         PropertyDefinition propDef = dictUtils.getPropDef(alfrescoType, ClassificationModel.PROP_DOCUMENT_TYPE);
         if (propDef == null) {

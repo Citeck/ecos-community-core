@@ -8,7 +8,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import ru.citeck.ecos.model.lib.type.service.TypeDefService;
+import ru.citeck.ecos.node.EcosTypeService;
 import ru.citeck.ecos.records2.RecordRef;
 import ru.citeck.ecos.utils.NodeUtils;
 import ru.citeck.ecos.utils.RepoUtils;
@@ -23,15 +23,17 @@ public class CaseStatusAssocDao {
     private final NodeService nodeService;
     private final CaseStatusService caseStatusService;
     private final NodeUtils nodeUtils;
-    private final TypeDefService typeDefService;
+    private final EcosTypeService ecosTypeService;
 
     @Autowired
-    public CaseStatusAssocDao(NodeService nodeService, CaseStatusService caseStatusService,
-                              NodeUtils nodeUtils, TypeDefService typeDefService) {
+    public CaseStatusAssocDao(NodeService nodeService,
+                              CaseStatusService caseStatusService,
+                              NodeUtils nodeUtils,
+                              EcosTypeService ecosTypeService) {
         this.nodeService = nodeService;
         this.caseStatusService = caseStatusService;
         this.nodeUtils = nodeUtils;
-        this.typeDefService = typeDefService;
+        this.ecosTypeService = ecosTypeService;
     }
 
     public void createAssocAndSetEcosStatusByAssoc(NodeRef nodeRef, QName assoc, NodeRef node) {
@@ -52,7 +54,7 @@ public class CaseStatusAssocDao {
     public NodeRef getStatusByAssoc(NodeRef nodeRef, QName assocName) {
         QName propName = assocToProp(assocName);
 
-        RecordRef typeRef = getTypeRefByCaseNode(nodeRef);
+        RecordRef typeRef = ecosTypeService.getEcosType(nodeRef);
         String ecosStatusName = (String) nodeService.getProperty(nodeRef, propName);
         NodeRef node = getVirtualStatus(typeRef.getId(), ecosStatusName);
 
@@ -67,7 +69,7 @@ public class CaseStatusAssocDao {
         QName propName = assocToProp(assoc);
         List<NodeRef> result = new ArrayList<>();
 
-        RecordRef typeRef = getTypeRefByCaseNode(nodeRef);
+        RecordRef typeRef = ecosTypeService.getEcosType(nodeRef);
         String ecosStatusName = (String) nodeService.getProperty(nodeRef, propName);
         NodeRef virtualStatus = getVirtualStatus(typeRef.getId(), ecosStatusName);
 
@@ -76,12 +78,6 @@ public class CaseStatusAssocDao {
 
         Set<NodeRef> assocsSet = new HashSet<>();
         return result.stream().filter(assocsSet::add).collect(Collectors.toList());
-    }
-
-    @NotNull
-    private RecordRef getTypeRefByCaseNode(NodeRef nodeRef) {
-        RecordRef nodeRecord = RecordRef.create("alfresco", "", nodeRef.toString());
-        return typeDefService.getTypeRef(nodeRecord);
     }
 
     public void setStatusesByAssoc(NodeRef nodeRef, QName assoc, List<NodeRef> nodeRefList) {
