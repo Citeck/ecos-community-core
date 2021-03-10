@@ -9,7 +9,7 @@ import org.alfresco.service.cmr.repository.NodeRef;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import ru.citeck.ecos.comment.model.CommentDTO;
+import ru.citeck.ecos.comment.model.CommentDto;
 import ru.citeck.ecos.records2.RecordMeta;
 import ru.citeck.ecos.records2.RecordRef;
 import ru.citeck.ecos.records2.graphql.meta.value.MetaField;
@@ -29,9 +29,9 @@ import java.util.stream.Collectors;
  */
 @Log4j
 @Component
-public class CommentRecords extends LocalRecordsCrudDao<CommentDTO> {
+public class CommentRecords extends LocalRecordsCrudDao<CommentDto> {
 
-    private static final String ID = "comment";
+    public static final String ID = "comment";
 
     private final EcosCommentServiceImpl ecosCommentServiceImpl;
     private final CommentFactory commentFactory;
@@ -44,26 +44,26 @@ public class CommentRecords extends LocalRecordsCrudDao<CommentDTO> {
     }
 
     @Override
-    public List<CommentDTO> getValuesToMutate(List<RecordRef> list) {
+    public List<CommentDto> getValuesToMutate(List<RecordRef> list) {
         return getValues(list);
     }
 
     @Override
-    public List<CommentDTO> getLocalRecordsMeta(List<RecordRef> list, MetaField metaField) {
+    public List<CommentDto> getLocalRecordsMeta(List<RecordRef> list, MetaField metaField) {
         return getValues(list);
     }
 
-    private List<CommentDTO> getValues(List<RecordRef> list) {
-        List<CommentDTO> result = new ArrayList<>();
+    private List<CommentDto> getValues(List<RecordRef> list) {
+        List<CommentDto> result = new ArrayList<>();
 
         for (RecordRef recordRef : list) {
             String id = recordRef.getId();
             if (StringUtils.isBlank(id)) {
-                result.add(new CommentDTO());
+                result.add(new CommentDto());
                 continue;
             }
 
-            CommentDTO found = ecosCommentServiceImpl.getById(id);
+            CommentDto found = ecosCommentServiceImpl.getById(id);
             result.add(found);
         }
 
@@ -71,17 +71,17 @@ public class CommentRecords extends LocalRecordsCrudDao<CommentDTO> {
     }
 
     @Override
-    public RecordsMutResult save(List<CommentDTO> list) {
+    public RecordsMutResult save(List<CommentDto> list) {
         RecordsMutResult recordsMutResult = new RecordsMutResult();
 
-        list.forEach(commentDTO -> {
-            CommentDTO saved;
+        list.forEach(commentDto -> {
+            CommentDto saved;
 
-            String id = commentDTO.getId();
+            String id = commentDto.getId();
             if (StringUtils.isBlank(id)) {
-                saved = ecosCommentServiceImpl.create(commentDTO);
+                saved = ecosCommentServiceImpl.create(commentDto);
             } else {
-                saved = ecosCommentServiceImpl.update(commentDTO);
+                saved = ecosCommentServiceImpl.update(commentDto);
             }
 
             RecordMeta recordMeta = new RecordMeta(saved.getId());
@@ -106,7 +106,7 @@ public class CommentRecords extends LocalRecordsCrudDao<CommentDTO> {
     }
 
     @Override
-    public RecordsQueryResult<CommentDTO> queryLocalRecords(RecordsQuery recordsQuery, MetaField metaField) {
+    public RecordsQueryResult<CommentDto> queryLocalRecords(RecordsQuery recordsQuery, MetaField metaField) {
         CommentQuery query = recordsQuery.getQuery(CommentQuery.class);
         if (query.record == null || StringUtils.isBlank(query.record.getId())) {
             throw new IllegalArgumentException("You mus specify a record to find comments");
@@ -121,12 +121,12 @@ public class CommentRecords extends LocalRecordsCrudDao<CommentDTO> {
         PagingRequest pagingRequest = getPagingRequest(recordsQuery);
         PagingResults<NodeRef> pagingResults = ecosCommentServiceImpl.listComments(recordRef, pagingRequest);
 
-        List<CommentDTO> comments = pagingResults.getPage()
+        List<CommentDto> comments = pagingResults.getPage()
                 .stream()
                 .map(commentFactory::fromNode)
                 .collect(Collectors.toList());
 
-        RecordsQueryResult<CommentDTO> result = new RecordsQueryResult<>();
+        RecordsQueryResult<CommentDto> result = new RecordsQueryResult<>();
         result.setRecords(comments);
         result.setTotalCount(pagingResults.getTotalResultCount().getFirst());
         result.setHasMore(pagingResults.hasMoreItems());

@@ -1,5 +1,6 @@
 package ru.citeck.ecos.workflow.tasks;
 
+import org.alfresco.service.cmr.repository.MLText;
 import org.alfresco.service.cmr.workflow.WorkflowInstance;
 import ru.citeck.ecos.records2.RecordRef;
 
@@ -11,6 +12,8 @@ public interface TaskInfo {
     String getId();
 
     String getTitle();
+
+    MLText getMlTitle();
 
     String getDescription();
 
