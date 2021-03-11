@@ -14,19 +14,23 @@ import ru.citeck.ecos.records2.request.query.RecordsQuery;
 import ru.citeck.ecos.records2.request.query.RecordsQueryResult;
 import ru.citeck.ecos.records2.source.dao.local.LocalRecordsDao;
 import ru.citeck.ecos.records2.source.dao.local.MutableRecordsLocalDao;
+import ru.citeck.ecos.records2.source.dao.local.v2.LocalRecordsMetaDao;
 import ru.citeck.ecos.records2.source.dao.local.v2.LocalRecordsQueryWithMetaDao;
 import ru.citeck.ecos.sysnotification.dto.SystemNotificationDto;
 import ru.citeck.ecos.sysnotification.service.SystemNotificationService;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * @author Pavel Tkachenko
  */
 @Component
 public class SystemNotificationRecordsDao extends LocalRecordsDao
-    implements LocalRecordsQueryWithMetaDao<SystemNotificationDto>, MutableRecordsLocalDao<SystemNotificationDto> {
+    implements LocalRecordsQueryWithMetaDao<SystemNotificationDto>,
+    MutableRecordsLocalDao<SystemNotificationDto>,
+    LocalRecordsMetaDao<SystemNotificationDto> {
 
     private static final String ID = "system-notification";
 
@@ -90,6 +94,12 @@ public class SystemNotificationRecordsDao extends LocalRecordsDao
         }
 
         return result;
+    }
+
+    @Override
+    public List<SystemNotificationDto> getLocalRecordsMeta(@NotNull List<RecordRef> list,
+                                                           @NotNull MetaField metaField) {
+        return list.stream().map(r -> systemNotificationService.get(r.getId())).collect(Collectors.toList());
     }
 
     @Autowired

@@ -18,6 +18,7 @@ import ru.citeck.ecos.sysnotification.service.impl.SystemNotificationServiceImpl
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -25,6 +26,8 @@ import static org.junit.Assert.*;
 
 public class SystemNotificationTest {
     private static final String SOURCE_ID = "system-notification";
+    private static final String MESSAGE_ATTR = "message";
+    public static final String TIME_ATTR = "time";
 
     @Test
     public void test() {
@@ -43,31 +46,42 @@ public class SystemNotificationTest {
         query.setSourceId(SOURCE_ID);
 
         // First query (empty)
-        RecordsQueryResult<RecordRef> result = recordsService.queryRecords(query);
-        assertTrue("Result list should be empty", result.getRecords().isEmpty());
-        assertFalse("'hasMore' property should be false", result.getHasMore());
-        assertEquals("'totalCount' property should be 0", 0, result.getTotalCount());
+        RecordsQueryResult<RecordRef> result1 = recordsService.queryRecords(query);
+        assertTrue("Result list should be empty", result1.getRecords().isEmpty());
+        assertFalse("'hasMore' property should be false", result1.getHasMore());
+        assertEquals("'totalCount' property should be 0", 0, result1.getTotalCount());
 
         // Second query (creation)
+        String expectedMessage = "some message";
+        Instant expectedTime = Instant.now().plus(1, ChronoUnit.DAYS);
+
         RecordMeta meta = new RecordMeta(RecordRef.create(SOURCE_ID, ""));
-        meta.setAttribute("message", "some message");
-        meta.setAttribute("time", Instant.now().plus(1, ChronoUnit.DAYS));
+        meta.setAttribute(MESSAGE_ATTR, expectedMessage);
+        meta.setAttribute(TIME_ATTR, expectedTime);
         recordsService.mutate(meta);
 
-        result = recordsService.queryRecords(query);
-        assertFalse("Result list should not be empty", result.getRecords().isEmpty());
-        assertFalse("'hasMore' property should be false", result.getHasMore());
-        assertEquals("'totalCount' property should be 1", 1, result.getTotalCount());
+        List<String> attributes = Arrays.asList(MESSAGE_ATTR, TIME_ATTR);
+        RecordsQueryResult<RecordMeta> result2 = recordsService.queryRecords(query, attributes);
+        assertFalse("Result list should not be empty", result2.getRecords().isEmpty());
+        assertFalse("'hasMore' property should be false", result2.getHasMore());
+        assertEquals("'totalCount' property should be 1", 1, result2.getTotalCount());
+
+        RecordMeta recordMeta = result2.getRecords().get(0);
+        String actualMessage = recordMeta.getAttribute(MESSAGE_ATTR).getAs(String.class);
+        Instant actualTime = recordMeta.getAttribute(TIME_ATTR).getAs(Instant.class);
+        assertEquals("Expected message should be equals actual message", expectedMessage, actualMessage);
+        assertEquals("Expected time should be equals actual time", expectedTime, actualTime);
 
         // Third query (deletion)
+        RecordsQueryResult<RecordRef> result3 = recordsService.queryRecords(query);
         RecordsDeletion recordsDeletion = new RecordsDeletion();
-        recordsDeletion.setRecords(result.getRecords());
+        recordsDeletion.setRecords(result3.getRecords());
         recordsService.delete(recordsDeletion);
 
-        result = recordsService.queryRecords(query);
-        assertTrue("Result list should be empty", result.getRecords().isEmpty());
-        assertFalse("'hasMore' property should be false", result.getHasMore());
-        assertEquals("'totalCount' property should be 0", 0, result.getTotalCount());
+        result3 = recordsService.queryRecords(query);
+        assertTrue("Result list should be empty", result3.getRecords().isEmpty());
+        assertFalse("'hasMore' property should be false", result3.getHasMore());
+        assertEquals("'totalCount' property should be 0", 0, result3.getTotalCount());
     }
 
     private class SystemNotificationDaoImpl implements SystemNotificationDao {
