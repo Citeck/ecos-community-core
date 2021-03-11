@@ -105,11 +105,14 @@ public class EcosTaskService {
         Map<String, Object> finalTransientVariables = new HashMap<>(transientVariables);
 
         try {
+            RecordRef taskDocument = taskInfo.getDocument();
+            org.alfresco.service.cmr.repository.MLText taskMlTitle = taskInfo.getMlTitle();
+
             lockUtils.doWithLock(String.format(TASKS_PREFIX, taskId),
                 () -> taskService.endTask(task.getLocalId(), transition, finalVariables, finalTransientVariables)
             );
 
-            addCommentToDocument(taskInfo, (String) variables.get(FIELD_COMMENT));
+            addCommentToDocument(taskDocument, taskMlTitle, (String) variables.get(FIELD_COMMENT));
 
             AuthenticationUtil.runAsSystem(() -> {
                 addLastCompletedTaskDate(taskInfo.getDocument());
@@ -127,13 +130,14 @@ public class EcosTaskService {
         }
     }
 
-    private void addCommentToDocument(TaskInfo taskInfo, String comment) {
-        if (StringUtils.isBlank(comment) || RecordRef.isEmpty(taskInfo.getDocument())) {
+    private void addCommentToDocument(RecordRef taskDocument, org.alfresco.service.cmr.repository.MLText taskMlTitle,
+                                      String comment) {
+        if (StringUtils.isBlank(comment) || RecordRef.isEmpty(taskDocument)) {
             return;
         }
 
-        commentTagService.addCommentWithTag(taskInfo.getDocument(), comment, CommentTag.TASK,
-            new MLText(taskInfo.getMlTitle()));
+        commentTagService.addCommentWithTag(taskDocument, comment, CommentTag.TASK,
+            new MLText(taskMlTitle));
     }
 
 
