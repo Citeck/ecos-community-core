@@ -1,0 +1,15 @@
+id: system-notification
+
+name:
+  en: System notification
+  ru: Системное уведомление
+
+system: true
+
+form: uiserv/eform@system-notification
+journal: uiserv/journal@system-notifications
+
+createVariants:
+  - id: create-new-notification
+    name: { ru: Системное уведомление, en: System notification }
+    recordRef: alfresco/system-notification@

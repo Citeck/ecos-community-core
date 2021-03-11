@@ -1,0 +1,153 @@
+{
+  "id": "system-notification",
+  "formKey": "",
+  "title": {
+    "ru": "Системное уведомление",
+    "en": "System notification"
+  },
+  "description": {
+    "en": ""
+  },
+  "customModule": null,
+  "typeRef": "emodel/type@system-notification",
+  "width": "default",
+  "i18n": {
+    "ru": {
+      "Create": "Создать",
+      "Save": "Сохранить",
+      "Cancel": "Отмена",
+      "Message": "Сообщение",
+      "Time": "Дата и время события"
+    },
+    "en": {
+      "Create": "Create",
+      "Save": "Save",
+      "Cancel": "Cancel",
+      "Message": "Message",
+      "Time": "Event date and time"
+    }
+  },
+  "definition": {
+    "components": [
+      {
+        "label": "Message",
+        "clearOnHide": false,
+        "defaultValue": "",
+        "validate": {
+          "required": true
+        },
+        "key": "message",
+        "type": "textfield",
+        "input": true
+      },
+      {
+        "label": "Time",
+        "format": "dd.MM.yyyy hh:mm:ss",
+        "clearOnHide": false,
+        "datePicker": {
+          "minDate": "",
+          "maxDate": ""
+        },
+        "timePicker": {
+          "showMeridian": false
+        },
+        "defaultValue": "",
+        "validate": {
+          "required": true
+        },
+        "key": "time",
+        "type": "datetime",
+        "input": true,
+        "suffix": true
+      },
+      {
+        "columns": [
+          {
+            "components": [
+              {
+                "label": "Cancel",
+                "removeIndents": true,
+                "action": "event",
+                "state": "",
+                "block": true,
+                "clearOnHide": false,
+                "key": "cancelBtn",
+                "type": "button",
+                "input": true,
+                "showValidations": false,
+                "event": "cancel"
+              }
+            ],
+            "md": 3,
+            "type": "column",
+            "input": false,
+            "key": "column",
+            "index": 0
+          },
+          {
+            "md": 3,
+            "type": "column",
+            "input": false,
+            "key": "column",
+            "index": 1,
+            "components": []
+          },
+          {
+            "md": 3,
+            "type": "column",
+            "input": false,
+            "key": "column",
+            "index": 2,
+            "components": []
+          },
+          {
+            "md": 3,
+            "type": "column",
+            "input": false,
+            "key": "column",
+            "index": 3,
+            "components": [
+              {
+                "label": "Create",
+                "removeIndents": true,
+                "state": "",
+                "theme": "primary",
+                "block": true,
+                "clearOnHide": false,
+                "key": "createBtn",
+                "logic": [
+                  {
+                    "name": "Check form mode",
+                    "trigger": {
+                      "type": "javascript",
+                      "javascript": "const {options} = instance || {};\nconst {formMode} = options || {};\n\nresult = formMode === 'EDIT';"
+                    },
+                    "actions": [
+                      {
+                        "name": "Set label",
+                        "type": "property",
+                        "property": {
+                          "label": "Label",
+                          "value": "label",
+                          "type": "string"
+                        },
+                        "text": "Save"
+                      }
+                    ]
+                  }
+                ],
+                "type": "button",
+                "input": true,
+                "defaultValue": false
+              }
+            ]
+          }
+        ],
+        "key": "columns2",
+        "type": "columns",
+        "input": false
+      }
+    ]
+  },
+  "attributes": {}
+}
