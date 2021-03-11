@@ -50,7 +50,7 @@ public class AddCommentWithActionTagBehaviour implements EventPolicies.BeforeEve
     private final NodeService nodeService;
     private final DictUtils dictUtils;
 
-    private Map<QName, QName> typeToComment;
+    private MappingRegistry<String, String> typeToCommentRegistry;
 
     @Autowired
     public AddCommentWithActionTagBehaviour(EProcCaseActivityListenerManager manager,
@@ -148,7 +148,13 @@ public class AddCommentWithActionTagBehaviour implements EventPolicies.BeforeEve
 
     private QName resolveCommentProp(NodeRef additionalDataRef) {
         QName additionalDataType = nodeService.getType(additionalDataRef);
-        return typeToComment.getOrDefault(additionalDataType, EventModel.PROP_COMMENT);
+
+        Map<QName, QName> mapping = typeToCommentRegistry.getMapping().entrySet().stream().collect(Collectors.toMap(
+            entry -> QName.resolveToQName(namespaceService, entry.getKey()),
+            entry -> QName.resolveToQName(namespaceService, entry.getValue())
+        ));
+
+        return mapping.getOrDefault(additionalDataType, EventModel.PROP_COMMENT);
     }
 
     private MLText getActionTitle(NodeRef additionalDataRef) {
@@ -159,9 +165,6 @@ public class AddCommentWithActionTagBehaviour implements EventPolicies.BeforeEve
     @Autowired
     @Qualifier("case.actions.additional-data.add-comment-with-tag.mappingRegistry")
     public void setTypeToCommentRegistry(MappingRegistry<String, String> typeToCommentRegistry) {
-        this.typeToComment = typeToCommentRegistry.getMapping().entrySet().stream().collect(Collectors.toMap(
-            entry -> QName.resolveToQName(namespaceService, entry.getKey()),
-            entry -> QName.resolveToQName(namespaceService, entry.getValue())
-        ));
+        this.typeToCommentRegistry = typeToCommentRegistry;
     }
 }

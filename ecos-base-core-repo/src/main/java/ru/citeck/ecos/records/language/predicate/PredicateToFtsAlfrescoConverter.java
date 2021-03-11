@@ -28,8 +28,8 @@ import java.util.*;
 @Slf4j
 public class PredicateToFtsAlfrescoConverter implements QueryLangConverter<Predicate, String> {
 
-    private final String WORKSPACE = "alfresco/@workspace";
-    private final String ALFRESCO_APP_NODE_REF_PREFIX = "alfresco/@" + WORKSPACE;
+    private static final String WORKSPACE = "workspace";
+    private static final String ALFRESCO_APP_NODE_REF_PREFIX = "alfresco/@" + WORKSPACE;
 
     private ConvertersDelegator delegator;
     private AlfAutoModelService alfAutoModelService;

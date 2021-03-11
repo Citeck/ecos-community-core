@@ -58,7 +58,7 @@ public class EcosCommentTagService {
         commentDto.setText(comment);
 
         CommentTagDto tagDto = new CommentTagDto();
-        tagDto.setType(tag.getValue());
+        tagDto.setType(tag);
         tagDto.setName(tagName);
 
         commentDto.setTags(Collections.singletonList(tagDto));
