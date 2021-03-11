@@ -1,7 +1,7 @@
 package ru.citeck.ecos.comment.model;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.NullNode;
+import ecos.com.fasterxml.jackson210.databind.JsonNode;
+import ecos.com.fasterxml.jackson210.databind.node.NullNode;
 import lombok.Data;
 import ru.citeck.ecos.records.models.AuthorityDTO;
 

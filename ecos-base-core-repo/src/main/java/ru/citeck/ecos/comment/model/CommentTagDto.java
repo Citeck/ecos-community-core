@@ -1,6 +1,7 @@
 package ru.citeck.ecos.comment.model;
 
 import lombok.Data;
+import ru.citeck.ecos.comment.CommentTag;
 import ru.citeck.ecos.commons.data.MLText;
 
 /**
@@ -9,7 +10,7 @@ import ru.citeck.ecos.commons.data.MLText;
 @Data
 public class CommentTagDto {
 
-    private String type;
+    private CommentTag type;
     private MLText name;
 
 }

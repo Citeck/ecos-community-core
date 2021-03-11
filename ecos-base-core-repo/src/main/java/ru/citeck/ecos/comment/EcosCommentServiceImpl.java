@@ -1,7 +1,7 @@
 package ru.citeck.ecos.comment;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import ecos.com.fasterxml.jackson210.core.JsonProcessingException;
+import ecos.com.fasterxml.jackson210.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.alfresco.query.PagingRequest;
 import org.alfresco.query.PagingResults;
