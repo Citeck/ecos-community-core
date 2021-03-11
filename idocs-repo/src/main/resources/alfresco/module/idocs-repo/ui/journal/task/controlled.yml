@@ -6,6 +6,7 @@ predicate: { t: in, att: 'wfm:workflowName', val: activiti$perform }
 typeRef: emodel/type@workflow-task
 
 editable: false
+actionsFromType: false
 
 columns:
   - id: bpm:priority

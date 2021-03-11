@@ -6,6 +6,7 @@ typeRef: emodel/type@workflow-task
 predicate: { t: in, att: 'wfm:workflowInitiator', val: $CURRENT_AUTHORITIES_REFS }
 
 editable: false
+actionsFromType: false
 
 columns:
   - id: bpm:priority

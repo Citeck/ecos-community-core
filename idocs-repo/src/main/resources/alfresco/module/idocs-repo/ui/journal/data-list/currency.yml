@@ -2,9 +2,6 @@
 id: currency
 name: { ru: Валюта, en: Currency }
 
-actions:
-  - uiserv/action@edit
-
 columns:
   - id: idocs:currencyCode
   - id: idocs:currencyName

@@ -2,9 +2,6 @@
 id: currency-rates-internal
 name: { ru: Курс валют внутренний, en: Currency rate Internal }
 
-actions:
-  - uiserv/action@edit
-
 columns:
   - id: idocs:crrInternalBaseCurrency
   - id: idocs:crrInternalTargetCurrency

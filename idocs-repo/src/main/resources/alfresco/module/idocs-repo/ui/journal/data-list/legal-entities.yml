@@ -2,9 +2,6 @@
 id: legal-entities
 name: { ru: Юридические лица, en: Legal Entities }
 
-actions:
-  - uiserv/action@edit
-
 columns:
 
   - id: idocs:fullOrganizationName

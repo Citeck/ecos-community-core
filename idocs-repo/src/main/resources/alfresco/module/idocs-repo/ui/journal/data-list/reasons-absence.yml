@@ -2,8 +2,5 @@
 id: reasons-absence
 name: { ru: Причины отсутствия, en: Reasons Absence }
 
-actions:
-  - uiserv/action@edit
-
 columns:
   - id: deputy:reason

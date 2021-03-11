@@ -2,7 +2,7 @@
 id: idocs-doc
 name: { ru: Документы, en: Documents }
 
-actions: []
+actionsFromType: false
 
 columns:
   - id: cm:title
