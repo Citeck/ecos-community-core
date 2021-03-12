@@ -1,6 +1,6 @@
 {
   "id": "system-notification",
-  "formKey": "",
+  "formKey": "system-notification",
   "title": {
     "ru": "Системное уведомление",
     "en": "System notification"
@@ -9,7 +9,7 @@
     "en": ""
   },
   "customModule": null,
-  "typeRef": "emodel/type@system-notification",
+  "typeRef": "",
   "width": "default",
   "i18n": {
     "ru": {
@@ -17,14 +17,22 @@
       "Save": "Сохранить",
       "Cancel": "Отмена",
       "Message": "Сообщение",
-      "Time": "Дата и время события"
+      "Time": "Дата и время события",
+      "UseCountdown": "Использовать обратный отсчет",
+      "TimeBeforeEventInSeconds": "Время до наступления события в секундах",
+      "TimeBeforeEventInMinutes": "Время до наступления события в минутах",
+      "TimeBeforeEventInHours": "Время до наступления события в часах"
     },
     "en": {
       "Create": "Create",
       "Save": "Save",
       "Cancel": "Cancel",
       "Message": "Message",
-      "Time": "Event date and time"
+      "Time": "Event date and time",
+      "UseCountdown": "Use countdown",
+      "TimeBeforeEventInSeconds": "Time before event in seconds",
+      "TimeBeforeEventInMinutes": "Time before event in minutes",
+      "TimeBeforeEventInHours": "Time before event in hours"
     }
   },
   "definition": {
@@ -56,9 +64,107 @@
           "required": true
         },
         "key": "time",
+        "conditional": {
+          "show": "true",
+          "when": "useCountdown",
+          "eq": "false"
+        },
         "type": "datetime",
         "input": true,
         "suffix": true
+      },
+      {
+        "label": "CountdownColumns",
+        "columns": [
+          {
+            "components": [
+              {
+                "label": "TimeBeforeEventInHours",
+                "clearOnHide": false,
+                "isBigNumber": false,
+                "delimiterValue": "",
+                "defaultValue": 0,
+                "validate": {
+                  "required": true,
+                  "min": 0
+                },
+                "key": "timeBeforeEventInHours",
+                "type": "number",
+                "input": true,
+                "stringValue": 0
+              }
+            ],
+            "md": 4,
+            "type": "column",
+            "input": false,
+            "key": "column",
+            "index": 0
+          },
+          {
+            "md": 4,
+            "type": "column",
+            "input": false,
+            "key": "column",
+            "index": 1,
+            "components": [
+              {
+                "label": "TimeBeforeEventInMinutes",
+                "clearOnHide": false,
+                "isBigNumber": false,
+                "delimiterValue": "",
+                "defaultValue": 0,
+                "validate": {
+                  "required": true,
+                  "min": 0
+                },
+                "key": "timeBeforeEventInMinutes",
+                "type": "number",
+                "input": true,
+                "stringValue": 0
+              }
+            ]
+          },
+          {
+            "md": 4,
+            "type": "column",
+            "input": false,
+            "key": "column",
+            "index": 2,
+            "components": [
+              {
+                "label": "TimeBeforeEventInSeconds",
+                "clearOnHide": false,
+                "isBigNumber": false,
+                "delimiterValue": "",
+                "defaultValue": 0,
+                "validate": {
+                  "required": true,
+                  "min": 0
+                },
+                "key": "timeBeforeEventInSeconds",
+                "type": "number",
+                "input": true,
+                "stringValue": 0
+              }
+            ]
+          }
+        ],
+        "key": "countdownColumns",
+        "conditional": {
+          "show": "true",
+          "when": "useCountdown",
+          "eq": "true"
+        },
+        "type": "columns",
+        "input": false
+      },
+      {
+        "label": "UseCountdown",
+        "labelPosition": "",
+        "clearOnHide": false,
+        "key": "useCountdown",
+        "type": "checkbox",
+        "input": true
       },
       {
         "columns": [
