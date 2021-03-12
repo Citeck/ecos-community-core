@@ -2,9 +2,6 @@
 id: products-and-services
 name: { ru: Продукты и услуги, en: Products and services }
 
-actions:
-  - uiserv/action@edit
-
 columns:
   - id: cm:title
   - id: pas:pricePerUnit

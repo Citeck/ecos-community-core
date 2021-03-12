@@ -2,9 +2,6 @@
 id: currency-rates
 name: { ru: Курс вылюты ЦБ, en: Currency rate Central Bank }
 
-actions:
-  - uiserv/action@edit
-
 columns:
   - id: idocs:crrBaseCurrency
   - id: idocs:crrTargetCurrency

@@ -2,9 +2,6 @@
 id: working-calendar
 name: { ru: Производственный календарь, en: Working Calendar }
 
-actions:
-  - uiserv/action@edit
-
 columns:
   - id: wcal:name
   - id: wcal:year

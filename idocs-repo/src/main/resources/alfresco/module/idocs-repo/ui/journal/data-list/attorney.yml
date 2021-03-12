@@ -2,9 +2,6 @@
 id: attorney
 name: { ru: Поверенный, en: Attorney }
 
-actions:
-  - uiserv/action@edit
-
 columns:
   - id: idocs:personFullName
   - id: idocs:numberPass

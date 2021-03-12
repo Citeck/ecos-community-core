@@ -2,9 +2,6 @@
 id: legal-form
 name: { ru: Организационно-правовые формы, en: Legal Form }
 
-actions:
-  - uiserv/action@edit
-
 columns:
   - id: idocs:legalFormName
   - id: idocs:legalFormDescription

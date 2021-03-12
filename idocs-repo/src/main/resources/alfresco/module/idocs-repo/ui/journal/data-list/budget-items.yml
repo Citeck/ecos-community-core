@@ -2,9 +2,6 @@
 id: budget-items
 name: { ru: Статья бюджета, en: Budget Item }
 
-actions:
-  - uiserv/action@edit
-
 columns:
   - id: budget:itemCode
   - id: budget:itemName

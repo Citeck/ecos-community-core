@@ -2,8 +2,6 @@
 id: case-status
 name: { ru: Статусы кейса, en: Case statuses }
 
-actions: []
-
 columns:
   - id: cm:name
     name: { ru: Имя, en: Name }

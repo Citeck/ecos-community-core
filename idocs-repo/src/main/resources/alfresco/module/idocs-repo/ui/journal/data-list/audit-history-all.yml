@@ -3,6 +3,7 @@ id: audit-history-all
 name: { ru: Исторические события, en: History Events }
 
 sourceId: history
+actionsFromType: false
 
 predicate:
   t: and

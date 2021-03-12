@@ -2,9 +2,6 @@
 id: bank-accounts
 name: { ru: Банковский счет, en: Bank Accounts }
 
-actions:
-  - uiserv/action@edit
-
 columns:
   - id: idocs:legalEntity
   - id: idocs:bankTitle
