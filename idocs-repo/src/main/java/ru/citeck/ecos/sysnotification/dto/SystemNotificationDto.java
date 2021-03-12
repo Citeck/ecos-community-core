@@ -17,7 +17,6 @@ public class SystemNotificationDto {
     protected String id;
     protected MLText message;
     protected Instant time;
-    protected boolean useCountdown;
     protected Instant created;
     protected Instant modified;
 }

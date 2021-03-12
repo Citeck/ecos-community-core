@@ -39,7 +39,7 @@ import java.util.stream.Collectors;
 public class SystemNotificationRecordsDao extends LocalRecordsDao
     implements LocalRecordsQueryWithMetaDao<SystemNotificationDto>,
     MutableRecordsLocalDao<SystemNotificationRecordsDao.SystemNotificationRecord>,
-    LocalRecordsMetaDao<SystemNotificationRecordsDao.SystemNotificationRecord> {
+    LocalRecordsMetaDao<SystemNotificationDto> {
 
     private static final String ID = "system-notification";
 
@@ -118,26 +118,9 @@ public class SystemNotificationRecordsDao extends LocalRecordsDao
     }
 
     @Override
-    public List<SystemNotificationRecord> getLocalRecordsMeta(@NotNull List<RecordRef> list,
+    public List<SystemNotificationDto> getLocalRecordsMeta(@NotNull List<RecordRef> list,
                                                            @NotNull MetaField metaField) {
-        return list.stream().map(recordRef -> {
-            SystemNotificationDto dto = systemNotificationService.get(recordRef.getId());
-            SystemNotificationRecord record = new SystemNotificationRecord(dto);
-
-            if (record.isUseCountdown()) {
-                Instant now = Instant.now();
-                Instant eventTime = record.getTime();
-                Instant diff = eventTime.isAfter(now)
-                    ? eventTime.minus(now.toEpochMilli(), ChronoUnit.MILLIS)
-                    : Instant.EPOCH;
-
-                record.setTimeBeforeEventInSeconds(diff.getEpochSecond() % 60);
-                record.setTimeBeforeEventInMinutes((diff.getEpochSecond() / 60) % 60);
-                record.setTimeBeforeEventInHours(diff.getEpochSecond() / 3600);
-            }
-
-            return record;
-        }).collect(Collectors.toList());
+        return list.stream().map(r -> systemNotificationService.get(r.getId())).collect(Collectors.toList());
     }
 
     @Autowired
@@ -151,6 +134,7 @@ public class SystemNotificationRecordsDao extends LocalRecordsDao
         private long timeBeforeEventInSeconds;
         private long timeBeforeEventInMinutes;
         private long timeBeforeEventInHours;
+        private boolean useCountdown;
 
         public SystemNotificationRecord() {}
 
@@ -158,7 +142,6 @@ public class SystemNotificationRecordsDao extends LocalRecordsDao
             this.id = dto.getId();
             this.message = dto.getMessage();
             this.time = Instant.from(dto.getTime());
-            this.useCountdown = dto.isUseCountdown();
             this.created = Instant.from(dto.getCreated());
             this.modified = Instant.from(dto.getModified());
         }
