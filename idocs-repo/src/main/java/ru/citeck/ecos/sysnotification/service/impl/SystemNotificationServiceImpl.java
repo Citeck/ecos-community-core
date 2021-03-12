@@ -9,6 +9,7 @@ import ru.citeck.ecos.sysnotification.dto.SystemNotificationDto;
 import ru.citeck.ecos.sysnotification.service.NoDaoException;
 import ru.citeck.ecos.sysnotification.service.SystemNotificationService;
 
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -21,7 +22,7 @@ public class SystemNotificationServiceImpl implements SystemNotificationService 
 
     @NotNull
     @Override
-    public List<SystemNotificationDto> get(int maxItems, int skipCount, boolean onlyActive) throws NoDaoException {
+    public List<SystemNotificationDto> get(int maxItems, int skipCount, boolean onlyActive) {
         return systemNotificationDao != null
             ? systemNotificationDao.get(maxItems, skipCount, onlyActive)
             : new ArrayList<>();
@@ -29,29 +30,35 @@ public class SystemNotificationServiceImpl implements SystemNotificationService 
 
     @Nullable
     @Override
-    public SystemNotificationDto get(@NotNull String id) throws NoDaoException {
+    public SystemNotificationDto get(@NotNull String id) {
         return systemNotificationDao != null ? systemNotificationDao.get(id) : null;
     }
 
     @NotNull
     @Override
-    public SystemNotificationDto save(@NotNull SystemNotificationDto systemNotificationDto) throws NoDaoException {
+    public SystemNotificationDto save(@NotNull SystemNotificationDto dto) throws NoDaoException {
         if (systemNotificationDao == null) {
             throw new NoDaoException("You should implement SystemNotificationDao before using this method");
         }
 
-        return systemNotificationDao.save(systemNotificationDto);
+        if (dto.getId() == null) {
+            dto.setCreated(Instant.now());
+        }
+
+        dto.setModified(Instant.now());
+
+        return systemNotificationDao.save(dto);
     }
 
     @Override
-    public void delete(@NotNull String id) throws NoDaoException {
+    public void delete(@NotNull String id) {
         if (systemNotificationDao != null) {
             systemNotificationDao.delete(id);
         }
     }
 
     @Override
-    public long getTotalCount() throws NoDaoException {
+    public long getTotalCount() {
         return systemNotificationDao != null ? systemNotificationDao.getTotalCount() : 0;
     }
 

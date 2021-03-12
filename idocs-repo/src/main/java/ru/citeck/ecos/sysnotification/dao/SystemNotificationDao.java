@@ -27,7 +27,7 @@ public interface SystemNotificationDao {
     SystemNotificationDto get(@NotNull String id);
 
     @NotNull
-    SystemNotificationDto save(@NotNull SystemNotificationDto systemNotificationDto);
+    SystemNotificationDto save(@NotNull SystemNotificationDto dto);
 
     void delete(@NotNull String id);
 

@@ -12,12 +12,12 @@ import java.util.List;
 public interface SystemNotificationService {
     @NotNull
     default List<SystemNotificationDto> get(int maxItems) {
-        return get(maxItems, 0, true);
+        return get(maxItems, 0, false);
     }
 
     @NotNull
     default List<SystemNotificationDto> get(int maxItems, int skipCount) {
-        return get(maxItems, skipCount, true);
+        return get(maxItems, skipCount, false);
     }
 
     @NotNull
@@ -27,7 +27,7 @@ public interface SystemNotificationService {
     SystemNotificationDto get(@NotNull String id);
 
     @NotNull
-    SystemNotificationDto save(@NotNull SystemNotificationDto systemNotificationDto) throws NoDaoException;
+    SystemNotificationDto save(@NotNull SystemNotificationDto dto) throws NoDaoException;
 
     void delete(@NotNull String id);
 

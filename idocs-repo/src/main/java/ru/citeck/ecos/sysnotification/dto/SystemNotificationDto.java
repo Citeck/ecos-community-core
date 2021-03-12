@@ -14,7 +14,10 @@ import java.time.Instant;
 @NoArgsConstructor
 @AllArgsConstructor
 public class SystemNotificationDto {
-    private String id;
-    private MLText message;
-    private Instant time;
+    protected String id;
+    protected MLText message;
+    protected Instant time;
+    protected boolean useCountdown;
+    protected Instant created;
+    protected Instant modified;
 }
