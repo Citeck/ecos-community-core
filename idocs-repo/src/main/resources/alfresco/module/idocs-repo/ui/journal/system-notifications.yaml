@@ -20,12 +20,10 @@ columns:
     type: datetime
     label: { ru: Дата и время события, en: Event date and time }
 
-  - name: cm:created
+  - name: created
     type: datetime
     label: { ru: Создан, en: Created }
-    attribute: cm:created
 
-  - name: cm:modified
+  - name: modified
     type: datetime
     label: { ru: Изменен, en: Modified }
-    attribute: cm:modified
