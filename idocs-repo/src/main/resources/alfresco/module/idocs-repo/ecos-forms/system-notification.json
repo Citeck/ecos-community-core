@@ -18,7 +18,7 @@
       "Cancel": "Отмена",
       "Message": "Сообщение",
       "Time": "Дата и время события",
-      "UseCountdown": "Использовать обратный отсчет",
+      "UseCountdown": "Установить дату и время через обратный отсчет",
       "TimeBeforeEventInSeconds": "Время до наступления события в секундах",
       "TimeBeforeEventInMinutes": "Время до наступления события в минутах",
       "TimeBeforeEventInHours": "Время до наступления события в часах"
@@ -29,7 +29,7 @@
       "Cancel": "Cancel",
       "Message": "Message",
       "Time": "Event date and time",
-      "UseCountdown": "Use countdown",
+      "UseCountdown": "Set date and time via countdown",
       "TimeBeforeEventInSeconds": "Time before event in seconds",
       "TimeBeforeEventInMinutes": "Time before event in minutes",
       "TimeBeforeEventInHours": "Time before event in hours"
