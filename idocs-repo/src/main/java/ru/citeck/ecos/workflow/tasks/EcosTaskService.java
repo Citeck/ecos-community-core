@@ -109,10 +109,11 @@ public class EcosTaskService {
             org.alfresco.service.cmr.repository.MLText taskMlTitle = taskInfo.getMlTitle();
 
             lockUtils.doWithLock(String.format(TASKS_PREFIX, taskId),
-                () -> taskService.endTask(task.getLocalId(), transition, finalVariables, finalTransientVariables)
+                () -> {
+                    addCommentToDocument(taskDocument, taskMlTitle, (String) finalVariables.get(FIELD_COMMENT));
+                    taskService.endTask(task.getLocalId(), transition, finalVariables, finalTransientVariables);
+                }
             );
-
-            addCommentToDocument(taskDocument, taskMlTitle, (String) variables.get(FIELD_COMMENT));
 
             AuthenticationUtil.runAsSystem(() -> {
                 addLastCompletedTaskDate(taskInfo.getDocument());
