@@ -52,7 +52,7 @@ timestamps {
 
       stage('Assembling and publishing project artifacts') {
         withMaven(mavenLocalRepo: '/opt/jenkins/.m2/repository', tempBinDir: '') {
-          sh "mvn clean deploy -DskipTests=true"
+          sh "mvn clean deploy"
         }
       }
     }

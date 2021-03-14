@@ -29,6 +29,7 @@ import static org.junit.Assert.assertEquals;
 /**
  * @author Maxim Strizhov
  */
+@Ignore
 @RunWith(SpringJUnit4ClassRunner.class)
 //@ContextConfiguration(loader = ApplicationContextHelper.class)
 @Transactional
