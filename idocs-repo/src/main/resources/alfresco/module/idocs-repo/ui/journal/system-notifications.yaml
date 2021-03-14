@@ -1,0 +1,26 @@
+id: system-notifications
+label: { ru: Системные уведомления, en: System notifications }
+
+typeRef: emodel/type@system-notification
+sourceId: alfresco/system-notification
+
+actions:
+  - uiserv/action@delete
+  - uiserv/action@edit
+
+columns:
+  - id: message
+    type: text
+    name: { ru: Сообщение, en: Message }
+
+  - id: time
+    type: datetime
+    name: { ru: Дата и время события, en: Event date and time }
+
+  - id: created
+    type: datetime
+    name: { ru: Создан, en: Created }
+
+  - id: modified
+    type: datetime
+    name: { ru: Изменен, en: Modified }

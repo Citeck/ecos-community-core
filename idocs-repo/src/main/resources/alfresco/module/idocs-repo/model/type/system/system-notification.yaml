@@ -1,0 +1,13 @@
+id: system-notification
+
+name:
+  en: System notification
+  ru: Системное уведомление
+
+sourceId: alfresco/system-notification
+
+system: true
+
+formRef: uiserv/form@system-notification
+journalRef: uiserv/journal@system-notifications
+
