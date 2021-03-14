@@ -146,12 +146,6 @@ public class SystemNotificationRecordsDao extends LocalRecordsDao
             this.modified = Instant.from(dto.getModified());
         }
 
-        public void setTime(ZonedDateTime time) {
-            if (time != null) {
-                super.setTime(time.toInstant());
-            }
-        }
-
         @MetaAtt(".disp")
         public String getDisplayName() {
             String name = MLText.getClosestValue(getMessage(), QueryContext.getCurrent().getLocale());
