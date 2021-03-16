@@ -67,7 +67,7 @@
 
         <ecos.flowable.version>3.0.5.1</ecos.flowable.version>
         <ecos.records.version>3.16.0</ecos.records.version>
-        <ecos.apps.lib.version>3.6.0</ecos.apps.lib.version>
+        <ecos.apps.lib.version>3.7.0</ecos.apps.lib.version>
         <ecos.jackson.version>2.10.4.3</ecos.jackson.version>
         <ecos.snakeyaml.version>2.2.0</ecos.snakeyaml.version>
         <ecos.commons.version>2.2.6</ecos.commons.version>
