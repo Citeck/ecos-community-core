@@ -93,7 +93,7 @@ public class SystemNotificationTest {
         public List<SystemNotificationDto> get(int maxItems, int skipCount, boolean onlyActive) {
             List<SystemNotificationDto> filteredRecords = onlyActive
                 ? records.stream()
-                .filter(r -> (r.getTime() != null) && (r.getTime().toEpochMilli() > Instant.now().toEpochMilli()))
+                .filter(r -> (r.getEndTime() != null) && (r.getEndTime().toEpochMilli() > Instant.now().toEpochMilli()))
                 .collect(Collectors.toList())
                 : records;
 

@@ -90,12 +90,12 @@ public class SystemNotificationRecordsDao extends LocalRecordsDao
 
         for (SystemNotificationRecord record: records) {
             if (record.isUseCountdown()) {
-                long ss = record.getTimeBeforeEventInSeconds();
-                long mm = record.getTimeBeforeEventInMinutes();
-                long hh = record.getTimeBeforeEventInHours();
-                Instant time = Instant.now().plus(ss, ChronoUnit.SECONDS)
+                long ss = record.getTimeToEndInSeconds();
+                long mm = record.getTimeToEndInMinutes();
+                long hh = record.getTimeToEndInHours();
+                Instant endTime = Instant.now().plus(ss, ChronoUnit.SECONDS)
                     .plus(mm, ChronoUnit.MINUTES).plus(hh, ChronoUnit.HOURS);
-                record.setTime(time);
+                record.setEndTime(endTime);
             }
 
             SystemNotificationDto savedDto = systemNotificationService.save(record);
@@ -131,9 +131,9 @@ public class SystemNotificationRecordsDao extends LocalRecordsDao
     @Getter
     @Setter
     public class SystemNotificationRecord extends SystemNotificationDto {
-        private long timeBeforeEventInSeconds;
-        private long timeBeforeEventInMinutes;
-        private long timeBeforeEventInHours;
+        private long timeToEndInSeconds;
+        private long timeToEndInMinutes;
+        private long timeToEndInHours;
         private boolean useCountdown;
 
         public SystemNotificationRecord() {}
@@ -141,14 +141,14 @@ public class SystemNotificationRecordsDao extends LocalRecordsDao
         public SystemNotificationRecord(SystemNotificationDto dto) {
             this.id = dto.getId();
             this.message = dto.getMessage();
-            this.time = Instant.from(dto.getTime());
+            this.endTime = Instant.from(dto.getEndTime());
             this.created = Instant.from(dto.getCreated());
             this.modified = Instant.from(dto.getModified());
         }
 
-        public void setTime(ZonedDateTime time) {
-            if (time != null) {
-                super.setTime(time.toInstant());
+        public void setEndTime(ZonedDateTime endTime) {
+            if (endTime != null) {
+                super.setEndTime(endTime.toInstant());
             }
         }
 
