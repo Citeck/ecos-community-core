@@ -16,9 +16,9 @@ columns:
     type: text
     label: { ru: Сообщение, en: Message }
 
-  - name: time
+  - name: endTime
     type: datetime
-    label: { ru: Дата и время события, en: Event date and time }
+    label: { ru: Дата и время завершения, en: End date and time }
 
   - name: created
     type: datetime
