@@ -27,7 +27,7 @@ import static org.junit.Assert.*;
 public class SystemNotificationTest {
     private static final String SOURCE_ID = "system-notification";
     private static final String MESSAGE_ATTR = "message";
-    public static final String TIME_ATTR = "time";
+    public static final String TIME_ATTR = "endTime";
 
     @Test
     public void test() {

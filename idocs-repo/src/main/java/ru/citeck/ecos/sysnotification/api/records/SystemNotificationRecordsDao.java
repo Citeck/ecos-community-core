@@ -44,7 +44,7 @@ import java.util.stream.Collectors;
 public class SystemNotificationRecordsDao extends LocalRecordsDao
     implements LocalRecordsQueryWithMetaDao<SystemNotificationDto>,
     MutableRecordsLocalDao<SystemNotificationRecordsDao.SystemNotificationRecord>,
-    LocalRecordsMetaDao<SystemNotificationDto> {
+    LocalRecordsMetaDao<SystemNotificationRecordsDao.SystemNotificationRecord> {
 
     private static final String ID = "system-notification";
 
@@ -134,9 +134,12 @@ public class SystemNotificationRecordsDao extends LocalRecordsDao
     }
 
     @Override
-    public List<SystemNotificationDto> getLocalRecordsMeta(@NotNull List<RecordRef> list,
+    public List<SystemNotificationRecord> getLocalRecordsMeta(@NotNull List<RecordRef> list,
                                                            @NotNull MetaField metaField) {
-        return list.stream().map(r -> systemNotificationService.get(r.getId())).collect(Collectors.toList());
+        return list.stream()
+            .map(r -> systemNotificationService.get(r.getId()))
+            .map(SystemNotificationRecord::new)
+            .collect(Collectors.toList());
     }
 
     @Autowired
@@ -154,11 +157,13 @@ public class SystemNotificationRecordsDao extends LocalRecordsDao
         private boolean useCountdown;
 
         public SystemNotificationRecord(SystemNotificationDto dto) {
-            this.id = dto.getId();
-            this.message = dto.getMessage();
-            this.endTime = Instant.from(dto.getEndTime());
-            this.created = Instant.from(dto.getCreated());
-            this.modified = Instant.from(dto.getModified());
+            if (dto != null) {
+                this.id = dto.getId();
+                this.message = dto.getMessage();
+                this.endTime = Instant.from(dto.getEndTime());
+                this.created = Instant.from(dto.getCreated());
+                this.modified = Instant.from(dto.getModified());
+            }
         }
 
         public void setEndTime(ZonedDateTime endTime) {
