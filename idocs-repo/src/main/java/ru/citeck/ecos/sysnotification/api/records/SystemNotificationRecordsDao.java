@@ -2,6 +2,7 @@ package ru.citeck.ecos.sysnotification.api.records;
 
 import ecos.com.fasterxml.jackson210.annotation.JsonIgnore;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
@@ -22,6 +23,7 @@ import ru.citeck.ecos.records2.source.dao.local.LocalRecordsDao;
 import ru.citeck.ecos.records2.source.dao.local.MutableRecordsLocalDao;
 import ru.citeck.ecos.records2.source.dao.local.v2.LocalRecordsMetaDao;
 import ru.citeck.ecos.records2.source.dao.local.v2.LocalRecordsQueryWithMetaDao;
+import ru.citeck.ecos.sysnotification.dto.ConfigDto;
 import ru.citeck.ecos.sysnotification.dto.SystemNotificationDto;
 import ru.citeck.ecos.sysnotification.service.SystemNotificationService;
 
@@ -43,6 +45,8 @@ public class SystemNotificationRecordsDao extends LocalRecordsDao
 
     private static final String ID = "system-notification";
 
+    private static final String CONFIG_LANGUAGE = "config";
+
     private SystemNotificationService systemNotificationService;
 
     public SystemNotificationRecordsDao() {
@@ -55,9 +59,18 @@ public class SystemNotificationRecordsDao extends LocalRecordsDao
 
         RecordsQueryResult<SystemNotificationDto> result = new RecordsQueryResult<>();
 
+        boolean onlyActive = false;
+        if (CONFIG_LANGUAGE.equals(recordsQuery.getLanguage())) {
+            ConfigDto config = recordsQuery.getQuery(ConfigDto.class);
+
+            if (config != null) {
+                onlyActive = config.isOnlyActive();
+            }
+        }
+
         int maxItems = recordsQuery.getMaxItems();
         int skipCount = recordsQuery.getSkipCount();
-        List<SystemNotificationDto> notifications = systemNotificationService.get(maxItems, skipCount);
+        List<SystemNotificationDto> notifications = systemNotificationService.get(maxItems, skipCount, onlyActive);
         long totalCount = systemNotificationService.getTotalCount();
 
         result.setRecords(notifications);
@@ -130,13 +143,12 @@ public class SystemNotificationRecordsDao extends LocalRecordsDao
 
     @Getter
     @Setter
+    @NoArgsConstructor
     public class SystemNotificationRecord extends SystemNotificationDto {
         private long timeToEndInSeconds;
         private long timeToEndInMinutes;
         private long timeToEndInHours;
         private boolean useCountdown;
-
-        public SystemNotificationRecord() {}
 
         public SystemNotificationRecord(SystemNotificationDto dto) {
             this.id = dto.getId();
