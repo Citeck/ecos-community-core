@@ -14,6 +14,7 @@ import ru.citeck.ecos.records2.RecordMeta;
 import ru.citeck.ecos.records2.RecordRef;
 import ru.citeck.ecos.records2.graphql.meta.annotation.MetaAtt;
 import ru.citeck.ecos.records2.graphql.meta.value.MetaField;
+import ru.citeck.ecos.records2.predicate.PredicateService;
 import ru.citeck.ecos.records2.predicate.PredicateUtils;
 import ru.citeck.ecos.records2.predicate.model.Predicate;
 import ru.citeck.ecos.records2.request.delete.RecordsDelResult;
@@ -47,8 +48,6 @@ public class SystemNotificationRecordsDao extends LocalRecordsDao
 
     private static final String ID = "system-notification";
 
-    private static final String CONFIG_LANGUAGE = "config";
-
     private SystemNotificationService systemNotificationService;
 
     public SystemNotificationRecordsDao() {
@@ -62,7 +61,7 @@ public class SystemNotificationRecordsDao extends LocalRecordsDao
         RecordsQueryResult<SystemNotificationDto> result = new RecordsQueryResult<>();
 
         boolean onlyActive = false;
-        if (CONFIG_LANGUAGE.equals(recordsQuery.getLanguage())) {
+        if (PredicateService.LANGUAGE_PREDICATE.equals(recordsQuery.getLanguage())) {
             Predicate predicate = recordsQuery.getQuery(Predicate.class);
             SystemNotificationPredicateDto predicateDto = PredicateUtils.convertToDto(predicate,
                 SystemNotificationPredicateDto.class);
