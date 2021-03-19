@@ -7,6 +7,6 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class ConfigDto {
-    private boolean onlyActive;
+public class SystemNotificationPredicateDto {
+    private boolean active;
 }
