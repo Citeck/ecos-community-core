@@ -160,9 +160,9 @@ public class SystemNotificationRecordsDao extends LocalRecordsDao
             if (dto != null) {
                 this.id = dto.getId();
                 this.message = dto.getMessage();
-                this.endTime = Instant.from(dto.getEndTime());
-                this.created = Instant.from(dto.getCreated());
-                this.modified = Instant.from(dto.getModified());
+                this.endTime = dto.getEndTime() != null ? Instant.from(dto.getEndTime()) : null;
+                this.created = dto.getCreated() != null ? Instant.from(dto.getCreated()) : null;
+                this.modified = dto.getModified() != null ? Instant.from(dto.getModified()) : null;
             }
         }
 
