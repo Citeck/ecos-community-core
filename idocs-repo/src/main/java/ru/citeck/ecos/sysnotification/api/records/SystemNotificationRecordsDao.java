@@ -14,9 +14,6 @@ import ru.citeck.ecos.records2.RecordMeta;
 import ru.citeck.ecos.records2.RecordRef;
 import ru.citeck.ecos.records2.graphql.meta.annotation.MetaAtt;
 import ru.citeck.ecos.records2.graphql.meta.value.MetaField;
-import ru.citeck.ecos.records2.predicate.PredicateService;
-import ru.citeck.ecos.records2.predicate.PredicateUtils;
-import ru.citeck.ecos.records2.predicate.model.Predicate;
 import ru.citeck.ecos.records2.request.delete.RecordsDelResult;
 import ru.citeck.ecos.records2.request.delete.RecordsDeletion;
 import ru.citeck.ecos.records2.request.mutation.RecordsMutResult;
@@ -27,7 +24,6 @@ import ru.citeck.ecos.records2.source.dao.local.MutableRecordsLocalDao;
 import ru.citeck.ecos.records2.source.dao.local.v2.LocalRecordsMetaDao;
 import ru.citeck.ecos.records2.source.dao.local.v2.LocalRecordsQueryWithMetaDao;
 import ru.citeck.ecos.sysnotification.dto.SystemNotificationDto;
-import ru.citeck.ecos.sysnotification.dto.SystemNotificationPredicateDto;
 import ru.citeck.ecos.sysnotification.service.SystemNotificationService;
 
 import java.time.Instant;
@@ -57,30 +53,7 @@ public class SystemNotificationRecordsDao extends LocalRecordsDao
     @Override
     public RecordsQueryResult<SystemNotificationDto> queryLocalRecords(@NotNull RecordsQuery recordsQuery,
                                                                        @NotNull MetaField metaField) {
-
-        RecordsQueryResult<SystemNotificationDto> result = new RecordsQueryResult<>();
-
-        boolean onlyActive = false;
-        if (PredicateService.LANGUAGE_PREDICATE.equals(recordsQuery.getLanguage())) {
-            Predicate predicate = recordsQuery.getQuery(Predicate.class);
-            SystemNotificationPredicateDto predicateDto = PredicateUtils.convertToDto(predicate,
-                SystemNotificationPredicateDto.class);
-
-            if (predicateDto != null) {
-                onlyActive = predicateDto.isActive();
-            }
-        }
-
-        int maxItems = recordsQuery.getMaxItems();
-        int skipCount = recordsQuery.getSkipCount();
-        List<SystemNotificationDto> notifications = systemNotificationService.get(maxItems, skipCount, onlyActive);
-        long totalCount = systemNotificationService.getTotalCount();
-
-        result.setRecords(notifications);
-        result.setTotalCount(totalCount);
-        result.setHasMore((maxItems >= 0) && (totalCount > maxItems + skipCount));
-
-        return result;
+        return systemNotificationService.get(recordsQuery);
     }
 
     @NotNull
