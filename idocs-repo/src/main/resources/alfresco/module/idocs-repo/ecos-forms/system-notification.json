@@ -17,22 +17,24 @@
       "Save": "Сохранить",
       "Cancel": "Отмена",
       "Message": "Сообщение",
-      "Time": "Дата и время события",
+      "EndTime": "Дата и время завершения",
       "UseCountdown": "Установить дату и время через обратный отсчет",
-      "TimeBeforeEventInSeconds": "Время до наступления события в секундах",
-      "TimeBeforeEventInMinutes": "Время до наступления события в минутах",
-      "TimeBeforeEventInHours": "Время до наступления события в часах"
+      "TimeToEndInSeconds": "Время до завершения в секундах",
+      "TimeToEndInMinutes": "Время до завершения в минутах",
+      "TimeToEndInHours": "Время до завершения в часах",
+      "endTime.tooltip": "Дата и время, после которого уведомление теряет свою актуальность"
     },
     "en": {
       "Create": "Create",
       "Save": "Save",
       "Cancel": "Cancel",
       "Message": "Message",
-      "Time": "Event date and time",
+      "EndTime": "End date and time",
       "UseCountdown": "Set date and time via countdown",
-      "TimeBeforeEventInSeconds": "Time before event in seconds",
-      "TimeBeforeEventInMinutes": "Time before event in minutes",
-      "TimeBeforeEventInHours": "Time before event in hours"
+      "TimeToEndInSeconds": "Time to end in seconds",
+      "TimeToEndInMinutes": "Time to end in minutes",
+      "TimeToEndInHours": "Time to end in hours",
+      "endTime.tooltip": "Date and time after which the notification loses its relevance"
     }
   },
   "definition": {
@@ -45,11 +47,11 @@
           "required": true
         },
         "key": "message",
-        "type": "textfield",
+        "type": "mlText",
         "input": true
       },
       {
-        "label": "Time",
+        "label": "EndTime",
         "format": "dd.MM.yyyy hh:mm:ss",
         "clearOnHide": false,
         "datePicker": {
@@ -63,7 +65,7 @@
         "validate": {
           "required": true
         },
-        "key": "time",
+        "key": "endTime",
         "conditional": {
           "show": "true",
           "when": "useCountdown",
@@ -71,7 +73,8 @@
         },
         "type": "datetime",
         "input": true,
-        "suffix": true
+        "suffix": true,
+        "tooltip": "endTime.tooltip"
       },
       {
         "label": "CountdownColumns",
@@ -79,7 +82,7 @@
           {
             "components": [
               {
-                "label": "TimeBeforeEventInHours",
+                "label": "TimeToEndInHours",
                 "clearOnHide": false,
                 "isBigNumber": false,
                 "delimiterValue": "",
@@ -88,7 +91,7 @@
                   "required": true,
                   "min": 0
                 },
-                "key": "timeBeforeEventInHours",
+                "key": "timeToEndInHours",
                 "type": "number",
                 "input": true,
                 "stringValue": 0
@@ -108,7 +111,7 @@
             "index": 1,
             "components": [
               {
-                "label": "TimeBeforeEventInMinutes",
+                "label": "TimeToEndInMinutes",
                 "clearOnHide": false,
                 "isBigNumber": false,
                 "delimiterValue": "",
@@ -117,7 +120,7 @@
                   "required": true,
                   "min": 0
                 },
-                "key": "timeBeforeEventInMinutes",
+                "key": "timeToEndInMinutes",
                 "type": "number",
                 "input": true,
                 "stringValue": 0
@@ -132,7 +135,7 @@
             "index": 2,
             "components": [
               {
-                "label": "TimeBeforeEventInSeconds",
+                "label": "TimeToEndInSeconds",
                 "clearOnHide": false,
                 "isBigNumber": false,
                 "delimiterValue": "",
@@ -141,7 +144,7 @@
                   "required": true,
                   "min": 0
                 },
-                "key": "timeBeforeEventInSeconds",
+                "key": "timeToEndInSeconds",
                 "type": "number",
                 "input": true,
                 "stringValue": 0

@@ -15,15 +15,39 @@ columns:
   - name: message
     type: text
     label: { ru: Сообщение, en: Message }
+    searchable: true
+    sortable: false
+    groupable: false
+    editable: false
+    visible: true
+    hidden: false
 
-  - name: time
+  - name: endTime
     type: datetime
-    label: { ru: Дата и время события, en: Event date and time }
+    label: { ru: Дата и время завершения, en: End date and time }
+    searchable: true
+    sortable: true
+    groupable: false
+    editable: false
+    visible: true
+    hidden: false
 
   - name: created
     type: datetime
     label: { ru: Создан, en: Created }
+    searchable: true
+    sortable: true
+    groupable: false
+    editable: false
+    visible: true
+    hidden: false
 
   - name: modified
     type: datetime
     label: { ru: Изменен, en: Modified }
+    searchable: true
+    sortable: true
+    groupable: false
+    editable: false
+    visible: true
+    hidden: false

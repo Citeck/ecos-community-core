@@ -2,6 +2,7 @@ package ru.citeck.ecos.sysnotification.api.records;
 
 import ecos.com.fasterxml.jackson210.annotation.JsonIgnore;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
@@ -39,7 +40,7 @@ import java.util.stream.Collectors;
 public class SystemNotificationRecordsDao extends LocalRecordsDao
     implements LocalRecordsQueryWithMetaDao<SystemNotificationDto>,
     MutableRecordsLocalDao<SystemNotificationRecordsDao.SystemNotificationRecord>,
-    LocalRecordsMetaDao<SystemNotificationDto> {
+    LocalRecordsMetaDao<SystemNotificationRecordsDao.SystemNotificationRecord> {
 
     private static final String ID = "system-notification";
 
@@ -52,19 +53,7 @@ public class SystemNotificationRecordsDao extends LocalRecordsDao
     @Override
     public RecordsQueryResult<SystemNotificationDto> queryLocalRecords(@NotNull RecordsQuery recordsQuery,
                                                                        @NotNull MetaField metaField) {
-
-        RecordsQueryResult<SystemNotificationDto> result = new RecordsQueryResult<>();
-
-        int maxItems = recordsQuery.getMaxItems();
-        int skipCount = recordsQuery.getSkipCount();
-        List<SystemNotificationDto> notifications = systemNotificationService.get(maxItems, skipCount);
-        long totalCount = systemNotificationService.getTotalCount();
-
-        result.setRecords(notifications);
-        result.setTotalCount(totalCount);
-        result.setHasMore((maxItems >= 0) && (totalCount > maxItems + skipCount));
-
-        return result;
+        return systemNotificationService.get(recordsQuery);
     }
 
     @NotNull
@@ -90,12 +79,12 @@ public class SystemNotificationRecordsDao extends LocalRecordsDao
 
         for (SystemNotificationRecord record: records) {
             if (record.isUseCountdown()) {
-                long ss = record.getTimeBeforeEventInSeconds();
-                long mm = record.getTimeBeforeEventInMinutes();
-                long hh = record.getTimeBeforeEventInHours();
-                Instant time = Instant.now().plus(ss, ChronoUnit.SECONDS)
+                long ss = record.getTimeToEndInSeconds();
+                long mm = record.getTimeToEndInMinutes();
+                long hh = record.getTimeToEndInHours();
+                Instant endTime = Instant.now().plus(ss, ChronoUnit.SECONDS)
                     .plus(mm, ChronoUnit.MINUTES).plus(hh, ChronoUnit.HOURS);
-                record.setTime(time);
+                record.setEndTime(endTime);
             }
 
             SystemNotificationDto savedDto = systemNotificationService.save(record);
@@ -118,9 +107,12 @@ public class SystemNotificationRecordsDao extends LocalRecordsDao
     }
 
     @Override
-    public List<SystemNotificationDto> getLocalRecordsMeta(@NotNull List<RecordRef> list,
+    public List<SystemNotificationRecord> getLocalRecordsMeta(@NotNull List<RecordRef> list,
                                                            @NotNull MetaField metaField) {
-        return list.stream().map(r -> systemNotificationService.get(r.getId())).collect(Collectors.toList());
+        return list.stream()
+            .map(r -> systemNotificationService.get(r.getId()))
+            .map(SystemNotificationRecord::new)
+            .collect(Collectors.toList());
     }
 
     @Autowired
@@ -130,25 +122,26 @@ public class SystemNotificationRecordsDao extends LocalRecordsDao
 
     @Getter
     @Setter
+    @NoArgsConstructor
     public class SystemNotificationRecord extends SystemNotificationDto {
-        private long timeBeforeEventInSeconds;
-        private long timeBeforeEventInMinutes;
-        private long timeBeforeEventInHours;
+        private long timeToEndInSeconds;
+        private long timeToEndInMinutes;
+        private long timeToEndInHours;
         private boolean useCountdown;
 
-        public SystemNotificationRecord() {}
-
         public SystemNotificationRecord(SystemNotificationDto dto) {
-            this.id = dto.getId();
-            this.message = dto.getMessage();
-            this.time = Instant.from(dto.getTime());
-            this.created = Instant.from(dto.getCreated());
-            this.modified = Instant.from(dto.getModified());
+            if (dto != null) {
+                this.id = dto.getId();
+                this.message = dto.getMessage();
+                this.endTime = dto.getEndTime() != null ? Instant.from(dto.getEndTime()) : null;
+                this.created = dto.getCreated() != null ? Instant.from(dto.getCreated()) : null;
+                this.modified = dto.getModified() != null ? Instant.from(dto.getModified()) : null;
+            }
         }
 
-        public void setTime(ZonedDateTime time) {
-            if (time != null) {
-                super.setTime(time.toInstant());
+        public void setEndTime(ZonedDateTime endTime) {
+            if (endTime != null) {
+                super.setEndTime(endTime.toInstant());
             }
         }
 
