@@ -186,6 +186,12 @@
         </dependency>
 
         <dependency>
+            <groupId>ru.citeck.ecos.rabbitmq</groupId>
+            <artifactId>ecos-rabbitmq</artifactId>
+            <version>${ecos.rabbitmq.version}</version>
+        </dependency>
+
+        <dependency>
             <groupId>ru.citeck.ecos</groupId>
             <artifactId>ecos-meta-repo</artifactId>
             <version>${ecos.meta-repo.version}</version>
