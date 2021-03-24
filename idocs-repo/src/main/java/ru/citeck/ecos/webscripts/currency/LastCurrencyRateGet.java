@@ -35,6 +35,9 @@ public class LastCurrencyRateGet extends DeclarativeWebScript {
         String targetCurrencyParam = getParameter(req, TARGET_CURRENCY_PARAM_NAME);
         MandatoryParam.checkString(TARGET_CURRENCY_PARAM_NAME, targetCurrencyParam);
 
+        baseCurrencyParam = baseCurrencyParam.replaceFirst("alfresco/@", "");
+        targetCurrencyParam = targetCurrencyParam.replaceFirst("alfresco/@", "");
+
         String dateParam = getParameter(req, DATE_PARAM_NAME);
 
         String forceConversionParam = req.getParameter(MANUAL_CONVERSION_PARAM_NAME);
