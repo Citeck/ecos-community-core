@@ -83,6 +83,7 @@ public class EcosTypeService {
         return docLib;
     }
 
+    @NotNull
     public ObjectData getResolvedProperties(RecordRef typeRef) {
         TypeDto typeDef = getTypeDef(typeRef);
         if (typeDef == null) {
@@ -94,7 +95,7 @@ public class EcosTypeService {
 
     @Nullable
     public TypeDto getTypeDef(RecordRef typeRef) {
-        if (typesManager == null) {
+        if (typesManager == null || RecordRef.isEmpty(typeRef)) {
             return null;
         }
         return typesManager.getType(typeRef);
