@@ -23,6 +23,7 @@ import ru.citeck.ecos.model.EcosModel;
 import ru.citeck.ecos.model.EcosTypeModel;
 import ru.citeck.ecos.model.InvariantsModel;
 import ru.citeck.ecos.model.lib.type.service.TypeRefService;
+import ru.citeck.ecos.model.lib.type.service.utils.TypeUtils;
 import ru.citeck.ecos.node.AlfNodeInfo;
 import ru.citeck.ecos.node.AlfNodeInfoImpl;
 import ru.citeck.ecos.node.EcosTypeService;
@@ -338,7 +339,7 @@ public class AlfNodesRecordsDAO extends LocalRecordsDao
                 props.put(InvariantsModel.PROP_IS_DRAFT, false);
             }
 
-            QName type = getNodeType(record);
+            QName type = getNodeType(record, ecosTypeRef);
             NodeRef parent = getParent(record, type, ecosTypeRef);
             QName parentAssoc = getParentAssoc(record, parent);
 
@@ -543,6 +544,21 @@ public class AlfNodesRecordsDAO extends LocalRecordsDao
                     }
                 }
             }
+        } else {
+
+            String tkType = attributes.get("tk:type").asText();
+            String tkKind = attributes.get("tk:kind").asText();
+
+            if (tkType.startsWith(WORKSPACE_PREFIX)) {
+                String ecosTypeId = tkType.replaceFirst(WORKSPACE_PREFIX, "");
+                if (!ecosTypeId.isEmpty()) {
+                    if (tkKind.startsWith(WORKSPACE_PREFIX)) {
+                        ecosTypeId = ecosTypeId + "/" + tkKind.replaceFirst(WORKSPACE_PREFIX, "");
+                    }
+                    props.put(EcosTypeModel.PROP_TYPE, ecosTypeId);
+                    etype = TypeUtils.getTypeRef(ecosTypeId);
+                }
+            }
         }
 
         attributes.remove(TYPE_ATTRIBUTE_NAME);
@@ -665,7 +681,7 @@ public class AlfNodesRecordsDAO extends LocalRecordsDao
         return ContentModel.ASSOC_CONTAINS;
     }
 
-    private QName getNodeType(RecordMeta record) {
+    private QName getNodeType(RecordMeta record, RecordRef typeRef) {
 
         String type = record.getAttribute(AlfNodeRecord.ATTR_TYPE, "");
         if (type.isEmpty()) {
@@ -674,8 +690,6 @@ public class AlfNodesRecordsDAO extends LocalRecordsDao
         if (!type.isEmpty()) {
             return QName.resolveToQName(namespaceService, type);
         }
-
-        RecordRef typeRef = RecordRef.valueOf(record.getAttribute(RecordConstants.ATT_TYPE, ""));
         return ecosTypeAlfTypeService.getAlfTypeToCreate(typeRef);
     }
 
