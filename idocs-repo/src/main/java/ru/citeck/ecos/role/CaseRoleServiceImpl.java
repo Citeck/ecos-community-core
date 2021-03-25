@@ -118,8 +118,7 @@ public class CaseRoleServiceImpl implements CaseRoleService {
         Map<String, NodeRef> result = new HashMap<>();
 
         RecordRef ecosType = ecosTypeService.getEcosType(caseRef);
-        TypeDto typeDto = typesManager.getType(ecosType);
-        if (isPrioritizingAlfRolesOptionEnabled(typeDto)) {
+        if (isPrioritizingAlfRolesOptionEnabled(ecosType)) {
             result.putAll(getEcosTypeRolesForCase(ecosType, caseRef));
             result.putAll(getAlfRolesForCase(caseRef));
         } else {
@@ -130,14 +129,8 @@ public class CaseRoleServiceImpl implements CaseRoleService {
         return Collections.unmodifiableList(new ArrayList<>(result.values()));
     }
 
-    private boolean isPrioritizingAlfRolesOptionEnabled(TypeDto typeDto) {
-        if (typeDto == null) {
-            return false;
-        }
-        ObjectData properties = typeDto.getProperties();
-        if (properties == null) {
-            return false;
-        }
+    private boolean isPrioritizingAlfRolesOptionEnabled(RecordRef typeRef) {
+        ObjectData properties = ecosTypeService.getResolvedProperties(typeRef);
         String priorityUseAlfRoles = properties.get("priorityUseAlfRoles").asText();
         return BooleanUtils.toBoolean(priorityUseAlfRoles);
     }
@@ -380,8 +373,7 @@ public class CaseRoleServiceImpl implements CaseRoleService {
         NodeRef caseRef = getRoleCaseRef(roleRef);
 
         RecordRef ecosType = ecosTypeService.getEcosType(caseRef);
-        TypeDto typeDto = typesManager.getType(ecosType);
-        if (isPrioritizingAlfRolesOptionEnabled(typeDto) && isAlfRole(roleRef)) {
+        if (isPrioritizingAlfRolesOptionEnabled(ecosType) && isAlfRole(roleRef)) {
             return roleRef;
         }
 
