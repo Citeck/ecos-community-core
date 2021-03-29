@@ -6,6 +6,7 @@ import ecos.com.google.common.cache.LoadingCache;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.alfresco.repo.i18n.MessageService;
+import org.alfresco.repo.transaction.AlfrescoTransactionSupport;
 import org.alfresco.service.ServiceRegistry;
 import org.alfresco.service.cmr.dictionary.DictionaryService;
 import org.alfresco.service.cmr.repository.NodeRef;
@@ -34,7 +35,7 @@ import java.util.stream.Collectors;
 @Slf4j
 public class AlfGqlContext extends GqlContext {
 
-    private LoadingCache<NodeRef, GqlAlfNode> nodes;
+    private LoadingCache<NodeRef, GqlAlfNode> nodesCache;
     private LoadingCache<Object, Optional<GqlQName>> qnames;
 
     private final ServiceRegistry serviceRegistry;
@@ -72,7 +73,7 @@ public class AlfGqlContext extends GqlContext {
 
         statusService = getStatusService(serviceRegistry);
 
-        nodes = CacheBuilder.newBuilder()
+        nodesCache = CacheBuilder.newBuilder()
                             .maximumSize(500)
                             .build(CacheLoader.from(this::createNode));
         qnames = CacheBuilder.newBuilder()
@@ -107,7 +108,10 @@ public class AlfGqlContext extends GqlContext {
         } else if (nodeUtils.isNodeRef(key)) {
             nodeRef = nodeUtils.getNodeRef(key);
         }
-        return nodeRef == null ? Optional.empty() : Optional.of(nodes.getUnchecked(nodeRef));
+        if (nodeRef == null) {
+            return Optional.empty();
+        }
+        return Optional.of(isReadOnlyTxn() ? nodesCache.getUnchecked(nodeRef) : createNode(nodeRef));
     }
 
     private GqlAlfNode createNode(NodeRef nodeRef) {
@@ -169,5 +173,10 @@ public class AlfGqlContext extends GqlContext {
         return (T) servicesCache.computeIfAbsent(beanId, bean ->
             serviceRegistry.getService(QName.createQName(null, beanId))
         );
+    }
+
+    private boolean isReadOnlyTxn() {
+        AlfrescoTransactionSupport.TxnReadState readState = AlfrescoTransactionSupport.getTransactionReadState();
+        return AlfrescoTransactionSupport.TxnReadState.TXN_READ_ONLY.equals(readState);
     }
 }
