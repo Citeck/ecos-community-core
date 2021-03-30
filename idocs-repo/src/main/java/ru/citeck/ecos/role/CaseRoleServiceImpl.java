@@ -267,7 +267,7 @@ public class CaseRoleServiceImpl implements CaseRoleService {
             log.debug("User roles: " + userRoleRefs);
         }
 
-        userRoleRefs.add(ecosRoleToNodeRef(caseRef, RoleConstants.ROLE_ALL));
+        userRoleRefs.add(ecosRoleToNodeRef(caseRef, RoleConstants.ROLE_EVERYONE));
 
         return userRoleRefs;
     }
@@ -396,7 +396,7 @@ public class CaseRoleServiceImpl implements CaseRoleService {
             return getTargets(roleRef, ICaseRoleModel.ASSOC_ASSIGNEES);
         }
 
-        if (RoleConstants.ROLE_ALL.equals(roleRef.getId())) {
+        if (RoleConstants.ROLE_EVERYONE.equals(roleRef.getId())) {
             return Collections.emptySet();
         }
 
