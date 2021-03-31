@@ -17,6 +17,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import ru.citeck.ecos.model.CiteckWorkflowModel;
+import ru.citeck.ecos.utils.NodeUtils;
 
 import java.io.Serializable;
 import java.util.*;
@@ -32,16 +33,19 @@ public class EcosWorkflowService {
     private DictionaryService dictionaryService;
     private NamespaceService namespaceService;
     private NodeService nodeService;
+    private NodeUtils nodeUtils;
 
     @Autowired
     public EcosWorkflowService(@Qualifier("WorkflowService") WorkflowService workflowService,
                                DictionaryService dictionaryService,
                                NamespaceService namespaceService,
-                               NodeService nodeService) {
+                               NodeService nodeService,
+                               NodeUtils nodeUtils) {
         this.workflowService = workflowService;
         this.dictionaryService = dictionaryService;
         this.namespaceService = namespaceService;
         this.nodeService = nodeService;
+        this.nodeUtils = nodeUtils;
     }
 
     public void sendSignal(NodeRef nodeRef, String signalName) {
@@ -189,21 +193,21 @@ public class EcosWorkflowService {
     }
 
     private Serializable convertToNode(Object value) {
-        if (value instanceof String && NodeRef.isNodeRef((String) value)) {
-            return new NodeRef((String) value);
-        } else if (value instanceof ArrayList) {
-            ArrayList<NodeRef> refList = new ArrayList<>();
-            for (Object listObject : (ArrayList) value) {
-                if (listObject instanceof String && NodeRef.isNodeRef((String) listObject)) {
-                    refList.add(new NodeRef((String) listObject));
-                } else if (listObject instanceof NodeRef) {
-                    refList.add((NodeRef) listObject);
+
+        if (value instanceof Collection) {
+            ArrayList<Serializable> values = new ArrayList<>();
+            for (Object element : (Collection<?>) value) {
+                Serializable converted = convertToNode(element);
+                if (converted != null) {
+                    values.add(converted);
                 }
             }
-            return refList;
-        } else {
-            return (Serializable) value;
+            return values;
         }
+        if (value instanceof String && NodeRef.isNodeRef((String) value)) {
+            return nodeUtils.getNodeRefOrNull(value);
+        }
+        return (Serializable) value;
     }
 
     private boolean isNotEmptyValue(Object value) {
