@@ -4,6 +4,6 @@
     "name": "Скачать PDF (со штрихкодом)",
     "type": "open-url",
     "config": {
-        "url": "/share/proxy/alfresco/citeck/contract/pdf-content-with-barcode?recordRef=${recordRef}&barcodeType=Barcode128&barcodeProp=contracts:barcode"
+        "url": "/share/proxy/alfresco/citeck/contract/pdf-content-with-barcode?recordRef=${?localId}&barcodeType=Barcode128&barcodeProp=contracts:barcode"
     }
 }

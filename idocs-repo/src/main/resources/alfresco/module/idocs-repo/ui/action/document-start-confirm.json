@@ -9,7 +9,7 @@
   "icon": null,
   "typeRef": null,
   "config": {
-    "url": "/share/page/start-specified-workflow?packageItems=${recordRef}&workflowId=activiti$confirm"
+    "url": "/share/page/start-specified-workflow?packageItems=${?localId}&workflowId=activiti$confirm"
   },
   "evaluator": {
     "type": "predicate",

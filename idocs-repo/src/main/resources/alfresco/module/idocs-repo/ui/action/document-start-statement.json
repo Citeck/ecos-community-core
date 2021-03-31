@@ -10,7 +10,7 @@
     "type": "open-url",
     "config": {
         "recordRef": "",
-        "url": "/share/page/start-specified-workflow?packageItems=${recordRef}&workflowId=activiti$perform"
+        "url": "/share/page/start-specified-workflow?packageItems=${?localId}&workflowId=activiti$perform"
     },
     "evaluator": null,
     "attributes": {}
