@@ -21,7 +21,8 @@ columns:
     visible: false
 
   - id: idocs:contractorType
-    type: options
+    editor:
+      type: select
 
   - id: idocs:inn
 
