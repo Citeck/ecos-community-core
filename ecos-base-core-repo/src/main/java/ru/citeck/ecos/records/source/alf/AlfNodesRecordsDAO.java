@@ -516,7 +516,6 @@ public class AlfNodesRecordsDAO extends LocalRecordsDao
 
                 etype = RecordRef.valueOf(attrValue);
                 String typeId = etype.getId();
-                props.put(EcosTypeModel.PROP_TYPE, typeId);
 
                 int slashIndex = typeId.indexOf(SLASH_DELIMITER);
 
@@ -550,16 +549,36 @@ public class AlfNodesRecordsDAO extends LocalRecordsDao
             String tkType = attributes.get("tk:type").asText();
             String tkKind = attributes.get("tk:kind").asText();
 
+            if (!tkType.startsWith(WORKSPACE_PREFIX) && tkKind.startsWith(WORKSPACE_PREFIX)) {
+                NodeRef tkKindRef = new NodeRef(tkKind);
+                if (nodeService.exists(tkKindRef)) {
+                    ChildAssociationRef assoc = nodeService.getPrimaryParent(tkKindRef);
+                    if (ContentModel.ASSOC_SUBCATEGORIES.equals(assoc.getTypeQName())) {
+                        tkType = assoc.getParentRef().toString();
+                    }
+                }
+            }
+
             if (tkType.startsWith(WORKSPACE_PREFIX)) {
                 String ecosTypeId = tkType.replaceFirst(WORKSPACE_PREFIX, "");
                 if (!ecosTypeId.isEmpty()) {
                     if (tkKind.startsWith(WORKSPACE_PREFIX)) {
                         ecosTypeId = ecosTypeId + "/" + tkKind.replaceFirst(WORKSPACE_PREFIX, "");
                     }
-                    props.put(EcosTypeModel.PROP_TYPE, ecosTypeId);
                     etype = TypeUtils.getTypeRef(ecosTypeId);
                 }
             }
+        }
+
+        if (RecordRef.isEmpty(etype)) {
+            String typeRefFromOptions = attributes.get("/_formOptions/typeRef").asText();
+            if (StringUtils.isNotBlank(typeRefFromOptions)) {
+                etype = RecordRef.valueOf(typeRefFromOptions);
+            }
+        }
+
+        if (RecordRef.isNotEmpty(etype)) {
+            props.put(EcosTypeModel.PROP_TYPE, etype.getId());
         }
 
         attributes.remove(TYPE_ATTRIBUTE_NAME);
