@@ -13,7 +13,6 @@ import org.alfresco.service.cmr.security.PersonService;
 import org.alfresco.service.namespace.QName;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
-import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.extensions.surf.util.I18NUtil;
@@ -306,7 +305,7 @@ public class DocumentHistoryGet extends AbstractWebScript {
         return titles.computeIfAbsent(Arrays.asList(taskTypeShort, taskDefinitionKey, outcome), itemKey -> {
 
             if (StringUtils.isNotBlank(taskDefinitionKey)) {
-                String key = "flowable.form.button." + taskDefinitionKey + "." + outcome + ".label.";
+                String key = "flowable.form.button." + taskDefinitionKey + "." + outcome + ".label";
                 String title = I18NUtil.getMessage(key);
                 if (StringUtils.isNotBlank(title)) {
                     return title;
