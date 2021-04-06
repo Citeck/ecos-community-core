@@ -180,6 +180,7 @@ public class TaskHistoryListener implements GlobalCreateTaskListener, GlobalAssi
         eventProperties.put(HistoryModel.PROP_TASK_TITLE, (String) delegateTask.getVariable(taskTitleProp));
 
         eventProperties.put(HistoryModel.PROP_TASK_FORM_KEY, delegateTask.getFormKey());
+        eventProperties.put(HistoryModel.PROP_TASK_DEFINITION_KEY, delegateTask.getTaskDefinitionKey());
         eventProperties.put(HistoryModel.PROP_WORKFLOW_INSTANCE_ID, ENGINE_PREFIX + delegateTask.getProcessInstanceId());
         eventProperties.put(HistoryModel.PROP_WORKFLOW_DESCRIPTION, (Serializable) delegateTask.getVariable(VAR_DESCRIPTION));
         eventProperties.put(HistoryModel.ASSOC_INITIATOR, assignee != null ? assignee : HistoryService.SYSTEM_USER);
