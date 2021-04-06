@@ -30,7 +30,6 @@ import org.alfresco.service.cmr.search.ResultSet;
 import org.alfresco.service.cmr.search.SearchParameters;
 import org.alfresco.service.cmr.search.SearchService;
 import org.alfresco.service.cmr.security.AuthenticationService;
-import org.alfresco.service.cmr.security.AuthorityService;
 import org.alfresco.service.cmr.security.PersonService;
 import org.alfresco.service.namespace.QName;
 import org.alfresco.service.transaction.TransactionService;
@@ -96,6 +95,7 @@ public class HistoryService {
     private static final String PROPERTY_NAME = "propertyName";
     private static final String EXPECTED_PERFORM_TIME = "expectedPerformTime";
     private static final String TASK_FORM_KEY = "taskFormKey";
+    private static final String TASK_DEFINITION_KEY = "taskDefinitionKey";
     private static final String DOC_TYPE = "docType";
     private static final String DOC_STATUS_NAME = "docStatusName";
     private static final String DOC_STATUS_TITLE = "docStatusTitle";
@@ -269,6 +269,7 @@ public class HistoryService {
         requestParams.put(FULL_TASK_TYPE, taskType != null ? taskType.toString() : "");
         requestParams.put(TASK_TITLE, properties.get(HistoryModel.PROP_TASK_TITLE));
         requestParams.put(TASK_FORM_KEY, properties.get(HistoryModel.PROP_TASK_FORM_KEY));
+        requestParams.put(TASK_DEFINITION_KEY, properties.get(HistoryModel.PROP_TASK_DEFINITION_KEY));
         /* Workflow properties */
         requestParams.put(INITIATOR, properties.get(HistoryModel.ASSOC_INITIATOR));
         requestParams.put(WORKFLOW_INSTANCE_ID, properties.get(HistoryModel.PROP_WORKFLOW_INSTANCE_ID));

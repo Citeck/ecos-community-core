@@ -174,6 +174,7 @@ public class TaskHistoryListener extends AbstractTaskListener {
         }
 
         eventProperties.put(HistoryModel.PROP_TASK_FORM_KEY, taskFormKey);
+        eventProperties.put(HistoryModel.PROP_TASK_DEFINITION_KEY, null);
         eventProperties.put(HistoryModel.PROP_WORKFLOW_INSTANCE_ID, ACTIVITI_PREFIX + task.getProcessInstanceId());
         eventProperties.put(HistoryModel.PROP_WORKFLOW_DESCRIPTION, (Serializable) task.getExecution().getVariable(
             VAR_DESCRIPTION));
