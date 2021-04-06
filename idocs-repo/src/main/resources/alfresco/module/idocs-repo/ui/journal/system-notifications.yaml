@@ -13,7 +13,7 @@ columns:
     type: text
     name: { ru: Сообщение, en: Message }
 
-  - id: time
+  - id: endTime
     type: datetime
     name: { ru: Дата и время события, en: Event date and time }
 

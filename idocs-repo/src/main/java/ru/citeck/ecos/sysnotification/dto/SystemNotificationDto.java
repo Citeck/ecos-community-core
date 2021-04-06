@@ -16,7 +16,7 @@ import java.time.Instant;
 public class SystemNotificationDto {
     protected String id;
     protected MLText message;
-    protected Instant time;
+    protected Instant endTime;
     protected Instant created;
     protected Instant modified;
 }

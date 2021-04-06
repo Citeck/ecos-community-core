@@ -4,14 +4,14 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import ru.citeck.ecos.records2.request.query.RecordsQuery;
+import ru.citeck.ecos.records2.request.query.RecordsQueryResult;
 import ru.citeck.ecos.sysnotification.dao.SystemNotificationDao;
 import ru.citeck.ecos.sysnotification.dto.SystemNotificationDto;
 import ru.citeck.ecos.sysnotification.service.NoDaoException;
 import ru.citeck.ecos.sysnotification.service.SystemNotificationService;
 
 import java.time.Instant;
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * @author Pavel Tkachenko
@@ -22,10 +22,8 @@ public class SystemNotificationServiceImpl implements SystemNotificationService 
 
     @NotNull
     @Override
-    public List<SystemNotificationDto> get(int maxItems, int skipCount, boolean onlyActive) {
-        return systemNotificationDao != null
-            ? systemNotificationDao.get(maxItems, skipCount, onlyActive)
-            : new ArrayList<>();
+    public RecordsQueryResult<SystemNotificationDto> get(@NotNull RecordsQuery recordsQuery) {
+        return systemNotificationDao != null ? systemNotificationDao.get(recordsQuery) : new RecordsQueryResult<>();
     }
 
     @Nullable
@@ -55,11 +53,6 @@ public class SystemNotificationServiceImpl implements SystemNotificationService 
         if (systemNotificationDao != null) {
             systemNotificationDao.delete(id);
         }
-    }
-
-    @Override
-    public long getTotalCount() {
-        return systemNotificationDao != null ? systemNotificationDao.getTotalCount() : 0;
     }
 
     @Autowired(required = false)

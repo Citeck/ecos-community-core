@@ -20,14 +20,13 @@ import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import static org.junit.Assert.*;
 
 public class SystemNotificationTest {
     private static final String SOURCE_ID = "system-notification";
     private static final String MESSAGE_ATTR = "message";
-    public static final String TIME_ATTR = "time";
+    public static final String TIME_ATTR = "endTime";
 
     @Test
     public void test() {
@@ -90,18 +89,21 @@ public class SystemNotificationTest {
 
         @NotNull
         @Override
-        public List<SystemNotificationDto> get(int maxItems, int skipCount, boolean onlyActive) {
-            List<SystemNotificationDto> filteredRecords = onlyActive
-                ? records.stream()
-                .filter(r -> (r.getTime() != null) && (r.getTime().toEpochMilli() > Instant.now().toEpochMilli()))
-                .collect(Collectors.toList())
-                : records;
-
-            int indexTo = (maxItems < 0) || (skipCount + maxItems > filteredRecords.size())
-                ? filteredRecords.size()
+        public RecordsQueryResult<SystemNotificationDto> get(@NotNull RecordsQuery recordsQuery) {
+            int totalCount = records.size();
+            int maxItems = recordsQuery.getMaxItems();
+            int skipCount = recordsQuery.getSkipCount();
+            int indexTo = (maxItems < 0) || (skipCount + maxItems > records.size())
+                ? records.size()
                 : skipCount + maxItems;
+            List<SystemNotificationDto> resultRecords = records.subList(skipCount, indexTo);
 
-            return filteredRecords.subList(skipCount, indexTo);
+            RecordsQueryResult<SystemNotificationDto> result = new RecordsQueryResult<>();
+            result.setRecords(resultRecords);
+            result.setTotalCount(totalCount);
+            result.setHasMore((maxItems >= 0) && (totalCount > maxItems + skipCount));
+
+            return result;
         }
 
         @Nullable
@@ -131,11 +133,6 @@ public class SystemNotificationTest {
                     break;
                 }
             }
-        }
-
-        @Override
-        public long getTotalCount() {
-            return records.size();
         }
     }
 }
