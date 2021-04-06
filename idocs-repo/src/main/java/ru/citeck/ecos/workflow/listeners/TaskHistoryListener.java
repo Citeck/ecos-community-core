@@ -41,7 +41,6 @@ import ru.citeck.ecos.history.TaskHistoryUtils;
 import ru.citeck.ecos.model.CiteckWorkflowModel;
 import ru.citeck.ecos.model.HistoryModel;
 import ru.citeck.ecos.model.ICaseTaskModel;
-import ru.citeck.ecos.records2.RecordsService;
 import ru.citeck.ecos.service.CiteckServices;
 
 import java.io.Serializable;
@@ -173,6 +172,7 @@ public class TaskHistoryListener extends AbstractTaskListener {
         }
 
         eventProperties.put(HistoryModel.PROP_TASK_FORM_KEY, taskFormKey);
+        eventProperties.put(HistoryModel.PROP_TASK_DEFINITION_KEY, null);
         eventProperties.put(HistoryModel.PROP_WORKFLOW_INSTANCE_ID, ACTIVITI_PREFIX + task.getProcessInstanceId());
         eventProperties.put(HistoryModel.PROP_WORKFLOW_DESCRIPTION, (Serializable) task.getExecution().getVariable(
             VAR_DESCRIPTION));
