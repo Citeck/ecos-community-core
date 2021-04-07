@@ -11,6 +11,7 @@ public class FlowableConstants {
     public static final String SERVICE_REGISTRY_BEAN_KEY = "serviceRegistry";
     public static final String NOTIFICATION_SERVICE_BEAN_KEY = "ecosNotificationService";
     public static final String GLOBAL_PROPERTIES_BEAN_KEY = "global-properties";
+    public static final String FLOWABLE_EMAIL_SENDER_BEAN_KEY = "ecosFlowableEmailSender";
 
     public static final String COMPLETENESS_SERVICE_JS_KEY = "completeness";
     public static final String CASE_STATUS_SERVICE_JS_KEY = "caseStatusService";
