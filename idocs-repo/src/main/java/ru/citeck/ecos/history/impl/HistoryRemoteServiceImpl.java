@@ -61,9 +61,9 @@ public class HistoryRemoteServiceImpl implements HistoryRemoteService {
      * Constants
      */
     private static final String[] KEYS = {
-            "historyEventId", "documentId", "eventType", "comments", "version", "creationTime", "username", "userId",
-            "taskRole", "taskOutcome", "taskType", "fullTaskType", "initiator", "workflowInstanceId", "workflowDescription",
-            "taskEventInstanceId", "documentVersion", "propertyName", "expectedPerformTime"
+        "historyEventId", "documentId", "eventType", "comments", "version", "creationTime", "username", "userId",
+        "taskRole", "taskOutcome", "taskType", "fullTaskType", "initiator", "workflowInstanceId", "workflowDescription",
+        "taskEventInstanceId", "documentVersion", "propertyName", "expectedPerformTime", "taskTitle", "taskDefinitionKey"
     };
     private static final String HISTORY_RECORD_FILE_NAME = "history_record";
     private static final String DELIMITER = "||";
@@ -291,32 +291,32 @@ public class HistoryRemoteServiceImpl implements HistoryRemoteService {
         entryMap.put(DocumentHistoryConstants.DOCUMENT_ID.getValue(), documentRef.getId());
         entryMap.put(DocumentHistoryConstants.NODE_REF.getValue(), eventRef.getId());
         entryMap.put(DocumentHistoryConstants.EVENT_TYPE.getValue(),
-                nodeService.getProperty(eventRef, HistoryModel.PROP_NAME));
+            nodeService.getProperty(eventRef, HistoryModel.PROP_NAME));
         entryMap.put(DocumentHistoryConstants.DOCUMENT_VERSION.getValue(),
-                nodeService.getProperty(eventRef, HistoryModel.PROP_DOCUMENT_VERSION));
+            nodeService.getProperty(eventRef, HistoryModel.PROP_DOCUMENT_VERSION));
         entryMap.put(DocumentHistoryConstants.COMMENTS.getValue(),
-                nodeService.getProperty(eventRef, HistoryModel.PROP_TASK_COMMENT));
+            nodeService.getProperty(eventRef, HistoryModel.PROP_TASK_COMMENT));
         entryMap.put(DocumentHistoryConstants.DOCUMENT_DATE.getValue(),
-                importDateFormat.format((Date) nodeService.getProperty(eventRef, HistoryModel.PROP_DATE)));
+            importDateFormat.format((Date) nodeService.getProperty(eventRef, HistoryModel.PROP_DATE)));
         entryMap.put(DocumentHistoryConstants.TASK_ROLE.getValue(),
-                nodeService.getProperty(eventRef, HistoryModel.PROP_TASK_ROLE));
+            nodeService.getProperty(eventRef, HistoryModel.PROP_TASK_ROLE));
         entryMap.put(DocumentHistoryConstants.TASK_OUTCOME.getValue(),
-                nodeService.getProperty(eventRef, HistoryModel.PROP_TASK_OUTCOME));
+            nodeService.getProperty(eventRef, HistoryModel.PROP_TASK_OUTCOME));
         entryMap.put(DocumentHistoryConstants.TASK_INSTANCE_ID.getValue(),
-                nodeService.getProperty(eventRef, HistoryModel.PROP_TASK_INSTANCE_ID));
+            nodeService.getProperty(eventRef, HistoryModel.PROP_TASK_INSTANCE_ID));
         QName taskType = (QName) nodeService.getProperty(eventRef, HistoryModel.PROP_TASK_TYPE);
         entryMap.put(DocumentHistoryConstants.TASK_TYPE.getValue(), taskType != null ? taskType.getLocalName() : "");
         entryMap.put(FULL_TASK_TYPE, taskType != null ? taskType.toString() : "");
 
         ArrayList<NodeRef> attachments = (ArrayList<NodeRef>) nodeService.getProperty(eventRef,
-                HistoryModel.PROP_TASK_ATTACHMENTS);
+            HistoryModel.PROP_TASK_ATTACHMENTS);
         entryMap.put(DocumentHistoryConstants.TASK_ATTACHMENTS.getValue(),
-                Optional.ofNullable(attachments).orElse(new ArrayList<>()));
+            Optional.ofNullable(attachments).orElse(new ArrayList<>()));
 
         ArrayList<NodeRef> pooledActors = (ArrayList<NodeRef>) nodeService.getProperty(eventRef,
-                HistoryModel.PROP_TASK_POOLED_ACTORS);
+            HistoryModel.PROP_TASK_POOLED_ACTORS);
         entryMap.put(DocumentHistoryConstants.TASK_POOLED_ACTORS.getValue(),
-                Optional.ofNullable(pooledActors).orElse(new ArrayList<>()));
+            Optional.ofNullable(pooledActors).orElse(new ArrayList<>()));
 
         /* Workflow */
         entryMap.put(WORKFLOW_INSTANCE_ID, nodeService.getProperty(eventRef, HistoryModel.PROP_WORKFLOW_INSTANCE_ID));
@@ -329,7 +329,7 @@ public class HistoryRemoteServiceImpl implements HistoryRemoteService {
         NodeRef taskNodeRef = (NodeRef) nodeService.getProperty(eventRef, HistoryModel.PROP_CASE_TASK);
         if (taskNodeRef != null) {
             Integer expectedPerformTime = (Integer) nodeService.getProperty(taskNodeRef,
-                    ActivityModel.PROP_EXPECTED_PERFORM_TIME);
+                ActivityModel.PROP_EXPECTED_PERFORM_TIME);
             entryMap.put(EXPECTED_PERFORM_TIME, expectedPerformTime != null ? expectedPerformTime.toString() : null);
         }
         /* Username and user id */
@@ -382,14 +382,14 @@ public class HistoryRemoteServiceImpl implements HistoryRemoteService {
         /* Create file */
         String currentDate = dateFormat.format(new Date());
         File csvFile = new File(properties.getProperty(CSV_RESULT_FOLDER, DEFAULT_RESULT_CSV_FOLDER)
-                + HISTORY_RECORD_FILE_NAME + currentDate + ".csv");
+            + HISTORY_RECORD_FILE_NAME + currentDate + ".csv");
         try {
             Files.write(
-                    Paths.get(csvFile.toURI()),
-                    csvResult.toString().getBytes(),
-                    StandardOpenOption.APPEND,
-                    StandardOpenOption.CREATE,
-                    StandardOpenOption.SYNC
+                Paths.get(csvFile.toURI()),
+                csvResult.toString().getBytes(),
+                StandardOpenOption.APPEND,
+                StandardOpenOption.CREATE,
+                StandardOpenOption.SYNC
             );
         } catch (IOException e) {
             logger.error(e);
@@ -409,7 +409,7 @@ public class HistoryRemoteServiceImpl implements HistoryRemoteService {
             setUseNewHistoryStatus(documentNodeRef, newStatus);
         } catch (Exception e) {
             logger.error("Unexpected error with args documentNodeRef = " + documentNodeRef +
-                    ", newStatus = " + newStatus, e);
+                ", newStatus = " + newStatus, e);
         }
     }
 
