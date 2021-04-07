@@ -15,6 +15,7 @@ import org.apache.log4j.Logger;
 import org.flowable.common.engine.impl.interceptor.CommandInterceptor;
 import org.flowable.engine.FormService;
 import org.flowable.engine.ProcessEngineConfiguration;
+import org.flowable.engine.impl.bpmn.behavior.email.FlowableEmailSender;
 import org.flowable.engine.parse.BpmnParseHandler;
 import org.flowable.spring.SpringProcessEngineConfiguration;
 import org.flowable.variable.api.types.VariableType;
@@ -216,11 +217,14 @@ public class FlowableConfiguration {
         NotificationService notificationService = applicationContext.getBean(
             BEAN_KEY_SYSTEM_ALF_NOTIFICATION_SERVICE, NotificationService.class);
 
+        FlowableEmailSender flowableEmailSender = applicationContext.getBean(FlowableEmailSender.class);
+
         beans.put(FlowableConstants.SERVICE_REGISTRY_BEAN_KEY, descriptorRegistry);
         beans.put(FlowableConstants.COMPLETENESS_SERVICE_JS_KEY, caseCompletenessServiceJS);
         beans.put(FlowableConstants.CASE_STATUS_SERVICE_JS_KEY, caseStatusServiceJS);
         beans.put(FlowableConstants.GLOBAL_PROPERTIES_BEAN_KEY, properties);
         beans.put(FlowableConstants.NOTIFICATION_SERVICE_BEAN_KEY, notificationService);
+        beans.put(FlowableConstants.FLOWABLE_EMAIL_SENDER_BEAN_KEY, flowableEmailSender);
 
         Map<String, FlowableEngineProcessService> engineProcessServices = applicationContext.getBeansOfType(
                 FlowableEngineProcessService.class);
