@@ -259,8 +259,8 @@ public class ValuePredicateToFtsConverter implements PredicateToFtsConverter {
             .map(Map.Entry::getKey).collect(Collectors.toList());
     }
 
-    private String getPredicateValue(Object value, String valueStr, ClassAttributeDefinition classAttributeDefinition) {
-        if (!(value instanceof String)) {
+    private String getPredicateValue(DataValue value, String valueStr, ClassAttributeDefinition classAttributeDefinition) {
+        if (!value.isTextual()) {
             return valueStr;
         }
 
