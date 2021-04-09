@@ -103,6 +103,9 @@ public class AuthorityUtils {
         if (authority == null) {
             return null;
         }
+        if (authority.startsWith("alfresco/@")){
+            authority = authority.replace("alfresco/@", "");
+        }
         if (authority.startsWith("workspace://SpacesStore/")) {
             return new NodeRef(authority);
         }
