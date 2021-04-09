@@ -412,6 +412,36 @@
             </properties>
         </aspect>
 
+        <aspect name="icase:legacyEditorTemplateAspect">
+            <properties>
+                <property name="icase:legacyEditorOriginalTemplateRef">
+                    <type>d:text</type>
+                </property>
+                <property name="icase:legacyEditorLastUpdated">
+                    <type>d:datetime</type>
+                </property>
+                <property name="icase:legacyEditorTemplateOwner">
+                    <type>d:text</type>
+                </property>
+            </properties>
+            <associations>
+                <child-association name="icase:legacyEditorTemplateNodeAssoc">
+                    <source>
+                        <mandatory>false</mandatory>
+                        <many>true</many>
+                    </source>
+                    <target>
+                        <class>sys:base</class>
+                        <mandatory>false</mandatory>
+                        <many>true</many>
+                    </target>
+                </child-association>
+            </associations>
+            <mandatory-aspects>
+                <aspect>sys:temporary</aspect>
+                <aspect>icase:case</aspect>
+            </mandatory-aspects>
+        </aspect>
     </aspects>
 
 </model>

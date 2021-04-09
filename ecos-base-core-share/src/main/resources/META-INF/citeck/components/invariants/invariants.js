@@ -540,6 +540,9 @@ define([
                                 }
                                 var item = node[key];
                                 if (key === "id") {
+                                    if (item) {
+                                        item = item.replace("alfresco/@workspace://", "workspace://");
+                                    }
                                     record['nodeRef'] = item;
                                 } else {
                                     record.attributes[item.name] = (item.val || []).map(function (it) {

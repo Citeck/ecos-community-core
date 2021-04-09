@@ -7,6 +7,7 @@ import org.alfresco.service.cmr.dictionary.*;
 import org.alfresco.service.cmr.repository.NodeRef;
 import org.alfresco.service.namespace.NamespaceService;
 import org.alfresco.service.namespace.QName;
+import org.apache.commons.lang3.StringUtils;
 import ru.citeck.ecos.commons.data.MLText;
 import ru.citeck.ecos.graphql.AlfGqlContext;
 import ru.citeck.ecos.records.RecordsUtils;
@@ -116,7 +117,11 @@ public class AlfNodeMetaEdge extends SimpleMetaEdge {
                 CreateVariant createVariant = new CreateVariant();
                 String prefixStr = typeName.toPrefixString(namespaceService);
                 createVariant.setRecordRef(RecordRef.create("dict", prefixStr));
-                createVariant.setLabel(new MLText(typeDef.getTitle(messageService)));
+                String title = typeDef.getTitle(messageService);
+                if (StringUtils.isBlank(title)) {
+                    title = typeDef.getName().toPrefixString(namespaceService);
+                }
+                createVariant.setLabel(new MLText(title));
 
                 return createVariant;
             }).collect(Collectors.toList());

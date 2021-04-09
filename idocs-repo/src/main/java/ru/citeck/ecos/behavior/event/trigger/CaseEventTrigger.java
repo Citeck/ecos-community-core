@@ -61,6 +61,9 @@ public class CaseEventTrigger implements NodeServicePolicies.OnUpdatePropertiesP
     @Override
     public void onUpdateProperties(NodeRef caseRef, Map<QName, Serializable> before, Map<QName, Serializable> after) {
         if (NodeUtils.exists(caseRef, nodeService)) {
+            if (nodeService.hasAspect(caseRef, ICaseModel.ASPECT_LEGACY_EDITOR_TEMPLATE)) {
+                return;
+            }
             ActivityRef rootActivityRef = activityCommonService.composeRootActivityRef(caseRef);
             caseActivityEventService.fireEvent(rootActivityRef, ICaseEventModel.CONSTR_CASE_PROPERTIES_CHANGED);
         }

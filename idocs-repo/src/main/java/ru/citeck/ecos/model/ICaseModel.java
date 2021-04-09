@@ -42,6 +42,7 @@ public interface ICaseModel {
     QName ASPECT_CASE_TEMPLATE = QName.createQName(NAMESPACE, "caseTemplate");
     QName ASPECT_COPIED_FROM_TEMPLATE = QName.createQName(NAMESPACE, "copiedFromTemplate");
     QName ASPECT_HAS_DOCUMENTS = QName.createQName(NAMESPACE, "hasDocuments");
+    QName ASPECT_LEGACY_EDITOR_TEMPLATE = QName.createQName(NAMESPACE, "legacyEditorTemplateAspect");
 
     // properties
     QName PROP_CASE_CLASS = QName.createQName(NAMESPACE, "caseClass");
@@ -60,6 +61,10 @@ public interface ICaseModel {
     QName PROP_CASE_ECOS_KIND = QName.createQName(NAMESPACE, "caseEcosKind");
     QName PROP_CASE_ECOS_TYPE = QName.createQName(NAMESPACE, "caseEcosType");
     QName PROP_LAST_CHANGED_DATE = QName.createQName(NAMESPACE, "lastChangedDate");
+
+    QName PROP_LEGACY_EDITOR_ORIGINAL_TEMPLATE_REF = QName.createQName(NAMESPACE, "legacyEditorOriginalTemplateRef");
+    QName PROP_LEGACY_EDITOR_LAST_UPDATED = QName.createQName(NAMESPACE, "legacyEditorLastUpdated");
+    QName PROP_LEGACY_EDITOR_TEMPLATE_OWNER = QName.createQName(NAMESPACE, "legacyEditorTemplateOwner");
 
     // icase:subcase
     QName ASPECT_SUBCASE = QName.createQName(NAMESPACE, "subcase");
@@ -93,4 +98,5 @@ public interface ICaseModel {
     QName ASSOC_CASE_STATUS_BEFORE_PROP = QName.createQName(NAMESPACE, "caseStatusBeforeAssoc-prop");
 
     QName ASSOC_DOCUMENTS = QName.createQName(NAMESPACE, "documents");
+    QName ASSOC_LEGACY_EDITOR_TEMPLATE_NODE_ASSOC = QName.createQName(NAMESPACE, "legacyEditorTemplateNodeAssoc");
 }

@@ -46,6 +46,9 @@ public class CMMNUtils implements ContentValueConverter {
     private static final String CASE_ROLES_ROOT_PATH = "app:company_home/app:dictionary/cm:dataLists/cm:case-role";
 
     public static final String NAMESPACE = "http://www.citeck.ru/ecos/case/cmmn/1.0";
+    public static final String NAMESPACE_ECOS = "http://www.citeck.ru/ecos/cmmn/1.0";
+
+    public static final QName QNAME_PROC_DEF_ID = new QName(NAMESPACE_ECOS, "processDefId");
 
     public static final QName QNAME_NODE_TYPE = new QName(NAMESPACE, "nodeType");
     public static final QName QNAME_SOURCE_ID = new QName(NAMESPACE, "sourceId");

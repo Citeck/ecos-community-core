@@ -26,6 +26,7 @@ import org.springframework.extensions.surf.util.I18NUtil;
 import org.springframework.extensions.surf.util.ParameterCheck;
 import ru.citeck.ecos.commons.data.MLText;
 import ru.citeck.ecos.commons.data.ObjectData;
+import ru.citeck.ecos.model.ICaseModel;
 import ru.citeck.ecos.model.lib.role.constants.RoleConstants;
 import ru.citeck.ecos.model.lib.role.dto.RoleDef;
 import ru.citeck.ecos.model.lib.role.service.RoleService;
@@ -484,6 +485,9 @@ public class CaseRoleServiceImpl implements CaseRoleService {
     @Override
     public void updateRoles(final NodeRef caseRef) {
         AuthenticationUtil.runAsSystem(() -> {
+            if (nodeService.hasAspect(caseRef, ICaseModel.ASPECT_LEGACY_EDITOR_TEMPLATE)) {
+                return null;
+            }
             Collection<NodeRef> roles = getRoles(caseRef);
             for (NodeRef roleRef : roles) {
                 updateRoleImpl(caseRef, roleRef);

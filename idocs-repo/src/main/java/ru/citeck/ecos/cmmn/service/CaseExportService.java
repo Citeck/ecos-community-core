@@ -1,5 +1,6 @@
 package ru.citeck.ecos.cmmn.service;
 
+import lombok.SneakyThrows;
 import org.alfresco.model.ContentModel;
 import org.alfresco.service.cmr.dictionary.DictionaryService;
 import org.alfresco.service.cmr.repository.NodeRef;
@@ -66,6 +67,24 @@ public class CaseExportService {
      * Returns marshaled case xml data as byte array
      */
     public byte[] exportCase(NodeRef caseNodeRef) {
+
+        Definitions definitions = exportCaseDefinition(caseNodeRef);
+        try {
+            return writeToBytes(definitions);
+        } catch (Throwable t) {
+            log.error("Cannot export node: " + caseNodeRef, t);
+            throw new CmmnExportImportException("Cannot export node: " + caseNodeRef, t);
+        }
+    }
+
+    @SneakyThrows
+    public byte[] writeToBytes(Definitions definitions) {
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        configDAO.write(definitions, out);
+        return out.toByteArray();
+    }
+
+    public Definitions exportCaseDefinition(NodeRef caseNodeRef) {
         try {
             Map<QName, Serializable> sourcePropertyMap = nodeService.getProperties(caseNodeRef);
 
@@ -92,10 +111,7 @@ public class CaseExportService {
             definitions.getCase().add(caseItem);
             definitions.setTargetNamespace(CMMNUtils.NAMESPACE);
 
-            ByteArrayOutputStream out = new ByteArrayOutputStream();
-            configDAO.write(definitions, out);
-
-            return out.toByteArray();
+            return definitions;
 
         } catch (Throwable t) {
             log.error("Cannot export node: " + caseNodeRef, t);
