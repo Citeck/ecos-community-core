@@ -7,12 +7,10 @@ import ru.citeck.ecos.records2.RecordRef;
 public interface CmmnLegacyEditorTemplateDao {
 
     @NotNull
-    NodeRef createTempCase(@NotNull RecordRef templateRef);
+    NodeRef createTempCase(@NotNull RecordRef templateRef, @NotNull RecordRef typeRef);
 
     @NotNull
     NodeRef createTemplateNode(@NotNull NodeRef tempCaseNode);
-
-    void updateTempCaseNode(@NotNull NodeRef tempNode);
 
     void deleteTempCaseNode(@NotNull NodeRef tempCaseNode);
 

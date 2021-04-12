@@ -1,7 +1,8 @@
 package ru.citeck.ecos.cmmn.legacyeditor.service;
 
+import lombok.AllArgsConstructor;
+import lombok.Data;
 import lombok.RequiredArgsConstructor;
-import org.alfresco.repo.policy.BehaviourFilter;
 import org.alfresco.service.cmr.repository.NodeRef;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
@@ -20,6 +21,7 @@ import ru.citeck.ecos.icase.element.CaseElementService;
 import ru.citeck.ecos.records2.RecordRef;
 import ru.citeck.ecos.records3.RecordsService;
 import ru.citeck.ecos.records3.RecordsServiceFactory;
+import ru.citeck.ecos.records3.record.atts.schema.annotation.AttName;
 import ru.citeck.ecos.records3.record.request.RequestContext;
 
 import javax.xml.namespace.QName;
@@ -43,11 +45,11 @@ public class CmmnLegacyEditorService {
     @NotNull
     public NodeRef getTempCaseWithTemplate(@NotNull RecordRef templateRef) {
 
-        Definitions definitions = readTemplateDefinition(templateRef);
-        validateDefinition(definitions, templateRef);
+        TemplateInfo templateInfo = readTemplateInfo(templateRef);
+        validateDefinition(templateInfo.definition, templateRef);
 
-        NodeRef newTempCase = templateDao.createTempCase(templateRef);
-        caseXmlService.copyTemplateToCase(definitions, newTempCase);
+        NodeRef newTempCase = templateDao.createTempCase(templateRef, templateInfo.ecosTypeRef);
+        caseXmlService.copyTemplateToCase(templateInfo.definition, newTempCase);
 
         return newTempCase;
     }
@@ -69,7 +71,7 @@ public class CmmnLegacyEditorService {
         caseElementService.copyCaseToTemplate(tempCaseNode, cmmnTemplateNode);
 
         Definitions newDefinition = caseExportService.exportCaseDefinition(cmmnTemplateNode);
-        Definitions definitionToSave = readTemplateDefinition(originalTemplateRef);
+        Definitions definitionToSave = readTemplateInfo(originalTemplateRef).definition;
 
         definitionToSave.getCase().get(0).setCasePlanModel(newDefinition.getCase().get(0).getCasePlanModel());
         definitionToSave.getCase().get(0).setCaseRoles(newDefinition.getCase().get(0).getCaseRoles());
@@ -116,10 +118,11 @@ public class CmmnLegacyEditorService {
         }
     }
 
-    private Definitions readTemplateDefinition(RecordRef templateRef) {
+    private TemplateInfo readTemplateInfo(RecordRef templateRef) {
 
-        String templateBase64Content = recordsService.getAtt(templateRef, "data?str").asText();
+        TemplateAtts templateAtts = recordsService.getAtts(templateRef, TemplateAtts.class);
 
+        String templateBase64Content = templateAtts.data;
         String incorrectTemplateMsg = "Incorrect template: " + templateRef + ". ";
         if (StringUtils.isBlank(templateBase64Content)) {
             throw new RuntimeException(incorrectTemplateMsg + "Content can't be received.");
@@ -132,12 +135,26 @@ public class CmmnLegacyEditorService {
             throw new RuntimeException(incorrectTemplateMsg + "definitions is null");
         }
 
-        return definitions;
+        return new TemplateInfo(definitions, templateAtts.ecosType);
     }
 
     @Autowired
     @Qualifier("caseTemplateContentDAO")
     public void setCmmnXmlContentDao(XmlContentDAO<Definitions> cmmnXmlContentDao) {
         this.cmmnXmlContentDao = cmmnXmlContentDao;
+    }
+
+    @Data
+    @AllArgsConstructor
+    public static class TemplateInfo {
+        private Definitions definition;
+        private RecordRef ecosTypeRef;
+    }
+
+    @Data
+    public static class TemplateAtts {
+        @AttName("data?str")
+        private String data;
+        private RecordRef ecosType;
     }
 }

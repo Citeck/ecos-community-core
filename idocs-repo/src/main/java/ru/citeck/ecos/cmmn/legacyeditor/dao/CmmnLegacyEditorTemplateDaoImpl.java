@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.alfresco.model.ContentModel;
 import org.alfresco.repo.policy.BehaviourFilter;
 import org.alfresco.repo.security.authentication.AuthenticationUtil;
+import org.alfresco.service.cmr.repository.MLText;
 import org.alfresco.service.cmr.repository.NodeRef;
 import org.alfresco.service.cmr.repository.NodeService;
 import org.alfresco.service.cmr.search.SearchService;
@@ -13,17 +14,16 @@ import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
+import ru.citeck.ecos.model.EcosTypeModel;
 import ru.citeck.ecos.model.ICaseModel;
 import ru.citeck.ecos.records2.RecordRef;
 import ru.citeck.ecos.search.ftsquery.FTSQuery;
+import ru.citeck.ecos.utils.EcosU18NUtils;
 
 import java.io.Serializable;
 import java.sql.Date;
 import java.time.Instant;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 
 @Component
 @RequiredArgsConstructor(onConstructor_={@Autowired})
@@ -39,7 +39,7 @@ public class CmmnLegacyEditorTemplateDaoImpl implements CmmnLegacyEditorTemplate
 
     @NotNull
     @Override
-    public NodeRef createTempCase(@NotNull RecordRef templateRef) {
+    public NodeRef createTempCase(@NotNull RecordRef templateRef, @NotNull RecordRef typeRef) {
 
         String currentUser = AuthenticationUtil.getFullyAuthenticatedUser();
 
@@ -58,11 +58,22 @@ public class CmmnLegacyEditorTemplateDaoImpl implements CmmnLegacyEditorTemplate
 
         QName assocName = QName.createQName(NamespaceService.SYSTEM_MODEL_1_0_URI, UUID.randomUUID().toString());
 
+        Map<QName, Serializable> initialProps = new HashMap<>();
+
+        MLText title = new MLText();
+        title.addValue(Locale.ENGLISH, "Case");
+        title.addValue(EcosU18NUtils.RUSSIAN, "Кейс");
+        initialProps.put(ContentModel.PROP_TITLE, title);
+
+        if (RecordRef.isNotEmpty(typeRef)) {
+            initialProps.put(EcosTypeModel.PROP_TYPE, typeRef.getId());
+        }
         NodeRef tempNode = nodeService.createNode(
             ROOT_REF,
             ContentModel.ASSOC_CHILDREN,
             assocName,
-            ContentModel.TYPE_BASE
+            ContentModel.TYPE_BASE,
+            initialProps
         ).getChildRef();
 
         Map<QName, Serializable> props = new HashMap<>();
@@ -87,11 +98,6 @@ public class CmmnLegacyEditorTemplateDaoImpl implements CmmnLegacyEditorTemplate
             assocName,
             ICaseModel.TYPE_CASE_TEMPLATE
         ).getChildRef();
-    }
-
-    @Override
-    public void updateTempCaseNode(@NotNull NodeRef tempNode) {
-        nodeService.setProperty(tempNode, ICaseModel.PROP_LEGACY_EDITOR_LAST_UPDATED, Date.from(Instant.now()));
     }
 
     @NotNull
