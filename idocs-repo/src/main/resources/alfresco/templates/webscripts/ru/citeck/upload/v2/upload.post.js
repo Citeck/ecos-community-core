@@ -234,6 +234,9 @@ function main() {
             /**
              * Update existing file specified in updateNodeRef
              */
+            if (updateNodeRef.startsWith("alfresco/@")){
+                updateNodeRef = updateNodeRef.replace("alfresco/@", "");
+            }
             var updateNode = search.findNode(updateNodeRef);
             if (updateNode === null) {
                 exitUpload(404, "Node specified by updateNodeRef (" + updateNodeRef + ") not found.");
