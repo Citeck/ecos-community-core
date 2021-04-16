@@ -66,13 +66,14 @@ public class ValuePredicateToFtsConverter implements PredicateToFtsConverter {
 
         DataValue objectPredicateValue = valuePredicate.getValue();
         String predicateValue = objectPredicateValue.asText();
+        ValuePredicate.Type predicateType = valuePredicate.getType();
 
         switch (attribute) {
             case ALL: {
                 processAllAttribute(query, predicateValue);
                 break;
             }
-            case ECOS_STATUS:{
+            case ECOS_STATUS: {
                 processEcosStatusAttribute(query, predicateValue);
                 break;
             }
@@ -92,7 +93,7 @@ public class ValuePredicateToFtsConverter implements PredicateToFtsConverter {
             }
             case _TYPE:
             case _ETYPE: {
-                handleETypeAttribute(query, predicateValue);
+                handleETypeAttribute(query, predicateType, predicateValue);
                 break;
             }
             case ASPECT:
@@ -277,7 +278,7 @@ public class ValuePredicateToFtsConverter implements PredicateToFtsConverter {
         return value;
     }
 
-    private void handleETypeAttribute(FTSQuery query, String value) {
+    private void handleETypeAttribute(FTSQuery query, ValuePredicate.Type predicateType, String value) {
         if (StringUtils.isBlank(value)) {
             return;
         }
@@ -301,10 +302,10 @@ public class ValuePredicateToFtsConverter implements PredicateToFtsConverter {
             query.and().value(PROP_DOCUMENT_KIND, documentKindValue);
         }
 
-        query.or().value(EcosTypeModel.PROP_TYPE, typeRecId);
+        query.or().value(EcosTypeModel.PROP_TYPE, typeRecId, EQ.equals(predicateType));
 
         ecosTypeService.getDescendantTypes(typeRef).forEach(type ->
-            query.or().value(EcosTypeModel.PROP_TYPE, type.getId())
+            query.or().value(EcosTypeModel.PROP_TYPE, type.getId(), EQ.equals(predicateType))
         );
 
         query.close();
@@ -429,7 +430,7 @@ public class ValuePredicateToFtsConverter implements PredicateToFtsConverter {
         ValuePredicate.Type valuePredType = valuePredicate.getType();
 
         ComposedPredicate composedPredicate = getAdvantageComposedPredicate(valuePredType,
-                                                                            predicateValue, attribute, attDef);
+            predicateValue, attribute, attDef);
         if (composedPredicate != null) {
             delegator.delegate(composedPredicate, query, context);
             return;
@@ -477,7 +478,7 @@ public class ValuePredicateToFtsConverter implements PredicateToFtsConverter {
                                                             String attribute, ClassAttributeDefinition attDef) {
         boolean valueContainsComma = predicateValue.contains(COMMA_DELIMITER);
         boolean valueEqualEq = EQ.equals(valuePredType);
-        boolean valueEqualEqOrContainsPredType =  valueEqualEq || CONTAINS.equals(valuePredType);
+        boolean valueEqualEqOrContainsPredType = valueEqualEq || CONTAINS.equals(valuePredType);
 
         if (valueContainsComma && valueEqualEqOrContainsPredType) {
             ComposedPredicate orPredicate = new OrPredicate();
