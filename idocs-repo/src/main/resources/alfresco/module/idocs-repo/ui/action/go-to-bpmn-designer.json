@@ -1,0 +1,12 @@
+{
+  "id": "go-to-bpmn-designer",
+  "name": {
+    "ru": "Перейти ко всем моделям",
+    "en": "Go to all models"
+  },
+  "type": "open-url",
+  "config": {
+    "url": "/v2/admin?type=BPM",
+    "withinEcosTab": true
+  }
+}

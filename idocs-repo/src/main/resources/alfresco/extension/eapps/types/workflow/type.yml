@@ -1,10 +1,13 @@
 
 model-version: "1.0"
 
+name:
+  ru: Бизнес-процесс
+  en: Workflow
+
 source-id: ""
 
-# return 'false' value when processes will deploy to ecos-process
-internal: true
+internal: false
 
 controller:
     type: script

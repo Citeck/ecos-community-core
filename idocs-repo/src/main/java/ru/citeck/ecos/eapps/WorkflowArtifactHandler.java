@@ -35,6 +35,7 @@ public class WorkflowArtifactHandler implements EcosArtifactHandler<WorkflowArti
     private final SearchService searchService;
     private final ContentService contentService;
     private EcosBpmAppModelUtils bpmAppUtils;
+    private Consumer<WorkflowArtifact> listener;
 
     @Autowired
     public WorkflowArtifactHandler(ServiceRegistry serviceRegistry) {
@@ -96,6 +97,11 @@ public class WorkflowArtifactHandler implements EcosArtifactHandler<WorkflowArti
 
     @Override
     public void listenChanges(@NotNull Consumer<WorkflowArtifact> consumer) {
+        this.listener = consumer;
+    }
+
+    public void fireWorkflowChanged(WorkflowArtifact artifact) {
+        listener.accept(artifact);
     }
 
     @Autowired

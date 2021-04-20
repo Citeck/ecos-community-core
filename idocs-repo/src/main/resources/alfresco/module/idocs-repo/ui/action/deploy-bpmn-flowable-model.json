@@ -1,0 +1,15 @@
+{
+  "id": "deploy-bpmn-flowable-model",
+  "name": {
+    "ru": "Опубликовать модель",
+    "en": "Publish model"
+  },
+  "type": "fetch",
+  "config": {
+    "url": "/gateway/alfresco/alfresco/s/citeck/ecos/bpm/process/deploy",
+    "args": {
+      "nodeRef": "${recordRef}"
+    },
+    "method": "POST"
+  }
+}

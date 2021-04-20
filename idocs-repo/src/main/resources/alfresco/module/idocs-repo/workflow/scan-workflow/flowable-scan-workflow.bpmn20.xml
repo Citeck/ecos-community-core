@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <definitions xmlns="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:flowable="http://flowable.org/bpmn" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:omgdc="http://www.omg.org/spec/DD/20100524/DC" xmlns:omgdi="http://www.omg.org/spec/DD/20100524/DI" typeLanguage="http://www.w3.org/2001/XMLSchema" expressionLanguage="http://www.w3.org/1999/XPath" targetNamespace="http://www.citeck.ru/workflow/scan/1.0">
     <process id="flowable-scan" name="Scan Workflow (flowable)" isExecutable="true">
-        <startEvent id="startevent1" name="Submit Sign Task" flowable:formKey="wfscan:submitScanTask"></startEvent>
+        <startEvent id="startevent1" name="Submit Sign Ta2sk" flowable:formKey="wfscan:submitScanTask"></startEvent>
         <endEvent id="endevent1" name="End"></endEvent>
         <userTask id="usertask1" name="Scan Task" flowable:dueDate="${bpm_workflowDueDate}" flowable:formKey="wfscan:scanTask">
             <extensionElements>

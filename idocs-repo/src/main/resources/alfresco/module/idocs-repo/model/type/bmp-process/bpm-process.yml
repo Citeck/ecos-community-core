@@ -1,0 +1,17 @@
+
+id: cat-doc-type-ecos-bpm-process
+
+name:
+  ru: BPM Процесс
+  en: BPM Process
+
+parentRef: emodel/type@user-base
+
+defaultCreateVariant: false
+
+inheritActions: false
+
+actions:
+  - uiserv/action@go-to-bpmn-designer
+  - uiserv/action@deploy-bpmn-flowable-model
+  - uiserv/action@delete
