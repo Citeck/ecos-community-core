@@ -21,4 +21,5 @@ properties:
 actions:
   - uiserv/action@go-to-bpmn-designer
   - uiserv/action@deploy-bpmn-flowable-model
+  - uiserv/action@content-download
   - uiserv/action@delete
