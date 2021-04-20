@@ -1,14 +1,14 @@
 /**
  * CommenstList component.
- * 
+ *
  * Displays a list of comments and a editor for creating new ones.
- * 
+ *
  * @namespace Alfresco
  * @class Alfresco.CommentsList
  */
 (function()
 {
-    
+
    /**
    * YUI Library aliases
    */
@@ -24,7 +24,7 @@
 
    /**
     * CommentsList constructor.
-    * 
+    *
     * @param {String} htmlId The HTML id of the parent element
     * @return {Alfresco.CommentsList} The new Comment instance
     * @constructor
@@ -36,12 +36,12 @@
       YAHOO.Bubbling.on("editorInitialized", this.onEditorInitialized, this);
       YAHOO.Bubbling.on("commentNode", this.onCommentNode, this);
 	  YAHOO.Bubbling.on("versionReverted", function(){ this.widgets.alfrescoDataTable.reloadDataTable(); }, this);
-	  
+
       this.busy = false;
       this.hashChecked = false;
       return this;
    };
-   
+
    YAHOO.extend(Alfresco.CommentsList, Alfresco.component.Base,
    {
       /**
@@ -62,12 +62,12 @@
 
          /**
           * Current siteId.
-          * 
+          *
           * @property siteId
           * @type string
           */
          siteId: null,
-         
+
          /**
           * The activity parameters if any
           *
@@ -87,7 +87,7 @@
 
       /**
        * Tells whether an action is currently ongoing.
-       * 
+       *
        * @property busy
        * @type boolean
        * @see _setBusy/_releaseBusy
@@ -300,7 +300,7 @@
                editor.save();
             });
          }
-         
+
          // create the form that does the validation/submit
          if (this.widgets.commentForm != null)
          {
@@ -359,7 +359,7 @@
                {
                   config.dataObj.itemTitle = this.options.activity.itemTitle;
                   config.dataObj.page = this.options.activity.page;
-                  config.dataObj.pageParams = YAHOO.lang.JSON.stringify(this.options.activity.pageParams);                  
+                  config.dataObj.pageParams = YAHOO.lang.JSON.stringify(this.options.activity.pageParams);
                }
                return true;
             },
@@ -512,7 +512,7 @@
       onAddCommentClick: function CommentsList_onAddCommentClick(hackArg)
       {
          this.restoreEditForm();
-         
+
          // This is a quite unashamed hack that has been added to solve the issues raised
          // by ALF-18688. The forms runtime validation has tried to be applied in this
          // context and is not working properly between editing/adding/cancelling comments.
@@ -578,11 +578,20 @@
       {
          var sourceYuiEl = new YAHOO.util.Element(sourceEl),
             syncYuiEl = new YAHOO.util.Element(syncEl),
-            region = YAHOO.util.Dom.getRegion(sourceYuiEl.get("id"));
+            region = YAHOO.util.Dom.getRegion(sourceYuiEl.get("id")),
+            scrollElem = document.getElementById("bd");
 
+         var yOffset = 0,
+             xOffset = 0;
+
+         if (scrollElem) {
+             var scrollElemRegion = YAHOO.util.Dom.getRegion(scrollElem);
+             yOffset = scrollElem.scrollTop - scrollElemRegion.top;
+             xOffset = -scrollElemRegion.left;
+         }
          syncYuiEl.setStyle("position", "absolute");
-         syncYuiEl.setStyle("left", region.left + "px");
-         syncYuiEl.setStyle("top", region.top + "px");
+         syncYuiEl.setStyle("left", xOffset + region.left + "px");
+         syncYuiEl.setStyle("top", yOffset + region.top + "px");
          syncYuiEl.setStyle("width", region.width + "px");
          syncYuiEl.setStyle("height", region.height + "px");
       },
@@ -636,7 +645,7 @@
             return;
          }
 
-         
+
          // ajax request success handler
          var success = function CommentsList_deleteComment_success(response, object)
          {
@@ -647,14 +656,14 @@
             {
                var adt = this.widgets.alfrescoDataTable;
                adt.currentSkipCount = adt.currentSkipCount - adt.currentMaxItems;
-            }	
-			
+            }
+
 			 // show delete success message
             this.widgets.displayMessage = Alfresco.util.PopupManager.displayMessage({
               text: self.msg("message.delete.success"),
               displayTime: 0
             });
-            
+
             setTimeout(function() {
               if (self.widgets.displayMessage) {
                 self.widgets.displayMessage.destroy();
@@ -674,7 +683,7 @@
               text: self.msg("message.delete.failure"),
               displayTime: 0
             });
-            
+
             setTimeout(function() {
               if (self.widgets.displayMessage) {
                 self.widgets.displayMessage.destroy();
@@ -699,7 +708,7 @@
             url += "pageParams=" + encodeURIComponent(YAHOO.lang.JSON.stringify(this.options.activity.pageParams));
             params = true;
          }
-         
+
          // execute ajax request
          Alfresco.util.Ajax.jsonDelete(
          {
