@@ -35,14 +35,6 @@
         </property>
     </bean>
 
-    <bean class="ru.citeck.ecos.records.source.alf.AlfNodesDefaultParentRegistrar">
-        <property name="defaultParents">
-            <map>
-                <entry key="{http://www.citeck.ru/model/ecos/bpm/1.0}processModel" value="workspace://SpacesStore/ecos-bpm-process-root" />
-            </map>
-        </property>
-    </bean>
-
     <bean id="idocs.module-component.ecos-bpm-process-category-root" parent="idocs.import-spaces.3-8-0" depends-on="idocs.dictionaryBootstrap">
         <property name="dependsOn">
             <list>
@@ -173,7 +165,7 @@
             </map>
         </property>
     </bean>
-    
+
     <bean id="idocs.module-component.fill-ecos-case-roles" parent="idocs.import-scripts.3-8-0">
         <property name="name" value="fill-ecos-case-roles" />
         <property name="description" value="fill-ecos-case-roles" />

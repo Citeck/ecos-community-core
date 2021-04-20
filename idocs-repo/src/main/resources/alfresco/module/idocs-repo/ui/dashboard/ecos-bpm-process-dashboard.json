@@ -411,19 +411,17 @@
     "v2": {
       "widgets": [
         {
-          "dndId": "0d0dfc44-20ca-482b-adb8-61aa346a0913",
-          "name": "doc-preview",
-          "label": "dashboard-settings.widget.preview",
-          "id": "921c9b5b-2d6c-49a2-9aad-c2c0f2841ade",
+          "name": "properties",
+          "label": "dashboard-settings.widget.properties",
+          "dndId": "bc54a507-97ea-4cba-a00e-4313c624cbf5",
+          "id": "4e525e44-959e-4122-954a-0da7de55b2fa",
           "props": {
-            "id": "921c9b5b-2d6c-49a2-9aad-c2c0f2841ade",
+            "id": "4e525e44-959e-4122-954a-0da7de55b2fa",
             "config": {
               "widgetDisplayCondition": null,
-              "elementsDisplayCondition": {},
-              "link": ""
+              "elementsDisplayCondition": {}
             }
-          },
-          "description": "Основное"
+          }
         },
         {
           "dndId": "aa0deb44-527e-4244-85cc-89757c0e07eb",
@@ -507,7 +505,7 @@
           "columns": [
             {
               "widgets": [
-                "921c9b5b-2d6c-49a2-9aad-c2c0f2841ade",
+                "4e525e44-959e-4122-954a-0da7de55b2fa",
                 "291afa3a-50c1-4a3a-9700-8b85767926af",
                 "1ab254c7-6bc7-421c-ba90-da266648c22e"
               ]

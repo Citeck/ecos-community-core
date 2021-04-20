@@ -166,7 +166,12 @@ public class EcosBpmContentSyncBehaviour extends AbstractBehaviour
         after.forEach((prop, value) -> {
             if (procProps.contains(prop) && !Objects.equals(before.get(prop), value)) {
                 if (value instanceof MLText) {
-                    changed.put(prop, ((MLText) value).getClosestValue(Locale.ENGLISH));
+                    Object beforeVal = before.get(prop);
+                    if (beforeVal instanceof MLText) {
+                        changed.put(prop, getChangedValue((MLText) beforeVal, (MLText) value));
+                    } else {
+                        changed.put(prop, ((MLText) value).getClosestValue(Locale.ENGLISH));
+                    }
                 } else if (value instanceof String) {
                     changed.put(prop, (String) value);
                 }
@@ -200,6 +205,16 @@ public class EcosBpmContentSyncBehaviour extends AbstractBehaviour
             byte[] bytes = xmlConverter.convertToXML(bpmnModel, ENCODING);
             writeBytes(nodeRef, PROP_XML, Format.XML.mimetype(), bytes);
         }
+    }
+
+    private String getChangedValue(MLText before, MLText after) {
+        for (Map.Entry<Locale, String> entry : after.entrySet()) {
+            if (!Objects.equals(before.get(entry.getKey()), entry.getValue())) {
+                String value = entry.getValue();
+                return value == null ? "" : value;
+            }
+        }
+        return after.getClosestValue(Locale.ENGLISH);
     }
 
     private BpmnModel xmlToJson(NodeRef nodeRef, ContentData data) {

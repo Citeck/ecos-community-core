@@ -5,11 +5,18 @@ name:
   ru: BPM Процесс
   en: BPM Process
 
-parentRef: emodel/type@user-base
+sourceId: alfresco/
 
-defaultCreateVariant: false
+parentRef: emodel/type@user-base
+formRef: uiserv/form@cat-doc-type-ecos-bpm-process-form
+
+defaultCreateVariant: true
 
 inheritActions: false
+
+properties:
+  alfType: ecosbpm:processModel
+  alfRoot: workspace://SpacesStore/ecos-bpm-process-root
 
 actions:
   - uiserv/action@go-to-bpmn-designer
