@@ -39,7 +39,7 @@
             </list>
         </property>
         <property name="configKey" value="add-comment-with-task-tag-enabled" />
-        <property name="configValue" value="true" />
+        <property name="configValue" value="false" />
         <property name="configTitle" value="ecos-config.add-comment-with-task-tag-enabled.title" />
         <property name="configDescription" value="ecos-config.add-comment-with-task-tag-enabled.description" />
         <property name="moduleId" value="idocs-repo" />
@@ -57,7 +57,7 @@
             </list>
         </property>
         <property name="configKey" value="add-comment-with-action-tag-enabled" />
-        <property name="configValue" value="true" />
+        <property name="configValue" value="false" />
         <property name="configTitle" value="ecos-config.add-comment-with-action-tag-enabled.title" />
         <property name="configDescription" value="ecos-config.add-comment-with-action-tag-enabled.description" />
         <property name="moduleId" value="idocs-repo" />
