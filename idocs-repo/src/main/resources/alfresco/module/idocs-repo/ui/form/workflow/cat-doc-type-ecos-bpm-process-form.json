@@ -59,13 +59,14 @@
                   "ru": "Владелец процесса",
                   "en": "Process owner"
                 },
+                "currentUserByDefault": true,
+                "defaultValue": "",
                 "key": "ecosbpm_processOwnerAssoc",
                 "properties": {
                   "attribute": "ecosbpm:processOwnerAssoc"
                 },
                 "type": "selectOrgstruct",
-                "input": true,
-                "defaultValue": ""
+                "input": true
               }
             ],
             "type": "column",
@@ -172,6 +173,7 @@
                   "maxDate": ""
                 },
                 "enableTime": false,
+                "defaultDate": "moment()",
                 "defaultValue": "",
                 "key": "ecosbpm_validFrom",
                 "properties": {
