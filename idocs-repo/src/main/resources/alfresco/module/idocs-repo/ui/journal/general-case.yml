@@ -1,0 +1,46 @@
+---
+id: general-case
+name: { ru: Стандартный кейс, en: General Case}
+
+actions:
+  - uiserv/action@view-dashboard
+  - uiserv/action@edit
+
+columns:
+  - id: tk:kind
+    computed:
+      - id: options
+        type: script
+        config:
+          script: |
+            var url = Alfresco.constants.PROXY_URI + 'citeck/node/child-assocs?nodeRef=' +
+                'workspace://SpacesStore/cat-doc-type-general-case' +
+                '&assocType=cm:subcategories';
+
+            var request = new XMLHttpRequest();
+            request.open('GET', url, false);
+            request.send(null);
+
+            if (request.status === 200) {
+              var jsonResult = JSON.parse(request.response);
+              if (jsonResult && jsonResult.nodes && jsonResult.nodes.length > 0) {
+                return jsonResult.nodes;
+              }
+            }
+            return [];
+    editor:
+      type: options
+      config:
+        options: '${$computed.options}'
+
+  - id: cm:name
+  - id: idocs:note
+  - id: ecos:documentNumber
+  - id: ecos:documentDate
+  - id: idocs:legalEntity
+  - id: idocs:contractor
+  - id: ecos:documentAmount
+  - id: idocs:currencyDocument
+  - id: ecos:VAT
+  - id: ecos:startDate
+  - id: ecos:stopDate

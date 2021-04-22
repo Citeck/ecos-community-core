@@ -6,6 +6,7 @@ import ecos.com.google.common.cache.LoadingCache;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.alfresco.repo.i18n.MessageService;
+import org.alfresco.repo.transaction.AlfrescoTransactionSupport;
 import org.alfresco.service.ServiceRegistry;
 import org.alfresco.service.cmr.dictionary.DictionaryService;
 import org.alfresco.service.cmr.repository.NodeRef;
@@ -17,11 +18,12 @@ import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 import ru.citeck.ecos.graphql.node.GqlAlfNode;
 import ru.citeck.ecos.graphql.node.GqlQName;
-import ru.citeck.ecos.model.lib.role.service.StatusService;
+import ru.citeck.ecos.model.lib.status.service.StatusService;
 import ru.citeck.ecos.records2.RecordsService;
 import ru.citeck.ecos.records2.graphql.GqlContext;
 import ru.citeck.ecos.security.EcosPermissionService;
 import ru.citeck.ecos.service.CiteckServices;
+import ru.citeck.ecos.utils.NodeUtils;
 
 import java.util.Collection;
 import java.util.List;
@@ -33,7 +35,7 @@ import java.util.stream.Collectors;
 @Slf4j
 public class AlfGqlContext extends GqlContext {
 
-    private LoadingCache<NodeRef, GqlAlfNode> nodes;
+    private LoadingCache<NodeRef, GqlAlfNode> nodesCache;
     private LoadingCache<Object, Optional<GqlQName>> qnames;
 
     private final ServiceRegistry serviceRegistry;
@@ -48,6 +50,8 @@ public class AlfGqlContext extends GqlContext {
     private final MessageService messageService;
     @Getter
     private final EcosPermissionService ecosPermissionService;
+    @Getter
+    private final NodeUtils nodeUtils;
 
     private final StatusService statusService;
 
@@ -65,9 +69,11 @@ public class AlfGqlContext extends GqlContext {
         this.nodeService = serviceRegistry.getNodeService();
         this.messageService = serviceRegistry.getMessageService();
         this.ecosPermissionService = (EcosPermissionService) serviceRegistry.getService(EcosPermissionService.QNAME);
+        this.nodeUtils = (NodeUtils) serviceRegistry.getService(NodeUtils.QNAME);
+
         statusService = getStatusService(serviceRegistry);
 
-        nodes = CacheBuilder.newBuilder()
+        nodesCache = CacheBuilder.newBuilder()
                             .maximumSize(500)
                             .build(CacheLoader.from(this::createNode));
         qnames = CacheBuilder.newBuilder()
@@ -99,10 +105,13 @@ public class AlfGqlContext extends GqlContext {
         NodeRef nodeRef = null;
         if (key instanceof NodeRef) {
             nodeRef = (NodeRef) key;
-        } else if (key instanceof String && NodeRef.isNodeRef((String) key)) {
-            nodeRef = new NodeRef((String) key);
+        } else if (nodeUtils.isNodeRef(key)) {
+            nodeRef = nodeUtils.getNodeRef(key);
         }
-        return nodeRef == null ? Optional.empty() : Optional.of(nodes.getUnchecked(nodeRef));
+        if (nodeRef == null) {
+            return Optional.empty();
+        }
+        return Optional.of(isReadOnlyTxn() ? nodesCache.getUnchecked(nodeRef) : createNode(nodeRef));
     }
 
     private GqlAlfNode createNode(NodeRef nodeRef) {
@@ -164,5 +173,10 @@ public class AlfGqlContext extends GqlContext {
         return (T) servicesCache.computeIfAbsent(beanId, bean ->
             serviceRegistry.getService(QName.createQName(null, beanId))
         );
+    }
+
+    private boolean isReadOnlyTxn() {
+        AlfrescoTransactionSupport.TxnReadState readState = AlfrescoTransactionSupport.getTransactionReadState();
+        return AlfrescoTransactionSupport.TxnReadState.TXN_READ_ONLY.equals(readState);
     }
 }

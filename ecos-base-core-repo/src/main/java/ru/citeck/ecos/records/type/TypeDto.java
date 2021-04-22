@@ -10,7 +10,7 @@ import ru.citeck.ecos.commons.data.ObjectData;
 import ru.citeck.ecos.model.lib.type.dto.DocLibDef;
 import ru.citeck.ecos.model.lib.type.dto.TypeModelDef;
 import ru.citeck.ecos.records2.RecordRef;
-import ru.citeck.ecos.records2.graphql.meta.annotation.MetaAtt;
+import ru.citeck.ecos.records3.record.atts.schema.annotation.AttName;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -30,7 +30,7 @@ public class TypeDto {
     private RecordRef parentRef;
     private RecordRef formRef;
     private RecordRef journalRef;
-    private RecordRef numTemplateRef;
+    private RecordRef inhNumTemplateRef;
     private boolean system;
     private String dashboardType;
     private boolean inheritActions;
@@ -44,21 +44,33 @@ public class TypeDto {
     private List<AssociationDto> associations = new ArrayList<>();
     private List<CreateVariantDto> createVariants = new ArrayList<>();
 
-    private ObjectData attributes = ObjectData.create();
+    private ObjectData properties = ObjectData.create();
+    private ObjectData inhAttributes = ObjectData.create();
 
     private RecordRef configFormRef;
     private ObjectData config = ObjectData.create();
 
-    @MetaAtt("model?json")
+    @AttName("model?json")
     private TypeModelDef model;
 
-    @MetaAtt("_type?id")
+    @AttName("resolvedModel?json")
+    private TypeModelDef resolvedModel;
+
+    @AttName("_type?id")
     private RecordRef ecosType;
 
-    @MetaAtt("docLib?json")
+    @AttName("docLib?json")
     private DocLibDef docLib;
 
-    @MetaAtt("_type")
+    @AttName("resolvedDocLib?json")
+    private DocLibDef resolvedDocLib;
+
+    @AttName("?disp")
+    public MLText getDisplayName() {
+        return name;
+    }
+
+    @AttName("_type")
     public RecordRef getEcosType() {
         return ecosType;
     }

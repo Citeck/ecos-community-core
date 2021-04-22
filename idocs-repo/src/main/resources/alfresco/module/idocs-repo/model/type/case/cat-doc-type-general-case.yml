@@ -1,0 +1,31 @@
+---
+id: cat-doc-type-general-case
+
+name:
+  en: General case
+  ru: Стандартный кейс
+
+parentRef: emodel/type@case
+
+sourceId: alfresco/
+
+journalRef: "uiserv/journal@general-case"
+formRef: "uiserv/form@cat-doc-type-general-case-form"
+
+model:
+  attributes:
+    - id: idocs:legalEntity
+      type: ASSOC
+      config:
+        typeRef: emodel/type@legal-entity
+    - id: idocs:contractor
+      type: ASSOC
+      config:
+        typeRef: emodel/type@idocs-contractor
+    - id: idocs:currencyDocument
+      type: ASSOC
+      config:
+        typeRef: emodel/type@currency
+
+properties:
+  alfRoot: /app:company_home/st:sites/cm:cases/cm:documentLibrary/tk:cat-doc-type-general-case

@@ -1,0 +1,13 @@
+---
+id: ecosConfig
+
+name: { ru: Конфигурация, en: Config }
+
+actions:
+  - uiserv/action@edit
+
+columns:
+  - id: cm:title
+  - id: config:key
+  - id: config:value
+  - id: cm:description

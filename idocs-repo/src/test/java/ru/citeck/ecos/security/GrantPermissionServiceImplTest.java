@@ -17,24 +17,20 @@ import org.alfresco.service.namespace.QName;
 import org.alfresco.model.ContentModel;
 import org.alfresco.repo.model.Repository;
 import org.alfresco.repo.security.authentication.AuthenticationUtil;
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.*;
 import org.springframework.context.ApplicationContext;
 
 //import ru.citeck.ecos.test.ApplicationContextHelper;
-
-public class GrantPermissionServiceImplTest 
+@Ignore
+public class GrantPermissionServiceImplTest
 {
 	private static final String SYSTEM = AuthenticationUtil.SYSTEM_USER_NAME;
 	private static final String USER1 = "abeecher";
 	private static final String USER2 = "mjackson";
-	
+
 	private static final String PROVIDER1 = "provider1";
 	private static final String PROVIDER2 = "provider2";
-	
+
 	private ServiceRegistry serviceRegistry;
 	private NodeService nodeService;
 	private CopyService copyService;
@@ -45,13 +41,13 @@ public class GrantPermissionServiceImplTest
 	private NodeRef testRoot;
 	private NodeRef user1Home;
 	private NodeRef user2Home;
-	
+
 	private AssociationWalker walkNowhere;
 	private AssociationWalker walkSecondaryChildren;
 	private AssociationWalker walkTargetAssocs;
 
 	private GrantPermissionServiceImpl grantPermissionService;
-	
+
 	private AssociationWalker createWalker(Boolean propagatePrimaryChildAssociations,
 			Boolean propagateSecondaryChildAssociations,
 			Boolean propagateTargetAssociations) {
@@ -62,15 +58,15 @@ public class GrantPermissionServiceImplTest
 		walker.setPropagateTargetAssociations(propagateTargetAssociations);
 		return walker;
 	}
-	
+
 	private static void runAs(String userName) {
 //		AuthenticationUtil.setRunAsUser(userName);
 		AuthenticationUtil.setFullyAuthenticatedUser(userName);
 	}
-	
+
 	@Before
 	public void setUp() throws Exception {
-		
+
 //		ApplicationContext context = ApplicationContextHelper.getApplicationContext();
 //
 //		serviceRegistry = context.getBean("ServiceRegistry", ServiceRegistry.class);
@@ -107,7 +103,7 @@ public class GrantPermissionServiceImplTest
 		ChildAssociationRef testNodeRef = nodeService.createNode(parent, ContentModel.ASSOC_CONTAINS, QName.createQName(NamespaceService.CONTENT_MODEL_1_0_URI, QName.createValidLocalName(name)), type);
 		return testNodeRef.getChildRef();
 	}
-	
+
 	private NodeRef copyNode(String user, NodeRef source, NodeRef parent, String name) {
 		runAs(user);
 		return copyService.copy(source, parent, ContentModel.ASSOC_CONTAINS, QName.createQName(NamespaceService.CONTENT_MODEL_1_0_URI, name));
@@ -128,13 +124,13 @@ public class GrantPermissionServiceImplTest
 		AccessStatus status = permissionService.hasPermission(nodeRef, permission);
 		assertEquals(AccessStatus.ALLOWED, status);
 	}
-	
+
 	private void assertDenied(NodeRef nodeRef, String username, String permission) {
 		runAs(username);
 		AccessStatus status = permissionService.hasPermission(nodeRef, permission);
 		assertEquals(AccessStatus.DENIED, status);
 	}
-	
+
 	@Test
 	public void simpleTest() {
 //		grantPermissionService.setWalker(walkNowhere);
@@ -147,7 +143,7 @@ public class GrantPermissionServiceImplTest
 //
 //		revoke(testNode, USER1, PermissionService.READ, PROVIDER1);
 //		assertDenied(testNode, USER1, PermissionService.READ);
-		
+
 	}
 
 	@Test
@@ -179,9 +175,9 @@ public class GrantPermissionServiceImplTest
 //		NodeRef user2Copy = copyNode(USER2, testNode, user2Home, "test");
 //		assertDenied(user2Copy, USER1, PermissionService.READ);
 //		assertAllowed(user2Copy, USER2, PermissionService.READ);
-		
-		
-		
+
+
+
 	}
 
 	@After
@@ -191,5 +187,5 @@ public class GrantPermissionServiceImplTest
 //			nodeService.deleteNode(testRoot);
 //		}
 	}
-	
+
 }

@@ -11,6 +11,7 @@ public class EcosTypeModel {
     public static final QName ASPECT_HAS_TYPE = QName.createQName(NAMESPACE, "hasType");
     public static final QName ASPECT_FOR_TYPE = QName.createQName(NAMESPACE, "forTypeAspect");
     public static final QName ASPECT_TENANT_SITE = QName.createQName(NAMESPACE, "tenantSite");
+    public static final QName ASPECT_TYPE_ROOT = QName.createQName(NAMESPACE, "typeRootAspect");
 
     // properties
     public static final QName PROP_TYPE = QName.createQName(NAMESPACE, "type");

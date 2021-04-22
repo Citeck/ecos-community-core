@@ -1,0 +1,24 @@
+---
+id: templates
+name: { ru: Шаблоны Документов, en: Document templates }
+
+actions:
+  - uiserv/action@view
+  - uiserv/action@download
+  - uiserv/action@edit
+
+typeRef: emodel/type@document-template
+
+columns:
+
+  - id: cm:name
+    name: { ru: Имя, en: Name }
+
+  - id: tk:appliesToType
+    name: { ru: Тип, en: Вид }
+
+  - id: tk:appliesToKind
+    name: { ru: Вид, en: Kind }
+
+  - id: cm:taggable
+    name: { ru: Метки, en: Tags }

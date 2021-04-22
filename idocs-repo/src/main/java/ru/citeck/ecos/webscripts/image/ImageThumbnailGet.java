@@ -44,6 +44,9 @@ public class ImageThumbnailGet extends AbstractWebScript {
             String msg = PARAM_NODE_REF + " has incorrect value: " + nodeRefStr;
             throw new WebScriptException(HttpServletResponse.SC_BAD_REQUEST, msg);
         }
+        if (nodeRefStr.startsWith("alfresco/@")) {
+            nodeRefStr = nodeRefStr.replaceFirst("alfresco/@", "");
+        }
 
         NodeRef nodeRef = new NodeRef(nodeRefStr);
         String widthStr = req.getParameter(PARAM_WIDTH);

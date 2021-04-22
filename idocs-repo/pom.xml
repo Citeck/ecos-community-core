@@ -13,7 +13,7 @@
     <parent>
         <groupId>ru.citeck.ecos.community</groupId>
         <artifactId>ecos-community-core</artifactId>
-        <version>4.2.0</version>
+        <version>4.3.0</version>
     </parent>
 
     <properties>
@@ -183,6 +183,12 @@
             <groupId>ru.citeck.ecos</groupId>
             <artifactId>ecos-commands-rabbit</artifactId>
             <version>${ecos.commands.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>ru.citeck.ecos.rabbitmq</groupId>
+            <artifactId>ecos-rabbitmq</artifactId>
+            <version>${ecos.rabbitmq.version}</version>
         </dependency>
 
         <dependency>

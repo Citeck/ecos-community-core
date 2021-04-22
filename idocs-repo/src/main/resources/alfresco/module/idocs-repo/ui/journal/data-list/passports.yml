@@ -1,0 +1,17 @@
+---
+id: passports
+name: { ru: Паспорт, en: Passport }
+
+actions:
+  - uiserv/action@edit
+
+columns:
+  - id: pass:person
+  - id: tk:kind
+  - id: pass:series
+  - id: pass:number
+  - id: pass:issueDate
+  - id: pass:issuingAuthority
+    visible: false
+  - id: pass:info
+    visible: false

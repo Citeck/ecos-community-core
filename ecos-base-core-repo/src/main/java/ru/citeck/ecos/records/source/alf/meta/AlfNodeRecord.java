@@ -27,11 +27,11 @@ import ru.citeck.ecos.graphql.node.Attribute;
 import ru.citeck.ecos.graphql.node.GqlAlfNode;
 import ru.citeck.ecos.graphql.node.GqlQName;
 import ru.citeck.ecos.model.EcosModel;
+import ru.citeck.ecos.model.lib.status.constants.StatusConstants;
 import ru.citeck.ecos.model.lib.attributes.dto.AttributeDef;
 import ru.citeck.ecos.model.lib.attributes.dto.AttributeType;
-import ru.citeck.ecos.model.lib.role.service.StatusService;
-import ru.citeck.ecos.model.lib.status.constants.StatusAtts;
 import ru.citeck.ecos.model.lib.status.dto.StatusDef;
+import ru.citeck.ecos.model.lib.status.service.StatusService;
 import ru.citeck.ecos.model.lib.type.dto.TypeModelDef;
 import ru.citeck.ecos.node.AlfNodeContentPathRegistry;
 import ru.citeck.ecos.node.AlfNodeInfo;
@@ -136,12 +136,15 @@ public class AlfNodeRecord implements MetaValue {
 
     @Override
     public String getId() {
+        if (recordRef.getAppName().isEmpty() && recordRef.getSourceId().isEmpty()) {
+            return "alfresco/@" + recordRef.toString();
+        }
         return recordRef.toString();
     }
 
     @Override
     public String getString() {
-        return node.nodeRef();
+        return getId();
     }
 
     @Override
@@ -345,7 +348,7 @@ public class AlfNodeRecord implements MetaValue {
                 attribute = MetaUtils.toMetaValues(docSumService.getSum(nodeRef), context, field);
                 break;
 
-            case StatusAtts.STATUS: {
+            case StatusConstants.ATT_STATUS: {
 
                 StatusMetaValue statusMeta = getCaseStatusMeta(context);
                 if (statusMeta != null) {
@@ -478,7 +481,6 @@ public class AlfNodeRecord implements MetaValue {
         return caseStatusNode.asText();
     }
 
-
     @Override
     public Object getAs(String type) {
         if (node != null) {
@@ -557,10 +559,9 @@ public class AlfNodeRecord implements MetaValue {
 
     @Override
     public MetaEdge getEdge(String name, MetaField field) {
-        if (name.equals(StatusAtts.STATUS)) {
+        if (name.equals(StatusConstants.ATT_STATUS)) {
             return new EcosStatusEdge(recordRef, context, this);
         }
-
         return getAlfNodeMetaEdge(name);
     }
 
@@ -577,7 +578,7 @@ public class AlfNodeRecord implements MetaValue {
 
     private MetaValue toMetaValue(Attribute att, Object value, MetaField field) {
         MetaValue metaValue;
-        if (value instanceof NodeRef || value instanceof String && NodeRef.isNodeRef((String) value)) {
+        if (context.getNodeUtils().isNodeRef(value)) {
             metaValue = new AlfNodeRecord(RecordRef.valueOf(value.toString()));
         } else if (value instanceof MLText) {
             metaValue = new MLTextValue((MLText) value);

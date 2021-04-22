@@ -112,6 +112,7 @@ public class SearchServiceAlfNodesSearch {
             return new RecordsQueryResult<>();
         }
 
+        query = query.replace("alfresco/@workspace://", "workspace://");
         searchParameters.setQuery(query);
 
         if (!ignoreQuerySort) {

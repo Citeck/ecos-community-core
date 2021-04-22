@@ -16,7 +16,7 @@ import ru.citeck.ecos.records2.RecordRef;
 import ru.citeck.ecos.records2.graphql.meta.value.MetaField;
 import ru.citeck.ecos.records2.graphql.meta.value.MetaValue;
 import ru.citeck.ecos.records2.source.common.AttributesMixin;
-import ru.citeck.ecos.records3.record.op.atts.service.value.AttValue;
+import ru.citeck.ecos.records3.record.atts.value.AttValue;
 import ru.citeck.ecos.role.CaseRoleService;
 import ru.citeck.ecos.utils.AuthorityUtils;
 
@@ -77,7 +77,7 @@ public class CaseRolesMixin implements AttributesMixin<Class<RecordRef>, RecordR
             if (name.equals("list")) {
                 return caseRoleService.getRoles(documentId)
                     .stream()
-                    .map(ref -> new CaseRoleInfo(ref, caseRoleService.getRoleDef(ref)))
+                    .map(ref -> new CaseRoleInfo(ref, caseRoleService.getRoleDef(ref), caseRoleService))
                     .collect(Collectors.toList());
             }
             return new CaseRole(documentId, name);
@@ -89,6 +89,7 @@ public class CaseRolesMixin implements AttributesMixin<Class<RecordRef>, RecordR
 
         private final NodeRef roleId;
         private final RoleDef roleDef;
+        private final CaseRoleService caseRoleService;
 
         @Nullable
         @Override
@@ -101,8 +102,14 @@ public class CaseRolesMixin implements AttributesMixin<Class<RecordRef>, RecordR
         public Object getAtt(String name) {
             switch (name) {
                 case "name": return roleDef.getName();
-                case "assignees": return roleDef.getAssignees();
                 case "attribute": return roleDef.getAttribute();
+                case "assignees": return roleDef.getAssignees();
+                case "resolvedAssignees":
+                    return caseRoleService.getAssignees(roleId)
+                        .stream()
+                        .map(a -> RecordRef.valueOf(a.toString()))
+                        .collect(Collectors.toList());
+
             }
             return null;
         }

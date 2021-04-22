@@ -2,29 +2,19 @@ package ru.citeck.ecos.node;
 
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
-import org.alfresco.model.ContentModel;
-import org.alfresco.repo.security.authentication.AuthenticationUtil;
 import org.alfresco.service.ServiceRegistry;
 import org.alfresco.service.cmr.dictionary.PropertyDefinition;
 import org.alfresco.service.cmr.repository.NodeRef;
-import org.alfresco.service.cmr.repository.NodeService;
-import org.alfresco.service.cmr.search.SearchService;
-import org.alfresco.service.cmr.security.PermissionService;
-import org.alfresco.service.cmr.site.SiteInfo;
-import org.alfresco.service.cmr.site.SiteService;
-import org.alfresco.service.cmr.site.SiteVisibility;
-import org.alfresco.service.namespace.NamespaceService;
 import org.alfresco.service.namespace.QName;
 import org.apache.commons.lang.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import ru.citeck.ecos.commons.data.ObjectData;
 import ru.citeck.ecos.model.ClassificationModel;
-import ru.citeck.ecos.model.EcosTypeModel;
-import ru.citeck.ecos.model.lib.ModelServiceFactory;
+import ru.citeck.ecos.model.lib.type.dto.DocLibDef;
+import ru.citeck.ecos.model.lib.type.service.utils.TypeUtils;
 import ru.citeck.ecos.records.type.NumTemplateDto;
 import ru.citeck.ecos.records.type.TypeDto;
 import ru.citeck.ecos.records.type.TypesManager;
@@ -34,10 +24,8 @@ import ru.citeck.ecos.records2.graphql.meta.annotation.MetaAtt;
 import ru.citeck.ecos.records2.predicate.PredicateService;
 import ru.citeck.ecos.records2.predicate.model.Predicates;
 import ru.citeck.ecos.records2.request.query.RecordsQuery;
-import ru.citeck.ecos.search.ftsquery.FTSQuery;
 import ru.citeck.ecos.utils.DictUtils;
 
-import java.io.Serializable;
 import java.util.*;
 import java.util.function.Function;
 
@@ -48,42 +36,66 @@ public class EcosTypeService {
     public static final QName QNAME = QName.createQName("", "ecosTypeService");
     private static final RecordRef DEFAULT_TYPE = RecordRef.create("emodel", "type", "base");
 
-    private static final String ECOS_TYPES_DOCS_ROOT_NAME = "documentLibrary";
+    private final RecordsService recordsService;
+    private final DictUtils dictUtils;
 
-    private EvaluatorsByAlfNode<RecordRef> evaluators;
-    private PermissionService permissionService;
-    private ModelServiceFactory modelServices;
-    private RecordsService recordsService;
-    private SearchService searchService;
-    private SiteService siteService;
-    private NodeService nodeService;
-    private DictUtils dictUtils;
+    private final EvaluatorsByAlfNode<RecordRef> evaluators;
 
     private TypesManager typesManager;
 
     @Autowired
-    public EcosTypeService(PermissionService permissionService,
-                           ServiceRegistry serviceRegistry,
+    public EcosTypeService(ServiceRegistry serviceRegistry,
                            RecordsService recordsService,
-                           SearchService searchService,
-                           NodeService nodeService,
-                           SiteService siteService) {
+                           DictUtils dictUtils) {
 
         evaluators = new EvaluatorsByAlfNode<>(serviceRegistry, node -> DEFAULT_TYPE);
-        this.permissionService = permissionService;
         this.recordsService = recordsService;
-        this.searchService = searchService;
-        this.nodeService = nodeService;
-        this.siteService = siteService;
+        this.dictUtils = dictUtils;
     }
 
     public void register(QName nodeType, Function<AlfNodeInfo, RecordRef> evaluator) {
         evaluators.register(nodeType, evaluator);
     }
 
+    @NotNull
+    public List<RecordRef> expandTypeWithChildren(@Nullable RecordRef typeRef) {
+        if (RecordRef.isEmpty(typeRef) || typesManager == null) {
+            return Collections.singletonList(typeRef);
+        }
+        List<RecordRef> result = new ArrayList<>();
+        forEachDesc(typeRef, typeDto -> {
+            result.add(TypeUtils.getTypeRef(typeDto.getId()));
+            return false;
+        });
+        return result;
+    }
+
+    @NotNull
+    public DocLibDef getDocLib(RecordRef typeRef) {
+        TypeDto typeDef = getTypeDef(typeRef);
+        if (typeDef == null) {
+            return DocLibDef.EMPTY;
+        }
+        DocLibDef docLib = typeDef.getResolvedDocLib();
+        if (docLib == null) {
+            return DocLibDef.EMPTY;
+        }
+        return docLib;
+    }
+
+    @NotNull
+    public ObjectData getResolvedProperties(RecordRef typeRef) {
+        TypeDto typeDef = getTypeDef(typeRef);
+        if (typeDef == null) {
+            return ObjectData.create();
+        }
+        ObjectData inhAttributes = typeDef.getInhAttributes();
+        return inhAttributes == null ? ObjectData.create() : inhAttributes;
+    }
+
     @Nullable
     public TypeDto getTypeDef(RecordRef typeRef) {
-        if (typesManager == null) {
+        if (typesManager == null || RecordRef.isEmpty(typeRef)) {
             return null;
         }
         return typesManager.getType(typeRef);
@@ -123,10 +135,6 @@ public class EcosTypeService {
         return result;
     }
 
-    public NodeRef getRootForType(RecordRef typeRef, boolean createIfNotExists) {
-        return AuthenticationUtil.runAsSystem(() -> getRootForTypeImpl(typeRef, createIfNotExists));
-    }
-
     public <T> T getEcosTypeConfig(RecordRef configRef, Class<T> configClass) {
         EcosTypeConfig typeConfig = recordsService.getMeta(configRef, EcosTypeConfig.class);
         return typeConfig.getData().getAs(configClass);
@@ -139,21 +147,18 @@ public class EcosTypeService {
 
     @Nullable
     public Long getNumberForDocument(@NotNull RecordRef docRef) {
-        return getNumberForDocument(docRef, null);
+        return getNumberForDocument(docRef, getNumTemplateByRecord(docRef));
     }
 
     @Nullable
     public Long getNumberForDocument(@NotNull RecordRef docRef, @Nullable RecordRef numTemplateRef) {
 
-        if (typesManager == null) {
-            throw new IllegalStateException("typesManager is null");
+        if (RecordRef.isEmpty(numTemplateRef)) {
+            return null;
         }
 
-        if (numTemplateRef == null) {
-            numTemplateRef = getNumTemplateByRecord(docRef);
-            if (RecordRef.isEmpty(numTemplateRef)) {
-                return null;
-            }
+        if (typesManager == null) {
+            throw new IllegalStateException("typesManager is null");
         }
 
         NumTemplateDto numTemplate = typesManager.getNumTemplate(numTemplateRef);
@@ -176,7 +181,8 @@ public class EcosTypeService {
         if (typeRef == null || RecordRef.isEmpty(typeRef)) {
             return null;
         }
-        return modelServices.getTypeDefService().getNumTemplate(typeRef);
+        TypeDto typeDef = getTypeDef(typeRef);
+        return typeDef != null ? typeDef.getInhNumTemplateRef() : null;
     }
 
     @Nullable
@@ -245,140 +251,6 @@ public class EcosTypeService {
         while (typeDto != null && !action.apply(typeDto)) {
             typeDto = typeDto.getParentRef() != null ? typesManager.getType(typeDto.getParentRef()) : null;
         }
-    }
-
-    private NodeRef getRootForTypeImpl(RecordRef typeRef, boolean createIfNotExists) {
-
-        // todo: add tenant support
-        String currentTenant = "";
-
-        NodeRef rootRef = FTSQuery.create()
-            .exact(EcosTypeModel.PROP_TENANT, currentTenant).and()
-            .exact(EcosTypeModel.PROP_ROOT_FOR_TYPE, typeRef.getId())
-            .transactional()
-            .queryOne(searchService)
-            .orElse(null);
-
-        if (rootRef != null || !createIfNotExists) {
-            return rootRef;
-        }
-
-        String tenantSiteName = "tenant_" + currentTenant;
-
-        SiteInfo site = siteService.getSite(tenantSiteName);
-        if (site == null) {
-            String title = "Site for tenant '" + currentTenant + "'";
-            site = siteService.createSite(
-                "document-site-dashboard",
-                tenantSiteName,
-                title,
-                title,
-                SiteVisibility.PRIVATE
-            );
-        }
-
-        NodeRef siteRoot = site.getNodeRef();
-        nodeService.addAspect(siteRoot, EcosTypeModel.ASPECT_TENANT_SITE, new HashMap<>());
-
-        NodeRef typesFolder = findOrCreateFolder(
-            siteRoot,
-            ECOS_TYPES_DOCS_ROOT_NAME,
-            null,
-            null,
-            true
-        );
-
-        Map<QName, Serializable> props = new HashMap<>();
-        props.put(EcosTypeModel.PROP_ROOT_FOR_TYPE, typeRef.getId());
-        props.put(EcosTypeModel.PROP_TENANT, currentTenant);
-
-        return findOrCreateFolder(typesFolder, typeRef.getId(), props, props, false);
-    }
-
-    private NodeRef findOrCreateFolder(NodeRef parent,
-                                       String name,
-                                       Map<QName, Serializable> props,
-                                       Map<QName, Serializable> expectedProps,
-                                       boolean isTypesRoot) {
-
-        name = getValidName(name);
-
-        if (StringUtils.isBlank(name)) {
-            name = "dir";
-        }
-
-        NodeRef childByName = nodeService.getChildByName(parent, ContentModel.ASSOC_CONTAINS, name);
-
-        if (childByName != null && expectedProps != null) {
-            Map<QName, Serializable> childProps = nodeService.getProperties(childByName);
-            int nameCounter = 1;
-            while (childByName != null && !isAllMatch(childProps, expectedProps)) {
-                name = name + "_" + nameCounter++;
-                childByName = nodeService.getChildByName(parent, ContentModel.ASSOC_CONTAINS, name);
-                childProps = childByName != null ? nodeService.getProperties(childByName) : null;
-            }
-        }
-        if (childByName != null) {
-            return childByName;
-        }
-
-        if (props == null) {
-            props = new HashMap<>();
-        } else {
-            props = new HashMap<>(props);
-        }
-
-        QName assocName = QName.createQName(NamespaceService.CONTENT_MODEL_1_0_URI, name);
-        props.put(ContentModel.PROP_NAME, name);
-
-        NodeRef result = nodeService.createNode(
-            parent,
-            ContentModel.ASSOC_CONTAINS,
-            assocName,
-            ContentModel.TYPE_FOLDER,
-            props
-        ).getChildRef();
-
-        if (isTypesRoot) {
-            permissionService.setInheritParentPermissions(result, false);
-            permissionService.setPermission(
-                result,
-                "GROUP_EVERYONE",
-                PermissionService.ADD_CHILDREN,
-                true
-            );
-            permissionService.setPermission(
-                result,
-                "GROUP_EVERYONE",
-                PermissionService.CREATE_CHILDREN,
-                true
-            );
-        }
-
-        return result;
-    }
-
-    private String getValidName(String name) {
-        //todo: add transliteration
-        return name.replaceAll("[^a-zA-Z-_0-9]", "_").trim();
-    }
-
-    private boolean isAllMatch(Map<QName, Serializable> baseProps, Map<QName, Serializable> expectedProps) {
-        if (baseProps == null) {
-            return false;
-        }
-        if (expectedProps == null || expectedProps.isEmpty()) {
-            return true;
-        }
-        return expectedProps.entrySet()
-            .stream()
-            .allMatch(it -> Objects.equals(it.getValue(), baseProps.get(it.getKey())));
-    }
-
-    @Lazy
-    @Autowired
-    public void setModelServices(ModelServiceFactory modelServices) {
-        this.modelServices = modelServices;
     }
 
     @Autowired(required = false)

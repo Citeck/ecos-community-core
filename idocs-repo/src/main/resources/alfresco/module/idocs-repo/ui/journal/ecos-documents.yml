@@ -1,0 +1,19 @@
+---
+id: ecos-documents
+name: { ru: Документы, en: Documents }
+
+actions:
+  - uiserv/action@edit
+
+columns:
+  - id: tk:kind
+    #todo: options
+  - id: cm:name
+  - id: idocs:note
+  - id: ecos:documentNumber
+  - id: ecos:documentDate
+  - id: idocs:legalEntity
+  - id: idocs:contractor
+  - id: ecos:documentAmount
+  - id: idocs:currencyDocument
+  - id: ecos:VAT

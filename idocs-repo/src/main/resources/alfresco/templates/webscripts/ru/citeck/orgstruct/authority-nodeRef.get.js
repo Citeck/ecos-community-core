@@ -3,7 +3,8 @@
 	var nodeRef = args.nodeRef,
 		fullName = args.fullName,
 		authorityNode = null;
-	if(nodeRef) {
+	if (nodeRef) {
+        nodeRef = nodeRef.replace("alfresco/@", "");
 		authorityNode = search.findNode(nodeRef);
 	} else if(fullName) {
 		if(fullName.match(/^GROUP_/)) {
@@ -17,7 +18,7 @@
 		status.setCode(status.STATUS_BAD_REQUEST, "Either nodeRef or fullName should be provided");
 		return;
 	}
-	
+
 	if(authorityNode == null) {
 		status.setCode(status.STATUS_NOT_FOUND, "Node was not found");
 		return;

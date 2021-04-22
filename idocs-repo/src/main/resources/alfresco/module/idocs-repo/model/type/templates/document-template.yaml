@@ -1,16 +1,11 @@
-
+---
 id: document-template
 
 name:
-    ru: Шаблон документа
-    en: Document template
+  ru: Шаблон документа
+  en: Document template
 
-createVariants:
-    - id: create-template
-      name:
-          ru: Создать шаблон
-          en: Create template
-      recordRef: dict@dms:template
-      attributes:
-          _parent: /app:company_home/app:dictionary/cm:templates
+properties:
+  alfType: dms:template
+  alfRoot: /app:company_home/app:dictionary/cm:templates
 

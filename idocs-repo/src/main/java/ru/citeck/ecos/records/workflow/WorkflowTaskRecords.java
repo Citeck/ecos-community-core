@@ -331,8 +331,9 @@ public class WorkflowTaskRecords extends LocalRecordsDao
 
         WorkflowTaskRecords.TasksQuery tasksQuery = query.getQuery(WorkflowTaskRecords.TasksQuery.class);
         if (tasksQuery.document != null) {
-            if (tasksQuery.document.startsWith("workflow@")) {
-                tasksQuery.setWorkflowId(tasksQuery.document.replaceFirst("workflow@", ""));
+            RecordRef docRecordRef = RecordRef.valueOf(tasksQuery.document);
+            if (docRecordRef.getSourceId().equals("workflow")) {
+                tasksQuery.setWorkflowId(docRecordRef.getId());
                 tasksQuery.setDocument(null);
             } else if (!tasksQuery.document.contains("workspace")) {
                 return new RecordsQueryResult<>();

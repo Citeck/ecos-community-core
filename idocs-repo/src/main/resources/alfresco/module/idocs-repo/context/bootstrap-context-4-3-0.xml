@@ -1,0 +1,70 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+        http://www.springframework.org/schema/beans/spring-beans-3.0.xsd">
+
+    <bean id="idocs.import-spaces.4-3-0" abstract="true" parent="idocs.import-spaces">
+        <property name="sinceVersion" value="4.3.0"/>
+        <property name="appliesFromVersion" value="4.3.0"/>
+    </bean>
+
+    <bean id="idocs.import-scripts.4-3-0" abstract="true" parent="idocs.import-scripts">
+        <property name="sinceVersion" value="4.3.0"/>
+        <property name="appliesFromVersion" value="4.3.0"/>
+    </bean>
+
+    <bean id="ecos-community.module-component.enable-create-variants-cascad" parent="idocs.import-scripts.4-3-0">
+        <property name="name" value="enable-create-variants-cascad"/>
+        <property name="description" value="enable-create-variants-cascad"/>
+        <property name="dependsOn">
+            <list>
+                <ref bean="idocs.module-component.defaultUICreateMenu"/>
+            </list>
+        </property>
+        <property name="bootstrapScript" value="alfresco/module/idocs-repo/bootstrap/scripts/set-ecos-config.js"/>
+        <property name="args">
+            <map>
+                <entry key="key" value="default-ui-create-menu" />
+                <entry key="value" value="cascad" />
+            </map>
+        </property>
+    </bean>
+
+    <bean id="idocs.module-component.config.add-comment-with-tag-task.create" parent="module.baseComponent"
+          class="ru.citeck.ecos.config.patch.CreateConfig">
+        <property name="dependsOn">
+            <list>
+                <ref bean="ecos-base-core.module-component.ecos-config-root" />
+            </list>
+        </property>
+        <property name="configKey" value="add-comment-with-task-tag-enabled" />
+        <property name="configValue" value="false" />
+        <property name="configTitle" value="ecos-config.add-comment-with-task-tag-enabled.title" />
+        <property name="configDescription" value="ecos-config.add-comment-with-task-tag-enabled.description" />
+        <property name="moduleId" value="idocs-repo" />
+        <property name="name" value="idocs.module-component.config.add-comment-with-tag-task.create" />
+        <property name="description" value="idocs.module-component.config.add-comment-with-tag-task.create" />
+        <property name="sinceVersion" value="4.3.0" />
+        <property name="appliesFromVersion" value="4.3.0" />
+    </bean>
+
+    <bean id="idocs.module-component.config.add-comment-with-tag-action.create" parent="module.baseComponent"
+          class="ru.citeck.ecos.config.patch.CreateConfig">
+        <property name="dependsOn">
+            <list>
+                <ref bean="ecos-base-core.module-component.ecos-config-root" />
+            </list>
+        </property>
+        <property name="configKey" value="add-comment-with-action-tag-enabled" />
+        <property name="configValue" value="false" />
+        <property name="configTitle" value="ecos-config.add-comment-with-action-tag-enabled.title" />
+        <property name="configDescription" value="ecos-config.add-comment-with-action-tag-enabled.description" />
+        <property name="moduleId" value="idocs-repo" />
+        <property name="name" value="idocs.module-component.config.add-comment-with-tag-action.create" />
+        <property name="description" value="idocs.module-component.config.add-comment-with-tag-action.create" />
+        <property name="sinceVersion" value="4.3.0" />
+        <property name="appliesFromVersion" value="4.3.0" />
+    </bean>
+
+</beans>

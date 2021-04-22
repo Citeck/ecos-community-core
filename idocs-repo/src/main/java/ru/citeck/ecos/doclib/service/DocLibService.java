@@ -19,12 +19,12 @@ import ru.citeck.ecos.commons.data.MLText;
 import ru.citeck.ecos.commons.data.ObjectData;
 import ru.citeck.ecos.doclib.api.records.DocLibRecords;
 import ru.citeck.ecos.model.lib.type.dto.DocLibDef;
-import ru.citeck.ecos.model.lib.type.dto.TypeDef;
-import ru.citeck.ecos.model.lib.type.service.TypeDefService;
 import ru.citeck.ecos.model.lib.type.service.utils.TypeUtils;
 import ru.citeck.ecos.node.EcosTypeService;
+import ru.citeck.ecos.node.etype.EcosTypeRootService;
 import ru.citeck.ecos.records.source.alf.AlfNodesRecordsDAO;
 import ru.citeck.ecos.records.source.alf.meta.AlfNodeRecord;
+import ru.citeck.ecos.records.type.TypeDto;
 import ru.citeck.ecos.records2.RecordConstants;
 import ru.citeck.ecos.records2.RecordMeta;
 import ru.citeck.ecos.records2.RecordRef;
@@ -37,10 +37,10 @@ import ru.citeck.ecos.records2.predicate.model.VoidPredicate;
 import ru.citeck.ecos.records2.request.mutation.RecordsMutResult;
 import ru.citeck.ecos.records2.request.mutation.RecordsMutation;
 import ru.citeck.ecos.records3.RecordsService;
-import ru.citeck.ecos.records3.record.op.atts.service.schema.annotation.AttName;
-import ru.citeck.ecos.records3.record.op.query.dto.RecsQueryRes;
-import ru.citeck.ecos.records3.record.op.query.dto.query.QueryPage;
-import ru.citeck.ecos.records3.record.op.query.dto.query.RecordsQuery;
+import ru.citeck.ecos.records3.record.atts.schema.annotation.AttName;
+import ru.citeck.ecos.records3.record.dao.query.dto.query.QueryPage;
+import ru.citeck.ecos.records3.record.dao.query.dto.query.RecordsQuery;
+import ru.citeck.ecos.records3.record.dao.query.dto.res.RecsQueryRes;
 
 import java.util.*;
 import java.util.function.Supplier;
@@ -64,16 +64,16 @@ public class DocLibService {
         () -> null
     );
 
+    private final EcosTypeRootService ecosTypeRootService;
     private final EcosTypeService ecosTypeService;
-    private final TypeDefService typeDefService;
     private final RecordsService recordsService;
     private final NamespaceService namespaceService;
     private final AlfNodesRecordsDAO alfNodesRecordsDao;
     private final NodeService nodeService;
 
     @Autowired
-    public DocLibService(EcosTypeService ecosTypeService,
-                         TypeDefService typeDefService,
+    public DocLibService(EcosTypeRootService ecosTypeRootService,
+                         EcosTypeService ecosTypeService,
                          RecordsService recordsService,
                          NamespaceService namespaceService,
                          AlfNodesRecordsDAO alfNodesRecordsDao,
@@ -81,10 +81,10 @@ public class DocLibService {
 
         this.nodeService = nodeService;
         this.ecosTypeService = ecosTypeService;
-        this.typeDefService = typeDefService;
         this.recordsService = recordsService;
         this.namespaceService = namespaceService;
         this.alfNodesRecordsDao = alfNodesRecordsDao;
+        this.ecosTypeRootService = ecosTypeRootService;
     }
 
     public RecordRef createEntity(ObjectData attributes) {
@@ -103,7 +103,7 @@ public class DocLibService {
         ParameterCheck.mandatoryString(RecordConstants.ATT_TYPE, ecosType);
         RecordRef typeRef = RecordRef.valueOf(ecosType);
 
-        DocLibDef docLib = typeDefService.getDocLib(docLibTypeRef);
+        DocLibDef docLib = ecosTypeService.getDocLib(docLibTypeRef);
         Set<RecordRef> allowedTypes = new HashSet<>(docLib.getFileTypeRefs());
         allowedTypes.add(docLib.getDirTypeRef());
 
@@ -129,7 +129,7 @@ public class DocLibService {
         String parentNodeRefStr = parentEntityId.getLocalId();
         NodeRef parentNodeRef = null;
         if (parentNodeRefStr.isEmpty()) {
-            parentNodeRef = ecosTypeService.getRootForType(docLibTypeRef, true);
+            parentNodeRef = ecosTypeRootService.getRootForType(docLibTypeRef, true);
         } else if (NodeRef.isNodeRef(parentNodeRefStr)) {
             parentNodeRef = new NodeRef(parentNodeRefStr);
         }
@@ -166,7 +166,7 @@ public class DocLibService {
             return resultPath;
         }
 
-        NodeRef rootNodeRef = ecosTypeService.getRootForType(entityId.getTypeRef(), false);
+        NodeRef rootNodeRef = ecosTypeRootService.getRootForType(entityId.getTypeRef(), false);
         if (rootNodeRef == null) {
             return resultPath;
         }
@@ -217,7 +217,7 @@ public class DocLibService {
 
         if (entityId.getLocalId().isEmpty()) {
 
-            TypeDef typeDef = typeDefService.getTypeDef(entityId.getTypeRef());
+            TypeDto typeDef = ecosTypeService.getTypeDef(entityId.getTypeRef());
             if (typeDef == null) {
                 return EMPTY_NODE;
             }
@@ -254,7 +254,7 @@ public class DocLibService {
         }
 
         DocLibNodeType nodeType;
-        DocLibDef docLib = typeDefService.getDocLib(entityId.getTypeRef());
+        DocLibDef docLib = ecosTypeService.getDocLib(entityId.getTypeRef());
         if (info.getTypeRef().equals(docLib.getDirTypeRef())) {
             nodeType = DocLibNodeType.DIR;
         } else if (docLib.getFileTypeRefs().contains(info.getTypeRef())) {
@@ -297,7 +297,7 @@ public class DocLibService {
 
         NodeRef parentNodeRef = null;
         if (entityId.localId.isEmpty()) {
-            parentNodeRef = ecosTypeService.getRootForType(entityId.getTypeRef(), false);
+            parentNodeRef = ecosTypeRootService.getRootForType(entityId.getTypeRef(), false);
         } else if (NodeRef.isNodeRef(entityId.localId)) {
             parentNodeRef = new NodeRef(entityId.localId);
         }
@@ -305,20 +305,20 @@ public class DocLibService {
             return new RecsQueryRes<>();
         }
 
-        DocLibDef docLibDef = typeDefService.getDocLib(entityId.getTypeRef());
+        DocLibDef docLibDef = ecosTypeService.getDocLib(entityId.getTypeRef());
 
         boolean includeDirs = query.getNodeType() == null || query.getNodeType().equals(DocLibNodeType.DIR);
         boolean includeFiles = query.getNodeType() == null || query.getNodeType().equals(DocLibNodeType.FILE);
 
         OrPredicate typesPredicate = new OrPredicate();
         if (includeDirs && RecordRef.isNotEmpty(docLibDef.getDirTypeRef())) {
-            typeDefService.expandTypeWithChildren(docLibDef.getDirTypeRef()).forEach(
+            ecosTypeService.expandTypeWithChildren(docLibDef.getDirTypeRef()).forEach(
                 ref -> typesPredicate.addPredicate(Predicates.eq(RecordConstants.ATT_TYPE, ref))
             );
         }
         if (includeFiles) {
             for (RecordRef fileType : docLibDef.getFileTypeRefs()) {
-                typeDefService.expandTypeWithChildren(fileType).forEach(
+                ecosTypeService.expandTypeWithChildren(fileType).forEach(
                     ref -> typesPredicate.addPredicate(Predicates.eq(RecordConstants.ATT_TYPE, ref))
                 );
             }

@@ -1,8 +1,7 @@
 package ru.citeck.ecos.domain.model.config;
 
-import kotlin.Unit;
+import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
@@ -12,11 +11,11 @@ import ru.citeck.ecos.model.lib.permissions.repo.PermissionsRepo;
 import ru.citeck.ecos.model.lib.permissions.service.PermsEvaluator;
 import ru.citeck.ecos.model.lib.permissions.service.RecordPermsService;
 import ru.citeck.ecos.model.lib.role.service.RoleService;
-import ru.citeck.ecos.model.lib.role.service.StatusService;
-import ru.citeck.ecos.model.lib.type.dto.TypeDef;
+import ru.citeck.ecos.model.lib.status.service.StatusService;
+import ru.citeck.ecos.model.lib.type.dto.TypeModelDef;
 import ru.citeck.ecos.model.lib.type.dto.TypePermsDef;
 import ru.citeck.ecos.model.lib.type.repo.TypesRepo;
-import ru.citeck.ecos.model.lib.type.service.TypeDefService;
+import ru.citeck.ecos.model.lib.type.service.TypeRefService;
 import ru.citeck.ecos.node.EcosTypeService;
 import ru.citeck.ecos.records.type.TypeDto;
 import ru.citeck.ecos.records2.RecordRef;
@@ -25,6 +24,8 @@ import ru.citeck.ecos.records3.RecordsServiceFactory;
 import ru.citeck.ecos.service.CiteckServices;
 
 import java.util.List;
+import java.util.function.Function;
+import java.util.function.Supplier;
 
 @Configuration
 public class ModelServiceFactoryConfig extends ModelServiceFactory {
@@ -52,11 +53,11 @@ public class ModelServiceFactoryConfig extends ModelServiceFactory {
         return super.createPermsEvaluator();
     }
 
-    @Bean(name = CiteckServices.TYPE_DEF_SERVICE_BEAN_NAME)
+    @Bean
     @NotNull
     @Override
-    protected TypeDefService createTypeDefService() {
-        return super.createTypeDefService();
+    protected TypeRefService createTypeRefService() {
+        return super.createTypeRefService();
     }
 
     @Bean
@@ -78,29 +79,36 @@ public class ModelServiceFactoryConfig extends ModelServiceFactory {
     @Override
     protected TypesRepo createTypesRepo() {
         return new TypesRepo() {
-            @Nullable
+            @NotNull
             @Override
-            public TypeDef getTypeDef(@NotNull RecordRef recordRef) {
-                TypeDto typeDto = typeRecords.getRecord(recordRef.getId()).orElse(null);
-                if (typeDto == null || typeDto.getId() == null) {
-                    return null;
-                }
-                return TypeDef.create(b -> {
-                    b.withId(typeDto.getId());
-                    b.withName(typeDto.getName());
-                    b.withParentRef(typeDto.getParentRef());
-                    b.withModel(typeDto.getModel());
-                    b.withDocLib(typeDto.getDocLib());
-                    b.withNumTemplateRef(typeDto.getNumTemplateRef());
-                    b.withInheritNumTemplate(typeDto.isInheritNumTemplate());
-                    return Unit.INSTANCE;
-                });
+            public TypeModelDef getModel(@NotNull RecordRef typeRef) {
+                return getFromDto(typeRef, TypeDto::getResolvedModel, () -> TypeModelDef.EMPTY);
             }
 
             @NotNull
             @Override
-            public List<RecordRef> getChildren(@NotNull RecordRef recordRef) {
-                return typeService.getChildren(recordRef);
+            public RecordRef getParent(@NotNull RecordRef typeRef) {
+                return getFromDto(typeRef, TypeDto::getParentRef, () -> RecordRef.EMPTY);
+            }
+
+            @NotNull
+            @Override
+            public List<RecordRef> getChildren(@NotNull RecordRef typeRef) {
+                return typeService.getChildren(typeRef);
+            }
+
+            @NotNull
+            private <T> T getFromDto(RecordRef typeRef, Function<TypeDto, T> action, Supplier<T> orElse) {
+
+                if (typeRef.getId().isEmpty()) {
+                    return orElse.get();
+                }
+                TypeDto typeDto = typeRecords.getRecord(typeRef.getId()).orElse(null);
+                if (typeDto == null || StringUtils.isBlank(typeDto.getId())) {
+                    return orElse.get();
+                }
+                T result = action.apply(typeDto);
+                return result != null ? result : orElse.get();
             }
         };
     }

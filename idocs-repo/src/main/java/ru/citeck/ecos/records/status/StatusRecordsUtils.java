@@ -17,16 +17,15 @@ import org.springframework.stereotype.Component;
 import ru.citeck.ecos.icase.CaseStatusAssocDao;
 import ru.citeck.ecos.icase.CaseStatusService;
 import ru.citeck.ecos.model.IdocsModel;
-import ru.citeck.ecos.model.lib.role.service.StatusService;
 import ru.citeck.ecos.model.lib.status.dto.StatusDef;
-import ru.citeck.ecos.model.lib.type.service.TypeDefService;
+import ru.citeck.ecos.model.lib.status.service.StatusService;
 import ru.citeck.ecos.node.EcosTypeService;
 import ru.citeck.ecos.records2.RecordRef;
 import ru.citeck.ecos.records2.predicate.PredicateService;
 import ru.citeck.ecos.records2.predicate.model.Predicates;
 import ru.citeck.ecos.records3.RecordsService;
-import ru.citeck.ecos.records3.record.op.query.dto.RecsQueryRes;
-import ru.citeck.ecos.records3.record.op.query.dto.query.RecordsQuery;
+import ru.citeck.ecos.records3.record.dao.query.dto.query.RecordsQuery;
+import ru.citeck.ecos.records3.record.dao.query.dto.res.RecsQueryRes;
 import ru.citeck.ecos.spring.registry.MappingRegistry;
 
 import java.io.Serializable;
@@ -56,7 +55,6 @@ class StatusRecordsUtils {
     private final NamespaceService namespaceService;
     private final EcosTypeService ecosTypeService;
     private final StatusService statusService;
-    private final TypeDefService typeDefService;
 
     @Autowired
     public StatusRecordsUtils(NodeService nodeService, RecordsService recordsService,
@@ -65,7 +63,7 @@ class StatusRecordsUtils {
                               @Qualifier("records.document-status.type-to-constraint.mappingRegistry")
                                   MappingRegistry<String, String> typeToConstraintMapping,
                               DictionaryService dictionaryService, NamespaceService namespaceService,
-                              EcosTypeService ecosTypeService, StatusService statusService, TypeDefService typeDefService) {
+                              EcosTypeService ecosTypeService, StatusService statusService) {
         this.nodeService = nodeService;
         this.recordsService = recordsService;
         this.caseStatusService = caseStatusService;
@@ -75,7 +73,6 @@ class StatusRecordsUtils {
         this.namespaceService = namespaceService;
         this.ecosTypeService = ecosTypeService;
         this.statusService = statusService;
-        this.typeDefService = typeDefService;
     }
 
     RecsQueryRes<StatusRecord> getAllExistingStatuses(String type) {
@@ -97,8 +94,11 @@ class StatusRecordsUtils {
             .withGroupBy(Collections.singletonList(ATT_FIELD))
             .build();
 
-        List<StatusRecord> statusRecords = recordsService.query(query, Collections.singletonMap("id", ATT_FIELD + "?id"))
-            .getRecords().stream().map(value -> {
+        Map<String, String> attsMap = Collections.singletonMap("id", ATT_FIELD + "?id");
+        List<StatusRecord> statusRecords = recordsService.query(query, attsMap)
+            .getRecords()
+            .stream()
+            .map(value -> {
                 String ref = value.getAtt("id").asText();
                 return getByStatusRef(new NodeRef(ref), statuses, ecosType);
             })
@@ -211,7 +211,7 @@ class StatusRecordsUtils {
         if (statusRef != null) {
             RecordRef documentRef = RecordRef.valueOf(document.toString());
             Map<String, StatusDef> statuses = statusService.getStatusesByDocument(documentRef);
-            return getByStatusRef(statusRef, statuses, typeDefService.getTypeRef(documentRef));
+            return getByStatusRef(statusRef, statuses, ecosTypeService.getEcosType(document));
         } else {
             Serializable documentStatus = nodeService.getProperty(document, IdocsModel.PROP_DOCUMENT_STATUS);
             if (documentStatus != null) {

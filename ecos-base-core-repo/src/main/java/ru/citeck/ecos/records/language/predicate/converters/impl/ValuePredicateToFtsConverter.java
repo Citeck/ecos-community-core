@@ -2,6 +2,8 @@ package ru.citeck.ecos.records.language.predicate.converters.impl;
 
 import lombok.extern.slf4j.Slf4j;
 import org.alfresco.model.ContentModel;
+import org.alfresco.repo.dictionary.constraint.ListOfValuesConstraint;
+import org.alfresco.repo.i18n.MessageService;
 import org.alfresco.repo.security.authentication.AuthenticationUtil;
 import org.alfresco.service.cmr.dictionary.*;
 import org.alfresco.service.cmr.repository.NodeRef;
@@ -50,6 +52,7 @@ public class ValuePredicateToFtsConverter implements PredicateToFtsConverter {
     private ConvertersDelegator delegator;
 
     private NodeService nodeService;
+    private MessageService messageService;
     private SearchService searchService;
     private EcosTypeService ecosTypeService;
     private NamespaceService namespaceService;
@@ -136,10 +139,52 @@ public class ValuePredicateToFtsConverter implements PredicateToFtsConverter {
                 break;
             }
             default: {
-                processDefaultAttribute(query, valuePredicate, context);
+                if (IN.equals(valuePredicate.getType())) {
+                    processInAttribute(query, valuePredicate, context);
+                } else {
+                    processDefaultAttribute(query, valuePredicate, context);
+                }
                 break;
             }
         }
+    }
+
+    private void processInAttribute(FTSQuery query, ValuePredicate valuePredicate, PredToFtsContext context) {
+
+        DataValue value = valuePredicate.getValue();
+        List<DataValue> elements = new ArrayList<>();
+
+        if (value.isArray()) {
+            for (DataValue arrValue : value) {
+                elements.add(arrValue);
+            }
+        } else {
+            elements.add(value);
+        }
+
+        List<DataValue> expandedElements = new ArrayList<>();
+
+        for (DataValue elem : elements) {
+            if (elem.isTextual()) {
+                String elemStr = elem.asText();
+                if ("$CURRENT_AUTHORITIES_REFS".equals(elemStr)) {
+                    authorityUtils.getUserAuthoritiesRefs()
+                        .forEach(auth -> expandedElements.add(DataValue.createStr(auth.toString())));
+                } else {
+                    expandedElements.add(elem);
+                }
+            } else {
+                expandedElements.add(elem);
+            }
+        }
+
+        query.open();
+        expandedElements.forEach(elem -> {
+            ValuePredicate newPred = new ValuePredicate(valuePredicate.getAttribute(), EQ, elem);
+            processDefaultAttribute(query, newPred, context);
+            query.or();
+        });
+        query.close();
     }
 
     private void processAllAttribute(FTSQuery query, String value) {
@@ -475,6 +520,7 @@ public class ValuePredicateToFtsConverter implements PredicateToFtsConverter {
 
     private ComposedPredicate getAdvantageComposedPredicate(ValuePredicate.Type valuePredType, String predicateValue,
                                                             String attribute, ClassAttributeDefinition attDef) {
+
         boolean valueContainsComma = predicateValue.contains(COMMA_DELIMITER);
         boolean valueEqualEq = EQ.equals(valuePredType);
         boolean valueEqualEqOrContainsPredType =  valueEqualEq || CONTAINS.equals(valuePredType);
@@ -489,9 +535,40 @@ public class ValuePredicateToFtsConverter implements PredicateToFtsConverter {
 
         boolean valueContainsSlash = predicateValue.contains(SLASH_DELIMITER);
         if (valueEqualEq && valueContainsSlash) {
-            ComposedPredicate intervalPredicate = getIntervalPredicate(predicateValue, attribute, attDef);
-            if (intervalPredicate != null) {
-                return intervalPredicate;
+            return getIntervalPredicate(predicateValue, attribute, attDef);
+        }
+
+        if (attDef instanceof PropertyDefinition
+                && ValuePredicate.Type.CONTAINS.equals(valuePredType)
+                && StringUtils.isNotBlank(predicateValue)) {
+
+            ListOfValuesConstraint constraint = dictUtils.getListOfValuesConstraint((PropertyDefinition) attDef);
+
+            if (constraint != null && !constraint.getAllowedValues().isEmpty()) {
+
+                String lowercaseValue = predicateValue.toLowerCase();
+                List<Predicate> values = new ArrayList<>();
+
+                for (String value : constraint.getAllowedValues()) {
+
+                    if (Objects.equals(value, predicateValue)) {
+                        values.clear();
+                        break;
+                    }
+
+                    String dispName = constraint.getDisplayLabel(value, messageService);
+
+                    if (value.toLowerCase().contains(lowercaseValue)
+                            || StringUtils.isNotBlank(dispName)
+                               && dispName.toLowerCase().contains(lowercaseValue)) {
+
+                        values.add(ValuePredicate.eq(attribute, value));
+                    }
+                }
+
+                if (!values.isEmpty()) {
+                    return OrPredicate.of(values);
+                }
             }
         }
 
@@ -731,5 +808,10 @@ public class ValuePredicateToFtsConverter implements PredicateToFtsConverter {
     @Autowired
     public void setAuthorityUtils(AuthorityUtils authorityUtils) {
         this.authorityUtils = authorityUtils;
+    }
+
+    @Autowired
+    public void setMessageService(MessageService messageService) {
+        this.messageService = messageService;
     }
 }

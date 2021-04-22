@@ -1,0 +1,12 @@
+
+id: ecos-config-type
+
+name: { ru: Конфигурация, en: Config }
+
+parentRef: emodel/type@data-list
+formRef: uiserv/form@config_ecosConfig
+journalRef: uiserv/journal@ecosConfig
+
+properties:
+  alfType: config:ecosConfig
+  alfRoot: /cm:IDocsRoot/cm:ecos-config-root

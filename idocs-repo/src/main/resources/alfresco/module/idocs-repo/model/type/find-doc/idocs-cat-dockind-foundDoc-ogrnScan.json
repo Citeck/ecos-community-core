@@ -1,6 +1,5 @@
 {
     "id": "idocs-cat-doctype-foundDoc/idocs-cat-dockind-foundDoc-ogrnScan",
     "name": "Скан-копия ОГРН",
-    "parent": "emodel/type@idocs-cat-doctype-foundDoc",
-    "inheritActions": true
+    "parent": "emodel/type@idocs-cat-doctype-foundDoc"
 }

@@ -1,0 +1,95 @@
+---
+id: active-tasks
+
+name:
+  ru: Активные задачи
+  en: Active tasks
+
+typeRef: emodel/type@workflow-task
+
+sourceId: alfresco/workflow-tasks
+metaRecord: alfresco/@
+
+predicate:
+  t: and
+  val:
+    - { t: eq, att: _actors, val: $CURRENT }
+    - { t: or, val: [ #todo: replace with 'empty' predicate
+        { t: like, att: ISNULL, val: bpm:completionDate },
+        { t: like, att: ISUNSET, val: bpm:completionDate }
+    ] }
+    - { t: not-eq, att: samwf:processingStatus, val: FULLY_PROCESSED }
+
+actions:
+  - uiserv/action@view-task
+  - uiserv/action@view-task-in-background
+  - uiserv/action@edit-task
+
+columns:
+
+  - id: bpm:priority
+    formatter:
+      type: workflowPriority
+
+  - id: cm:title
+    name:
+      en: Task name
+      ru: Название задачи
+    sortable: false
+
+  #  <header key="cm:title" default="true" sortable="false" >
+  #  <option  name="formatter">taskTitle</option>
+  # </header>
+
+  - id: wfm:document
+    searchable: false
+
+  - id: wfm:counterparty
+    searhable: false
+
+  - id: wfm:documentTypeTitle
+  - id: wfm:documentKindTitle
+
+  - id: bpm:dueDate
+
+  - id: cwf:senderName
+    searchable: false
+    visible: false
+
+  - id: cwf:sender
+    visible: false
+
+  - id: wfm:assignee
+    visible: false
+    editor:
+      type: orgstruct
+      config:
+        allowedAuthorityTypes: USER
+
+  - id: bpm:status
+    visible: false
+
+  - id: bpm:pooledActors
+    sortable: false
+    visible: false
+    editor:
+      type: orgstruct
+      config:
+        allowedAuthorityTypes: USER,GROUP
+
+  - id: bpm:startDate
+    visible: false
+
+  - id: bpm:comment
+    visible: false
+
+  - id: cwf:taskTitle
+    visible: false
+
+  - id: cm:name
+    visible: false
+    searchable: false
+
+  - id: wfm:taskType
+    visible: false
+    searchable: false

@@ -4,6 +4,5 @@
         "ru": "Прочее",
         "en": "Other"
     },
-    "parent": "emodel/type@category-document-type",
-    "inheritActions": true
+    "parent": "emodel/type@category-document-type"
 }

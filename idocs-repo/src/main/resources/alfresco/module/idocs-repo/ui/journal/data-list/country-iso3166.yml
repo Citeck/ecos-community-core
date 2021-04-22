@@ -1,0 +1,11 @@
+---
+id: country-iso3166
+name: { ru: Страны, en: Countries }
+
+actions:
+  - uiserv/action@edit
+
+columns:
+  - id: cm:title
+  - id: idocs:countryISO3166Name
+  - id: idocs:countryISO31661Code

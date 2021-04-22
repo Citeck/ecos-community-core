@@ -135,7 +135,7 @@
             "config": {
               "widgetDisplayCondition": "",
               "elementsDisplayCondition": {},
-              "formId": "uiserv/eform@02347243-639c-4da4-b261-8b47cbca2362",
+              "formId": "uiserv/form@idocs-contractor-form",
               "titleAsFormName": false
             }
           },
@@ -151,7 +151,7 @@
             "config": {
               "widgetDisplayCondition": "{\"t\":\"eq\",\"att\":\"$alfMeta.attributes.edition?str\",\"val\":\"enterprise\"}",
               "elementsDisplayCondition": {},
-              "formId": "uiserv/eform@02347243-639c-4da4-b261-8b47cbca2363",
+              "formId": "uiserv/form@02347243-639c-4da4-b261-8b47cbca2363",
               "titleAsFormName": true
             }
           },

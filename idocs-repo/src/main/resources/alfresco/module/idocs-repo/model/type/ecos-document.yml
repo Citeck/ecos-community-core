@@ -3,10 +3,9 @@ id: ecos-document
 name: { ru: Документ, en: Document }
 
 parentRef: emodel/type@data-list
-formRef: uiserv/eform@ecos-document-form
+formRef: uiserv/form@ecos-document-form
 journalRef: uiserv/journal@ecos-documents
 
-createVariants:
-  - id: create
-    attributes:
-      TYPE: ecos:document
+properties:
+  alfType: ecos:document
+  alfRoot: /app:company_home/st:sites/cm:common-documents/cm:documentLibrary/cm:ecos-documents

@@ -2,5 +2,5 @@
     "id": "cat-doc-type-ecos-bpm-process",
     "name": "BPM Процесс",
     "parent": "emodel/type@user-base",
-    "inheritActions": true
+    "defaultCreateVariant": false
 }

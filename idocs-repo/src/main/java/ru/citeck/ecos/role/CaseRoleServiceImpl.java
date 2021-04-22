@@ -26,9 +26,10 @@ import org.springframework.extensions.surf.util.I18NUtil;
 import org.springframework.extensions.surf.util.ParameterCheck;
 import ru.citeck.ecos.commons.data.MLText;
 import ru.citeck.ecos.commons.data.ObjectData;
+import ru.citeck.ecos.model.lib.role.constants.RoleConstants;
 import ru.citeck.ecos.model.lib.role.dto.RoleDef;
 import ru.citeck.ecos.model.lib.role.service.RoleService;
-import ru.citeck.ecos.model.lib.type.service.TypeDefService;
+import ru.citeck.ecos.model.lib.type.dto.TypeModelDef;
 import ru.citeck.ecos.node.EcosTypeService;
 import ru.citeck.ecos.records.type.TypeDto;
 import ru.citeck.ecos.records.type.TypesManager;
@@ -63,7 +64,6 @@ public class CaseRoleServiceImpl implements CaseRoleService {
     private NodeService nodeService;
 
     private TypesManager typesManager;
-    private TypeDefService typeDefService;
     private EcosTypeService ecosTypeService;
 
     private PolicyComponent policyComponent;
@@ -118,8 +118,7 @@ public class CaseRoleServiceImpl implements CaseRoleService {
         Map<String, NodeRef> result = new HashMap<>();
 
         RecordRef ecosType = ecosTypeService.getEcosType(caseRef);
-        TypeDto typeDto = typesManager.getType(ecosType);
-        if (isPrioritizingAlfRolesOptionEnabled(typeDto)) {
+        if (isPrioritizingAlfRolesOptionEnabled(ecosType)) {
             result.putAll(getEcosTypeRolesForCase(ecosType, caseRef));
             result.putAll(getAlfRolesForCase(caseRef));
         } else {
@@ -130,28 +129,25 @@ public class CaseRoleServiceImpl implements CaseRoleService {
         return Collections.unmodifiableList(new ArrayList<>(result.values()));
     }
 
-    private boolean isPrioritizingAlfRolesOptionEnabled(TypeDto typeDto) {
-        if (typeDto == null) {
-            return false;
-        }
-        ObjectData attributes = typeDto.getAttributes();
-        if (attributes == null) {
-            return false;
-        }
-        String priorityUseAlfRoles = attributes.get("priorityUseAlfRoles").asText();
+    private boolean isPrioritizingAlfRolesOptionEnabled(RecordRef typeRef) {
+        ObjectData properties = ecosTypeService.getResolvedProperties(typeRef);
+        String priorityUseAlfRoles = properties.get("priorityUseAlfRoles").asText();
         return BooleanUtils.toBoolean(priorityUseAlfRoles);
     }
 
     private Map<String, NodeRef> getEcosTypeRolesForCase(RecordRef ecosType, NodeRef caseRef) {
 
         Map<String, NodeRef> result = new HashMap<>();
+        TypeDto typeDef = ecosTypeService.getTypeDef(ecosType);
 
-        typeDefService.forEachAsc(ecosType, typeDef -> {
-            typeDef.getModel()
-                    .getRoles()
-                    .forEach(role -> result.put(role.getId(), ecosRoleToNodeRef(caseRef, role.getId())));
-            return false;
-        });
+        if (typeDef != null) {
+            TypeModelDef resolvedModel = typeDef.getResolvedModel();
+            if (resolvedModel != null) {
+                resolvedModel.getRoles().forEach(role ->
+                    result.put(role.getId(), ecosRoleToNodeRef(caseRef, role.getId()))
+                );
+            }
+        }
 
         return result;
     }
@@ -270,6 +266,9 @@ public class CaseRoleServiceImpl implements CaseRoleService {
         if (log.isDebugEnabled()) {
             log.debug("User roles: " + userRoleRefs);
         }
+
+        userRoleRefs.add(ecosRoleToNodeRef(caseRef, RoleConstants.ROLE_ALL));
+
         return userRoleRefs;
     }
 
@@ -374,8 +373,7 @@ public class CaseRoleServiceImpl implements CaseRoleService {
         NodeRef caseRef = getRoleCaseRef(roleRef);
 
         RecordRef ecosType = ecosTypeService.getEcosType(caseRef);
-        TypeDto typeDto = typesManager.getType(ecosType);
-        if (isPrioritizingAlfRolesOptionEnabled(typeDto) && isAlfRole(roleRef)) {
+        if (isPrioritizingAlfRolesOptionEnabled(ecosType) && isAlfRole(roleRef)) {
             return roleRef;
         }
 
@@ -396,6 +394,10 @@ public class CaseRoleServiceImpl implements CaseRoleService {
 
         if (isAlfRole(roleRef)) {
             return getTargets(roleRef, ICaseRoleModel.ASSOC_ASSIGNEES);
+        }
+
+        if (RoleConstants.ROLE_ALL.equals(roleRef.getId())) {
+            return Collections.emptySet();
         }
 
         RecordRef caseRef = RecordRef.valueOf(String.valueOf(getRoleCaseRef(roleRef)));
@@ -797,10 +799,7 @@ public class CaseRoleServiceImpl implements CaseRoleService {
         this.typesManager = typesManager;
     }
 
-    @Autowired
-    public void setTypeDefService(TypeDefService typeDefService) {
-        this.typeDefService = typeDefService;
-    }
+
 
     @Autowired
     public void setEcosTypeService(EcosTypeService ecosTypeService) {

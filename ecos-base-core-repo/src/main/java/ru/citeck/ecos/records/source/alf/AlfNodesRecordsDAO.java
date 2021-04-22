@@ -2,6 +2,7 @@ package ru.citeck.ecos.records.source.alf;
 
 import lombok.extern.slf4j.Slf4j;
 import org.alfresco.model.ContentModel;
+import org.alfresco.repo.security.authentication.AuthenticationUtil;
 import org.alfresco.service.ServiceRegistry;
 import org.alfresco.service.cmr.dictionary.*;
 import org.alfresco.service.cmr.repository.*;
@@ -21,10 +22,13 @@ import ru.citeck.ecos.domain.model.alf.service.AlfAutoModelService;
 import ru.citeck.ecos.model.EcosModel;
 import ru.citeck.ecos.model.EcosTypeModel;
 import ru.citeck.ecos.model.InvariantsModel;
-import ru.citeck.ecos.model.lib.type.service.TypeDefService;
+import ru.citeck.ecos.model.lib.type.service.TypeRefService;
+import ru.citeck.ecos.model.lib.type.service.utils.TypeUtils;
 import ru.citeck.ecos.node.AlfNodeInfo;
 import ru.citeck.ecos.node.AlfNodeInfoImpl;
 import ru.citeck.ecos.node.EcosTypeService;
+import ru.citeck.ecos.node.etype.EcosTypeAlfTypeService;
+import ru.citeck.ecos.node.etype.EcosTypeRootService;
 import ru.citeck.ecos.records.source.alf.file.AlfNodeContentFileHelper;
 import ru.citeck.ecos.records.source.alf.meta.AlfNodeRecord;
 import ru.citeck.ecos.records.source.alf.search.AlfNodesSearch;
@@ -49,10 +53,10 @@ import ru.citeck.ecos.records2.source.dao.RecordsQueryDao;
 import ru.citeck.ecos.records2.source.dao.local.LocalRecordsDao;
 import ru.citeck.ecos.records2.source.dao.local.v2.LocalRecordsMetaDao;
 import ru.citeck.ecos.records2.source.dao.local.v2.LocalRecordsQueryWithMetaDao;
-import ru.citeck.ecos.records3.record.op.atts.service.computed.ComputedAtt;
-import ru.citeck.ecos.records3.record.op.atts.service.computed.ComputedAttType;
-import ru.citeck.ecos.records3.record.op.atts.service.computed.ComputedUtils;
-import ru.citeck.ecos.records3.record.op.atts.service.computed.StoringType;
+import ru.citeck.ecos.records3.record.atts.computed.ComputedAtt;
+import ru.citeck.ecos.records3.record.atts.computed.ComputedAttType;
+import ru.citeck.ecos.records3.record.atts.computed.ComputedUtils;
+import ru.citeck.ecos.records3.record.atts.computed.StoringType;
 import ru.citeck.ecos.records3.record.request.context.SystemContextUtil;
 import ru.citeck.ecos.security.EcosPermissionService;
 import ru.citeck.ecos.utils.NodeUtils;
@@ -92,16 +96,18 @@ public class AlfNodesRecordsDAO extends LocalRecordsDao
     private NodeService nodeService;
     private SearchService searchService;
     private EcosTypeService ecosTypeService;
+    private EcosTypeRootService ecosTypeRootService;
     private NamespaceService namespaceService;
     private DictionaryService dictionaryService;
     private GroupActionService groupActionService;
     private AlfNodeContentFileHelper contentFileHelper;
     private EcosPermissionService ecosPermissionService;
     private TypesManager typeInfoProvider;
-    private TypeDefService typeDefService;
+    private TypeRefService typeRefService;
     private ServiceRegistry serviceRegistry;
     private RecordsTemplateService recordsTemplateService;
     private AlfAutoModelService alfAutoModelService;
+    private EcosTypeAlfTypeService ecosTypeAlfTypeService;
 
     private final Map<QName, NodeRef> defaultParentByType = new ConcurrentHashMap<>();
 
@@ -125,6 +131,16 @@ public class AlfNodesRecordsDAO extends LocalRecordsDao
     private RecordMeta processSingleRecord(RecordMeta record) {
 
         ObjectData initialAtts = record.getAtts().deepCopy();
+        initialAtts.forEachJ((k, v) -> {
+            if (v.isTextual()) {
+                String textValue = v.asText();
+                if (textValue.startsWith("alfresco/@")) {
+                    initialAtts.set(k, textValue.replaceFirst("alfresco/@", ""));
+                }
+            }
+        });
+
+        ObjectData attributes = initialAtts.deepCopy();
 
         RecordMeta resultRecord;
         Map<QName, Serializable> props = new HashMap<>();
@@ -138,8 +154,6 @@ public class AlfNodesRecordsDAO extends LocalRecordsDao
         if (record.getId().getId().startsWith("workspace://SpacesStore/")) {
             nodeRef = new NodeRef(record.getId().getId());
         }
-
-        ObjectData attributes = record.getAttributes();
 
         // if we get "att_add_someAtt" and "someAtt", then ignore "att_add_*"
         attributes.forEachJ((name, value) -> {
@@ -325,7 +339,7 @@ public class AlfNodesRecordsDAO extends LocalRecordsDao
                 props.put(InvariantsModel.PROP_IS_DRAFT, false);
             }
 
-            QName type = getNodeType(record);
+            QName type = getNodeType(record, ecosTypeRef);
             NodeRef parent = getParent(record, type, ecosTypeRef);
             QName parentAssoc = getParentAssoc(record, parent);
 
@@ -425,7 +439,7 @@ public class AlfNodesRecordsDAO extends LocalRecordsDao
             return ObjectData.create();
         }
 
-        List<ComputedAtt> computedAtts = typeDefService.getComputedAtts(docTypeRef);
+        List<ComputedAtt> computedAtts = typeRefService.getComputedAtts(docTypeRef);
         Set<String> attsToStore = new HashSet<>();
 
         for (ComputedAtt att : computedAtts) {
@@ -458,7 +472,7 @@ public class AlfNodesRecordsDAO extends LocalRecordsDao
             counterProps.put(EcosModel.PROP_DOC_NUM.toPrefixString(namespaceService), number);
         }
 
-        List<ComputedAtt> computedAtts = typeDefService.getComputedAtts(docTypeRef);
+        List<ComputedAtt> computedAtts = typeRefService.getComputedAtts(docTypeRef);
 
         for (ComputedAtt att : computedAtts) {
 
@@ -528,6 +542,21 @@ public class AlfNodesRecordsDAO extends LocalRecordsDao
                     if (nodeService.exists(typeRef)) {
                         props.put(PROP_DOCUMENT_TYPE, WORKSPACE_PREFIX + typeId);
                     }
+                }
+            }
+        } else {
+
+            String tkType = attributes.get("tk:type").asText();
+            String tkKind = attributes.get("tk:kind").asText();
+
+            if (tkType.startsWith(WORKSPACE_PREFIX)) {
+                String ecosTypeId = tkType.replaceFirst(WORKSPACE_PREFIX, "");
+                if (!ecosTypeId.isEmpty()) {
+                    if (tkKind.startsWith(WORKSPACE_PREFIX)) {
+                        ecosTypeId = ecosTypeId + "/" + tkKind.replaceFirst(WORKSPACE_PREFIX, "");
+                    }
+                    props.put(EcosTypeModel.PROP_TYPE, ecosTypeId);
+                    etype = TypeUtils.getTypeRef(ecosTypeId);
                 }
             }
         }
@@ -652,37 +681,25 @@ public class AlfNodesRecordsDAO extends LocalRecordsDao
         return ContentModel.ASSOC_CONTAINS;
     }
 
-    private QName getNodeType(RecordMeta record) {
-
-        QName typeQName;
+    private QName getNodeType(RecordMeta record, RecordRef typeRef) {
 
         String type = record.getAttribute(AlfNodeRecord.ATTR_TYPE, "");
         if (type.isEmpty()) {
             type = record.getAttribute(AlfNodeRecord.ATTR_TYPE_UPPER, "");
         }
-        if (type.isEmpty()) {
-            type = record.getAttribute(RecordConstants.ATT_TYPE, "");
-            if (type.startsWith("emodel")) {
-                type = "";
-            }
-        }
-
         if (!type.isEmpty()) {
-            typeQName = QName.resolveToQName(namespaceService, type);
-        } else {
-            typeQName = ContentModel.TYPE_CONTENT;
+            return QName.resolveToQName(namespaceService, type);
         }
-        if (typeQName == null) {
-            throw new IllegalArgumentException("Incorrect type: " + type);
-        }
-
-        return typeQName;
+        return ecosTypeAlfTypeService.getAlfTypeToCreate(typeRef);
     }
 
     private NodeRef getParent(RecordMeta record, QName type, RecordRef ecosType) {
 
         String parent = record.getAttribute(RecordConstants.ATT_PARENT, "");
         if (!parent.isEmpty()) {
+            if (parent.startsWith("alfresco/@")) {
+                parent = parent.replaceFirst("alfresco/@", "");
+            }
             if (parent.startsWith("workspace")) {
                 return new NodeRef(parent);
             }
@@ -690,7 +707,7 @@ public class AlfNodesRecordsDAO extends LocalRecordsDao
         }
 
         if (RecordRef.isNotEmpty(ecosType)) {
-            return ecosTypeService.getRootForType(ecosType, true);
+            return ecosTypeRootService.getRootForType(ecosType, true);
         }
 
         NodeRef parentRef = defaultParentByType.get(type);
@@ -715,8 +732,10 @@ public class AlfNodesRecordsDAO extends LocalRecordsDao
     private NodeRef getByPath(String path) {
 
         NodeRef root = nodeService.getRootNode(StoreRef.STORE_REF_WORKSPACE_SPACESSTORE);
-        List<NodeRef> results = searchService.selectNodes(root, path, null,
-            namespaceService, false);
+
+        List<NodeRef> results = AuthenticationUtil.runAsSystem(() ->
+            searchService.selectNodes(root, path, null, namespaceService, false)
+        );
         if (results.isEmpty()) {
             throw new IllegalArgumentException("Node not found by path: " + path);
         }
@@ -848,8 +867,8 @@ public class AlfNodesRecordsDAO extends LocalRecordsDao
     }
 
     @Autowired
-    public void setTypeDefService(TypeDefService typeDefService) {
-        this.typeDefService = typeDefService;
+    public void setTypeRefService(TypeRefService typeRefService) {
+        this.typeRefService = typeRefService;
     }
 
     @Autowired
@@ -893,5 +912,15 @@ public class AlfNodesRecordsDAO extends LocalRecordsDao
     @Autowired
     public void setContentFileHelper(AlfNodeContentFileHelper contentFileHelper) {
         this.contentFileHelper = contentFileHelper;
+    }
+
+    @Autowired
+    public void setEcosTypeRootService(EcosTypeRootService ecosTypeRootService) {
+        this.ecosTypeRootService = ecosTypeRootService;
+    }
+
+    @Autowired
+    public void setEcosTypeAlfTypeService(EcosTypeAlfTypeService ecosTypeAlfTypeService) {
+        this.ecosTypeAlfTypeService = ecosTypeAlfTypeService;
     }
 }

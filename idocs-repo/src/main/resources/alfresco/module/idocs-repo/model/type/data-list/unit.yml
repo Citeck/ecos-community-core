@@ -1,0 +1,11 @@
+---
+id: unit
+name: { ru: Единица измерения, en: Unit }
+
+parentRef: emodel/type@data-list
+journalRef: uiserv/journal@units
+
+properties:
+  alfType: pas:unit
+  alfRoot: /app:company_home/app:dictionary/cm:dataLists/cm:units
+

@@ -47,7 +47,9 @@ public class HistoryGetServiceImpl implements HistoryGetService {
             entryMap.put(DocumentHistoryConstants.TASK_ROLE.getValue(),
                     eventProps.get(HistoryModel.PROP_TASK_ROLE));
             entryMap.put(DocumentHistoryConstants.TASK_OUTCOME.getValue(),
-                    eventProps.get(HistoryModel.PROP_TASK_OUTCOME));
+                eventProps.get(HistoryModel.PROP_TASK_OUTCOME));
+            entryMap.put(DocumentHistoryConstants.TASK_DEFINITION_KEY.getValue(),
+                eventProps.get(HistoryModel.PROP_TASK_DEFINITION_KEY));
             entryMap.put(DocumentHistoryConstants.TASK_INSTANCE_ID.getValue(),
                     eventProps.get(HistoryModel.PROP_TASK_INSTANCE_ID));
             entryMap.put(DocumentHistoryConstants.TASK_TITLE.getValue(),

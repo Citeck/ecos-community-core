@@ -1,0 +1,54 @@
+---
+id: idocs-contractor
+
+name:
+  ru: Контрагенты
+  en: Contractors
+
+actions:
+  - uiserv/action@edit
+  - uiserv/action@view-dashboard
+  - uiserv/action@view-dashboard-in-background
+
+editable: false
+
+columns:
+
+  - id: idocs:fullOrganizationName
+
+  - id: idocs:shortOrganizationName
+    visible: false
+
+  - id: idocs:contractorType
+    type: options
+
+  - id: idocs:inn
+
+  - id: idocs:kpp
+
+  - id: idocs:ogrn
+    visible: false
+
+  - id: idocs:juridicalAddress
+    visible: false
+
+  - id: idocs:postAddress
+    visible: false
+
+  - id: idocs:phone
+    visible: false
+
+  - id: idocs:fax
+    visible: false
+
+  - id: idocs:email
+    visible: false
+
+  - id: idocs:CEOname
+
+  - id: icase:caseStatusAssoc
+    editor:
+      type: journal
+      config:
+        journalId: case-status
+

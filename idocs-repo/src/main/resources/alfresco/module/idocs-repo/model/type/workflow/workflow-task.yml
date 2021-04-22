@@ -1,0 +1,23 @@
+---
+id: workflow-task
+name: { ru: Задача бизнес-процесса, en: Workflow task }
+
+parentRef: emodel/type@base
+
+sourceId: alfresco/
+
+system: true
+defaultCreateVariant: false
+
+actions:
+  - uiserv/action@open-workflow-by-wftask
+
+model:
+  attributes:
+    - id: wfm:counterparty
+      type: ASSOC
+      config:
+        typeRef: emodel/type@idocs-contractor
+
+properties:
+  alfType: bpm:task

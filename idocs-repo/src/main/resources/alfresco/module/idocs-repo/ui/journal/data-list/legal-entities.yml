@@ -1,0 +1,37 @@
+---
+id: legal-entities
+name: { ru: Юридические лица, en: Legal Entities }
+
+actions:
+  - uiserv/action@edit
+
+columns:
+
+  - id: idocs:fullOrganizationName
+
+  - id: idocs:shortOrganizationName
+    visible: false
+
+  - id: idocs:inn
+
+  - id: idocs:kpp
+
+  - id: idocs:okpo
+    visible: false
+
+  - id: idocs:ogrn
+    visible: false
+
+  - id: idocs:juridicalAddress
+    visible: false
+
+  - id: idocs:postAddress
+    visible: false
+
+  - id: idocs:generalDirector
+
+  - id: idocs:accountantGeneral
+    visible: false
+
+  - id: idocs:phoneNumber
+    visible: false

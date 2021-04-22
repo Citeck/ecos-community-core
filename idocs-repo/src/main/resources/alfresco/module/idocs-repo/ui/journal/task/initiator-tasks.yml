@@ -1,0 +1,40 @@
+---
+id: initiator-tasks
+
+name: {ru: Созданные задачи, en: Created Tasks}
+
+predicate:
+  t: and
+  val:
+    - {att: 'wfm:workflowInitiator', val: $CURRENT_AUTHORITIES_REFS, t: in}
+
+typeRef: emodel/type@workflow-task
+
+editable: false
+
+columns:
+  - id: bpm:priority
+    formatter: {type: workflowPriority}
+  - id: wfm:taskType
+    name: {ru: Название задачи, en: Task name}
+  - {name: 'cwf:senderName', visible: false, searchable: false }
+
+  - id: 'wfm:assignee'
+    editor:
+      type: orgstruct
+      config:
+        allowedAuthorityTypes: USER
+
+  - {name: 'bpm:status'}
+  - {name: 'bpm:pooledActors', visible: false}
+  - {name: 'wfm:document'}
+  - {name: 'wfm:counterparty'}
+  - {name: 'wfm:documentTypeTitle'}
+  - {name: 'wfm:documentKindTitle'}
+  - {name: 'bpm:startDate', visible: false}
+  - {name: 'bpm:dueDate'}
+  - {name: 'bpm:comment', visible: false}
+  - {name: 'wfm_workflowDisplayName', searchable: false, sortable: false }
+  - {name: 'wfm:workflowInitiator', visible: false}
+  - {name: 'cwf:taskTitle', visible: false}
+  - {name: 'cm:title', visible: false}

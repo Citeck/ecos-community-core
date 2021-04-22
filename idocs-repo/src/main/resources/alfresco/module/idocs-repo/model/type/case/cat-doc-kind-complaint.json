@@ -1,6 +1,0 @@
-{
-    "id": "cat-doc-type-general-case/cat-doc-kind-complaint",
-    "name": "Жалоба",
-    "parent": "emodel/type@cat-doc-type-general-case",
-    "inheritActions": true
-}

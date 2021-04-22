@@ -13,6 +13,9 @@ import org.mozilla.javascript.NativeJavaObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.extensions.surf.util.I18NUtil;
 import org.springframework.stereotype.Service;
+import ru.citeck.ecos.comment.CommentTag;
+import ru.citeck.ecos.comment.EcosCommentTagService;
+import ru.citeck.ecos.commons.data.MLText;
 import ru.citeck.ecos.locks.LockUtils;
 import ru.citeck.ecos.model.CiteckWorkflowModel;
 import ru.citeck.ecos.props.EcosPropertiesService;
@@ -47,6 +50,9 @@ public class EcosTaskService {
 
     @Autowired
     private NodeService nodeService;
+
+    @Autowired
+    private EcosCommentTagService commentTagService;
 
     public void endTask(String taskId, Map<String, Object> variables) {
         endTask(taskId, null, variables, null);
@@ -99,9 +105,16 @@ public class EcosTaskService {
         Map<String, Object> finalTransientVariables = new HashMap<>(transientVariables);
 
         try {
-            lockUtils.doWithLock(String.format(TASKS_PREFIX, taskId), () -> {
-                taskService.endTask(task.getLocalId(), transition, finalVariables, finalTransientVariables);
-            });
+            RecordRef taskDocument = taskInfo.getDocument();
+            org.alfresco.service.cmr.repository.MLText taskMlTitle = taskInfo.getMlTitle();
+
+            lockUtils.doWithLock(String.format(TASKS_PREFIX, taskId),
+                () -> {
+                    addCommentToDocument(taskDocument, taskMlTitle, (String) finalVariables.get(FIELD_COMMENT));
+                    taskService.endTask(task.getLocalId(), transition, finalVariables, finalTransientVariables);
+                }
+            );
+
             AuthenticationUtil.runAsSystem(() -> {
                 addLastCompletedTaskDate(taskInfo.getDocument());
                 return null;
@@ -117,6 +130,17 @@ public class EcosTaskService {
             unwrapJsExceptionAndThrow(exception);
         }
     }
+
+    private void addCommentToDocument(RecordRef taskDocument, org.alfresco.service.cmr.repository.MLText taskMlTitle,
+                                      String comment) {
+        if (StringUtils.isBlank(comment) || RecordRef.isEmpty(taskDocument)) {
+            return;
+        }
+
+        commentTagService.addCommentWithTag(taskDocument, comment, CommentTag.TASK,
+            new MLText(taskMlTitle));
+    }
+
 
     private void addLastCompletedTaskDate(RecordRef documentRef) {
         if (RecordRef.isEmpty(documentRef)) {
@@ -142,12 +166,13 @@ public class EcosTaskService {
             if (value instanceof NativeJavaObject) {
                 value = ((NativeJavaObject) value).unwrap();
             }
-            exception = new RuntimeException(String.valueOf(value), exception);
+            StackTraceElement[] stackTrace = exception.getStackTrace();
+            exception = new RuntimeException(String.valueOf(value));
+            exception.setStackTrace(stackTrace);
         } else if (ex instanceof AlfrescoRuntimeException) {
             String msg = ((AlfrescoRuntimeException) ex).getMsgId();
             exception = new RuntimeException(msg, exception);
         }
-
         throw exception;
     }
 
