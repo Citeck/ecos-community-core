@@ -37,6 +37,7 @@ import static org.junit.Assert.assertNotNull;
 /**
  * @author Anton Fateev <anton.fateev@citeck.ru>
  */
+@Ignore
 public class AdvancedWorkflowServiceTest {
 
     public static final String TEST_ROLE = "GROUP_testCandidateRole";

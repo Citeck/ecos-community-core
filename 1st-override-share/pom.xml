@@ -13,7 +13,7 @@
     <parent>
         <groupId>ru.citeck.ecos.community</groupId>
         <artifactId>ecos-community-core</artifactId>
-        <version>3.33.2</version>
+        <version>3.34.0</version>
     </parent>
 
     <properties>
@@ -45,6 +45,11 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-resources-plugin</artifactId>
+            </plugin>
+
+            <plugin>
+                <groupId>com.github.eirslett</groupId>
+                <artifactId>frontend-maven-plugin</artifactId>
             </plugin>
 
         </plugins>

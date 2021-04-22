@@ -40,6 +40,7 @@ import java.util.Map;
 
 import static org.junit.Assert.*;
 
+@Ignore
 @RunWith(RemoteTestRunner.class)
 @Remote(runnerClass = SpringJUnit4ClassRunner.class)
 @ContextConfiguration("classpath:alfresco/application-context.xml")

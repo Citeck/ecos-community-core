@@ -12,6 +12,7 @@ import org.alfresco.service.cmr.repository.NodeService;
 import org.alfresco.service.namespace.QName;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.context.ApplicationContext;
@@ -24,7 +25,7 @@ import ru.citeck.ecos.model.ClassificationModel;
 import ru.citeck.ecos.model.ICaseModel;
 //import ru.citeck.ecos.test.ApplicationContextHelper;
 
-
+@Ignore
 @RunWith(SpringJUnit4ClassRunner.class)
 //@ContextConfiguration(loader=ApplicationContextHelper.class)
 @Transactional
@@ -35,7 +36,7 @@ public class CaseCompletenessServiceTest {
     private NodeService nodeService;
     private CaseElementServiceImpl caseElementService;
     private CaseCompletenessServiceImpl caseCompletenessService;
-    
+
     private NodeRef rootNode;
     private NodeRef caseNode1;
     private NodeRef testNode1, testNode2, testNode3;
@@ -43,10 +44,10 @@ public class CaseCompletenessServiceTest {
     private NodeRef req11, req12, req21;
     private NodeRef type1, kind11, kind12, type2, kind21, kind22;
     private NodeRef testConfig;
-    
+
     @Before
     public void setUp() throws Exception {
-        
+
         // setup services
 //        applicationContext = ApplicationContextHelper.getApplicationContext();
 //        nodeService = applicationContext.getBean("nodeService", NodeService.class);
@@ -116,19 +117,19 @@ public class CaseCompletenessServiceTest {
 //        nodeService.createAssociation(caseNode1, level1, RequirementModel.ASSOC_COMPLETENESS_LEVELS);
 //        nodeService.createAssociation(caseNode1, level2, RequirementModel.ASSOC_COMPLETENESS_LEVELS);
     }
-    
+
     private static Map<QName, Serializable> typeAndKind(NodeRef type, NodeRef kind) {
         Map<QName, Serializable> map = new HashMap<>(2);
         map.put(ClassificationModel.PROP_DOCUMENT_TYPE, type);
         map.put(ClassificationModel.PROP_DOCUMENT_KIND, kind);
         return map;
     }
-    
+
     private NodeRef createNode(NodeRef rootNode, QName type, QName assocType, String name) {
         return nodeService.createNode(
-                rootNode, 
-                assocType, 
-                QName.createQName(ICaseModel.NAMESPACE, name), 
+                rootNode,
+                assocType,
+                QName.createQName(ICaseModel.NAMESPACE, name),
                 type).getChildRef();
     }
 
@@ -142,19 +143,19 @@ public class CaseCompletenessServiceTest {
 
     @Test
     public void testGetLevels() {
-        
+
 //        Set<NodeRef> allLevels = caseCompletenessService.getAllLevels(caseNode1);
 //        assertTrue(allLevels != null);
 //        assertEquals(createSet(level1, level2), allLevels);
 //
 //        Set<NodeRef> completedLevels = caseCompletenessService.getCompletedLevels(caseNode1);
 //        assertEquals(createSet(level2), completedLevels);
-        
+
     }
 
     @Test
     public void testAddDocuments() {
-        
+
         // test addition
 //        caseElementService.addElement(testNode1, caseNode1, TEST_CONFIG_NAME);
 //        assertEquals(createSet(level2), caseCompletenessService.getCompletedLevels(caseNode1));
@@ -186,9 +187,9 @@ public class CaseCompletenessServiceTest {
 //
 //        nodeService.addProperties(testNode1, typeAndKind(type2, kind21));
 //        assertEquals(createSet(level2), caseCompletenessService.getCompletedLevels(caseNode1));
-        
+
     }
-    
+
     @SafeVarargs
     private static <E> Set<E> createSet(E... elements) {
         if(elements.length == 0) return Collections.emptySet();
@@ -197,6 +198,6 @@ public class CaseCompletenessServiceTest {
         Collections.addAll(result, elements);
         return result;
     }
-    
+
 
 }

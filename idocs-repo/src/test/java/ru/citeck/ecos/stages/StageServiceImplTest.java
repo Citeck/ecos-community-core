@@ -27,6 +27,7 @@ import static org.junit.Assert.*;
 /**
  * @author Maxim Strizhov
  */
+@Ignore
 @RunWith(SpringJUnit4ClassRunner.class)
 //@ContextConfiguration(loader = ApplicationContextHelper.class)
 @Transactional
