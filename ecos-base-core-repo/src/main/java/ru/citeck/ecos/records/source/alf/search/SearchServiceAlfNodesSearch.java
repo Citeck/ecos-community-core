@@ -1,6 +1,7 @@
 package ru.citeck.ecos.records.source.alf.search;
 
 import com.fasterxml.jackson.databind.util.ISO8601Utils;
+import lombok.val;
 import org.alfresco.error.AlfrescoRuntimeException;
 import org.alfresco.model.ContentModel;
 import org.alfresco.service.cmr.repository.StoreRef;
@@ -12,6 +13,7 @@ import org.alfresco.service.namespace.NamespaceService;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.apache.commons.validator.Msg;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import ru.citeck.ecos.commons.data.DataValue;
@@ -22,10 +24,13 @@ import ru.citeck.ecos.records2.RecordRef;
 import ru.citeck.ecos.records2.request.query.RecordsQuery;
 import ru.citeck.ecos.records2.request.query.RecordsQueryResult;
 import ru.citeck.ecos.records2.request.query.SortBy;
+import ru.citeck.ecos.records3.record.request.RequestContext;
+import ru.citeck.ecos.records3.record.request.msg.MsgLevel;
 
 import java.util.Collections;
 import java.util.Date;
 import java.util.Map;
+import java.util.function.Supplier;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
@@ -63,6 +68,8 @@ public class SearchServiceAlfNodesSearch {
     }
 
     private RecordsQueryResult<RecordRef> queryRecordsImpl(RecordsQuery recordsQuery, Long afterDbId, Date afterCreated) {
+
+        val reqCtx = RequestContext.getCurrent();
 
         String[] queryWithType = recordsQuery.getQuery(DataValue.class)
             .asText()
@@ -107,6 +114,9 @@ public class SearchServiceAlfNodesSearch {
         } else {
             searchParameters.setSkipCount(recordsQuery.getSkipCount());
         }
+
+        val finalQuery = query;
+        addDebugMsg(reqCtx, () -> "Query: " + finalQuery);
 
         if ("()".equals(query) || StringUtils.isBlank(query))  {
             return new RecordsQueryResult<>();
@@ -155,6 +165,12 @@ public class SearchServiceAlfNodesSearch {
             if (resultSet != null) {
                 resultSet.close();
             }
+        }
+    }
+
+    private void addDebugMsg(RequestContext reqCtx, Supplier<String> msg) {
+        if (reqCtx != null && reqCtx.isMsgEnabled(MsgLevel.DEBUG)) {
+            reqCtx.addMsg(MsgLevel.DEBUG, msg.get());
         }
     }
 

@@ -2,7 +2,6 @@ package ru.citeck.ecos.records.language.predicate;
 
 import lombok.extern.slf4j.Slf4j;
 import org.alfresco.service.cmr.search.SearchService;
-import org.alfresco.service.namespace.QName;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -76,11 +75,17 @@ public class PredicateToFtsAlfrescoConverter implements QueryLangConverter<Predi
             if (RecordConstants.ATT_TYPE.equals(valuePred.getAttribute())) {
 
                 String typeRefStr = valuePred.getValue().asText();
-                typesInPredicates.add(typeRefStr);
+                RecordRef typeRef = RecordRef.valueOf(typeRefStr);
 
-                String alfType = ecosTypeAlfTypeService.getAlfTypeToSearch(RecordRef.valueOf(typeRefStr));
-                if (alfType != null) {
-                    return new ValuePredicate("TYPE", valuePred.getType(), alfType);
+                // Special case for type "case" to support legacy alfresco cases based on aspect icase:case
+                if ("case".equals(typeRef.getId())) {
+                    return new ValuePredicate("ASPECT", valuePred.getType(), "icase:case");
+                } else {
+                    typesInPredicates.add(typeRefStr);
+                    String alfType = ecosTypeAlfTypeService.getAlfTypeToSearch(typeRef);
+                    if (alfType != null) {
+                        return new ValuePredicate("TYPE", valuePred.getType(), alfType);
+                    }
                 }
             }
             return new ValuePredicate(
