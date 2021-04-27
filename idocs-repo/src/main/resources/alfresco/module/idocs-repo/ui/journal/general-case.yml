@@ -3,7 +3,6 @@ id: general-case
 name: { ru: Стандартный кейс, en: General Case}
 
 actions:
-  - uiserv/action@delete
   - uiserv/action@view-dashboard
   - uiserv/action@edit
 
