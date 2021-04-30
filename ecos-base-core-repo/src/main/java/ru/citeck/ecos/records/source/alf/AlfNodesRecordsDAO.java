@@ -28,6 +28,7 @@ import ru.citeck.ecos.node.AlfNodeInfo;
 import ru.citeck.ecos.node.AlfNodeInfoImpl;
 import ru.citeck.ecos.node.EcosTypeService;
 import ru.citeck.ecos.node.etype.EcosTypeAlfTypeService;
+import ru.citeck.ecos.node.etype.EcosTypeChildAssocService;
 import ru.citeck.ecos.node.etype.EcosTypeRootService;
 import ru.citeck.ecos.records.source.alf.file.AlfNodeContentFileHelper;
 import ru.citeck.ecos.records.source.alf.meta.AlfNodeRecord;
@@ -109,6 +110,7 @@ public class AlfNodesRecordsDAO extends LocalRecordsDao
     private RecordsTemplateService recordsTemplateService;
     private AlfAutoModelService alfAutoModelService;
     private EcosTypeAlfTypeService ecosTypeAlfTypeService;
+    private EcosTypeChildAssocService ecosTypeChildAssocService;
 
     private final Map<QName, NodeRef> defaultParentByType = new ConcurrentHashMap<>();
 
@@ -340,9 +342,9 @@ public class AlfNodesRecordsDAO extends LocalRecordsDao
                 props.put(InvariantsModel.PROP_IS_DRAFT, false);
             }
 
-            QName type = getNodeType(record, ecosTypeRef);
+            QName type = ecosTypeAlfTypeService.getAlfTypeToCreate(ecosTypeRef, record.getAtts());
             NodeRef parent = getParent(record, type, ecosTypeRef);
-            QName parentAssoc = getParentAssoc(record, parent);
+            QName parentAssoc = ecosTypeChildAssocService.getChildAssoc(parent, ecosTypeRef, record.getAtts());
 
             String name = (String) props.get(ContentModel.PROP_NAME);
 
@@ -687,32 +689,6 @@ public class AlfNodesRecordsDAO extends LocalRecordsDao
         return new RecordsDelResult();
     }
 
-    private QName getParentAssoc(RecordMeta record, NodeRef parentRef) {
-        String parentAtt = record.getAttribute(RecordConstants.ATT_PARENT_ATT, "");
-        if (!parentAtt.isEmpty()) {
-            return QName.resolveToQName(namespaceService, parentAtt);
-        }
-        QName parentType = nodeService.getType(parentRef);
-        if (ContentModel.TYPE_CONTAINER.equals(parentType)) {
-            return ContentModel.ASSOC_CHILDREN;
-        } else if (ContentModel.TYPE_CATEGORY.equals(parentType)) {
-            return ContentModel.ASSOC_SUBCATEGORIES;
-        }
-        return ContentModel.ASSOC_CONTAINS;
-    }
-
-    private QName getNodeType(RecordMeta record, RecordRef typeRef) {
-
-        String type = record.getAttribute(AlfNodeRecord.ATTR_TYPE, "");
-        if (type.isEmpty()) {
-            type = record.getAttribute(AlfNodeRecord.ATTR_TYPE_UPPER, "");
-        }
-        if (!type.isEmpty()) {
-            return QName.resolveToQName(namespaceService, type);
-        }
-        return ecosTypeAlfTypeService.getAlfTypeToCreate(typeRef);
-    }
-
     private NodeRef getParent(RecordMeta record, QName type, RecordRef ecosType) {
 
         String parent = record.getAttribute(RecordConstants.ATT_PARENT, "");
@@ -954,5 +930,10 @@ public class AlfNodesRecordsDAO extends LocalRecordsDao
     @Autowired
     public void setEcosTypeAlfTypeService(EcosTypeAlfTypeService ecosTypeAlfTypeService) {
         this.ecosTypeAlfTypeService = ecosTypeAlfTypeService;
+    }
+
+    @Autowired
+    public void setEcosTypeChildAssocService(EcosTypeChildAssocService ecosTypeChildAssocService) {
+        this.ecosTypeChildAssocService = ecosTypeChildAssocService;
     }
 }

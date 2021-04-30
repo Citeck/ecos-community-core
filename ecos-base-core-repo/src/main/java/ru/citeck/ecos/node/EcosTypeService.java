@@ -94,7 +94,7 @@ public class EcosTypeService {
     }
 
     @Nullable
-    public TypeDto getTypeDef(RecordRef typeRef) {
+    public TypeDto getTypeDef(@Nullable RecordRef typeRef) {
         if (typesManager == null || RecordRef.isEmpty(typeRef)) {
             return null;
         }
