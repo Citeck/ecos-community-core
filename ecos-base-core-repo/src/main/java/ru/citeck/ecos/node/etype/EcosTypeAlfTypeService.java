@@ -37,12 +37,13 @@ public class EcosTypeAlfTypeService {
     @Nullable
     public QName getAlfTypeToCreate(RecordRef typeRef, ObjectData attributes) {
 
-        if (RecordRef.isEmpty(typeRef)) {
-            return DEFAULT_TYPE;
-        }
-        String alfType = getExactAlfTypeFromProps(typeRef);
-        if (StringUtils.isNotBlank(alfType)) {
-            return QName.resolveToQName(namespaceService, alfType);
+        String alfType;
+
+        if (RecordRef.isNotEmpty(typeRef)) {
+            alfType = getExactAlfTypeFromProps(typeRef);
+            if (StringUtils.isNotBlank(alfType)) {
+                return QName.resolveToQName(namespaceService, alfType);
+            }
         }
 
         String type = attributes.get(AlfNodeRecord.ATTR_TYPE, "");

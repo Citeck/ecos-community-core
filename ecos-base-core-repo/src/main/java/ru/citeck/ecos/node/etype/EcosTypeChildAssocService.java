@@ -18,6 +18,7 @@ import ru.citeck.ecos.records2.RecordRef;
 import ru.citeck.ecos.records3.RecordsService;
 
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicReference;
 
 @Service
 @RequiredArgsConstructor(onConstructor_={@Autowired})
@@ -44,9 +45,19 @@ public class EcosTypeChildAssocService {
             "inhAttributes.alfChildAssocs?str"
         ).asMap(String.class, String.class);
 
-        String childAssoc = alfChildAssocs.get(childTypeRef.getId());
-        if (StringUtils.isNotBlank(childAssoc)) {
-            return QName.resolveToQName(namespaceService, childAssoc);
+        if (!alfChildAssocs.isEmpty()) {
+            AtomicReference<String> assocType = new AtomicReference<>();
+            ecosTypeService.forEachAsc(childTypeRef, typeDto -> {
+                String childAssoc = alfChildAssocs.get(typeDto.getId());
+                if (StringUtils.isNotBlank(childAssoc)) {
+                    assocType.set(childAssoc);
+                    return true;
+                }
+                return false;
+            });
+            if (assocType.get() != null) {
+                return QName.resolveToQName(namespaceService, assocType.get());
+            }
         }
 
         return tryToEvalChildAssoc(parentRef, childAtts);
