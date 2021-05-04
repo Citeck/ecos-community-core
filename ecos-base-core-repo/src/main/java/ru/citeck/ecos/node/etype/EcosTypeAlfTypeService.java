@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import ru.citeck.ecos.commons.data.ObjectData;
 import ru.citeck.ecos.node.EcosTypeService;
+import ru.citeck.ecos.records.source.alf.meta.AlfNodeRecord;
 import ru.citeck.ecos.records.type.TypeDto;
 import ru.citeck.ecos.records2.RecordRef;
 import ru.citeck.ecos.records3.RecordsService;
@@ -34,12 +35,26 @@ public class EcosTypeAlfTypeService {
     }
 
     @Nullable
-    public QName getAlfTypeToCreate(RecordRef typeRef) {
+    public QName getAlfTypeToCreate(RecordRef typeRef, ObjectData attributes) {
 
-        if (RecordRef.isEmpty(typeRef)) {
-            return DEFAULT_TYPE;
+        String alfType;
+
+        if (RecordRef.isNotEmpty(typeRef)) {
+            alfType = getExactAlfTypeFromProps(typeRef);
+            if (StringUtils.isNotBlank(alfType)) {
+                return QName.resolveToQName(namespaceService, alfType);
+            }
         }
-        String alfType = recordsService.getAtt(typeRef, "inhAttributes.alfType?str").asText();
+
+        String type = attributes.get(AlfNodeRecord.ATTR_TYPE, "");
+        if (type.isEmpty()) {
+            type = attributes.get(AlfNodeRecord.ATTR_TYPE_UPPER, "");
+        }
+        if (!type.isEmpty()) {
+            return QName.resolveToQName(namespaceService, type);
+        }
+
+        alfType = recordsService.getAtt(typeRef, "inhAttributes.alfType?str").asText();
         if (StringUtils.isNotBlank(alfType)) {
             return QName.resolveToQName(namespaceService, alfType);
         }
@@ -48,6 +63,10 @@ public class EcosTypeAlfTypeService {
 
     @Nullable
     public String getAlfTypeToSearch(RecordRef typeRef) {
+        return getExactAlfTypeFromProps(typeRef);
+    }
+
+    private String getExactAlfTypeFromProps(@Nullable RecordRef typeRef) {
 
         TypeDto typeDef = ecosTypeService.getTypeDef(typeRef);
         if (typeDef == null) {
