@@ -3353,7 +3353,7 @@
                 "alwaysEnabled": false,
                 "defaultValue": "",
                 "inputFormat": "plain",
-                "customDefaultValue": "var deflt = 'workspace://SpacesStore/cat-doc-type-general-case';\nvalue = _.get(instance, 'options.params.tk_type', deflt); \n",
+                "customDefaultValue": "var deflt = 'workspace://SpacesStore/cat-doc-type-general-case';\nvar legacyValue = _.get(instance, 'options.params.tk_type');\nvar newValue = _.get(instance, 'options.typeRef');\nif (newValue) {\n  value = newValue.replace(\"emodel/type@\", \"workspace://SpacesStore/\");\n} else {\n  value = legacyValue || deflt;\n}",
                 "encrypted": false,
                 "validate": {
                   "customMessage": "",
