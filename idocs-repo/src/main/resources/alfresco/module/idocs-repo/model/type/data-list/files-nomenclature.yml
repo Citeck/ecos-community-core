@@ -4,6 +4,7 @@ name: { ru: Номенклатура дел, en: Files Register }
 
 parentRef: emodel/type@data-list
 journalRef: uiserv/journal@files-nomenclature
+formRef: uiserv/form@files-nomenclature
 
 properties:
   alfType: idocs:filesNomenclature
