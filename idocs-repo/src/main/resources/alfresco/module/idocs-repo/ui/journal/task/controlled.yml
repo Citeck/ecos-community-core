@@ -15,6 +15,10 @@ columns:
 
   - id: wfm:taskType
     name: { ru: Название задачи, en: Task name }
+    formatter:
+      type: action
+      config:
+        actionId: view-task
 
   - id: cwf:senderName
     visible: false

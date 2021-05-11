@@ -31,6 +31,10 @@ columns:
       en: Task name
       ru: Название задачи
     sortable: false
+    formatter:
+      type: action
+      config:
+        actionId: view-task
 
   - id: wfm:document
     searchable: false
