@@ -59,9 +59,10 @@ public class DocLibRecords extends AbstractRecordsDao
         String id = localRecordAtts.getId();
         if (id.lastIndexOf(DocLibService.TYPE_DELIM) == id.length() - 1) {
             return docLibService.createEntity(localRecordAtts.getAttributes()).getId();
+        } else {
+            docLibService.mutate(localRecordAtts);
+            return id;
         }
-        throw new IllegalArgumentException("Source with id '" + SOURCE_ID
-            + "' can't mutate record with non-empty id: '" + id + "'");
     }
 
     @Nullable

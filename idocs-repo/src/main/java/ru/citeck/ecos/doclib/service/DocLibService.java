@@ -2,6 +2,7 @@ package ru.citeck.ecos.doclib.service;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.RequiredArgsConstructor;
 import org.alfresco.model.ContentModel;
 import org.alfresco.service.cmr.repository.ContentData;
 import org.alfresco.service.cmr.repository.NodeRef;
@@ -37,16 +38,20 @@ import ru.citeck.ecos.records2.predicate.model.VoidPredicate;
 import ru.citeck.ecos.records2.request.mutation.RecordsMutResult;
 import ru.citeck.ecos.records2.request.mutation.RecordsMutation;
 import ru.citeck.ecos.records3.RecordsService;
+import ru.citeck.ecos.records3.record.atts.dto.LocalRecordAtts;
+import ru.citeck.ecos.records3.record.atts.schema.ScalarType;
 import ru.citeck.ecos.records3.record.atts.schema.annotation.AttName;
 import ru.citeck.ecos.records3.record.dao.query.dto.query.QueryPage;
 import ru.citeck.ecos.records3.record.dao.query.dto.query.RecordsQuery;
 import ru.citeck.ecos.records3.record.dao.query.dto.res.RecsQueryRes;
+import ru.citeck.ecos.utils.NodeUtils;
 
 import java.util.*;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 @Service
+@RequiredArgsConstructor(onConstructor_={@Autowired})
 public class DocLibService {
 
     public static final String TYPE_DELIM = "$";
@@ -70,21 +75,24 @@ public class DocLibService {
     private final NamespaceService namespaceService;
     private final AlfNodesRecordsDAO alfNodesRecordsDao;
     private final NodeService nodeService;
+    private final NodeUtils nodeUtils;
 
-    @Autowired
-    public DocLibService(EcosTypeRootService ecosTypeRootService,
-                         EcosTypeService ecosTypeService,
-                         RecordsService recordsService,
-                         NamespaceService namespaceService,
-                         AlfNodesRecordsDAO alfNodesRecordsDao,
-                         NodeService nodeService) {
+    public void mutate(LocalRecordAtts record) {
 
-        this.nodeService = nodeService;
-        this.ecosTypeService = ecosTypeService;
-        this.recordsService = recordsService;
-        this.namespaceService = namespaceService;
-        this.alfNodesRecordsDao = alfNodesRecordsDao;
-        this.ecosTypeRootService = ecosTypeRootService;
+        EntityId entityId = getEntityId(record.getId());
+        if (!nodeUtils.isNodeRef(entityId.localId)) {
+            throw new RuntimeException("Incorrect localId: '" + entityId.localId + "'");
+        }
+
+        ObjectData attsCopy = record.getAttributes().deepCopy();
+
+        String dispAtt = ScalarType.DISP.getMirrorAtt();
+        if (attsCopy.has(dispAtt)) {
+            attsCopy.set("cm:title", attsCopy.get(dispAtt));
+            attsCopy.remove(dispAtt);
+        }
+
+        recordsService.mutate(RecordRef.valueOf(entityId.localId), attsCopy);
     }
 
     public RecordRef createEntity(ObjectData attributes) {
