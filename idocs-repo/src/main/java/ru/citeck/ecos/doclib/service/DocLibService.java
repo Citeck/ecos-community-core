@@ -84,20 +84,13 @@ public class DocLibService {
             throw new RuntimeException("Incorrect localId: '" + entityId.localId + "'");
         }
 
-        ObjectData attsCopy = record.getAttributes().deepCopy();
-
-        String dispAtt = ScalarType.DISP.getMirrorAtt();
-        if (attsCopy.has(dispAtt)) {
-            attsCopy.set("cm:title", attsCopy.get(dispAtt));
-            attsCopy.remove(dispAtt);
-        }
-
-        recordsService.mutate(RecordRef.valueOf(entityId.localId), attsCopy);
+        ObjectData attributes = prepareForMutation(record.getAttributes());
+        recordsService.mutate(RecordRef.valueOf(entityId.localId), attributes);
     }
 
     public RecordRef createEntity(ObjectData attributes) {
 
-        attributes = attributes.deepCopy();
+        attributes = prepareForMutation(attributes);
 
         String parent = attributes.get(RecordConstants.ATT_PARENT).asText();
         EntityId parentEntityId = getEntityId(RecordRef.valueOf(parent));
@@ -157,6 +150,18 @@ public class DocLibService {
         }
         return RecordRef.create(DocLibRecords.SOURCE_ID,
             docLibTypeRef.getId() + TYPE_DELIM + result.getRecords().get(0).getId());
+    }
+
+    private ObjectData prepareForMutation(ObjectData data) {
+
+        ObjectData dataCopy = data.deepCopy();
+
+        String dispAtt = ScalarType.DISP.getMirrorAtt();
+        if (dataCopy.has(dispAtt)) {
+            dataCopy.set("cm:title", dataCopy.get(dispAtt));
+            dataCopy.remove(dispAtt);
+        }
+        return dataCopy;
     }
 
     public List<DocLibNodeInfo> getPath(RecordRef docLibRef) {
