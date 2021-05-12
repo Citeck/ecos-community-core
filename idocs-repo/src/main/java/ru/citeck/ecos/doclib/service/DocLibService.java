@@ -161,6 +161,10 @@ public class DocLibService {
             dataCopy.set("cm:title", dataCopy.get(dispAtt));
             dataCopy.remove(dispAtt);
         }
+        if (dataCopy.has("cm:title") && !dataCopy.has("cm:name")) {
+            dataCopy.set("cm:name", dataCopy.get("cm:title"));
+        }
+
         return dataCopy;
     }
 
