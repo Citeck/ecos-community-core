@@ -1,0 +1,21 @@
+---
+id: orgstruct-simple-role-type
+name:
+  ru: Тип должности
+typeRef: emodel/type@orgstruct-simple-role-type
+columns:
+  - id: cm:name
+    name:
+      ru: Имя
+      en: Name
+    type: TEXT
+  - id: cm:title
+    name:
+      ru: Должность
+      en: Position
+    type: TEXT
+  - id: org:roleIsManager
+    name:
+      ru: Руководящая роль
+      en: Is a management role
+    type: BOOLEAN

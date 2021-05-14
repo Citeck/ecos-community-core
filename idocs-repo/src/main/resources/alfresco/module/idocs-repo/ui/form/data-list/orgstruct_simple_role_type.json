@@ -1,0 +1,134 @@
+{
+  "id": "orgstruct-simple-role-type",
+  "formKey": "",
+  "title": {
+    "en": "orgstruct-simple-role-type"
+  },
+  "description": {},
+  "customModule": null,
+  "typeRef": "emodel/type@orgstruct-simple-role-type",
+  "width": "default",
+  "i18n": {},
+  "definition": {
+    "components": [
+      {
+        "label": {
+          "ru": "Имя",
+          "en": "Name"
+        },
+        "defaultValue": "",
+        "refreshOn": [],
+        "validate": {
+          "required": true
+        },
+        "unique": true,
+        "key": "cm_name",
+        "properties": {
+          "attribute": "cm:name"
+        },
+        "type": "textfield",
+        "input": true
+      },
+      {
+        "label": {
+          "ru": "Заголовок",
+          "en": "Title"
+        },
+        "defaultValue": "",
+        "refreshOn": [],
+        "key": "cm_title",
+        "properties": {
+          "attribute": "cm:title"
+        },
+        "type": "textfield",
+        "input": true
+      },
+      {
+        "label": {
+          "ru": "Руководящая роль",
+          "en": "Is a management role"
+        },
+        "labelPosition": "",
+        "defaultValue": false,
+        "key": "org_roleIsManager",
+        "properties": {
+          "attribute": "org:roleIsManager"
+        },
+        "type": "checkbox",
+        "input": true
+      },
+      {
+        "label": {
+          "ru": "Columns"
+        },
+        "columns": [
+          {
+            "components": [],
+            "type": "column",
+            "input": false,
+            "key": "column",
+            "index": 0,
+            "md": 3
+          },
+          {
+            "index": 1,
+            "type": "column",
+            "input": false,
+            "key": "column",
+            "components": [],
+            "md": 3
+          },
+          {
+            "index": 2,
+            "type": "column",
+            "input": false,
+            "key": "column",
+            "components": [
+              {
+                "label": {
+                  "ru": "Отмена",
+                  "en": "Cancel"
+                },
+                "action": "event",
+                "state": "",
+                "showValidations": false,
+                "event": "cancel",
+                "block": true,
+                "key": "submit2",
+                "type": "button",
+                "input": true
+              }
+            ],
+            "md": 3
+          },
+          {
+            "index": 3,
+            "type": "column",
+            "input": false,
+            "key": "column",
+            "components": [
+              {
+                "label": {
+                  "ru": "Сохранить",
+                  "en": "Save"
+                },
+                "state": "",
+                "theme": "primary",
+                "block": true,
+                "disableOnInvalid": true,
+                "key": "submit",
+                "type": "button",
+                "input": true
+              }
+            ],
+            "md": 3
+          }
+        ],
+        "key": "columns2",
+        "type": "columns",
+        "input": false
+      }
+    ]
+  },
+  "attributes": {}
+}

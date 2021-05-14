@@ -1,0 +1,26 @@
+---
+id: orgstruct-simple-role-type
+name:
+  ru: Тип должности
+  en: Occupation type
+parentRef: emodel/type@data-list
+formRef: uiserv/form@orgstruct-simple-role-type
+journalRef: uiserv/journal@orgstruct-simple-role-type
+inheritForm: false
+defaultCreateVariant: true
+model:
+  attributes:
+    - id: cm:name
+      name:
+        ru: Имя
+        en: Name
+      mandatory: true
+    - id: cm:title
+      name:
+        en: Position
+        ru: Должность
+    - id: org:roleIsManager
+      name:
+        ru: Руководящая роль
+        en: Is a management role
+      type: BOOLEAN
