@@ -26,6 +26,7 @@ import org.springframework.extensions.surf.util.I18NUtil;
 import org.springframework.extensions.surf.util.ParameterCheck;
 import ru.citeck.ecos.commons.data.MLText;
 import ru.citeck.ecos.commons.data.ObjectData;
+import ru.citeck.ecos.commons.json.Json;
 import ru.citeck.ecos.model.ICaseModel;
 import ru.citeck.ecos.model.lib.role.constants.RoleConstants;
 import ru.citeck.ecos.model.lib.role.dto.RoleDef;
@@ -490,10 +491,67 @@ public class CaseRoleServiceImpl implements CaseRoleService {
             }
             Collection<NodeRef> roles = getRoles(caseRef);
             for (NodeRef roleRef : roles) {
-                updateRoleImpl(caseRef, roleRef);
+                updateLegacyRoleImpl(caseRef, roleRef);
             }
+            updateNewRoles(caseRef, roles);
             return null;
         });
+    }
+
+    private void updateNewRoles(final NodeRef caseRef, Collection<NodeRef> roles) {
+
+        List<NodeRef> newRoles = roles.stream()
+            .filter(r -> !isAlfRole(r))
+            .collect(Collectors.toList());
+
+        if (newRoles.isEmpty()) {
+            return;
+        }
+
+        String assigneesStr = (String) nodeService.getProperty(caseRef, ICaseRoleModel.PROP_ROLES_ASSIGNEES);
+        RolesAssigneesMap assignees;
+        if (StringUtils.isBlank(assigneesStr) || assigneesStr.charAt(0) != '{') {
+            assignees = new RolesAssigneesMap();
+        } else {
+            assignees = Json.getMapper().read(assigneesStr, RolesAssigneesMap.class);
+            if (assignees == null) {
+                assignees = new RolesAssigneesMap();
+            }
+        }
+
+        boolean rolesChanged = false;
+
+        for (NodeRef roleRef : newRoles) {
+
+            String roleId = getRoleId(roleRef);
+
+            Set<String> currentAssignees = getAssignees(roleRef).stream()
+                .map(a -> RepoUtils.getAuthorityName(a, nodeService, dictionaryService))
+                .collect(Collectors.toSet());
+
+            Set<String> assigneesBefore = assignees.getOrDefault(roleId, Collections.emptySet());
+
+            Set<String> added = new HashSet<>(currentAssignees);
+            added.removeAll(assigneesBefore);
+            Set<String> removed = new HashSet<>(assigneesBefore);
+            removed.removeAll(currentAssignees);
+
+            if (!added.isEmpty() || !removed.isEmpty()) {
+                rolesChanged = true;
+                assignees.put(roleId, currentAssignees);
+            }
+        }
+
+        if (rolesChanged) {
+
+            nodeService.setProperty(caseRef, ICaseRoleModel.PROP_ROLES_ASSIGNEES, Json.getMapper().toString(assignees));
+
+            Set<QName> classes = new HashSet<>(DictionaryUtils.getNodeClassNames(caseRef, nodeService));
+            OnCaseRolesAssigneesChangedPolicy rolesChangedPolicy
+                = onCaseRolesAssigneesChangedDelegate.get(caseRef, classes);
+
+            rolesChangedPolicy.onCaseRolesAssigneesChanged(caseRef);
+        }
     }
 
     @Override
@@ -508,7 +566,7 @@ public class CaseRoleServiceImpl implements CaseRoleService {
         }
         AuthenticationUtil.runAsSystem(() -> {
             NodeRef caseRef = nodeService.getPrimaryParent(roleRef).getParentRef();
-            updateRoleImpl(caseRef, roleRef);
+            updateLegacyRoleImpl(caseRef, roleRef);
             return null;
         });
     }
@@ -643,7 +701,7 @@ public class CaseRoleServiceImpl implements CaseRoleService {
         nodeService.setProperty(roleRef, ICaseRoleModel.PROP_DELEGATES, jsonObject.toString());
     }
 
-    private void updateRoleImpl(NodeRef caseRef, NodeRef roleRef) {
+    private void updateLegacyRoleImpl(NodeRef caseRef, NodeRef roleRef) {
 
         roleRef = normalizeRoleRef(roleRef);
 
@@ -803,8 +861,6 @@ public class CaseRoleServiceImpl implements CaseRoleService {
         this.typesManager = typesManager;
     }
 
-
-
     @Autowired
     public void setEcosTypeService(EcosTypeService ecosTypeService) {
         this.ecosTypeService = ecosTypeService;
@@ -819,4 +875,6 @@ public class CaseRoleServiceImpl implements CaseRoleService {
     public void setAuthorityUtils(AuthorityUtils authorityUtils) {
         this.authorityUtils = authorityUtils;
     }
+
+    private static class RolesAssigneesMap extends TreeMap<String, Set<String>> {}
 }

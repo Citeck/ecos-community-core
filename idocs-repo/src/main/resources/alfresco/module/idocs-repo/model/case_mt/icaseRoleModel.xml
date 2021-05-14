@@ -66,6 +66,9 @@
                     <type>d:text</type>
                     <multiple>true</multiple>
                 </property>
+                <property name="icaseRole:rolesAssignees">
+                    <type>d:text</type>
+                </property>
             </properties>
             <associations>
                 <child-association name="icaseRole:roles">

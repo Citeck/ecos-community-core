@@ -48,10 +48,10 @@ public class MetaUtils {
             try {
                 return PropertyUtils.getProperty(scope, methodName);
             } catch (IllegalAccessException | InvocationTargetException | NoSuchMethodException ex) {
-                logger.error("Attribute " + methodName + " is not found in " + clazz.getName(), e);
+                logger.trace("Attribute " + methodName + " is not found in " + clazz.getName(), e);
             }
         } catch (IllegalAccessException | InvocationTargetException e) {
-            logger.error("Error while method invocation. Method: " + methodName + " Class: " + clazz, e);
+            logger.trace("Error while method invocation. Method: " + methodName + " Class: " + clazz, e);
         }
         return Collections.emptyList();
     }
