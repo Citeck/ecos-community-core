@@ -7,6 +7,7 @@ import org.alfresco.service.cmr.repository.NodeRef;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.json.JSONArray;
+import ru.citeck.ecos.commons.data.ObjectData;
 import ru.citeck.ecos.doclib.service.DocLibChildrenQuery;
 import ru.citeck.ecos.doclib.service.DocLibNodeInfo;
 import ru.citeck.ecos.doclib.service.DocLibNodeType;
@@ -129,6 +130,10 @@ public class DocLibRecord {
     @AttName(RecordConstants.ATT_CREATOR)
     public RecordRef getCreator() {
         return RecordRef.create(PeopleRecordsDao.ID, getDocLibNodeInfo().getCreator());
+    }
+
+    public ObjectData getPreviewInfo() {
+        return getDocLibNodeInfo().getPreviewInfo();
     }
 
     private DocLibNodeInfo getDocLibNodeInfo() {

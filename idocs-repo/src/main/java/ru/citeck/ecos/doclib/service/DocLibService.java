@@ -66,7 +66,8 @@ public class DocLibService {
         null,
         null,
         null,
-        () -> null
+        () -> null,
+        null
     );
 
     private final EcosTypeRootService ecosTypeRootService;
@@ -251,7 +252,8 @@ public class DocLibService {
                 null,
                 null,
                 null,
-                () -> null
+                () -> null,
+                null
             );
         }
 
@@ -297,7 +299,8 @@ public class DocLibService {
             info.getCreated(),
             info.getModifier(),
             info.getCreator(),
-            content
+            content,
+            info.previewInfo
         );
     }
 
@@ -429,6 +432,7 @@ public class DocLibService {
         private Date created;
         @AttName("cm:creator")
         private String creator;
+        private ObjectData previewInfo;
     }
 
     @Data
