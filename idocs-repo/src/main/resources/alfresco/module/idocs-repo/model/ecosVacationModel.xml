@@ -25,6 +25,63 @@
                 </property>
             </properties>
         </aspect>
+
+        <aspect name="ecosvm:accountSettings">
+            <title>Person vacation settings</title>
+            <properties>
+                <property name="ecosvm:irregularWorkHours">
+                    <title>Irregular work hours</title>
+                    <type>d:boolean</type>
+                    <default>false</default>
+                </property>
+                <property name="ecosvm:employmentDate">
+                    <title>Employment date</title>
+                    <type>d:date</type>
+                </property>
+            </properties>
+        </aspect>
+
+        <aspect name="ecosvm:personVacationSettings">
+            <title>Person vacation settings</title>
+            <properties>
+                <property name="ecosvm:annualVacationRemains">
+                    <title>Annual vacation remains</title>
+                    <type>d:double</type>
+                </property>
+                <property name="ecosvm:irregularWorkVacationRemains">
+                    <title>Irregular work vacation remains</title>
+                    <type>d:double</type>
+                </property>
+                <property name="ecosvm:northVacationRemains">
+                    <title>North vacation remains</title>
+                    <type>d:double</type>
+                </property>
+                <property name="ecosvm:harmfulWorkVacationRemains">
+                    <title>Harmful work vacation remains</title>
+                    <type>d:double</type>
+                </property>
+                <property name="ecosvm:specificVacationRemains">
+                    <title>Specific vacation remains</title>
+                    <type>d:double</type>
+                </property>
+                <property name="ecosvm:fullAnnualVacationRemains">
+                    <title>Full annual vacation remains</title>
+                    <type>d:double</type>
+                </property>
+                <property name="ecosvm:fullIrregularWorkVacationRemains">
+                    <title>Full irregular work vacation remains</title>
+                    <type>d:double</type>
+                </property>
+                <property name="ecosvm:fullNorthVacationRemains">
+                    <title>Full north vacation remains</title>
+                    <type>d:double</type>
+                </property>
+                <property name="ecosvm:fullHarmfulWorkVacationRemains">
+                    <title>Full harmful work vacation remains</title>
+                    <type>d:double</type>
+                </property>
+            </properties>
+        </aspect>
     </aspects>
 
 </model>
