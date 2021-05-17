@@ -2,7 +2,7 @@ package ru.citeck.ecos.model;
 
 import org.alfresco.service.namespace.QName;
 
-public class EcosVacationModel {
+public interface EcosVacationModel {
     // model
     String PREFIX = "ecosvm";
 
