@@ -89,6 +89,7 @@ public class RecordsConfiguration extends RecordsServiceFactory {
             contextAtts.put("user", RecordRef.valueOf("people@" + AuthenticationUtil.getFullyAuthenticatedUser()));
             contextAtts.put("webUrl", urlUtils.getWebUrl());
             contextAtts.put("shareUrl", urlUtils.getShareUrl());
+            contextAtts.put("alfMeta", RecordRef.create("alfresco", "meta", ""));
             return contextAtts;
         };
     }
