@@ -12,8 +12,6 @@ import java.util.*;
  */
 public class MessageServiceImpl extends AlfMessageServiceImpl {
 
-    private static final Log logger = LogFactory.getLog(MessageServiceImpl.class);
-
     @Value("${ecos.message-service.static-messages-enabled}")
     private boolean isStaticMessagesEnabled = false;
 
