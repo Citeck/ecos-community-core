@@ -8,6 +8,6 @@
     "uiserv/action@delete"
   ],
   "properties": {
-    "alfType": "ecos:document"
+    "alfType": "cm:content"
   }
 }
