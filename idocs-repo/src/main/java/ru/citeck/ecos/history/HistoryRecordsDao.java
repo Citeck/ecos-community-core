@@ -7,6 +7,7 @@ import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import ru.citeck.ecos.records.meta.value.MetaJsonNodeValue;
+import ru.citeck.ecos.records2.RecordRef;
 import ru.citeck.ecos.records2.graphql.meta.value.MetaField;
 import ru.citeck.ecos.records2.graphql.meta.value.MetaValue;
 import ru.citeck.ecos.records2.request.query.RecordsQuery;
@@ -52,12 +53,14 @@ public class HistoryRecordsDao extends LocalRecordsDao
             Query queryData = query.getQuery(Query.class);
 
             String nodeRef = queryData.nodeRef;
-            if (nodeRef != null) {
-                int idx = nodeRef.lastIndexOf('@');
-                if (nodeRef.contains("people")){
-                    nodeRef = personService.getPerson(nodeRef.substring(idx + 1)).toString();
-                } else if (idx > -1 && idx < nodeRef.length() - 1){
-                    nodeRef = nodeRef.substring(idx + 1);
+            RecordRef recordRef = RecordRef.valueOf(nodeRef);
+            if (RecordRef.isNotEmpty(recordRef)) {
+                if (!recordRef.getId().isEmpty()) {
+                    if (recordRef.getSourceId().equals("people")) {
+                        nodeRef = personService.getPersonOrNull(recordRef.getId()).toString();
+                    } else {
+                        nodeRef = recordRef.getId();
+                    }
                 }
             }
             if (!NodeRef.isNodeRef(nodeRef)) {
