@@ -21,25 +21,19 @@
   "definition": {
     "components": [
       {
-        "label": {
-          "ru": "Panel"
-        },
+        "label": "Panel",
         "scrollableContent": true,
         "key": "panel2",
         "type": "panel",
         "input": false,
         "components": [
           {
-            "label": {
-              "ru": "Columns"
-            },
+            "label": "Columns",
             "columns": [
               {
                 "components": [
                   {
-                    "label": {
-                      "ru": "idocs:currencyCode"
-                    },
+                    "label": "idocs:currencyCode",
                     "clearOnHide": false,
                     "defaultValue": "",
                     "validate": {
@@ -53,9 +47,7 @@
                     "input": true
                   },
                   {
-                    "label": {
-                      "ru": "idocs:currencyName"
-                    },
+                    "label": "idocs:currencyName",
                     "clearOnHide": false,
                     "defaultValue": "",
                     "validate": {
@@ -69,9 +61,7 @@
                     "input": true
                   },
                   {
-                    "label": {
-                      "ru": "idocs:currencyShortName"
-                    },
+                    "label": "idocs:currencyShortName",
                     "clearOnHide": false,
                     "defaultValue": "",
                     "key": "idocs_currencyShortName",
@@ -94,9 +84,7 @@
                 "key": "column",
                 "components": [
                   {
-                    "label": {
-                      "ru": "idocs:currencyNumberCode"
-                    },
+                    "label": "idocs:currencyNumberCode",
                     "isBigNumber": false,
                     "delimiterValue": "",
                     "validate": {
@@ -111,9 +99,7 @@
                     "input": true
                   },
                   {
-                    "label": {
-                      "ru": "idocs:currencyRate"
-                    },
+                    "label": "idocs:currencyRate",
                     "isBigNumber": false,
                     "delimiter": true,
                     "delimiterValue": "",
@@ -138,16 +124,12 @@
         ]
       },
       {
-        "label": {
-          "ru": "Columns"
-        },
+        "label": "Columns",
         "columns": [
           {
             "components": [
               {
-                "label": {
-                  "ru": "Cancel"
-                },
+                "label": "Cancel",
                 "action": "event",
                 "state": "",
                 "block": true,
@@ -189,9 +171,7 @@
             "index": 3,
             "components": [
               {
-                "label": {
-                  "ru": "Submit"
-                },
+                "label": "Submit",
                 "state": "",
                 "theme": "primary",
                 "block": true,
