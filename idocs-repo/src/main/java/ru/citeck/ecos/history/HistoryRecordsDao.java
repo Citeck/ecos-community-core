@@ -2,6 +2,7 @@ package ru.citeck.ecos.history;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.alfresco.service.cmr.repository.NodeRef;
+import org.alfresco.service.cmr.security.PersonService;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -27,6 +28,8 @@ public class HistoryRecordsDao extends LocalRecordsDao
     private static final String LANGUAGE_CRITERIA = "criteria";
 
     private DocumentHistoryGet historyGet;
+    @Autowired
+    private PersonService personService;
 
     public HistoryRecordsDao() {
         setId(ID);
@@ -51,7 +54,9 @@ public class HistoryRecordsDao extends LocalRecordsDao
             String nodeRef = queryData.nodeRef;
             if (nodeRef != null) {
                 int idx = nodeRef.lastIndexOf('@');
-                if (idx > -1 && idx < nodeRef.length() - 1) {
+                if (nodeRef.contains("people")){
+                    nodeRef = personService.getPerson(nodeRef.substring(idx + 1)).toString();
+                } else if (idx > -1 && idx < nodeRef.length() - 1){
                     nodeRef = nodeRef.substring(idx + 1);
                 }
             }
