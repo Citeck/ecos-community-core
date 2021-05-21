@@ -2,10 +2,12 @@ package ru.citeck.ecos.history;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.alfresco.service.cmr.repository.NodeRef;
+import org.alfresco.service.cmr.security.PersonService;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import ru.citeck.ecos.records.meta.value.MetaJsonNodeValue;
+import ru.citeck.ecos.records2.RecordRef;
 import ru.citeck.ecos.records2.graphql.meta.value.MetaField;
 import ru.citeck.ecos.records2.graphql.meta.value.MetaValue;
 import ru.citeck.ecos.records2.request.query.RecordsQuery;
@@ -27,6 +29,8 @@ public class HistoryRecordsDao extends LocalRecordsDao
     private static final String LANGUAGE_CRITERIA = "criteria";
 
     private DocumentHistoryGet historyGet;
+    @Autowired
+    private PersonService personService;
 
     public HistoryRecordsDao() {
         setId(ID);
@@ -49,10 +53,14 @@ public class HistoryRecordsDao extends LocalRecordsDao
             Query queryData = query.getQuery(Query.class);
 
             String nodeRef = queryData.nodeRef;
-            if (nodeRef != null) {
-                int idx = nodeRef.lastIndexOf('@');
-                if (idx > -1 && idx < nodeRef.length() - 1) {
-                    nodeRef = nodeRef.substring(idx + 1);
+            RecordRef recordRef = RecordRef.valueOf(nodeRef);
+            if (RecordRef.isNotEmpty(recordRef)) {
+                if (!recordRef.getId().isEmpty()) {
+                    if (recordRef.getSourceId().equals("people")) {
+                        nodeRef = personService.getPersonOrNull(recordRef.getId()).toString();
+                    } else {
+                        nodeRef = recordRef.getId();
+                    }
                 }
             }
             if (!NodeRef.isNodeRef(nodeRef)) {
