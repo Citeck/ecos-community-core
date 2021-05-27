@@ -1055,6 +1055,32 @@ public class RepoUtils {
         return fullName.toString();
     }
 
+    public static void removeSourceAssocs(NodeRef nodeRef, List<QName> assocQNames, NodeService nodeService) {
+        for (QName assocQName: assocQNames) {
+            removeSourceAssocs(nodeRef, assocQName, nodeService);
+        }
+    }
+
+    public static void removeSourceAssocs(NodeRef nodeRef, QName assocQName, NodeService nodeService) {
+        List<NodeRef> sourceNodeRefs = getSourceNodeRefs(nodeRef, assocQName, nodeService);
+        for (NodeRef sourceNodeRef: sourceNodeRefs) {
+            removeAssociation(nodeRef, sourceNodeRef, assocQName, false, nodeService);
+        }
+    }
+
+    public static void removeTargetAssocs(NodeRef nodeRef, List<QName> assocQNames, NodeService nodeService) {
+        for (QName assocQName: assocQNames) {
+            removeTargetAssocs(nodeRef, assocQName, nodeService);
+        }
+    }
+
+    public static void removeTargetAssocs(NodeRef nodeRef, QName assocQName, NodeService nodeService) {
+        List<NodeRef> targetNodeRefs = getTargetNodeRefs(nodeRef, assocQName, nodeService);
+        for (NodeRef targetNodeRef: targetNodeRefs) {
+            removeAssociation(nodeRef, targetNodeRef, assocQName, true, nodeService);
+        }
+    }
+
     public static void setNodeUtils(NodeUtils nodeUtils) {
         RepoUtils.nodeUtils = nodeUtils;
     }
