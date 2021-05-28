@@ -49,13 +49,13 @@
             <!--</mandatory-aspects>-->
         </type>
     </types>
-    
+
     <aspects>
         <!-- marker aspect to mark documents, that get some default history records -->
         <!-- e.g. create, update, ... -->
         <aspect name="history:historical">
         </aspect>
-        
+
         <aspect name="history:documentEvent">
             <properties>
                 <property name="event:documentVersion">
@@ -81,7 +81,7 @@
                         <many>true</many>
                     </source>
                     <target>
-                        <class>cm:cmobject</class>
+                        <class>sys:base</class>
                         <mandatory>false</mandatory>
                         <many>false</many>
                     </target>
@@ -99,7 +99,7 @@
                 </association>
             </associations>
         </aspect>
-        
+
         <aspect name="history:workflowEvent">
             <properties>
                 <property name="event:workflowInstanceId">
@@ -115,7 +115,7 @@
                 </property>
             </properties>
         </aspect>
-        
+
         <aspect name="history:taskEvent">
             <properties>
                 <property name="event:taskInstanceId">
@@ -154,7 +154,7 @@
                 </property>
             </properties>
         </aspect>
-        
+
 		<aspect name="event:additionalProperties">
 			<properties>
 				<property name="event:additionalProperties">

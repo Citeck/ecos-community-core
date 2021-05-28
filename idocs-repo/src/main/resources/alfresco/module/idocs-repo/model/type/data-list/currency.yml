@@ -7,7 +7,7 @@ name:
 
 parentRef: emodel/type@data-list
 journalRef: uiserv/journal@currency
-formRef: uiserv/form@currency-form
+formRef: uiserv/form@idocs-currency-form
 
 properties:
   alfType: idocs:currency

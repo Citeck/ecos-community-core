@@ -1,9 +1,13 @@
 {
-    "id": "category-document-type",
-    "name": "Документ",
-    "parent": "emodel/type@user-base",
-    "actions": [
-        "uiserv/action@view-content-in-browser",
-        "uiserv/action@delete"
-    ]
+  "id": "category-document-type",
+  "name": "Документ",
+  "parentRef": "emodel/type@user-base",
+  "formRef": "uiserv/form@ecos-document-form",
+  "actions": [
+    "uiserv/action@view-content-in-browser",
+    "uiserv/action@delete"
+  ],
+  "properties": {
+    "alfType": "cm:content"
+  }
 }

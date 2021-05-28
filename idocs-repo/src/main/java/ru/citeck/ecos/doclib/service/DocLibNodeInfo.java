@@ -4,6 +4,8 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import org.alfresco.service.cmr.repository.ContentData;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+import ru.citeck.ecos.commons.data.ObjectData;
 import ru.citeck.ecos.records2.RecordRef;
 
 import java.util.Date;
@@ -25,4 +27,6 @@ public class DocLibNodeInfo {
 
     @NotNull
     private Supplier<ContentData> content;
+    @Nullable
+    private ObjectData previewInfo;
 }
