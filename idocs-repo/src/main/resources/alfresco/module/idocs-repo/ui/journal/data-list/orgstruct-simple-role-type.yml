@@ -2,7 +2,6 @@
 id: orgstruct-simple-role-type
 name:
   ru: Тип должности
-typeRef: emodel/type@orgstruct-simple-role-type
 columns:
   - id: cm:name
     name:

@@ -6,7 +6,6 @@ name:
 parentRef: emodel/type@data-list
 formRef: uiserv/form@orgstruct-simple-role-type
 journalRef: uiserv/journal@orgstruct-simple-role-type
-inheritForm: false
 defaultCreateVariant: true
 model:
   attributes:
