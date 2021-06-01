@@ -1,0 +1,28 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!DOCTYPE beans PUBLIC '-//SPRING//DTD BEAN//EN' 'http://www.springframework.org/dtd/spring-beans.dtd'>
+<beans>
+
+    <bean id="flowable.import-spaces.3-34-2" parent="flowable.import-spaces.1-0-0" abstract="true">
+        <property name="sinceVersion" value="3.34.2" />
+        <property name="appliesFromVersion" value="3.34.2" />
+    </bean>
+
+    <bean id="flowable.import-scripts" abstract="true" class="ru.citeck.ecos.repo.module.ScriptImporterModuleComponent" parent="module.baseComponent">
+        <property name="moduleId" value="ecos-flowable-repo" />
+        <property name="scriptService" ref="ScriptService"/>
+        <property name="scriptEngine" value="javascript"/>
+    </bean>
+
+    <bean id="flowable.import-scripts.3-34-2" parent="flowable.import-scripts" abstract="true">
+        <property name="sinceVersion" value="3.34.2" />
+        <property name="appliesFromVersion" value="3.34.2" />
+    </bean>
+
+    <bean id="flowable.script.case-statuses" parent="flowable.import-scripts.3-34-2">
+        <property name="executeOnceOnly" value="false"/>
+        <property name="name" value="flowable-statuses"/>
+        <property name="description" value="Create or update flowable statuses"/>
+        <property name="bootstrapScript" value="alfresco/module/ecos-flowable-repo/bootstrap/configs/scripts/import-statuses-flowable.js"/>
+    </bean>
+
+</beans>
