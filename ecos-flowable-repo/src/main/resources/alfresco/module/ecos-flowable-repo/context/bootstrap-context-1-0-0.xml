@@ -7,8 +7,7 @@
         <property name="appliesFromVersion" value="1.0.0" />
     </bean>
 
-    <bean id="flowable.module-component.process-import-to-modeler-config" parent="flowable.import-spaces.1-0-0"
-          lazy-init="true">
+    <bean id="flowable.module-component.process-import-to-modeler-config" parent="flowable.import-spaces.1-0-0">
         <property name="name" value="process-import-to-modeler-config" />
         <property name="description" value="process-import-to-modeler-config" />
         <property name="bootstrapViews">
@@ -32,6 +31,10 @@
         <property name="executeOnceOnly" value="false"/>
         <property name="flowableModelerService" ref="flowableModelerService"/>
         <property name="retryingTransactionHelper" ref="retryingTransactionHelper"/>
-        <property name="ecosConfigService" ref="ecosConfigService"/>
+        <property name="dependsOn">
+            <list>
+                <ref bean="flowable.module-component.process-import-to-modeler-config"/>
+            </list>
+        </property>
     </bean>
 </beans>

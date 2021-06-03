@@ -7,12 +7,6 @@
         <property name="appliesFromVersion" value="3.34.2" />
     </bean>
 
-    <bean id="flowable.import-scripts" abstract="true" class="ru.citeck.ecos.repo.module.ScriptImporterModuleComponent" parent="module.baseComponent">
-        <property name="moduleId" value="ecos-flowable-repo" />
-        <property name="scriptService" ref="ScriptService"/>
-        <property name="scriptEngine" value="javascript"/>
-    </bean>
-
     <bean id="flowable.import-scripts.3-34-2" parent="flowable.import-scripts" abstract="true">
         <property name="sinceVersion" value="3.34.2" />
         <property name="appliesFromVersion" value="3.34.2" />

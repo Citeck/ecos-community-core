@@ -17,6 +17,9 @@ public class FlowableRecoveryTimersJob extends AbstractLockedJob {
     public void executeJob(JobExecutionContext context) {
         final JobDataMap data = context.getJobDetail().getJobDataMap();
 
+        String jobName = this.getJobName(context);
+        log.info("Job with name `" + jobName + "` start");
+
         AuthenticationUtil.runAsSystem(() -> {
             FlowableTimersRestorerService flowableTimersRestorerService = (FlowableTimersRestorerService) data.get("flowableTimersRestorerService");
 
@@ -33,5 +36,7 @@ public class FlowableRecoveryTimersJob extends AbstractLockedJob {
 
             return null;
         });
+
+        log.info("Job with name `" + jobName + "` end");
     }
 }

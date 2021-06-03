@@ -2,7 +2,6 @@ package ru.citeck.ecos.flowable.services.timer;
 
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
-import org.alfresco.repo.jscript.ScriptNode;
 import org.alfresco.repo.node.NodeUtils;
 import org.alfresco.repo.security.authentication.AuthenticationUtil;
 import org.alfresco.repo.transaction.RetryingTransactionHelper;
@@ -16,15 +15,14 @@ import org.flowable.job.api.DeadLetterJobQuery;
 import org.flowable.job.api.Job;
 import org.flowable.job.api.JobNotFoundException;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import ru.citeck.ecos.commons.json.Json;
 import ru.citeck.ecos.icase.CaseStatusService;
+import ru.citeck.ecos.utils.JavaScriptImplUtils;
 
 import javax.annotation.PostConstruct;
 import java.util.*;
-import java.util.concurrent.locks.ReentrantLock;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -51,8 +49,6 @@ public class FlowableTimersRestorerService {
         transactionHelper = transactionService.getRetryingTransactionHelper();
     }
 
-    private final ReentrantLock lock = new ReentrantLock();
-
     public void restore() {
         restore(new Config(100, 3, 10000, null));
     }
@@ -78,12 +74,6 @@ public class FlowableTimersRestorerService {
         }
 
         public void restore() {
-            if (lock.isLocked()) {
-                log.info("FlowableTimersRestorer not started because another execution has not finished yet");
-                return;
-            }
-
-            lock.lock();
             log.info("Start FlowableTimersRestorer");
             try {
                 AuthenticationUtil.runAsSystem(() -> {
@@ -94,7 +84,6 @@ public class FlowableTimersRestorerService {
                 log.error("FlowableTimersRestorer is failed", e);
             } finally {
                 log.info("END FlowableTimersRestorer");
-                lock.unlock();
             }
         }
 
@@ -169,7 +158,9 @@ public class FlowableTimersRestorerService {
             long jobCount = flowableManagementService.createDeadLetterJobQuery()
                 .processInstanceId(processInstanceId)
                 .count();
-
+            if (jobCount == 0) {
+                return;
+            }
             if (config.maxCountJobForProcess > 0 && jobCount > config.maxCountJobForProcess) {
                 log.error("The count of jobs for the "
                     + processInstanceId + " processInstanceId is more than the limit " + config.maxCountJobForProcess
@@ -248,7 +239,7 @@ public class FlowableTimersRestorerService {
             Map<String, Object> variables = flowableRuntimeService.getVariables(processInstanceId);
 
             Object docObject = variables.get("document");
-            NodeRef nodeRef = getNodeRefFromScriptNode(docObject);
+            NodeRef nodeRef = JavaScriptImplUtils.getNodeRef(docObject);
             if (!NodeUtils.exists(nodeRef, nodeService)) {
                 log.error("Status can not change. NodeRef " + nodeRef + " does not exist");
                 return;
@@ -267,15 +258,6 @@ public class FlowableTimersRestorerService {
                 log.error("Node " + nodeRef + " status change failed", e);
             }
         }
-    }
-
-    @Nullable
-    private NodeRef getNodeRefFromScriptNode(Object docObject) {
-        NodeRef nodeRef = null;
-        if (docObject instanceof ScriptNode) {
-            nodeRef = ((ScriptNode) docObject).getNodeRef();
-        }
-        return nodeRef;
     }
 
     @Data
