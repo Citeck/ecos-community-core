@@ -28,7 +28,6 @@ import ru.citeck.ecos.records.source.alf.meta.AlfNodeAttValue;
 import ru.citeck.ecos.records2.QueryContext;
 import ru.citeck.ecos.records2.ServiceFactoryAware;
 import ru.citeck.ecos.records2.graphql.meta.value.MetaValue;
-import ru.citeck.ecos.records2.meta.RecordsMetaService;
 import ru.citeck.ecos.records2.request.query.RecordsQuery;
 import ru.citeck.ecos.records2.request.query.RecordsQueryResult;
 import ru.citeck.ecos.records2.request.query.SortBy;
@@ -93,7 +92,6 @@ public class TaskStatisticRecords extends AbstractRecordsDao implements RecordsQ
                                 AuthorityUtils authorityUtils,
                                 FTSQueryBuilder queryBuilder,
                                 SearchUtils searchUtils,
-                                RecordsMetaService recordsMetaService,
                                 EcosConfigService ecosConfigService) {
         setId(ID);
         this.personService = serviceRegistry.getPersonService();

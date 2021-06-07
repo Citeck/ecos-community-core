@@ -34,9 +34,7 @@ import ru.citeck.ecos.records2.querylang.QueryLangService;
 import ru.citeck.ecos.records2.QueryContext;
 import ru.citeck.ecos.records2.RecordsService;
 import ru.citeck.ecos.records3.RecordsServiceFactory;
-import ru.citeck.ecos.records2.graphql.RecordsMetaGql;
 import ru.citeck.ecos.records2.graphql.meta.value.MetaValuesConverter;
-import ru.citeck.ecos.records2.meta.RecordsMetaService;
 import ru.citeck.ecos.records2.request.rest.RestHandler;
 import ru.citeck.ecos.records3.record.request.ContextAttsProvider;
 import ru.citeck.ecos.records3.record.resolver.LocalRecordsResolver;
@@ -208,12 +206,6 @@ public class RecordsConfiguration extends RecordsServiceFactory {
 
     @Bean
     @Override
-    protected RecordsMetaService createRecordsMetaService() {
-        return super.createRecordsMetaService();
-    }
-
-    @Bean
-    @Override
     protected RestHandler createRestHandler() {
         return new RestHandler(this);
     }
@@ -228,12 +220,6 @@ public class RecordsConfiguration extends RecordsServiceFactory {
     @Override
     protected Supplier<? extends QueryContext> createQueryContextSupplier() {
         return () -> new AlfGqlContext(serviceRegistry);
-    }
-
-    @NotNull
-    @Override
-    protected RecordsMetaGql createRecordsMetaGql() {
-        return super.createRecordsMetaGql();
     }
 
     @Bean

@@ -11,17 +11,14 @@ import ru.citeck.ecos.commons.json.Json;
 import ru.citeck.ecos.records2.predicate.PredicateService;
 import ru.citeck.ecos.records2.predicate.PredicateUtils;
 import ru.citeck.ecos.records2.predicate.model.Predicate;
-import ru.citeck.ecos.records.source.alf.search.CriteriaAlfNodesSearch;
 import ru.citeck.ecos.records2.*;
 import ru.citeck.ecos.records2.predicate.RecordElement;
 import ru.citeck.ecos.records2.predicate.RecordElements;
 import ru.citeck.ecos.records2.request.query.RecordsQuery;
-import ru.citeck.ecos.records2.request.result.RecordsResult;
 import ru.citeck.ecos.records3.RecordsServiceFactory;
 import ru.citeck.ecos.search.*;
 
 import java.util.*;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -29,7 +26,6 @@ import java.util.stream.Collectors;
 @Slf4j
 public class ExactCriteriaRecordsDao extends FilteredRecordsDao implements ServiceFactoryAware {
 
-    private SearchCriteriaParser criteriaParser;
     private RecordsService recordsService;
     private PredicateService predicateService;
 
@@ -77,69 +73,10 @@ public class ExactCriteriaRecordsDao extends FilteredRecordsDao implements Servi
                             .map(RecordElement::getRecordRef)
                             .collect(Collectors.toList());
                 };
-            } else {
-                return list -> list;
             }
-
-        } else if (!CriteriaAlfNodesSearch.LANGUAGE.equals(query.getLanguage())) {
-            return list -> list;
         }
 
-        SearchCriteria criteria = criteriaParser.parse(query.getQuery());
-
-        StringBuilder metaQuery = new StringBuilder("id");
-        List<CriterionFilter> criterionFilters = new ArrayList<>();
-
-        AtomicInteger attCounter = new AtomicInteger();
-
-        criteria.getTriplets().forEach(t -> {
-
-            if (filteredFields.contains(t.getField())) {
-
-                PredicateFilter filter = filters.get(t.getPredicate());
-                if (filter == null) {
-
-                    log.warn("Predicate filter for '" + t.getPredicate() +
-                                "' not found. This field will be ignored");
-                } else {
-
-                    String fieldKey = "a" + attCounter.getAndIncrement();
-
-                    CriterionFilter criterionFilter = new CriterionFilter();
-                    criterionFilter.fieldKey = fieldKey;
-                    criterionFilter.fieldValue = t.getValue();
-                    criterionFilter.predicateFilter = filter;
-
-                    criterionFilters.add(criterionFilter);
-
-                    metaQuery.append("\n")
-                             .append(fieldKey)
-                             .append(":edge(n:\"")
-                             .append(t.getField())
-                             .append("\"){val:vals{")
-                             .append(filter.metaSchema)
-                             .append("}}");
-                }
-            }
-        });
-
-        if (criterionFilters.isEmpty()) {
-            return list -> list;
-        } else {
-            return list -> {
-                RecordsResult<RecordMeta> meta = recordsService.getMeta(list, metaQuery.toString());
-                return meta.getRecords()
-                           .stream()
-                           .filter(m -> criterionFilters.stream().allMatch(f -> f.apply(m.getAttributes())))
-                           .map(RecordMeta::getId)
-                           .collect(Collectors.toList());
-            };
-        }
-    }
-
-    @Autowired
-    public void setCriteriaParser(SearchCriteriaParser criteriaParser) {
-        this.criteriaParser = criteriaParser;
+        return list -> list;
     }
 
     public void setFilteredFields(List<String> filteredFields) {

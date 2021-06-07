@@ -19,7 +19,6 @@ import org.springframework.http.converter.StringHttpMessageConverter;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.social.support.URIBuilder;
 import org.springframework.web.client.RestTemplate;
-import ru.citeck.ecos.records2.source.dao.remote.RecordsRestConnection;
 import ru.citeck.ecos.utils.json.mixin.NodeRefMixIn;
 import ru.citeck.ecos.utils.json.mixin.QNameMixIn;
 
@@ -29,7 +28,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 
-public class RestConnection implements RecordsRestConnection {
+public class RestConnection {
 
     private static final Log logger = LogFactory.getLog(RestConnection.class);
 
