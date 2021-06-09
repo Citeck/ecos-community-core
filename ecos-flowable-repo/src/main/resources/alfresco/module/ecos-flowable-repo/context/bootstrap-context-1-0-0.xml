@@ -7,21 +7,6 @@
         <property name="appliesFromVersion" value="1.0.0" />
     </bean>
 
-    <bean id="flowable.module-component.process-import-to-modeler-config" parent="flowable.import-spaces.1-0-0">
-        <property name="name" value="process-import-to-modeler-config" />
-        <property name="description" value="process-import-to-modeler-config" />
-        <property name="bootstrapViews">
-            <list>
-                <props>
-                    <prop key="path">/app:company_home/app:dictionary</prop>
-                    <prop key="location">alfresco/templates/bootstrap/ru/citeck/ecosConfig.xml</prop>
-                    <prop key="messages">alfresco/module/ecos-flowable-repo/bootstrap/configs/flowable-process-import-to-modeler-already-executed</prop>
-                    <prop key="encoding">UTF-8</prop>
-                </props>
-            </list>
-        </property>
-    </bean>
-
     <bean id="flowable.import-component.import-process-to-flowable-modeler"
           class="ru.citeck.ecos.flowable.bootstrap.FlowableModelerImportProcessModuleComponent"
           parent="module.baseComponent">
@@ -31,10 +16,5 @@
         <property name="executeOnceOnly" value="false"/>
         <property name="flowableModelerService" ref="flowableModelerService"/>
         <property name="retryingTransactionHelper" ref="retryingTransactionHelper"/>
-        <property name="dependsOn">
-            <list>
-                <ref bean="flowable.module-component.process-import-to-modeler-config"/>
-            </list>
-        </property>
     </bean>
 </beans>
