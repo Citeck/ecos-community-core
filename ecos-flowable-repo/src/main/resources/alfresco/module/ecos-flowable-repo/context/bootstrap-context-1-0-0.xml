@@ -7,14 +7,4 @@
         <property name="appliesFromVersion" value="1.0.0" />
     </bean>
 
-    <bean id="flowable.import-component.import-process-to-flowable-modeler"
-          class="ru.citeck.ecos.flowable.bootstrap.FlowableModelerImportProcessModuleComponent"
-          parent="module.baseComponent">
-        <property name="moduleId" value="ecos-flowable-repo" />
-        <property name="name" value="import-process-to-flowable-modeler"/>
-        <property name="description" value="Import flowable process to Modeler"/>
-        <property name="executeOnceOnly" value="false"/>
-        <property name="flowableModelerService" ref="flowableModelerService"/>
-        <property name="retryingTransactionHelper" ref="retryingTransactionHelper"/>
-    </bean>
 </beans>

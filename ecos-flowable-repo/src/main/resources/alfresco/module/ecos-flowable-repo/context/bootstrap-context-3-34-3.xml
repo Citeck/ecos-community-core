@@ -1,0 +1,56 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!DOCTYPE beans PUBLIC '-//SPRING//DTD BEAN//EN' 'http://www.springframework.org/dtd/spring-beans.dtd'>
+<beans>
+
+    <bean id="flowable.import-spaces.3-34-3" parent="flowable.import-spaces.1-0-0" abstract="true">
+        <property name="sinceVersion" value="3.34.3" />
+        <property name="appliesFromVersion" value="3.34.3" />
+    </bean>
+
+    <bean id="flowable.import-scripts.3-34-3" parent="flowable.import-scripts" abstract="true">
+        <property name="sinceVersion" value="3.34.3" />
+        <property name="appliesFromVersion" value="3.34.3" />
+    </bean>
+
+    <bean id="flowable.script.case-statuses" parent="flowable.import-scripts.3-34-3">
+        <property name="executeOnceOnly" value="false"/>
+        <property name="name" value="flowable-statuses"/>
+        <property name="description" value="Create or update flowable statuses"/>
+        <property name="bootstrapScript" value="alfresco/module/ecos-flowable-repo/bootstrap/configs/scripts/import-statuses-flowable.js"/>
+    </bean>
+
+    <bean id="flowable.module-component.process-import-to-modeler-config-2" parent="module.baseComponent"
+          class="ru.citeck.ecos.config.patch.CreateConfig">
+        <property name="dependsOn">
+            <list>
+                <ref bean="ecos-base-core.module-component.ecos-config-root"/>
+            </list>
+        </property>
+        <property name="moduleId" value="ecos-flowable-repo"/>
+        <property name="sinceVersion" value="3.34.3"/>
+        <property name="appliesFromVersion" value="3.34.3"/>
+        <property name="name" value="process-import-to-modeler-config"/>
+        <property name="description" value="process-import-to-modeler-config"/>
+        <property name="isUpdateValueIfConfExists" value="false"/>
+        <property name="configKey" value="flowable-process-import-to-modeler-already-executed"/>
+        <property name="configValue" value="false"/>
+        <property name="configTitle" value="ecos-config.flowable-process-import-to-modeler-already-executed.title"/>
+        <property name="configDescription" value="ecos-config.flowable-process-import-to-modeler-already-executed.description"/>
+    </bean>
+
+    <bean id="flowable.import-component.import-process-to-flowable-modeler"
+          class="ru.citeck.ecos.flowable.bootstrap.FlowableModelerImportProcessModuleComponent"
+          parent="module.baseComponent">
+        <property name="moduleId" value="ecos-flowable-repo"/>
+        <property name="name" value="import-process-to-flowable-modeler"/>
+        <property name="description" value="Import flowable process to Modeler"/>
+        <property name="executeOnceOnly" value="false"/>
+        <property name="flowableModelerService" ref="flowableModelerService"/>
+        <property name="retryingTransactionHelper" ref="retryingTransactionHelper"/>
+        <property name="dependsOn">
+            <list>
+                <ref bean="flowable.module-component.process-import-to-modeler-config-2"/>
+            </list>
+        </property>
+    </bean>
+</beans>
