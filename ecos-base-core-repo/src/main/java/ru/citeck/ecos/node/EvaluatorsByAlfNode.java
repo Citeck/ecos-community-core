@@ -14,12 +14,12 @@ import java.util.function.Function;
 
 public class EvaluatorsByAlfNode<T> {
 
-    private Map<QName, Function<AlfNodeInfo, T>> evaluators = new ConcurrentHashMap<>();
-    private Map<QName, List<Function<AlfNodeInfo, T>>> typeEvaluators = new ConcurrentHashMap<>();
-    private Function<AlfNodeInfo, T> defaultEvaluator;
+    private final Map<QName, Function<AlfNodeInfo, T>> evaluators = new ConcurrentHashMap<>();
+    private final Map<QName, List<Function<AlfNodeInfo, T>>> typeEvaluators = new ConcurrentHashMap<>();
+    private final Function<AlfNodeInfo, T> defaultEvaluator;
 
-    private ServiceRegistry serviceRegistry;
-    private DictionaryService dictionaryService;
+    private final ServiceRegistry serviceRegistry;
+    private final DictionaryService dictionaryService;
 
     public EvaluatorsByAlfNode(ServiceRegistry serviceRegistry, Function<AlfNodeInfo, T> defaultEvaluator) {
         this.serviceRegistry = serviceRegistry;
