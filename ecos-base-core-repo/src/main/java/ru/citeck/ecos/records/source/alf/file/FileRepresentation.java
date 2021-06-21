@@ -49,6 +49,9 @@ public class FileRepresentation {
         ContentService contentService = context.getService("contentService");
         NodeRef nodeRef = new NodeRef(alfNode.nodeRef());
         ContentReader reader = contentService.getReader(nodeRef, ContentModel.PROP_CONTENT);
+        if (reader == null) {
+            return null;
+        }
 
         ObjectNode obj = OBJECT_MAPPER.createObjectNode();
         ObjectNode data = OBJECT_MAPPER.createObjectNode();
