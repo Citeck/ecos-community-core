@@ -9,6 +9,12 @@
         <property name="importer" ref="spacesBootstrap" />
     </bean>
 
+    <bean id="flowable.import-scripts" abstract="true" class="ru.citeck.ecos.repo.module.ScriptImporterModuleComponent" parent="module.baseComponent">
+        <property name="moduleId" value="ecos-flowable-repo" />
+        <property name="scriptService" ref="ScriptService"/>
+        <property name="scriptEngine" value="javascript"/>
+    </bean>
+
     <bean id="ecos-flowable-repo-resourceBundles" class="org.alfresco.i18n.ResourceBundleBootstrapComponent">
         <property name="resourceBundles">
             <list>
