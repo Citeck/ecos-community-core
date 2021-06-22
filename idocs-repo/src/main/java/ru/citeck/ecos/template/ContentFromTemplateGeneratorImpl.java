@@ -25,6 +25,7 @@ import org.alfresco.service.ServiceRegistry;
 import org.alfresco.service.cmr.model.FileFolderServiceType;
 import org.alfresco.service.cmr.repository.*;
 import org.alfresco.service.cmr.version.VersionService;
+import org.alfresco.service.cmr.version.VersionType;
 import org.alfresco.service.namespace.RegexQNamePattern;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -85,6 +86,11 @@ class ContentFromTemplateGeneratorImpl implements ContentFromTemplateGenerator {
 
     @Override
     public void generateContentByTemplate(NodeRef nodeRef, String historyDescriptionText) {
+        generateContentByTemplate(nodeRef, false, null);
+    }
+
+    @Override
+    public void generateContentByTemplate(NodeRef nodeRef, boolean majorVersion, String historyDescriptionText) {
         // check existence
         if (!nodeService.exists(nodeRef)) {
             logger.debug("Skipped non-existing nodeRef: " + nodeRef);
@@ -182,6 +188,9 @@ class ContentFromTemplateGeneratorImpl implements ContentFromTemplateGenerator {
                 VersionModel.PROP_DESCRIPTION,
                 historyDescriptionText != null ? historyDescriptionText : I18NUtil.getMessage(MESSAGE_AUTO_GENERATED)
         );
+        if (majorVersion) {
+            versionProperties.put(VersionModel.PROP_VERSION_TYPE, VersionType.MAJOR);
+        }
         RepoUtils.setUniqueOriginalName(nodeRef, EMPTY_EXTENSION, nodeService, mimetypeService);
         RepoUtils.createVersion(nodeRef, versionProperties, nodeService, versionService);
     }
