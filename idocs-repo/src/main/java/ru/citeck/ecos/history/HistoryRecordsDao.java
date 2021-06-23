@@ -14,7 +14,6 @@ import ru.citeck.ecos.records2.source.dao.local.LocalRecordsDao;
 import ru.citeck.ecos.records2.source.dao.local.v2.LocalRecordsQueryWithMetaDao;
 import ru.citeck.ecos.webscripts.history.DocumentHistoryGet;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -47,22 +46,12 @@ public class HistoryRecordsDao extends LocalRecordsDao
 
         if (LANGUAGE_DOCUMENT.equals(language)) {
             Query queryData = query.getQuery(Query.class);
+            String documentId = resolveDocumentId(queryData.nodeRef);
 
-            String nodeRef = queryData.nodeRef;
-            if (nodeRef != null) {
-                int idx = nodeRef.lastIndexOf('@');
-                if (idx > -1 && idx < nodeRef.length() - 1) {
-                    nodeRef = nodeRef.substring(idx + 1);
-                }
-            }
-            if (!NodeRef.isNodeRef(nodeRef)) {
-                events = Collections.emptyList();
-            } else {
-                events = historyGet.getHistoryEvents(nodeRef,
-                    queryData.filter,
-                    queryData.events,
-                    queryData.taskTypes);
-            }
+            events = historyGet.getHistoryEvents(documentId,
+                queryData.filter,
+                queryData.events,
+                queryData.taskTypes);
         } else {
             int skipCount = query.getSkipCount();
             int maxItems = query.getMaxItems();
@@ -77,6 +66,16 @@ public class HistoryRecordsDao extends LocalRecordsDao
         result.setRecords(getEventsMetaValues(events));
 
         return result;
+    }
+
+    private String resolveDocumentId(String id) {
+        String recordId = StringUtils.substringAfter(id, "@");
+
+        if (NodeRef.isNodeRef(recordId)) {
+            return recordId;
+        }
+
+        return id;
     }
 
     private List<MetaValue> getEventsMetaValues(List<ObjectNode> events) {

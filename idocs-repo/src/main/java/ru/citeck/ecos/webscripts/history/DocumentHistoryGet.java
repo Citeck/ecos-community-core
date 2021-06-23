@@ -109,9 +109,8 @@ public class DocumentHistoryGet extends AbstractWebScript {
         return formatHistoryNodes(historyRecordMaps, includeEvents, includeTypes);
     }
 
-    public List<ObjectNode> getHistoryEvents(String nodeRef, String filter, String events, String taskTypes) {
+    public List<ObjectNode> getHistoryEvents(String documentId, String filter, String events, String taskTypes) {
 
-        NodeRef documentRef = new NodeRef(nodeRef);
         Set<String> includeEvents = split(events);
         Set<String> includeTypes = split(taskTypes);
         Criteria filterCriteria = null;
@@ -123,16 +122,23 @@ public class DocumentHistoryGet extends AbstractWebScript {
             }
         }
 
-        Boolean useNewHistory = (Boolean) nodeService.getProperty(documentRef, IdocsModel.PROP_USE_NEW_HISTORY);
-        if ((useNewHistory == null || !useNewHistory) && isEnabledRemoteHistoryService()) {
-            historyRemoteService.sendHistoryEventsByDocumentToRemoteService(documentRef);
+        if (NodeRef.isNodeRef(documentId)) {
+            NodeRef documentRef = new NodeRef(documentId);
+            Boolean useNewHistory = (Boolean) nodeService.getProperty(documentRef, IdocsModel.PROP_USE_NEW_HISTORY);
+            if ((useNewHistory == null || !useNewHistory) && isEnabledRemoteHistoryService()) {
+                historyRemoteService.sendHistoryEventsByDocumentToRemoteService(documentRef);
+            }
         }
+
         /* Load data */
         List<Map> historyRecordMaps;
         if (isEnabledRemoteHistoryService()) {
-            historyRecordMaps = historyRemoteService.getHistoryRecords(documentRef.getId());
+            if (NodeRef.isNodeRef(documentId)) {
+                documentId = new NodeRef(documentId).getId();
+            }
+            historyRecordMaps = historyRemoteService.getHistoryRecords(documentId);
         } else {
-            historyRecordMaps = historyGetService.getHistoryEventsByDocumentRef(documentRef);
+            historyRecordMaps = historyGetService.getHistoryEventsByDocumentRef(new NodeRef(documentId));
         }
 
         if (filterCriteria != null) {
