@@ -26,6 +26,8 @@ import ru.citeck.ecos.icase.activity.dto.CaseActivity;
 import ru.citeck.ecos.icase.activity.service.ActivityCommonService;
 import ru.citeck.ecos.icase.activity.service.CaseActivityService;
 import ru.citeck.ecos.model.InvariantsModel;
+import ru.citeck.ecos.records.RecordsUtils;
+import ru.citeck.ecos.records2.RecordRef;
 
 import java.util.*;
 
@@ -148,7 +150,7 @@ public class RollbackTasksInFlowable extends DeclarativeWebScript {
     private NodeRef getNodeFromJSON(JSONObject jsonObject) {
         try {
             JSONObject jsonData = jsonObject.getJSONObject(NODE_KEY);
-            return new NodeRef(jsonData.getString("nodeRef"));
+            return RecordsUtils.toNodeRef(RecordRef.valueOf(jsonData.getString("nodeRef")));
         } catch (JSONException e) {
             logger.error(e.getMessage(), e);
             return null;
