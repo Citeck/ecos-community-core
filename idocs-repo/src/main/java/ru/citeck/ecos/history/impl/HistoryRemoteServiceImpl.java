@@ -85,8 +85,8 @@ public class HistoryRemoteServiceImpl implements HistoryRemoteService {
      * Path constants
      */
     private static final String GET_ALL_RECORDS = "/history_records/all_records/page/%d/limit/%d";
-    private static final String GET_BY_DOCUMENT_ID_PATH = "/history_records/by_document_id/";
-    private static final String DELETE_BY_DOCUMENT_ID_PATH = "/history_records/by_document_id/";
+    private static final String GET_BY_DOCUMENT_ID_PATH = "/history_records/get_document_history/";
+    private static final String DELETE_BY_DOCUMENT_ID_PATH = "/history_records/delete_document_history/";
     private static final String INSERT_RECORD_PATH = "/history_records/insert_record";
     private static final String INSERT_RECORDS_PATH = "/history_records/insert_records";
 
@@ -126,7 +126,7 @@ public class HistoryRemoteServiceImpl implements HistoryRemoteService {
     /**
      * Get all history records
      *
-     * @param page - Page to show
+     * @param page  - Page to show
      * @param limit - Results limit
      * @return List of maps
      */
@@ -144,7 +144,10 @@ public class HistoryRemoteServiceImpl implements HistoryRemoteService {
      */
     @Override
     public List<Map> getHistoryRecords(String documentUuid) {
-        return restTemplate.getForObject(properties.getProperty(HISTORY_SERVICE_HOST) + GET_BY_DOCUMENT_ID_PATH + documentUuid, List.class);
+        return restTemplate.postForObject(
+            properties.getProperty(HISTORY_SERVICE_HOST) + GET_BY_DOCUMENT_ID_PATH,
+            documentUuid,
+            List.class);
     }
 
     /**
@@ -428,7 +431,10 @@ public class HistoryRemoteServiceImpl implements HistoryRemoteService {
                 jmsTemplate.convertAndSend(DELETE_RECORDS_BY_DOCUMENT_QUEUE, documentNodeRef.getId());
             }
         } else {
-            restTemplate.delete(properties.getProperty(HISTORY_SERVICE_HOST) + DELETE_BY_DOCUMENT_ID_PATH + documentNodeRef.getId());
+            restTemplate.postForObject(
+                properties.getProperty(HISTORY_SERVICE_HOST) + DELETE_BY_DOCUMENT_ID_PATH,
+                documentNodeRef.getId(),
+                Object.class);
         }
     }
 
