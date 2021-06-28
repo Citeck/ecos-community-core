@@ -10,6 +10,8 @@ import org.alfresco.util.transaction.TransactionListenerAdapter;
 import org.apache.log4j.Logger;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.extensions.surf.util.I18NUtil;
+import ru.citeck.ecos.domain.auth.EcosAuthContext;
+import ru.citeck.ecos.domain.auth.EcosAuthContextData;
 import ru.citeck.ecos.utils.performance.ActionPerformance;
 import ru.citeck.ecos.utils.performance.Performance;
 
@@ -60,6 +62,7 @@ public class TransactionUtils {
 
         final String currentUser = AuthenticationUtil.getFullyAuthenticatedUser();
         final Locale locale = I18NUtil.getLocale();
+        final EcosAuthContextData ecosAuthContext = EcosAuthContext.getCurrent();
 
         List<Job> jobs = AlfrescoTransactionSupport.getResource(AFTER_COMMIT_JOBS_KEY);
 
@@ -72,7 +75,7 @@ public class TransactionUtils {
             AlfrescoTransactionSupport.bindListener(new TransactionListenerAdapter() {
                 @Override
                 public void afterCommit() {
-                    executeAfterCommitJobs(finalJobs, currentUser, locale);
+                    executeAfterCommitJobs(finalJobs, currentUser, locale, ecosAuthContext);
                 }
             });
         }
@@ -138,25 +141,33 @@ public class TransactionUtils {
         }
     }
 
-    private static void executeAfterCommitJobs(List<Job> jobs, final String currentUser, final Locale locale) {
+    private static void executeAfterCommitJobs(
+        List<Job> jobs,
+        final String currentUser,
+        final Locale locale,
+        final EcosAuthContextData ecosAuthContext
+    ) {
 
         taskExecutor.execute(() -> {
 
             Locale localeBefore = I18NUtil.getLocale();
             I18NUtil.setLocale(locale);
 
-            try {
-                AuthenticationUtil.clearCurrentSecurityContext();
-                AuthenticationUtil.runAs(() -> {
-                    AuthenticationUtil.runAsSystem(() -> {
-                        executeAfterCommitJobsImpl(jobs);
+            EcosAuthContext.doWith(ecosAuthContext, () -> {
+                try {
+                    AuthenticationUtil.clearCurrentSecurityContext();
+                    AuthenticationUtil.runAs(() -> {
+                        AuthenticationUtil.runAsSystem(() -> {
+                            executeAfterCommitJobsImpl(jobs);
+                            return null;
+                        });
                         return null;
-                    });
-                    return null;
-                }, currentUser);
-            } finally {
-                I18NUtil.setLocale(localeBefore);
-            }
+                    }, currentUser);
+                } finally {
+                    I18NUtil.setLocale(localeBefore);
+                }
+                return null;
+            });
         });
     }
 

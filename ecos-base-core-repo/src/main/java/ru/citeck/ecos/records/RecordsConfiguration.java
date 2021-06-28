@@ -20,7 +20,8 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
-import ru.citeck.ecos.domain.servlet.ServletRequestContextFilter;
+import ru.citeck.ecos.domain.auth.EcosAuthContext;
+import ru.citeck.ecos.domain.auth.EcosAuthContextData;
 import ru.citeck.ecos.eureka.EcosServiceDiscovery;
 import ru.citeck.ecos.eureka.EcosServiceInstanceInfo;
 import ru.citeck.ecos.eureka.EurekaContextConfig;
@@ -46,7 +47,6 @@ import ru.citeck.ecos.records3.rest.RestHandlerAdapter;
 import ru.citeck.ecos.records3.txn.RecordsTxnService;
 import ru.citeck.ecos.utils.UrlUtils;
 
-import javax.servlet.http.HttpServletRequest;
 import java.util.*;
 import java.util.function.Supplier;
 
@@ -54,13 +54,7 @@ import java.util.function.Supplier;
 public class RecordsConfiguration extends RecordsServiceFactory {
 
     private static final String HEADER_AUTH = "Authorization";
-    private static final String HEADER_ECOS_USERNAME = "X-ECOS-User";
-    private static final String HEADER_ALFRESCO_USERNAME = "X-Alfresco-Remote-User";
-    private static final List<String> AUTH_HEADERS = Arrays.asList(
-        HEADER_AUTH,
-        HEADER_ECOS_USERNAME,
-        HEADER_ALFRESCO_USERNAME
-    );
+    private static final String HEADER_ECOS_USER = "X-ECOS-User";
 
     @Value("${records.configuration.app.name}")
     private String appName;
@@ -164,14 +158,14 @@ public class RecordsConfiguration extends RecordsServiceFactory {
         org.springframework.http.HttpHeaders headers = new HttpHeaders();
         request.getHeaders().forEach(headers::put);
 
-        HttpServletRequest currReq = ServletRequestContextFilter.getCurrentHttpRequest();
-        if (currReq != null) {
-            AUTH_HEADERS.forEach(header -> {
-                String headerValue = currReq.getHeader(header);
-                if (StringUtils.isNotBlank(headerValue)) {
-                    headers.set(header, headerValue);
-                }
-            });
+        EcosAuthContextData authContextData = EcosAuthContext.getCurrent();
+        if (authContextData != null) {
+            if (StringUtils.isNotBlank(authContextData.getAuthHeader())) {
+                headers.set(HEADER_AUTH, authContextData.getAuthHeader());
+            }
+            if (StringUtils.isNotBlank(authContextData.getEcosUserHeader())) {
+                headers.set(HEADER_ECOS_USER, authContextData.getEcosUserHeader());
+            }
         }
 
         HttpEntity<byte[]> httpEntity = new HttpEntity<>(request.getBody(), headers);
