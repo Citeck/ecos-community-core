@@ -48,6 +48,15 @@
    <@markup id="resources">
    <#-- Additional template resources -->
    </@markup>
+   <script type="text/javascript">
+       (function () {
+           var proxyUri = (Alfresco.constants || {}).PROXY_URI;
+           if (!proxyUri) {
+               return;
+           }
+           Alfresco.constants.PROXY_URI = proxyUri.replace("/share/proxy/alfresco", "/gateway/alfresco/alfresco/s");
+       })();
+   </script>
 
    <#-- Component Resources from .get.head.ftl files or from dependency directives processed before the
         <@outputJavaScript> and <@outputCSS> directives. -->
