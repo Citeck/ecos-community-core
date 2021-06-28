@@ -55,6 +55,7 @@ public class RecordsConfiguration extends RecordsServiceFactory {
 
     private static final String HEADER_AUTH = "Authorization";
     private static final String HEADER_ECOS_USER = "X-ECOS-User";
+    private static final String HEADER_ALFRESCO_REMOTE_USER = "X-Alfresco-Remote-User";
 
     @Value("${records.configuration.app.name}")
     private String appName;
@@ -165,6 +166,7 @@ public class RecordsConfiguration extends RecordsServiceFactory {
             }
             if (StringUtils.isNotBlank(authContextData.getEcosUserHeader())) {
                 headers.set(HEADER_ECOS_USER, authContextData.getEcosUserHeader());
+                headers.set(HEADER_ALFRESCO_REMOTE_USER, authContextData.getEcosUserHeader());
             }
         }
 
