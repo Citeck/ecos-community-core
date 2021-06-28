@@ -7,6 +7,7 @@ import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import ru.citeck.ecos.records.meta.value.MetaJsonNodeValue;
+import ru.citeck.ecos.records.source.PeopleRecordsDao;
 import ru.citeck.ecos.records2.RecordRef;
 import ru.citeck.ecos.records2.graphql.meta.value.MetaField;
 import ru.citeck.ecos.records2.graphql.meta.value.MetaValue;
@@ -16,8 +17,8 @@ import ru.citeck.ecos.records2.source.dao.local.LocalRecordsDao;
 import ru.citeck.ecos.records2.source.dao.local.v2.LocalRecordsQueryWithMetaDao;
 import ru.citeck.ecos.webscripts.history.DocumentHistoryGet;
 
-import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 @Component
@@ -51,26 +52,12 @@ public class HistoryRecordsDao extends LocalRecordsDao
 
         if (LANGUAGE_DOCUMENT.equals(language)) {
             Query queryData = query.getQuery(Query.class);
+            String documentId = resolveDocumentId(queryData.nodeRef);
 
-            String nodeRef = queryData.nodeRef;
-            RecordRef recordRef = RecordRef.valueOf(nodeRef);
-            if (RecordRef.isNotEmpty(recordRef)) {
-                if (!recordRef.getId().isEmpty()) {
-                    if (recordRef.getSourceId().equals("people")) {
-                        nodeRef = personService.getPersonOrNull(recordRef.getId()).toString();
-                    } else {
-                        nodeRef = recordRef.getId();
-                    }
-                }
-            }
-            if (!NodeRef.isNodeRef(nodeRef)) {
-                events = Collections.emptyList();
-            } else {
-                events = historyGet.getHistoryEvents(nodeRef,
-                    queryData.filter,
-                    queryData.events,
-                    queryData.taskTypes);
-            }
+            events = historyGet.getHistoryEvents(documentId,
+                queryData.filter,
+                queryData.events,
+                queryData.taskTypes);
         } else {
             int skipCount = query.getSkipCount();
             int maxItems = query.getMaxItems();
@@ -85,6 +72,21 @@ public class HistoryRecordsDao extends LocalRecordsDao
         result.setRecords(getEventsMetaValues(events));
 
         return result;
+    }
+
+    private String resolveDocumentId(String id) {
+        String recordId = StringUtils.substringAfter(id, "@");
+
+        if (NodeRef.isNodeRef(recordId)) {
+            return recordId;
+        }
+
+        RecordRef idRecordRef = RecordRef.valueOf(id);
+        if (Objects.equals(PeopleRecordsDao.ID, idRecordRef.getSourceId())) {
+            return personService.getPersonOrNull(idRecordRef.getId()).toString();
+        }
+
+        return id;
     }
 
     private List<MetaValue> getEventsMetaValues(List<ObjectNode> events) {
