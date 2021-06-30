@@ -66,11 +66,11 @@
         <yuicompressor.compress.skip>false</yuicompressor.compress.skip>
 
         <ecos.flowable.version>3.0.5.2</ecos.flowable.version>
-        <ecos.records.version>3.26.0</ecos.records.version>
+        <ecos.records.version>3.26.5</ecos.records.version>
         <ecos.apps.lib.version>3.7.0</ecos.apps.lib.version>
         <ecos.jackson.version>2.10.4.3</ecos.jackson.version>
         <ecos.snakeyaml.version>2.2.0</ecos.snakeyaml.version>
-        <ecos.commons.version>2.2.6</ecos.commons.version>
+        <ecos.commons.version>2.3.1</ecos.commons.version>
         <ecos.commands.version>2.3.2</ecos.commands.version>
         <ecos.rabbitmq.version>2.1.1</ecos.rabbitmq.version>
         <ecos.meta-repo.version>1.1.0</ecos.meta-repo.version>
