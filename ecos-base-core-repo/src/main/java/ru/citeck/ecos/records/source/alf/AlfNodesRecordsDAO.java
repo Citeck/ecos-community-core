@@ -30,6 +30,7 @@ import ru.citeck.ecos.node.EcosTypeService;
 import ru.citeck.ecos.node.etype.EcosTypeAlfTypeService;
 import ru.citeck.ecos.node.etype.EcosTypeChildAssocService;
 import ru.citeck.ecos.node.etype.EcosTypeRootService;
+import ru.citeck.ecos.records.source.PeopleRecordsDao;
 import ru.citeck.ecos.records.source.alf.file.AlfNodeContentFileHelper;
 import ru.citeck.ecos.records.source.alf.meta.AlfNodeRecord;
 import ru.citeck.ecos.records.source.alf.search.AlfNodesSearch;
@@ -61,6 +62,7 @@ import ru.citeck.ecos.records3.record.atts.computed.ComputedUtils;
 import ru.citeck.ecos.records3.record.atts.computed.StoringType;
 import ru.citeck.ecos.records3.record.request.context.SystemContextUtil;
 import ru.citeck.ecos.security.EcosPermissionService;
+import ru.citeck.ecos.utils.AuthorityUtils;
 import ru.citeck.ecos.utils.NodeUtils;
 
 import java.io.Serializable;
@@ -94,6 +96,7 @@ public class AlfNodesRecordsDAO extends LocalRecordsDao
 
     private final Map<String, AlfNodesSearch> searchByLanguage = new ConcurrentHashMap<>();
 
+    private AuthorityUtils authorityUtils;
     private NodeUtils nodeUtils;
     private NodeService nodeService;
     private SearchService searchService;
@@ -134,14 +137,19 @@ public class AlfNodesRecordsDAO extends LocalRecordsDao
     private RecordMeta processSingleRecord(RecordMeta record) {
 
         ObjectData initialAtts = record.getAtts().deepCopy();
-        initialAtts.forEachJ((k, v) -> {
-            if (v.isTextual()) {
-                String textValue = v.asText();
+        for (String field : initialAtts.fieldNamesList()) {
+            if (RecordConstants.ATT_DISP.equals(field)) {
+                initialAtts.set("cm:title", initialAtts.get(field));
+                initialAtts.remove(field);
+            }
+            DataValue value = initialAtts.get(field);
+            if (value.isTextual()) {
+                String textValue = value.asText();
                 if (textValue.startsWith("alfresco/@")) {
-                    initialAtts.set(k, textValue.replaceFirst("alfresco/@", ""));
+                    initialAtts.set(field, textValue.replaceFirst("alfresco/@", ""));
                 }
             }
-        });
+        }
 
         ObjectData attributes = initialAtts.deepCopy();
 
@@ -699,6 +707,16 @@ public class AlfNodesRecordsDAO extends LocalRecordsDao
             if (parent.startsWith("workspace")) {
                 return new NodeRef(parent);
             }
+            if (parent.startsWith(PeopleRecordsDao.ID + "@")
+                    || parent.startsWith("alfresco/" + PeopleRecordsDao.ID + "@")) {
+
+                String personId = RecordRef.valueOf(parent).getId();
+                NodeRef parentRef = authorityUtils.getNodeRef(personId);
+                if (parentRef == null) {
+                    throw new RuntimeException("Incorrect authority: " + parent);
+                }
+                return parentRef;
+            }
             return getByPath(parent);
         }
 
@@ -935,5 +953,10 @@ public class AlfNodesRecordsDAO extends LocalRecordsDao
     @Autowired
     public void setEcosTypeChildAssocService(EcosTypeChildAssocService ecosTypeChildAssocService) {
         this.ecosTypeChildAssocService = ecosTypeChildAssocService;
+    }
+
+    @Autowired
+    public void setAuthorityUtils(AuthorityUtils authorityUtils) {
+        this.authorityUtils = authorityUtils;
     }
 }
