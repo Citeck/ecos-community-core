@@ -44,7 +44,8 @@ public class CommentFactory {
     private static final int EDITED_DIFF_RANGE = 100;
     private static final String SITE_MANAGER = "SiteManager";
 
-    private static final List<CommentTag> TAGS_DISABLED_EDITING = Arrays.asList(CommentTag.TASK, CommentTag.ACTION);
+    private static final List<CommentTag> TAGS_DISABLED_EDITING = Arrays.asList(CommentTag.TASK, CommentTag.ACTION,
+        CommentTag.INTEGRATION);
 
     private final LockService lockService;
     private final PermissionService permissionService;

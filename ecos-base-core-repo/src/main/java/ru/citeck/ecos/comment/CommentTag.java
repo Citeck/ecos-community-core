@@ -6,6 +6,6 @@ package ru.citeck.ecos.comment;
  */
 public enum CommentTag {
 
-    TASK, ACTION
+    TASK, ACTION, INTEGRATION
 
 }
