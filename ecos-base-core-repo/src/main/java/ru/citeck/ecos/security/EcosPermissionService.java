@@ -83,6 +83,10 @@ public class EcosPermissionService {
             return true;
         }
 
+        if (AuthenticationUtil.isRunAsUserTheSystemUser()) {
+            return true;
+        }
+
         return ecosPermissionComponent.isAttVisible(info, attributeName);
     }
 
