@@ -10,7 +10,7 @@ import java.io.IOException;
 
 @Slf4j
 @WebFilter(urlPatterns = "/*")
-public class EcosAuthContextRequestFilter implements Filter {
+public class EcosReqContextRequestFilter implements Filter {
 
     @Override
     public void init(FilterConfig filterConfig) throws ServletException {
@@ -23,12 +23,29 @@ public class EcosAuthContextRequestFilter implements Filter {
 
         String authorization = null;
         String ecosUser = null;
+        String timezoneHeader = null;
+        float utcOffset = 0;
         if (request instanceof HttpServletRequest) {
             authorization = ((HttpServletRequest) request).getHeader("Authorization");
             ecosUser = ((HttpServletRequest) request).getHeader("X-ECOS-User");
+            timezoneHeader = ((HttpServletRequest) request).getHeader("X-ECOS-Timezone");
+            if (StringUtils.isNotBlank(timezoneHeader)) {
+                String utcOffsetPart = timezoneHeader.split(";")[0];
+                if (StringUtils.isNotBlank(utcOffsetPart)) {
+                    try {
+                        utcOffset = Float.parseFloat(utcOffsetPart);
+                    } catch (NumberFormatException e) {
+                        log.warn("Incorrect UTC offset: '" + utcOffsetPart + "'");
+                    }
+                }
+            }
+
         }
-        if (StringUtils.isNotBlank(authorization) || StringUtils.isNotBlank(ecosUser)) {
-            EcosAuthContext.doWith(new EcosAuthContextData(ecosUser, authorization), () -> {
+        if (StringUtils.isNotBlank(authorization)
+                || StringUtils.isNotBlank(ecosUser)
+                || StringUtils.isNotBlank(timezoneHeader)) {
+
+            EcosReqContext.doWith(new EcosReqContextData(ecosUser, authorization, timezoneHeader, utcOffset), () -> {
                 chain.doFilter(request, response);
                 return null;
             });
