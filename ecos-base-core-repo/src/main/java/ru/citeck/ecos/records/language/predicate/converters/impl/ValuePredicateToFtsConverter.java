@@ -14,10 +14,12 @@ import org.alfresco.service.namespace.NamespaceService;
 import org.alfresco.service.namespace.QName;
 import org.alfresco.util.Pair;
 import org.apache.commons.lang.StringUtils;
+import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import ru.citeck.ecos.commons.data.DataValue;
 import ru.citeck.ecos.config.EcosConfigService;
+import ru.citeck.ecos.domain.auth.EcosReqContext;
 import ru.citeck.ecos.model.EcosTypeModel;
 import ru.citeck.ecos.node.EcosTypeService;
 import ru.citeck.ecos.records.language.predicate.converters.PredToFtsContext;
@@ -34,6 +36,8 @@ import ru.citeck.ecos.utils.DictUtils;
 
 import javax.xml.datatype.Duration;
 import java.io.Serializable;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
@@ -534,6 +538,14 @@ public class ValuePredicateToFtsConverter implements PredicateToFtsConverter {
             return orPredicate;
         }
 
+        if (TODAY.equals(predicateValue) && Boolean.TRUE.equals(isDateWithTimeAtt(attDef))) {
+            int utcOffset = (int)(EcosReqContext.getUtcOffset() * 60);
+            predicateValue = Instant.now()
+                .plus(utcOffset, ChronoUnit.MINUTES)
+                .truncatedTo(ChronoUnit.DAYS)
+                .minus(utcOffset, ChronoUnit.MINUTES).toString() + "/P1D";
+        }
+
         boolean valueContainsSlash = predicateValue.contains(SLASH_DELIMITER);
         if (valueEqualEq && valueContainsSlash) {
             return getIntervalPredicate(predicateValue, attribute, attDef);
@@ -586,15 +598,11 @@ public class ValuePredicateToFtsConverter implements PredicateToFtsConverter {
 
         Pair<String, String> intervalPair = new Pair<>(interval[0], interval[1]);
 
-        DataTypeDefinition dataTypeDefinition = ((PropertyDefinition) attDef).getDataType();
-        boolean isDateTime = DataTypeDefinition.DATETIME.equals(dataTypeDefinition.getName());
-        boolean isDate = DataTypeDefinition.DATE.equals(dataTypeDefinition.getName());
-
-        if (!isDateTime && !isDate) {
+        Boolean isDateWithTime = isDateWithTimeAtt(attDef);
+        if (isDateWithTime == null) {
             return null;
         }
-
-        Pair<String, String> newInterval = getDateTimeInterval(intervalPair, isDateTime);
+        Pair<String, String> newInterval = getDateTimeInterval(intervalPair, isDateWithTime);
 
         if (newInterval == null) {
             return null;
@@ -675,12 +683,11 @@ public class ValuePredicateToFtsConverter implements PredicateToFtsConverter {
 
     private String evalConstants(String predicateValue) {
         switch (predicateValue) {
-            case "$TODAY": {
-                return TimeUtils.formatIsoDate(new Date());
-            }
-            case "$NOW": {
+            case TODAY:
+                int utcOffset = (int)(EcosReqContext.getUtcOffset() * 60);
+                return TimeUtils.formatIsoDate(Date.from(Instant.now().plus(utcOffset, ChronoUnit.MINUTES)));
+            case "$NOW":
                 return TimeUtils.formatIsoDateTime(new Date());
-            }
             default:
                 return predicateValue;
         }
@@ -764,6 +771,27 @@ public class ValuePredicateToFtsConverter implements PredicateToFtsConverter {
             .exact(ContentModel.PROP_NAME, statusName)
             .transactional()
             .queryOne(searchService);
+    }
+
+    /**
+     * @return true if attDef is DateTime attribute
+     * false if attDef is Date attribute
+     * null if attDef is not Date or DateTime attribute
+     */
+    @Nullable
+    private Boolean isDateWithTimeAtt(ClassAttributeDefinition attDef) {
+
+        if (!(attDef instanceof PropertyDefinition)) {
+            return null;
+        }
+
+        DataTypeDefinition dataTypeDefinition = ((PropertyDefinition) attDef).getDataType();
+        if (DataTypeDefinition.DATETIME.equals(dataTypeDefinition.getName())) {
+            return true;
+        } else if (DataTypeDefinition.DATE.equals(dataTypeDefinition.getName())) {
+            return false;
+        }
+        return null;
     }
 
     @Autowired

@@ -10,8 +10,8 @@ import org.alfresco.util.transaction.TransactionListenerAdapter;
 import org.apache.log4j.Logger;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.extensions.surf.util.I18NUtil;
-import ru.citeck.ecos.domain.auth.EcosAuthContext;
-import ru.citeck.ecos.domain.auth.EcosAuthContextData;
+import ru.citeck.ecos.domain.auth.EcosReqContext;
+import ru.citeck.ecos.domain.auth.EcosReqContextData;
 import ru.citeck.ecos.utils.performance.ActionPerformance;
 import ru.citeck.ecos.utils.performance.Performance;
 
@@ -62,7 +62,7 @@ public class TransactionUtils {
 
         final String currentUser = AuthenticationUtil.getFullyAuthenticatedUser();
         final Locale locale = I18NUtil.getLocale();
-        final EcosAuthContextData ecosAuthContext = EcosAuthContext.getCurrent();
+        final EcosReqContextData ecosReqContext = EcosReqContext.getCurrent();
 
         List<Job> jobs = AlfrescoTransactionSupport.getResource(AFTER_COMMIT_JOBS_KEY);
 
@@ -75,7 +75,7 @@ public class TransactionUtils {
             AlfrescoTransactionSupport.bindListener(new TransactionListenerAdapter() {
                 @Override
                 public void afterCommit() {
-                    executeAfterCommitJobs(finalJobs, currentUser, locale, ecosAuthContext);
+                    executeAfterCommitJobs(finalJobs, currentUser, locale, ecosReqContext);
                 }
             });
         }
@@ -145,7 +145,7 @@ public class TransactionUtils {
         List<Job> jobs,
         final String currentUser,
         final Locale locale,
-        final EcosAuthContextData ecosAuthContext
+        final EcosReqContextData ecosReqContext
     ) {
 
         taskExecutor.execute(() -> {
@@ -153,7 +153,7 @@ public class TransactionUtils {
             Locale localeBefore = I18NUtil.getLocale();
             I18NUtil.setLocale(locale);
 
-            EcosAuthContext.doWith(ecosAuthContext, () -> {
+            EcosReqContext.doWith(ecosReqContext, () -> {
                 try {
                     AuthenticationUtil.clearCurrentSecurityContext();
                     AuthenticationUtil.runAs(() -> {

@@ -20,8 +20,8 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
-import ru.citeck.ecos.domain.auth.EcosAuthContext;
-import ru.citeck.ecos.domain.auth.EcosAuthContextData;
+import ru.citeck.ecos.domain.auth.EcosReqContext;
+import ru.citeck.ecos.domain.auth.EcosReqContextData;
 import ru.citeck.ecos.eureka.EcosServiceDiscovery;
 import ru.citeck.ecos.eureka.EcosServiceInstanceInfo;
 import ru.citeck.ecos.eureka.EurekaContextConfig;
@@ -159,7 +159,7 @@ public class RecordsConfiguration extends RecordsServiceFactory {
         org.springframework.http.HttpHeaders headers = new HttpHeaders();
         request.getHeaders().forEach(headers::put);
 
-        EcosAuthContextData authContextData = EcosAuthContext.getCurrent();
+        EcosReqContextData authContextData = EcosReqContext.getCurrent();
         if (authContextData != null) {
             if (StringUtils.isNotBlank(authContextData.getAuthHeader())) {
                 headers.set(HEADER_AUTH, authContextData.getAuthHeader());
