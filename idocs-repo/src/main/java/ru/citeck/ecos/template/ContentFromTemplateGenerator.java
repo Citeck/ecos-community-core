@@ -29,4 +29,6 @@ public interface ContentFromTemplateGenerator {
     void generateContentByTemplate(NodeRef nodeRef);
 
     void generateContentByTemplate(NodeRef nodeRef, String historyDescriptionText);
+
+    void generateContentByTemplate(NodeRef nodeRef, boolean majorVersion, String historyDescription);
 }

@@ -7,7 +7,16 @@ actions:
 
 columns:
   - id: tk:kind
-    #todo: options
+    computed:
+      - id: options
+        type: attributes
+        config:
+          record: alfresco/@workspace://SpacesStore/category-document-type
+          attributes: cm:subcategories[]{label:?disp,value:?id}
+    editor:
+      type: select
+      config:
+        options: "${$computed.options}"
   - id: cm:name
   - id: idocs:note
   - id: ecos:documentNumber
@@ -16,4 +25,8 @@ columns:
   - id: idocs:contractor
   - id: ecos:documentAmount
   - id: idocs:currencyDocument
+    editor:
+      type: journal
+      config:
+        journalId: currency
   - id: ecos:VAT

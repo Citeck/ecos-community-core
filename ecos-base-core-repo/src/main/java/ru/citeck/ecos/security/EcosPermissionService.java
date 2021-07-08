@@ -1,5 +1,6 @@
 package ru.citeck.ecos.security;
 
+import org.alfresco.repo.security.authentication.AuthenticationUtil;
 import org.alfresco.service.ServiceRegistry;
 import org.alfresco.service.cmr.repository.NodeRef;
 import org.alfresco.service.namespace.NamespaceService;
@@ -61,6 +62,10 @@ public class EcosPermissionService {
             if (SystemContextUtil.isSystemContext()) {
                 return false;
             }
+            if (AuthenticationUtil.isRunAsUserTheSystemUser()) {
+                return false;
+            }
+
             return ecosPermissionComponent.isAttProtected(node, attributeName);
         }
 
@@ -79,6 +84,10 @@ public class EcosPermissionService {
     public boolean isAttVisible(AlfNodeInfo info, String attributeName) {
 
         if (info == null || StringUtils.isBlank(attributeName) || ecosPermissionComponent == null) {
+            return true;
+        }
+
+        if (AuthenticationUtil.isRunAsUserTheSystemUser()) {
             return true;
         }
 
