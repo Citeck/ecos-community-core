@@ -35,7 +35,7 @@ public class TypeDto {
     private String dashboardType;
     private boolean inheritActions;
 
-    private MLText dispNameTemplate;
+    private MLText inhDispNameTemplate;
     private boolean inheritNumTemplate;
 
     private List<String> aliases = new ArrayList<>();
@@ -73,5 +73,11 @@ public class TypeDto {
     @AttName("_type")
     public RecordRef getEcosType() {
         return ecosType;
+    }
+
+    public void setDispNameTemplate(MLText dispNameTemplate) {
+        if (MLText.isEmpty(inhDispNameTemplate)) {
+            inhDispNameTemplate = dispNameTemplate;
+        }
     }
 }

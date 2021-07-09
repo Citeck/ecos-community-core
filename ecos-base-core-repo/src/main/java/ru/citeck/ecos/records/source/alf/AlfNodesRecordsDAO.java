@@ -628,8 +628,8 @@ public class AlfNodesRecordsDAO extends LocalRecordsDao
 
         Map<Locale, String> dispName;
 
-        if (typeDto.getDispNameTemplate() != null) {
-            dispName = typeDto.getDispNameTemplate().getValues();
+        if (!ru.citeck.ecos.commons.data.MLText.isEmpty(typeDto.getInhDispNameTemplate())) {
+            dispName = typeDto.getInhDispNameTemplate().getValues();
         } else {
             dispName = Collections.emptyMap();
         }
