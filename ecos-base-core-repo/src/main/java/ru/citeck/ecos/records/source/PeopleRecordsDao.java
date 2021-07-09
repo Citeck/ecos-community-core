@@ -1,20 +1,20 @@
 package ru.citeck.ecos.records.source;
 
 import lombok.NonNull;
-import org.alfresco.model.ContentModel;
 import org.alfresco.repo.security.authentication.AuthenticationUtil;
 import org.alfresco.service.cmr.repository.NodeRef;
-import org.alfresco.service.cmr.repository.NodeService;
 import org.alfresco.service.cmr.search.SearchService;
 import org.alfresco.service.cmr.security.AuthorityService;
 import org.alfresco.service.cmr.security.AuthorityType;
 import org.alfresco.service.cmr.security.MutableAuthenticationService;
+import org.alfresco.service.namespace.NamespaceService;
 import org.apache.commons.lang.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import ru.citeck.ecos.commons.data.DataValue;
 import ru.citeck.ecos.commons.data.ObjectData;
+import ru.citeck.ecos.model.EcosModel;
 import ru.citeck.ecos.records.source.alf.AlfNodesRecordsDAO;
 import ru.citeck.ecos.records.source.alf.meta.AlfNodeRecord;
 import ru.citeck.ecos.records2.QueryContext;
@@ -54,6 +54,7 @@ public class PeopleRecordsDao extends LocalRecordsDao
     private static final String PROP_IS_AVAILABLE = "isAvailable";
     private static final String PROP_IS_MUTABLE = "isMutable";
     private static final String PROP_IS_ADMIN = "isAdmin";
+    private static final String PROP_IS_DISABLED = "isDisabled";
     private static final String PROP_AUTHORITIES = "authorities";
     private static final String ECOS_OLD_PASS = "ecos:oldPass";
     private static final String ECOS_PASS = "ecos:pass";
@@ -63,16 +64,19 @@ public class PeopleRecordsDao extends LocalRecordsDao
     private final AuthorityUtils authorityUtils;
     private final AuthorityService authorityService;
     private final AlfNodesRecordsDAO alfNodesRecordsDao;
+    private final NamespaceService namespaceService;
     private final MutableAuthenticationService authenticationService;
 
     @Autowired
     public PeopleRecordsDao(AuthorityUtils authorityUtils,
                             AuthorityService authorityService,
+                            NamespaceService namespaceService,
                             AlfNodesRecordsDAO alfNodesRecordsDao,
                             MutableAuthenticationService authenticationService) {
         setId(ID);
         this.authorityUtils = authorityUtils;
         this.authorityService = authorityService;
+        this.namespaceService = namespaceService;
         this.alfNodesRecordsDao = alfNodesRecordsDao;
         this.authenticationService = authenticationService;
     }
@@ -270,6 +274,9 @@ public class PeopleRecordsDao extends LocalRecordsDao
                     return authenticationService.isAuthenticationMutable(userName);
                 case PROP_IS_ADMIN:
                     return authorityService.isAdminAuthority(userName);
+                case PROP_IS_DISABLED:
+                    String isDisabledProp = EcosModel.PROP_IS_PERSON_DISABLED.toPrefixString(namespaceService);
+                    return alfNode.getAttribute(isDisabledProp, field);
                 case PROP_AUTHORITIES:
                     return getUserAuthorities();
                 case "nodeRef":
