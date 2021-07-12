@@ -2,7 +2,6 @@ package ru.citeck.ecos.domain.auth;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.StringUtils;
@@ -23,6 +22,7 @@ import java.util.Properties;
 public class EcosReqContextRequestFilter implements Filter {
 
     private static final String JWT_AUTHORITIES_KEY = "auth";
+    private static final String JWT_TOKEN_PREFIX = "Bearer ";
     private static final String JWT_SECRET_PROP_KEY = "ecos.security.authentication.jwt.secret";
     private static final String AUTH_ROLE_SYSTEM = "ROLE_SYSTEM";
 
@@ -48,6 +48,11 @@ public class EcosReqContextRequestFilter implements Filter {
 
         String secretEmptyMsg = jwtSecretKey != null ? "non-empty" : "empty";
         log.info("Filter initialized with " + secretEmptyMsg + " jwt secret");
+        if (jwtSecretKey == null) {
+            log.warn("WARNING: JWT token is undefined and any unauthorized " +
+                "service can supply authorities. " +
+                "Please set " + JWT_SECRET_PROP_KEY + " to secure your app");
+        }
     }
 
     @Override
@@ -77,14 +82,26 @@ public class EcosReqContextRequestFilter implements Filter {
         }
 
         boolean isSystemRequest = false;
-        if (jwtSecretKey != null
-            && StringUtils.isNotBlank(authorization)
-            && authorization.startsWith("Bearer ")) {
+        if (StringUtils.isNotBlank(authorization)
+            && authorization.startsWith(JWT_TOKEN_PREFIX)
+            && authorization.length() > JWT_TOKEN_PREFIX.length()) {
 
-            Claims claims = Jwts.parser()
-                .setSigningKey(jwtSecretKey)
-                .parseClaimsJws(authorization.substring(7))
-                .getBody();
+            String token = authorization.substring(JWT_TOKEN_PREFIX.length());
+            if (jwtSecretKey == null) {
+                int signIdx = token.lastIndexOf('.');
+                token = token.substring(0, signIdx + 1);
+            }
+            Claims claims;
+            if (jwtSecretKey != null) {
+                claims = Jwts.parser()
+                    .setSigningKey(jwtSecretKey)
+                    .parseClaimsJws(token)
+                    .getBody();
+            } else {
+                claims = Jwts.parser()
+                    .parseClaimsJwt(token)
+                    .getBody();
+            }
 
             String[] jwtAuthorities = claims.get(JWT_AUTHORITIES_KEY).toString().split(",");
             if (ArrayUtils.contains(jwtAuthorities, AUTH_ROLE_SYSTEM)) {
