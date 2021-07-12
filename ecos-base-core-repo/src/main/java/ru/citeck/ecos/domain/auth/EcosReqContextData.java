@@ -14,5 +14,7 @@ public class EcosReqContextData {
     @Nullable
     private final String timezoneHeader;
 
+    private final boolean isSystemRequest;
+
     private final float utcOffset;
 }
