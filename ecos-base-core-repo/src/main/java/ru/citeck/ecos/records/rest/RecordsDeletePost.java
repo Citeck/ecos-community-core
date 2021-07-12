@@ -21,8 +21,11 @@ public class RecordsDeletePost extends AbstractWebScript {
 
     @Override
     public void execute(WebScriptRequest req, WebScriptResponse res) throws IOException {
-        JsonNode request = utils.readBody(req, JsonNode.class);
-        utils.writeResp(res, restHandlerAdapter.deleteRecords(request));
+        utils.doWithRequestContext(() -> {
+            JsonNode request = utils.readBody(req, JsonNode.class);
+            utils.writeResp(res, restHandlerAdapter.deleteRecords(request));
+            return null;
+        });
     }
 
     @Autowired

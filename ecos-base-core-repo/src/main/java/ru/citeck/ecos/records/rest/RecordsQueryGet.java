@@ -17,10 +17,17 @@ public class RecordsQueryGet extends AbstractWebScript {
     public static final String PARAM_RECORD = "rec";
 
     private RestHandler restHandler;
-    private RecordsRestUtils recordsRestUtils;
+    private RecordsRestUtils utils;
 
     @Override
     public void execute(WebScriptRequest req, WebScriptResponse res) throws IOException {
+        utils.doWithRequestContext(() -> {
+            executeImpl(req, res);
+            return null;
+        });
+    }
+
+    private void executeImpl(WebScriptRequest req, WebScriptResponse res) throws IOException {
 
         String attribute = req.getParameter(PARAM_ATTRIBUTE);
         String record = req.getParameter(PARAM_RECORD);
@@ -32,7 +39,7 @@ public class RecordsQueryGet extends AbstractWebScript {
         body.setAttribute(attribute);
         body.setRecord(RecordRef.valueOf(record));
 
-        recordsRestUtils.writeResp(res, restHandler.queryRecords(body));
+        utils.writeResp(res, restHandler.queryRecords(body));
     }
 
     @Autowired
@@ -42,6 +49,6 @@ public class RecordsQueryGet extends AbstractWebScript {
 
     @Autowired
     public void setRecordsRestUtils(RecordsRestUtils recordsRestUtils) {
-        this.recordsRestUtils = recordsRestUtils;
+        this.utils = recordsRestUtils;
     }
 }
