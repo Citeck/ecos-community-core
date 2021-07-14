@@ -117,7 +117,7 @@ public class AlfNodeMetaEdge extends SimpleMetaEdge {
             AssociationDefinition assocDef = (AssociationDefinition) definition;
             QName targetName = assocDef.getTargetClass().getName();
 
-            if (TYPES_WITHOUT_CREATE_VARIANTS.contains(targetName)) {
+            if (targetName == null || TYPES_WITHOUT_CREATE_VARIANTS.contains(targetName)) {
                 return Collections.emptyList();
             }
 
