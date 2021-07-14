@@ -150,23 +150,27 @@ public class HistoryService {
                                            Date creationDate) {
         return AuthenticationUtil.runAsSystem(() -> {
 
-            NodeRef initiator = getInitiator(properties);
+            Serializable eventType = properties.get(HistoryModel.PROP_NAME);
+            NodeRef initiator;
+            if (HistoryEventType.EMAIL_SENT.equals(eventType)) {
+                initiator = personService.getPerson(AuthenticationUtil.getSystemUserName());
+            } else {
+                initiator = getInitiator(properties);
+            }
             properties.remove(HistoryModel.ASSOC_INITIATOR);
 
             NodeRef document = getDocument(properties);
             properties.remove(HistoryModel.ASSOC_DOCUMENT);
 
             //sorting in history for assocs
-            if ("assoc.added".equals(properties.get(HistoryModel.PROP_NAME))) {
+            if (HistoryEventType.ASSOC_ADDED.equals(eventType)) {
                 creationDate.setTime(creationDate.getTime() + 1000);
             }
-            if ("node.created".equals(properties.get(HistoryModel.PROP_NAME))
-                || "node.updated".equals(properties.get(HistoryModel.PROP_NAME))) {
+            if (HistoryEventType.NODE_CREATED.equals(eventType) || HistoryEventType.NODE_UPDATED.equals(eventType)) {
                 creationDate.setTime(creationDate.getTime() - 5000);
             }
             properties.put(HistoryModel.PROP_DATE, creationDate);
-            QName assocName = QName.createQName(HistoryModel.HISTORY_NAMESPACE, "event." +
-                properties.get(HistoryModel.PROP_NAME));
+            QName assocName = QName.createQName(HistoryModel.HISTORY_NAMESPACE, "event." + eventType);
 
             QName assocType;
             NodeRef parentNode;
@@ -218,6 +222,7 @@ public class HistoryService {
     }
 
     private void sendHistoryEventToRemoteService(final Map<QName, Serializable> properties, Date creationDate) {
+        Serializable eventType = properties.get(HistoryModel.PROP_NAME);
         Map<String, Object> requestParams = new HashMap<>();
         /* Document */
         NodeRef document = getDocument(properties);
@@ -227,22 +232,25 @@ public class HistoryService {
         requestParams.put(DOCUMENT_ID, document.getId());
         requestParams.put(VERSION, getDocumentProperty(document, VERSION_LABEL_PROPERTY));
         /* User */
-        String username = (String) getDocumentProperty(document, MODIFIER_PROPERTY);
-        String currentUsername = authenticationService.getCurrentUserName();
-        if (currentUsername != null) {
-            username = currentUsername;
+        String username;
+        if (HistoryEventType.EMAIL_SENT.equals(eventType)) {
+            username = AuthenticationUtil.getSystemUserName();
+        } else {
+            username = (String) getDocumentProperty(document, MODIFIER_PROPERTY);
+            String currentUsername = authenticationService.getCurrentUserName();
+            if (currentUsername != null) {
+                username = currentUsername;
+            }
         }
         NodeRef userRef = personService.getPerson(username);
         requestParams.put(USERNAME, username);
         requestParams.put(USER_ID, userRef.getId());
         /* Event time */
         Date now = (Date) creationDate.clone();
-        if ("assoc.added".equals(properties.get(HistoryModel.PROP_NAME))
-            || "task.assign".equals(properties.get(HistoryModel.PROP_NAME))) {
+        if (HistoryEventType.ASSOC_ADDED.equals(eventType) || HistoryEventType.TASK_ASSIGN.equals(eventType)) {
             now.setTime(now.getTime() + 5000);
         }
-        if ("node.created".equals(properties.get(HistoryModel.PROP_NAME))
-            || "node.updated".equals(properties.get(HistoryModel.PROP_NAME))) {
+        if (HistoryEventType.NODE_CREATED.equals(eventType) || HistoryEventType.NODE_UPDATED.equals(eventType)) {
             now.setTime(now.getTime() - 5000);
         }
         requestParams.put(CREATION_TIME, dateFormat.format(now));
@@ -259,7 +267,7 @@ public class HistoryService {
         }
         /* Event properties */
         requestParams.put(HISTORY_EVENT_ID, UUID.randomUUID().toString());
-        requestParams.put(EVENT_TYPE, properties.get(HistoryModel.PROP_NAME));
+        requestParams.put(EVENT_TYPE, eventType);
         requestParams.put(COMMENTS, properties.get(HistoryModel.PROP_TASK_COMMENT));
         requestParams.put(LAST_TASK_COMMENT, properties.get(HistoryModel.PROP_LAST_TASK_COMMENT));
         requestParams.put(TASK_ROLE, properties.get(HistoryModel.PROP_TASK_ROLE));
@@ -284,7 +292,6 @@ public class HistoryService {
         requestParams.put(DOC_STATUS_TITLE, properties.get(HistoryModel.PROP_DOC_STATUS_TITLE));
 
         requestParams.put(TASK_ACTORS, getActorsListAsString(properties));
-
 
         historyRemoteService.sendHistoryEventToRemoteService(requestParams);
     }
