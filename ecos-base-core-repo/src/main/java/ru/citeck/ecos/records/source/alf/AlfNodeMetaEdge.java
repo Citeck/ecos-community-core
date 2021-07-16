@@ -2,6 +2,7 @@ package ru.citeck.ecos.records.source.alf;
 
 import lombok.Getter;
 import org.alfresco.model.ContentModel;
+import org.alfresco.model.DataListModel;
 import org.alfresco.repo.i18n.MessageService;
 import org.alfresco.service.cmr.dictionary.*;
 import org.alfresco.service.cmr.repository.NodeRef;
@@ -19,15 +20,22 @@ import ru.citeck.ecos.security.EcosPermissionService;
 import ru.citeck.ecos.utils.DictUtils;
 import ru.citeck.ecos.utils.NodeUtils;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class AlfNodeMetaEdge extends SimpleMetaEdge {
 
     private static final NodeRef TYPES_ROOT = new NodeRef("workspace://SpacesStore/category-document-type-root");
+
+    // If subtypes is too much create variants will be empty
+    private static final int CREATE_VARIANTS_MAX_SUBTYPES = 50;
+
+    // Disable create variants evaluation for base types
+    private static final Set<QName> TYPES_WITHOUT_CREATE_VARIANTS = new HashSet<>(Arrays.asList(
+        ContentModel.TYPE_BASE,
+        ContentModel.TYPE_CONTENT,
+        DataListModel.TYPE_DATALIST_ITEM
+    ));
 
     private final MessageService messageService;
     private final NamespaceService namespaceService;
@@ -108,7 +116,15 @@ public class AlfNodeMetaEdge extends SimpleMetaEdge {
 
             AssociationDefinition assocDef = (AssociationDefinition) definition;
             QName targetName = assocDef.getTargetClass().getName();
+
+            if (targetName == null || TYPES_WITHOUT_CREATE_VARIANTS.contains(targetName)) {
+                return Collections.emptyList();
+            }
+
             Collection<QName> subTypes = dictionaryService.getSubTypes(targetName, true);
+            if (subTypes.size() > CREATE_VARIANTS_MAX_SUBTYPES) {
+                return Collections.emptyList();
+            }
 
             return subTypes.stream().map(typeName -> {
 

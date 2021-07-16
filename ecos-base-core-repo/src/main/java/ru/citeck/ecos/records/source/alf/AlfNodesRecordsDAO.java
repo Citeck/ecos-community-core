@@ -134,6 +134,20 @@ public class AlfNodesRecordsDAO extends LocalRecordsDao
         return result;
     }
 
+    private DataValue fixNodeRef(DataValue dataValue) {
+        if (dataValue.isArray()) {
+            DataValue resultArr = DataValue.createArr();
+            dataValue.forEach(value -> resultArr.add(fixNodeRef(value)));
+            return resultArr;
+        } else if (dataValue.isTextual()) {
+            String textValue = dataValue.asText();
+            if (textValue.startsWith("alfresco/@")) {
+                return DataValue.createStr(textValue.replaceFirst("alfresco/@", ""));
+            }
+        }
+        return dataValue;
+    }
+
     private RecordMeta processSingleRecord(RecordMeta record) {
 
         ObjectData initialAtts = record.getAtts().deepCopy();
@@ -142,14 +156,13 @@ public class AlfNodesRecordsDAO extends LocalRecordsDao
                 initialAtts.set("cm:title", initialAtts.get(field));
                 initialAtts.remove(field);
             }
-            DataValue value = initialAtts.get(field);
-            if (value.isTextual()) {
-                String textValue = value.asText();
-                if (textValue.startsWith("alfresco/@")) {
-                    initialAtts.set(field, textValue.replaceFirst("alfresco/@", ""));
-                }
-            }
         }
+        initialAtts.forEachJ((k, v) -> {
+            DataValue fixed = fixNodeRef(v);
+            if (fixed != v) {
+                initialAtts.set(k, fixed);
+            }
+        });
 
         ObjectData attributes = initialAtts.deepCopy();
 
