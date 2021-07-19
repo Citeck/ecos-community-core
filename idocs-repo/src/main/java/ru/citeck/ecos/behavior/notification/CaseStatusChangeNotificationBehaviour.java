@@ -69,8 +69,7 @@ public class CaseStatusChangeNotificationBehaviour extends AbstractICaseDocument
             sender.sendNotification(caseRef, caseStatusAfter, recipients,
                     notificationType, subjectTemplate);
         } else {
-            String currentStatus = (String) nodeService.getProperty(caseStatusAfter,
-                    ContentModel.PROP_NAME);
+            String currentStatus = caseStatusService.getStatus(caseRef);
             if (currentStatus.equals(caseStatus)) {
                 sender.sendNotification(caseRef, caseStatusAfter, recipients,
                         notificationType, subjectTemplate);
