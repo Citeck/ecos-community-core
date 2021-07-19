@@ -44,7 +44,7 @@ public class CaseStatusChangeNotificationBehaviour extends AbstractICaseDocument
             return;
         }
 
-        if (!isActive(caseRef) || sender == null || !nodeService.exists(caseStatusAfter)) {
+        if (!isActive(caseRef) || sender == null) {
             return;
         }
 
