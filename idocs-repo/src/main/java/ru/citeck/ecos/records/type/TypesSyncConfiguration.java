@@ -7,6 +7,7 @@ import org.springframework.context.annotation.Configuration;
 import ru.citeck.ecos.commands.CommandsService;
 import ru.citeck.ecos.commands.dto.CommandResult;
 import ru.citeck.ecos.commons.data.ObjectData;
+import ru.citeck.ecos.model.lib.type.dto.TypePermsDef;
 import ru.citeck.ecos.records2.RecordRef;
 import ru.citeck.ecos.records2.source.dao.local.RemoteSyncRecordsDao;
 
@@ -17,12 +18,17 @@ public class TypesSyncConfiguration {
     @Autowired
     private CommandsService commandsService;
 
-    @Bean
+    @Bean(name = "remoteTypesSyncRecordsDao")
     public RemoteSyncRecordsDao<TypeDto> createRemoteTypesSyncRecordsDao() {
         return new RemoteSyncRecordsDao<>("emodel/type", TypeDto.class);
     }
 
-    @Bean
+    @Bean(name = "remoteTypePermsSyncRecordsDao")
+    public RemoteSyncRecordsDao<TypePermsDef> createRemoteTypePermsSyncRecordsDao() {
+        return new RemoteSyncRecordsDao<>("emodel/perms", TypePermsDef.class);
+    }
+
+    @Bean(name = "remoteNumTemplatesSyncRecordsDao")
     public RemoteSyncRecordsDao<NumTemplateDto> createRemoteNumTemplatesSyncRecordsDao() {
         return new RemoteSyncRecordsDao<>("emodel/num-template", NumTemplateDto.class);
     }
@@ -37,11 +43,11 @@ public class TypesSyncConfiguration {
 
             @Override
             public TypeDto getType(RecordRef typeRef) {
-                return typesDao.getRecord(typeRef).orElse(null);
+                return typesDao.getRecord(typeRef.getId()).orElse(null);
             }
             @Override
             public NumTemplateDto getNumTemplate(RecordRef templateRef) {
-                return numTemplatesDao.getRecord(templateRef).orElse(null);
+                return numTemplatesDao.getRecord(templateRef.getId()).orElse(null);
             }
 
             @Override

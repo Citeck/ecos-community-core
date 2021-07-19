@@ -34,6 +34,7 @@ public class EcosTypeConfiguration {
 
     @PostConstruct
     public void init() {
+        ecosTypeService.register(ContentModel.TYPE_BASE, this::evalDefaultEcosType);
         ecosTypeService.register(ContentModel.TYPE_CMOBJECT, this::evalDefaultEcosType);
 
         typeByTK = CacheBuilder.newBuilder()

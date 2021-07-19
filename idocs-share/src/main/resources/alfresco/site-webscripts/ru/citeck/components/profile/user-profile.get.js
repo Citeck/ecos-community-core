@@ -25,6 +25,7 @@
     var permissionResult = eval('(' + result + ')');
 
     model.userRef = currentUser.nodeRef;
+    model.userName = username;
     model.writeMode = (permissionResult == true || permissionResult == "true");
     model.mode = (args.mode && model.writeMode) ? args.mode : "view";
     model.inlineEdit = args.inlineEdit ? (args.inlineEdit == "true") : model.writeMode;
@@ -40,15 +41,15 @@
 
     var viewData = getViewData(viewArgs);
     if(viewData == null) return;
-    
+
     var view = viewData.view,
         attributeSet = getAttributeSet(args, view),
-        attributes = getAttributes(view), 
+        attributes = getAttributes(view),
         attributeNames = map(attributes, function(attr) { return attr.attribute; });
 
     var defaultModel = {},
         publicViewProperties = [ 'class', 'id', 'kind', 'mode', 'template', 'params' ];
-     
+
     defaultModel.view = {};
     for(var i in publicViewProperties) {
         var name = publicViewProperties[i];

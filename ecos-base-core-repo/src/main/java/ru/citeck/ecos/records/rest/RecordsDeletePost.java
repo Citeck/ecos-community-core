@@ -1,16 +1,12 @@
 package ru.citeck.ecos.records.rest;
 
+import ecos.com.fasterxml.jackson210.databind.JsonNode;
 import lombok.extern.slf4j.Slf4j;
-import org.alfresco.repo.transaction.RetryingTransactionHelper;
-import org.alfresco.service.transaction.TransactionService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.extensions.webscripts.AbstractWebScript;
 import org.springframework.extensions.webscripts.WebScriptRequest;
 import org.springframework.extensions.webscripts.WebScriptResponse;
-import ru.citeck.ecos.records2.RecordRef;
-import ru.citeck.ecos.records2.RecordsService;
-import ru.citeck.ecos.records2.request.delete.RecordsDelResult;
-import ru.citeck.ecos.records2.request.delete.RecordsDeletion;
+import ru.citeck.ecos.records3.rest.RestHandlerAdapter;
 
 import java.io.IOException;
 
@@ -20,50 +16,25 @@ import java.io.IOException;
 @Slf4j
 public class RecordsDeletePost extends AbstractWebScript {
 
-    private RecordsService recordsService;
     private RecordsRestUtils utils;
-    private TransactionService transactionService;
+    private RestHandlerAdapter restHandlerAdapter;
 
     @Override
     public void execute(WebScriptRequest req, WebScriptResponse res) throws IOException {
-        Request request = utils.readBody(req, Request.class);
-
-        RecordsDelResult delete = delete(request);
-
-        utils.writeResp(res, delete);
-    }
-
-    private RecordsDelResult delete(Request request) {
-        RetryingTransactionHelper helper = transactionService.getRetryingTransactionHelper();
-        return helper.doInTransaction(() -> {
-            try {
-                return recordsService.delete(request);
-            } catch (Exception e) {
-                log.debug("Exception while deletion", e);
-                throw e;
-            }
-        }, false, true);
+        utils.doWithRequestContext(() -> {
+            JsonNode request = utils.readBody(req, JsonNode.class);
+            utils.writeResp(res, restHandlerAdapter.deleteRecords(request));
+            return null;
+        });
     }
 
     @Autowired
-    public void setRecordsService(RecordsService recordsService) {
-        this.recordsService = recordsService;
+    public void setRestHandlerAdapter(RestHandlerAdapter restHandlerAdapter) {
+        this.restHandlerAdapter = restHandlerAdapter;
     }
 
     @Autowired
     public void setUtils(RecordsRestUtils utils) {
         this.utils = utils;
-    }
-
-    @Autowired
-    public void setTransactionService(TransactionService transactionService) {
-        this.transactionService = transactionService;
-    }
-
-    public static class Request extends RecordsDeletion {
-
-        void setRecord(RecordRef record) {
-            getRecords().add(record);
-        }
     }
 }

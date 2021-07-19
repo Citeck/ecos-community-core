@@ -1,5 +1,6 @@
 package ru.citeck.ecos.role.dao;
 
+import lombok.Getter;
 import org.alfresco.service.ServiceRegistry;
 import org.alfresco.service.cmr.repository.NodeRef;
 import org.alfresco.service.cmr.repository.NodeService;
@@ -12,6 +13,9 @@ import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import ru.citeck.ecos.model.ICaseRoleModel;
+import ru.citeck.ecos.role.CaseRoleService;
+import ru.citeck.ecos.role.script.ScriptCaseRole;
+import ru.citeck.ecos.role.script.ScriptRoleDocument;
 import ru.citeck.ecos.utils.JavaScriptImplUtils;
 
 import java.util.*;
@@ -27,6 +31,14 @@ public class ScriptRoleDAO implements RoleDAO {
     private ScriptService scriptService;
     private AuthorityService authorityService;
     private NodeService nodeService;
+    private ServiceRegistry serviceRegistry;
+
+    @Getter(lazy = true)
+    private final CaseRoleService caseRoleService = evalCaseRoleService();
+
+    private CaseRoleService evalCaseRoleService() {
+        return (CaseRoleService) Objects.requireNonNull(serviceRegistry).getService(CaseRoleService.QNAME);
+    }
 
     @Override
     public QName getRoleType() {
@@ -37,8 +49,8 @@ public class ScriptRoleDAO implements RoleDAO {
     public Set<NodeRef> getAssignees(NodeRef caseRef, NodeRef roleRef) {
 
         Map<String, Object> model = new HashMap<>();
-        model.put("document", caseRef);
-        model.put("role", roleRef);
+        model.put("document", new ScriptRoleDocument(caseRef, serviceRegistry));
+        model.put("role", new ScriptCaseRole(roleRef, serviceRegistry, getCaseRoleService()));
 
         String script = (String) nodeService.getProperty(roleRef, ICaseRoleModel.PROP_SCRIPT);
 
@@ -58,6 +70,7 @@ public class ScriptRoleDAO implements RoleDAO {
 
     @Autowired
     public void setServiceRegistry(ServiceRegistry serviceRegistry) {
+        this.serviceRegistry = serviceRegistry;
         this.authorityService = serviceRegistry.getAuthorityService();
         this.nodeService = serviceRegistry.getNodeService();
     }

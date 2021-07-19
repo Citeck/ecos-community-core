@@ -1,0 +1,11 @@
+---
+id: working-calendar
+name: { ru: Производственный календарь, en: Working Calendar }
+
+columns:
+  - id: wcal:name
+  - id: wcal:year
+  - id: wcal:workingDayBegin
+  - id: wcal:workingDayEnd
+  - id: wcal:country
+  - id: wcal:scheduleName

@@ -123,6 +123,12 @@
 
         <type name="wfcp:performCaseTask">
             <parent>icaseTask:humanTask</parent>
+            <properties>
+                <property name="wfcp:performersRoles-prop">
+                    <type>d:text</type>
+                    <multiple>true</multiple>
+                </property>
+            </properties>
             <associations>
                 <association name="wfcp:performersRoles">
                     <source>
@@ -184,6 +190,12 @@
         </aspect>
 
         <aspect name="wfcp:hasCaseRole">
+            <properties>
+                <property name="wfcp:caseRole-prop">
+                    <type>d:text</type>
+                    <multiple>true</multiple>
+                </property>
+            </properties>
             <associations>
                 <association name="wfcp:caseRole">
                     <source>

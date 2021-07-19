@@ -2,13 +2,16 @@ package ru.citeck.ecos.records.source.alf;
 
 import lombok.Getter;
 import org.alfresco.model.ContentModel;
+import org.alfresco.model.DataListModel;
 import org.alfresco.repo.i18n.MessageService;
 import org.alfresco.service.cmr.dictionary.*;
 import org.alfresco.service.cmr.repository.NodeRef;
 import org.alfresco.service.namespace.NamespaceService;
 import org.alfresco.service.namespace.QName;
+import org.apache.commons.lang3.StringUtils;
 import ru.citeck.ecos.commons.data.MLText;
 import ru.citeck.ecos.graphql.AlfGqlContext;
+import ru.citeck.ecos.records.RecordsUtils;
 import ru.citeck.ecos.records2.RecordRef;
 import ru.citeck.ecos.records2.graphql.meta.value.CreateVariant;
 import ru.citeck.ecos.records2.graphql.meta.value.MetaValue;
@@ -17,15 +20,22 @@ import ru.citeck.ecos.security.EcosPermissionService;
 import ru.citeck.ecos.utils.DictUtils;
 import ru.citeck.ecos.utils.NodeUtils;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class AlfNodeMetaEdge extends SimpleMetaEdge {
 
     private static final NodeRef TYPES_ROOT = new NodeRef("workspace://SpacesStore/category-document-type-root");
+
+    // If subtypes is too much create variants will be empty
+    private static final int CREATE_VARIANTS_MAX_SUBTYPES = 50;
+
+    // Disable create variants evaluation for base types
+    private static final Set<QName> TYPES_WITHOUT_CREATE_VARIANTS = new HashSet<>(Arrays.asList(
+        ContentModel.TYPE_BASE,
+        ContentModel.TYPE_CONTENT,
+        DataListModel.TYPE_DATALIST_ITEM
+    ));
 
     private final MessageService messageService;
     private final NamespaceService namespaceService;
@@ -37,6 +47,7 @@ public class AlfNodeMetaEdge extends SimpleMetaEdge {
     private final QName scopeType;
     private final MetaValue scope;
     private final AlfGqlContext context;
+    private final String ecosModelName;
 
     @Getter(lazy = true)
     private final NodeRef nodeRef = evalNodeRef();
@@ -47,11 +58,13 @@ public class AlfNodeMetaEdge extends SimpleMetaEdge {
     public AlfNodeMetaEdge(AlfGqlContext context,
                            QName scopeType,
                            String name,
+                           String ecosModelName,
                            MetaValue scope) {
         super(name, scope);
 
         this.scope = scope;
         this.context = context;
+        this.ecosModelName = ecosModelName;
 
         messageService = context.getMessageService();
         namespaceService = context.getNamespaceService();
@@ -103,7 +116,15 @@ public class AlfNodeMetaEdge extends SimpleMetaEdge {
 
             AssociationDefinition assocDef = (AssociationDefinition) definition;
             QName targetName = assocDef.getTargetClass().getName();
+
+            if (targetName == null || TYPES_WITHOUT_CREATE_VARIANTS.contains(targetName)) {
+                return Collections.emptyList();
+            }
+
             Collection<QName> subTypes = dictionaryService.getSubTypes(targetName, true);
+            if (subTypes.size() > CREATE_VARIANTS_MAX_SUBTYPES) {
+                return Collections.emptyList();
+            }
 
             return subTypes.stream().map(typeName -> {
 
@@ -112,7 +133,11 @@ public class AlfNodeMetaEdge extends SimpleMetaEdge {
                 CreateVariant createVariant = new CreateVariant();
                 String prefixStr = typeName.toPrefixString(namespaceService);
                 createVariant.setRecordRef(RecordRef.create("dict", prefixStr));
-                createVariant.setLabel(new MLText(typeDef.getTitle(messageService)));
+                String title = typeDef.getTitle(messageService);
+                if (StringUtils.isBlank(title)) {
+                    title = typeDef.getName().toPrefixString(namespaceService);
+                }
+                createVariant.setLabel(new MLText(title));
 
                 return createVariant;
             }).collect(Collectors.toList());
@@ -134,7 +159,18 @@ public class AlfNodeMetaEdge extends SimpleMetaEdge {
             return false;
         }
 
-        return ecosPermissionService.isAttributeProtected(nodeRef, getName());
+        return ecosPermissionService.isAttributeProtected(nodeRef, ecosModelName);
+    }
+
+    @Override
+    public boolean isUnreadable() {
+
+        NodeRef nodeRef = getNodeRef();
+        if (nodeRef == null || ecosPermissionService == null) {
+            return false;
+        }
+
+        return !ecosPermissionService.isAttributeVisible(nodeRef, ecosModelName);
     }
 
     @Override
@@ -269,11 +305,12 @@ public class AlfNodeMetaEdge extends SimpleMetaEdge {
         }
 
         String id = scope.getId();
-        if (id == null || !id.startsWith("workspace://")) {
+        if (id == null) {
             return null;
         }
 
-        return new NodeRef(id);
+        RecordRef recordRef = RecordRef.valueOf(id);
+        return RecordsUtils.toNodeRef(recordRef);
     }
 
     public static class AttOption implements MetaValue {

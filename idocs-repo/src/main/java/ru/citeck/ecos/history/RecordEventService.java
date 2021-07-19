@@ -108,7 +108,7 @@ public class RecordEventService {
 
         List<Attribute> changes = new ArrayList<>();
 
-        attributes.forEach((name, attrJsonNode) -> {
+        attributes.forEachJ((name, attrJsonNode) -> {
             if (attrJsonNode != null && !attrJsonNode.isNull()) {
                 Attribute attr = new Attribute();
 

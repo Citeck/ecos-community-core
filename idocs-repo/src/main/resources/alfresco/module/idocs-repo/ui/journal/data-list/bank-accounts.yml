@@ -1,0 +1,12 @@
+---
+id: bank-accounts
+name: { ru: Банковский счет, en: Bank Accounts }
+
+columns:
+  - id: idocs:legalEntity
+  - id: idocs:bankTitle
+  - id: idocs:bankId
+  - id: idocs:accountNumber
+  - id: idocs:corresponentBankTitle
+  - id: idocs:correspondentBankId
+  - id: idocs:corresponentAccountNumber

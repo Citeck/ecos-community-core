@@ -1,6 +1,5 @@
 {
     "id": "category-document-type/kind-d-scan-documents",
     "name": "Отсканированные документы",
-    "parent": "emodel/type@category-document-type",
-    "inheritActions": true
+    "parent": "emodel/type@category-document-type"
 }

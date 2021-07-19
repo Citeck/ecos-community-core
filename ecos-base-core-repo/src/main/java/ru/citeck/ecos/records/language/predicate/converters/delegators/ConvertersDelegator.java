@@ -3,6 +3,7 @@ package ru.citeck.ecos.records.language.predicate.converters.delegators;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import ru.citeck.ecos.records.language.predicate.converters.PredToFtsContext;
 import ru.citeck.ecos.records.language.predicate.converters.impl.ComposedPredicateToFtsConverter;
 import ru.citeck.ecos.records.language.predicate.converters.impl.EmptyPredicateToFtsConverter;
 import ru.citeck.ecos.records.language.predicate.converters.impl.NotPredicateToFtsConverter;
@@ -21,21 +22,21 @@ public class ConvertersDelegator {
     private ValuePredicateToFtsConverter valuePredicateToFtsConverter;
     private EmptyPredicateToFtsConverter emptyPredicateToFtsConverter;
 
-    public void delegate(Predicate predicate, FTSQuery query) {
+    public void delegate(Predicate predicate, FTSQuery query, PredToFtsContext context) {
         if (predicate instanceof ComposedPredicate) {
-            composedPredicateToFtsConverter.convert(predicate, query);
+            composedPredicateToFtsConverter.convert(predicate, query, context);
             return;
         }
         if (predicate instanceof NotPredicate) {
-            notPredicateToFtsConverter.convert(predicate, query);
+            notPredicateToFtsConverter.convert(predicate, query, context);
             return;
         }
         if (predicate instanceof ValuePredicate) {
-            valuePredicateToFtsConverter.convert(predicate, query);
+            valuePredicateToFtsConverter.convert(predicate, query, context);
             return;
         }
         if (predicate instanceof EmptyPredicate) {
-            emptyPredicateToFtsConverter.convert(predicate, query);
+            emptyPredicateToFtsConverter.convert(predicate, query, context);
             return;
         }
         if (predicate instanceof VoidPredicate) {

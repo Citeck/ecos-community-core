@@ -54,6 +54,7 @@ import ru.citeck.ecos.journals.xml.Journals.Imports.Import;
 import ru.citeck.ecos.model.ClassificationModel;
 import ru.citeck.ecos.model.JournalsModel;
 import ru.citeck.ecos.processor.TemplateExpressionEvaluator;
+import ru.citeck.ecos.records.RecordsUtils;
 import ru.citeck.ecos.records2.RecordRef;
 import ru.citeck.ecos.records2.RecordsService;
 import ru.citeck.ecos.records2.request.query.RecordsQueryResult;
@@ -399,11 +400,15 @@ class JournalServiceImpl implements JournalService {
         }
 
         if (NodeRef.isNodeRef(journalId)) {
-            NodeRef journalRef = new NodeRef(journalId);
-            NodeRef ecosType = (NodeRef) nodeService.getProperty(journalRef, ClassificationModel.PROP_RELATES_TO_TYPE);
-            if (ecosType != null) {
-                RecordRef typeRef = RecordRef.create("emodel", "type", ecosType.getId());
-                return newUIUtils.getUITypeForRecord(typeRef, journalUserKey.getUserName());
+            RecordRef journalRef = RecordRef.valueOf(journalId);
+            NodeRef journalNode = RecordsUtils.toNodeRef(journalRef);
+            if (journalNode != null && nodeService.exists(journalNode)) {
+                journalId = journalNode.toString();
+                NodeRef ecosType = (NodeRef) nodeService.getProperty(journalNode, ClassificationModel.PROP_RELATES_TO_TYPE);
+                if (ecosType != null) {
+                    RecordRef typeRef = RecordRef.create("emodel", "type", ecosType.getId());
+                    return getUITypeForRecordAndUser(typeRef, journalUserKey.getUserName());
+                }
             }
         }
 
@@ -414,7 +419,7 @@ class JournalServiceImpl implements JournalService {
 
             if (type != null) {
                 RecordRef typeRef = RecordRef.valueOf(type.asText());
-                return newUIUtils.getUITypeForRecord(typeRef, journalUserKey.getUserName());
+                return getUITypeForRecordAndUser(typeRef, journalUserKey.getUserName());
             }
 
             return "";
@@ -424,7 +429,7 @@ class JournalServiceImpl implements JournalService {
 
         String typeRefOption = journal.getOptions().get("typeRef");
         if (StringUtils.isNotBlank(typeRefOption)) {
-            return newUIUtils.getUITypeForRecord(RecordRef.valueOf(typeRefOption), journalUserKey.getUserName());
+            return getUITypeForRecordAndUser(RecordRef.valueOf(typeRefOption), journalUserKey.getUserName());
         } else {
 
             String type = journal.getOptions().get("type");
@@ -436,13 +441,23 @@ class JournalServiceImpl implements JournalService {
                     if (StringUtils.isNotBlank(value) && NodeRef.isNodeRef(value)) {
                         NodeRef typeNodeRef = new NodeRef(value);
                         RecordRef typeRef = RecordRef.create("emodel", "type", typeNodeRef.getId());
-                        return newUIUtils.getUITypeForRecord(typeRef, journalUserKey.getUserName());
+                        return getUITypeForRecordAndUser(typeRef, journalUserKey.getUserName());
                     }
                 }
             }
         }
 
         return "";
+    }
+
+    private String getUITypeForRecordAndUser(RecordRef typeRef, String userName) {
+        String uiType = newUIUtils.getUITypeForRecord(typeRef);
+
+        if (StringUtils.isBlank(uiType)) {
+            uiType = newUIUtils.isNewUIEnabledForUser(userName) ? NewUIUtils.UI_TYPE_REACT : "";
+        }
+
+        return uiType;
     }
 
     @Autowired

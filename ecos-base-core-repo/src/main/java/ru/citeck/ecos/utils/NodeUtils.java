@@ -1,9 +1,12 @@
 package ru.citeck.ecos.utils;
 
 import org.alfresco.model.ContentModel;
+import org.alfresco.repo.jscript.ScriptNode;
+import org.alfresco.repo.security.authentication.AuthenticationUtil;
 import org.alfresco.repo.transaction.AlfrescoTransactionSupport;
 import org.alfresco.repo.transaction.AlfrescoTransactionSupport.TxnReadState;
 import org.alfresco.repo.transaction.TransactionalResourceHelper;
+import org.alfresco.repo.workflow.activiti.ActivitiScriptNode;
 import org.alfresco.service.ServiceRegistry;
 import org.alfresco.service.cmr.dictionary.AssociationDefinition;
 import org.alfresco.service.cmr.dictionary.ChildAssociationDefinition;
@@ -17,6 +20,8 @@ import org.alfresco.service.namespace.RegexQNamePattern;
 import org.alfresco.util.GUID;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang.StringUtils;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import ru.citeck.ecos.node.DisplayNameService;
@@ -31,6 +36,12 @@ public class NodeUtils {
     public static final QName QNAME = QName.createQName("", "nodeUtils");
 
     private static final String KEY_PENDING_DELETE_NODES = "DbNodeServiceImpl.pendingDeleteNodes";
+
+    private static final List<String> NODE_REF_PREFIXES = Arrays.asList(
+        StoreRef.PROTOCOL_WORKSPACE + "://",
+        StoreRef.PROTOCOL_ARCHIVE + "://",
+        StoreRef.PROTOCOL_DELETED + "://"
+    );
 
     private NodeService nodeService;
     private SearchService searchService;
@@ -58,22 +69,78 @@ public class NodeUtils {
         return !TransactionalResourceHelper.getSet(KEY_PENDING_DELETE_NODES).contains(nodeRef);
     }
 
+    public boolean isNodeRef(@Nullable Object value) {
+        if (value == null) {
+            return false;
+        }
+        if (value instanceof NodeRef) {
+            return true;
+        }
+        if (value instanceof String) {
+            String valueStr = (String) value;
+            for (String prefix : NODE_REF_PREFIXES) {
+                if (valueStr.startsWith(prefix) && NodeRef.isNodeRef(valueStr)) {
+                    return true;
+                }
+            }
+            return false;
+        }
+        return false;
+    }
+
     /**
      * Get node by nodeRef or path
      */
-    public NodeRef getNodeRef(String node) {
+    @NotNull
+    public NodeRef getNodeRef(Object node) {
+        NodeRef nodeRef = getNodeRefOrNull(node);
+        if (nodeRef == null) {
+            throw new IllegalArgumentException("NodeRef can't be evaluated from: '" + node + "'");
+        }
+        return nodeRef;
+    }
 
-        if (NodeRef.isNodeRef(node)) {
-            return new NodeRef(node);
+    /**
+     * Get node by nodeRef or path
+     */
+    @Nullable
+    public NodeRef getNodeRefOrNull(Object node) {
+
+        if (node == null) {
+            return null;
+        }
+        if (node instanceof NodeRef) {
+            return (NodeRef) node;
+        }
+
+        if (!(node instanceof String)) {
+            return null;
+        }
+
+        String nodeStr = (String) node;
+
+        if (StringUtils.isBlank(nodeStr)) {
+            return null;
+        }
+
+        if (isNodeRef(nodeStr)) {
+            try {
+                return new NodeRef(nodeStr);
+            } catch (MalformedNodeRefException e) {
+                return null;
+            }
+        }
+
+        int workspaceIdx = nodeStr.indexOf("workspace://SpacesStore/");
+        if (workspaceIdx >= 0) {
+            return new NodeRef(nodeStr.substring(workspaceIdx));
         }
 
         NodeRef root = nodeService.getRootNode(StoreRef.STORE_REF_WORKSPACE_SPACESSTORE);
-        List<NodeRef> results = searchService.selectNodes(root, node, null,
+        List<NodeRef> results = searchService.selectNodes(root, nodeStr, null,
                                                           namespaceService, false);
-        if (results.isEmpty()) {
-            throw new IllegalArgumentException("Node not found by path: " + node);
-        }
-        return results.get(0);
+
+        return results.isEmpty() ? null : results.get(0);
     }
 
     /**
@@ -110,9 +177,7 @@ public class NodeUtils {
     }
 
     public static String getValidName(String name) {
-        return name.replaceAll("[\"*\\\\><?/:|]", "_")
-            .trim()
-            .replaceAll("[.]+$", "");
+        return name.replaceAll("[\"*\\\\><?/:|]", "_").replaceAll("[.\\s]+$", "");
     }
 
     public String getValidChildName(NodeRef parentRef, QName childAssoc, String name) {
@@ -156,7 +221,8 @@ public class NodeUtils {
             name = GUID.generate();
         }
 
-        name = getValidChildName(parentRef, childAssoc, name);
+        String finalName = name;
+        name = AuthenticationUtil.runAsSystem(() -> getValidChildName(parentRef, childAssoc, finalName));
         props.put(ContentModel.PROP_NAME, name);
 
         QName assocName = QName.createQNameWithValidLocalName(childAssoc.getNamespaceURI(), name);
@@ -178,7 +244,13 @@ public class NodeUtils {
             targets = Collections.emptySet();
         }
 
-        Set<NodeRef> targetsSet = new HashSet<>(targets);
+        Set<NodeRef> targetsSet = targets.stream().map(ref -> {
+            String protocol = ref.getStoreRef().getProtocol();
+            if (protocol.startsWith("alfresco/@") && protocol.contains("workspace")) {
+                return new NodeRef(StoreRef.STORE_REF_WORKSPACE_SPACESSTORE, ref.getId());
+            }
+            return ref;
+        }).collect(Collectors.toSet());
 
         AssociationDefinition assocDef = dictionaryService.getAssociation(assocName);
 
@@ -353,6 +425,43 @@ public class NodeUtils {
                              .map(r -> nodeIsSource ? r.getTargetRef() : r.getSourceRef())
                              .collect(Collectors.toList());
         }
+    }
+
+    public void fillNodeRefsList(Object value, List<NodeRef> resultList) {
+        if (value instanceof Collection) {
+            for (Object item : (Collection<?>) value) {
+                fillNodeRefsList(item, resultList);
+            }
+        } else {
+            NodeRef node = getNodeRefByObject(value);
+            if (node != null) {
+                resultList.add(node);
+            }
+        }
+    }
+
+    public NodeRef getNodeRefByObject(Object value) {
+        if (value == null) {
+            return null;
+        }
+        if (value instanceof NodeRef) {
+            return (NodeRef) value;
+        } else if (value instanceof String) {
+            String strValue = (String) value;
+            if (StringUtils.isNotBlank(strValue)) {
+                return new NodeRef(strValue);
+            }
+        } else if (value instanceof AssociationRef) {
+            return ((AssociationRef) value).getTargetRef();
+        } else if (value instanceof ChildAssociationRef) {
+            return ((ChildAssociationRef) value).getChildRef();
+        } else if (value instanceof ActivitiScriptNode) {
+            return ((ActivitiScriptNode) value).getNodeRef();
+        } else if (value instanceof ScriptNode) {
+            return ((ScriptNode) value).getNodeRef();
+        }
+
+        return null;
     }
 
     @Autowired

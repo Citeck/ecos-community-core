@@ -1,5 +1,6 @@
 package ru.citeck.ecos.security;
 
+import org.alfresco.repo.security.authentication.AuthenticationUtil;
 import org.alfresco.service.ServiceRegistry;
 import org.alfresco.service.cmr.repository.NodeRef;
 import org.alfresco.service.namespace.NamespaceService;
@@ -9,6 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import ru.citeck.ecos.node.AlfNodeInfo;
 import ru.citeck.ecos.node.AlfNodeInfoImpl;
+import ru.citeck.ecos.records3.record.request.context.SystemContextUtil;
 
 import java.util.HashSet;
 import java.util.List;
@@ -19,13 +21,7 @@ public class EcosPermissionService {
 
     public static final QName QNAME = QName.createQName("", "ecosPermissionService");
 
-    private static final String EDIT_MODE = "edit";
-
-    /**
-     * @deprecated use EcosPermissionComponent instead
-     */
-    @Deprecated
-    private AttributesPermissionServiceResolver attsPermServiceResolver;
+    private static final String IS_SYSTEM_CONTEXT_VAR = "ecos-permissions-is-system-context";
 
     private EcosPermissionComponent ecosPermissionComponent;
 
@@ -63,20 +59,26 @@ public class EcosPermissionService {
         }
 
         if (ecosPermissionComponent != null) {
+            if (SystemContextUtil.isSystemContext()) {
+                return false;
+            }
+            if (AuthenticationUtil.isRunAsUserTheSystemUser()) {
+                return false;
+            }
+
             return ecosPermissionComponent.isAttProtected(node, attributeName);
         }
 
-        if (attsPermServiceResolver == null) {
+        return false;
+    }
+
+    public boolean isAttributeVisible(NodeRef nodeRef, String attributeName) {
+
+        if (nodeRef == null || StringUtils.isBlank(attributeName)) {
             return false;
         }
 
-        AttributesPermissionService attrsPermissionService = attsPermServiceResolver.resolve(node.getNodeRef());
-
-        if (attrsPermissionService == null) {
-            return false;
-        }
-
-        return !attrsPermissionService.isFieldEditable(attQName, node.getNodeRef(), EDIT_MODE);
+        return isAttVisible(new AlfNodeInfoImpl(nodeRef, serviceRegistry), attributeName);
     }
 
     public boolean isAttVisible(AlfNodeInfo info, String attributeName) {
@@ -85,12 +87,14 @@ public class EcosPermissionService {
             return true;
         }
 
-        return ecosPermissionComponent.isAttVisible(info, attributeName);
-    }
+        if (AuthenticationUtil.isRunAsUserTheSystemUser()) {
+            return true;
+        }
 
-    @Autowired(required = false)
-    public void setAttsPermServiceResolver(AttributesPermissionServiceResolver attsPermServiceResolver) {
-        this.attsPermServiceResolver = attsPermServiceResolver;
+        return SystemContextUtil.doAsSystemIfNotSystemContextJ(
+            () -> ecosPermissionComponent.isAttVisible(info, attributeName),
+            true
+        );
     }
 
     @Autowired(required = false)

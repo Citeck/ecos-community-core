@@ -1,0 +1,15 @@
+
+id: country-iso3166
+
+name:
+  ru: Страна
+  en: Country
+
+parentRef: emodel/type@data-list
+journalRef: uiserv/journal@country-iso3166
+formRef: uiserv/form@country-iso3166
+
+properties:
+  alfType: idocs:countryISO3166
+  alfRoot: /app:company_home/app:dictionary/cm:dataLists/cm:country-iso3166
+

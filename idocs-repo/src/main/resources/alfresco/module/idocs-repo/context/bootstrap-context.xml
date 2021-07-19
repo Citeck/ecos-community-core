@@ -63,6 +63,7 @@
                 <value>alfresco/module/idocs-repo/model/telegramModel.xml</value>
                 <value>alfresco/module/idocs-repo/model/ecosContentModel.xml</value>
                 <value>alfresco/module/idocs-repo/model/ecosBpmModel.xml</value>
+                <value>alfresco/module/idocs-repo/model/ecosAutoModel.xml</value>
             </list>
         </property>
         <property name="labels">

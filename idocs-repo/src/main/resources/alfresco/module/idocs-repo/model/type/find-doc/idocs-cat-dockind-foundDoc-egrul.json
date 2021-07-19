@@ -1,6 +1,5 @@
 {
     "id": "idocs-cat-doctype-foundDoc/idocs-cat-dockind-foundDoc-egrul",
     "name": "Выписка из ЕГРЮЛ за посл.месяц",
-    "parent": "emodel/type@idocs-cat-doctype-foundDoc",
-    "inheritActions": true
+    "parent": "emodel/type@idocs-cat-doctype-foundDoc"
 }

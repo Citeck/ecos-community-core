@@ -18,7 +18,9 @@ import ru.citeck.ecos.cmmn.condition.Condition;
 import ru.citeck.ecos.cmmn.condition.ConditionProperty;
 import ru.citeck.ecos.cmmn.condition.ConditionsList;
 import ru.citeck.ecos.cmmn.model.*;
+import ru.citeck.ecos.commons.data.DataValue;
 import ru.citeck.ecos.commons.data.ObjectData;
+import ru.citeck.ecos.commons.json.Json;
 import ru.citeck.ecos.content.dao.xml.XmlContentDAO;
 import ru.citeck.ecos.icase.activity.dto.*;
 import ru.citeck.ecos.icase.activity.service.eproc.importer.pojo.OptimizedProcessDefinition;
@@ -27,6 +29,7 @@ import ru.citeck.ecos.model.ActionModel;
 import ru.citeck.ecos.model.ActivityModel;
 import ru.citeck.ecos.model.ICaseEventModel;
 import ru.citeck.ecos.model.ICaseTaskModel;
+import ru.citeck.ecos.role.CaseRoleService;
 
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBElement;
@@ -391,12 +394,24 @@ public class CmmnSchemaParser {
     }
 
     private Set<String> getTaskRoleIds(TTask task) {
+
         Set<String> taskRoleIds = new HashSet<>();
+
+        Map<String, String> propsByLocalName = new HashMap<>();
+        task.getOtherAttributes().forEach((k, v) -> propsByLocalName.put(k.getLocalPart(), v));
+
         for (Map.Entry<javax.xml.namespace.QName, QName> entry : CMMNUtils.ROLES_ASSOCS_MAPPING.entrySet()) {
             String value = task.getOtherAttributes().get(entry.getKey());
             if (value != null && !value.isEmpty()) {
                 String[] rolesArray = value.split(",");
                 taskRoleIds.addAll(Arrays.asList(rolesArray));
+            }
+            value = propsByLocalName.get(entry.getKey().getLocalPart() + "-prop");
+            if (StringUtils.isNotBlank(value) && value.length() > 2 && value.charAt(0) == '[') {
+                DataValue dataValue = Json.getMapper().read(value, DataValue.class);
+                if (dataValue != null && dataValue.isNotNull()) {
+                    taskRoleIds.addAll(dataValue.asList(String.class));
+                }
             }
         }
         return taskRoleIds;
@@ -409,6 +424,13 @@ public class CmmnSchemaParser {
 
         Set<String> roleVarNames = new HashSet<>();
         for (String roleId : roleIds) {
+            if (roleId.startsWith(CaseRoleService.ROLE_REF_PROTOCOL + "://")) {
+                int roleIdDelimIdx = roleId.lastIndexOf('/') + 1;
+                if (roleIdDelimIdx < roleId.length()) {
+                    roleVarNames.add(roleId.substring(roleIdDelimIdx));
+                }
+                continue;
+            }
             String roleVarName = getRoleVarNameByIdFromThreadCache(roleId);
             if (StringUtils.isBlank(roleVarName)) {
                 log.warn("RoleVarName not found for id " + roleId);

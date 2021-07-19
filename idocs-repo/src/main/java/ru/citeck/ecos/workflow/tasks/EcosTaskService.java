@@ -13,6 +13,9 @@ import org.mozilla.javascript.NativeJavaObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.extensions.surf.util.I18NUtil;
 import org.springframework.stereotype.Service;
+import ru.citeck.ecos.comment.CommentTag;
+import ru.citeck.ecos.comment.EcosCommentTagService;
+import ru.citeck.ecos.commons.data.MLText;
 import ru.citeck.ecos.locks.LockUtils;
 import ru.citeck.ecos.model.CiteckWorkflowModel;
 import ru.citeck.ecos.props.EcosPropertiesService;
@@ -47,6 +50,9 @@ public class EcosTaskService {
 
     @Autowired
     private NodeService nodeService;
+
+    @Autowired
+    private EcosCommentTagService commentTagService;
 
     public void endTask(String taskId, Map<String, Object> variables) {
         endTask(taskId, null, variables, null);
@@ -84,13 +90,14 @@ public class EcosTaskService {
         String assignee = taskInfo.getAssignee();
 
         String user = AuthenticationUtil.getFullyAuthenticatedUser();
-        if (assignee != null && user != null && !user.equals(AuthenticationUtil.getSystemUserName())) {
-            if (!user.equals(assignee)) {
+        if (assignee != null && !AuthenticationUtil.isRunAsUserTheSystemUser()) {
+            if (!assignee.equals(user)) {
                 throw new IllegalStateException(I18NUtil.getMessage(ASSIGNEE_NOT_MATCH_ERR_MSG_KEY));
             }
         }
 
-        if (StringUtils.isBlank(assignee)) {
+        boolean isAssigneeEmpty = StringUtils.isBlank(assignee);
+        if (isAssigneeEmpty) {
             ownerService.changeOwner(taskId, OwnerAction.CLAIM, user);
         }
 
@@ -98,17 +105,42 @@ public class EcosTaskService {
         Map<String, Object> finalTransientVariables = new HashMap<>(transientVariables);
 
         try {
-            lockUtils.doWithLock(String.format(TASKS_PREFIX, taskId), () -> {
-                taskService.endTask(task.getLocalId(), transition, finalVariables, finalTransientVariables);
-            });
+            RecordRef taskDocument = taskInfo.getDocument();
+            org.alfresco.service.cmr.repository.MLText taskMlTitle = taskInfo.getMlTitle();
+
+            lockUtils.doWithLock(String.format(TASKS_PREFIX, taskId),
+                () -> {
+                    addCommentToDocument(taskDocument, taskMlTitle, (String) finalVariables.get(FIELD_COMMENT));
+                    taskService.endTask(task.getLocalId(), transition, finalVariables, finalTransientVariables);
+                }
+            );
+
             AuthenticationUtil.runAsSystem(() -> {
                 addLastCompletedTaskDate(taskInfo.getDocument());
                 return null;
             });
         } catch (RuntimeException exception) {
+            if (isAssigneeEmpty) {
+                try {
+                    ownerService.changeOwner(taskId, OwnerAction.RELEASE, user);
+                } catch (Exception changeOwnerException) {
+                    log.error("Cannot release task with id: " + taskId, changeOwnerException);
+                }
+            }
             unwrapJsExceptionAndThrow(exception);
         }
     }
+
+    private void addCommentToDocument(RecordRef taskDocument, org.alfresco.service.cmr.repository.MLText taskMlTitle,
+                                      String comment) {
+        if (StringUtils.isBlank(comment) || RecordRef.isEmpty(taskDocument)) {
+            return;
+        }
+
+        commentTagService.addCommentWithTag(taskDocument, comment, CommentTag.TASK,
+            new MLText(taskMlTitle));
+    }
+
 
     private void addLastCompletedTaskDate(RecordRef documentRef) {
         if (RecordRef.isEmpty(documentRef)) {
@@ -134,12 +166,13 @@ public class EcosTaskService {
             if (value instanceof NativeJavaObject) {
                 value = ((NativeJavaObject) value).unwrap();
             }
-            exception = new RuntimeException(String.valueOf(value), exception);
+            StackTraceElement[] stackTrace = exception.getStackTrace();
+            exception = new RuntimeException(String.valueOf(value));
+            exception.setStackTrace(stackTrace);
         } else if (ex instanceof AlfrescoRuntimeException) {
             String msg = ((AlfrescoRuntimeException) ex).getMsgId();
             exception = new RuntimeException(msg, exception);
         }
-
         throw exception;
     }
 

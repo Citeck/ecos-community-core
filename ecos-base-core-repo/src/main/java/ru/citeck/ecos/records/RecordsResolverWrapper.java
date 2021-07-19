@@ -1,7 +1,7 @@
 package ru.citeck.ecos.records;
 
-import ru.citeck.ecos.records2.resolver.RecordsResolver;
+import ru.citeck.ecos.records3.record.resolver.LocalRecordsResolver;
 
-public interface RecordsResolverWrapper extends RecordsResolver {
-    void setRecordsResolver(RecordsResolver recordsResolver);
+public interface RecordsResolverWrapper extends LocalRecordsResolver {
+    void setRecordsResolver(LocalRecordsResolver recordsResolver);
 }

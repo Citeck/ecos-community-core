@@ -1,0 +1,9 @@
+---
+id: currency-rates
+name: { ru: Курс вылюты ЦБ, en: Currency rate Central Bank }
+
+columns:
+  - id: idocs:crrBaseCurrency
+  - id: idocs:crrTargetCurrency
+  - id: idocs:crrValue
+  - id: idocs:crrDate

@@ -1,0 +1,194 @@
+{
+  "id": "idocs-currency-form",
+  "formKey": "alf_idocs:currency",
+  "title": {
+    "en": "Currency form"
+  },
+  "description": {},
+  "customModule": null,
+  "typeRef": "emodel/type@currency",
+  "width": "default",
+  "i18n": {
+    "ru": {
+      "Cancel": "Отмена",
+      "Submit": "Применить"
+    },
+    "en": {
+      "Cancel": "Cancel",
+      "Submit": "Submit"
+    }
+  },
+  "definition": {
+    "components": [
+      {
+        "label": "Panel",
+        "scrollableContent": true,
+        "key": "panel2",
+        "type": "panel",
+        "input": false,
+        "components": [
+          {
+            "label": "Columns",
+            "columns": [
+              {
+                "components": [
+                  {
+                    "label": "idocs:currencyCode",
+                    "clearOnHide": false,
+                    "defaultValue": "",
+                    "validate": {
+                      "required": true
+                    },
+                    "key": "idocs_currencyCode",
+                    "properties": {
+                      "attribute": "idocs:currencyCode"
+                    },
+                    "type": "textfield",
+                    "input": true
+                  },
+                  {
+                    "label": "idocs:currencyName",
+                    "clearOnHide": false,
+                    "defaultValue": "",
+                    "validate": {
+                      "required": true
+                    },
+                    "key": "idocs_currencyName",
+                    "properties": {
+                      "attribute": "idocs:currencyName"
+                    },
+                    "type": "textfield",
+                    "input": true
+                  },
+                  {
+                    "label": "idocs:currencyShortName",
+                    "clearOnHide": false,
+                    "defaultValue": "",
+                    "key": "idocs_currencyShortName",
+                    "properties": {
+                      "attribute": "idocs:currencyShortName"
+                    },
+                    "type": "textfield",
+                    "input": true
+                  }
+                ],
+                "type": "column",
+                "input": false,
+                "key": "column",
+                "index": 0
+              },
+              {
+                "index": 1,
+                "type": "column",
+                "input": false,
+                "key": "column",
+                "components": [
+                  {
+                    "label": "idocs:currencyNumberCode",
+                    "isBigNumber": false,
+                    "delimiterValue": "",
+                    "validate": {
+                      "integer": false
+                    },
+                    "key": "idocs_currencyNumberCode",
+                    "properties": {
+                      "attribute": "idocs:currencyNumberCode"
+                    },
+                    "defaultValue": "",
+                    "type": "number",
+                    "input": true
+                  },
+                  {
+                    "label": "idocs:currencyRate",
+                    "isBigNumber": false,
+                    "delimiter": true,
+                    "delimiterValue": "",
+                    "validate": {
+                      "integer": false
+                    },
+                    "key": "idocs_currencyRate",
+                    "properties": {
+                      "attribute": "idocs:currencyRate"
+                    },
+                    "defaultValue": "",
+                    "type": "number",
+                    "input": true
+                  }
+                ]
+              }
+            ],
+            "key": "columns",
+            "type": "columns",
+            "input": false
+          }
+        ]
+      },
+      {
+        "label": "Columns",
+        "columns": [
+          {
+            "components": [
+              {
+                "label": "Cancel",
+                "action": "event",
+                "state": "",
+                "block": true,
+                "clearOnHide": false,
+                "key": "Cancel",
+                "type": "button",
+                "input": true,
+                "showValidations": false,
+                "event": ""
+              }
+            ],
+            "md": 3,
+            "type": "column",
+            "input": false,
+            "key": "column",
+            "index": 0
+          },
+          {
+            "md": 3,
+            "type": "column",
+            "input": false,
+            "key": "column",
+            "index": 1,
+            "components": []
+          },
+          {
+            "md": 3,
+            "type": "column",
+            "input": false,
+            "key": "column",
+            "index": 2,
+            "components": []
+          },
+          {
+            "md": 3,
+            "type": "column",
+            "input": false,
+            "key": "column",
+            "index": 3,
+            "components": [
+              {
+                "label": "Submit",
+                "state": "",
+                "theme": "primary",
+                "block": true,
+                "disableOnInvalid": true,
+                "clearOnHide": false,
+                "key": "Submit",
+                "type": "button",
+                "input": true
+              }
+            ]
+          }
+        ],
+        "key": "columns2",
+        "type": "columns",
+        "input": false
+      }
+    ]
+  },
+  "attributes": {}
+}

@@ -1,5 +1,6 @@
 package ru.citeck.ecos.flowable.configuration;
 
+import com.zaxxer.hikari.HikariDataSource;
 import org.alfresco.repo.i18n.MessageService;
 import org.alfresco.repo.service.ServiceDescriptorRegistry;
 import org.alfresco.repo.tenant.TenantService;
@@ -9,12 +10,12 @@ import org.alfresco.repo.workflow.WorkflowObjectFactory;
 import org.alfresco.repo.workflow.WorkflowQNameConverter;
 import org.alfresco.service.cmr.dictionary.DictionaryService;
 import org.alfresco.service.namespace.NamespaceService;
-import org.apache.commons.dbcp.BasicDataSource;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
 import org.flowable.common.engine.impl.interceptor.CommandInterceptor;
 import org.flowable.engine.FormService;
 import org.flowable.engine.ProcessEngineConfiguration;
+import org.flowable.engine.impl.bpmn.behavior.email.FlowableEmailSender;
 import org.flowable.engine.parse.BpmnParseHandler;
 import org.flowable.spring.SpringProcessEngineConfiguration;
 import org.flowable.variable.api.types.VariableType;
@@ -60,11 +61,9 @@ public class FlowableConfiguration {
     private static final String FLOWABLE_DB_USERNAME = "flowable.db.username";
     private static final String FLOWABLE_DB_PASSWORD = "flowable.db.password";
     private static final String FLOWABLE_DRIVER_CLASS_NAME = "flowable.db.driver.class.name";
-    private static final String FLOWABLE_DBCP_MIN_IDLE = "flowable.db.dbcp.min.idle";
-    private static final String FLOWABLE_DBCP_MAX_IDLE = "flowable.db.dbcp.max.idle";
-    private static final String FLOWABLE_DBCP_MAX_ACTIVE = "flowable.db.dbcp.max.active";
-    private static final String FLOWABLE_DBCP_MAX_OPEN_PREPARED_STATEMENTS = "flowable.db.dbcp.max.open.prepared.statements";
 
+    private static final String FLOWABLE_DBCP_MIN_IDLE = "flowable.db.dbcp.min.idle";
+    private static final String FLOWABLE_DBCP_MAX_POOL_SIZE = "flowable.db.dbcp.max.pool.size";
 
     /**
      * Mail properties constants
@@ -113,35 +112,27 @@ public class FlowableConfiguration {
         String username = properties.getProperty(FLOWABLE_DB_USERNAME);
         String password = properties.getProperty(FLOWABLE_DB_PASSWORD);
         int minIdle = Integer.parseInt(properties.getProperty(FLOWABLE_DBCP_MIN_IDLE));
-        int maxIdle = Integer.parseInt(properties.getProperty(FLOWABLE_DBCP_MAX_IDLE));
-        int maxActive = Integer.parseInt(properties.getProperty(FLOWABLE_DBCP_MAX_ACTIVE));
-        int maxOpenPreparedStatements = Integer.parseInt(properties.getProperty(
-                FLOWABLE_DBCP_MAX_OPEN_PREPARED_STATEMENTS));
+        int maxPoolSize = Integer.parseInt(properties.getProperty(FLOWABLE_DBCP_MAX_POOL_SIZE));
 
         String msg = "Connection to flowable data source with parameters:\n" +
                 "dbUrl: " + dbUrl + "\n" +
                 "driverClassName: " + driverClassName + "\n" +
                 "username: " + username + "\n" +
                 "minIdle: " + minIdle + "\n" +
-                "maxIdle: " + maxIdle + "\n" +
-                "maxActive: " + maxActive + "\n" +
-                "maxOpenPreparedStatements: " + maxOpenPreparedStatements;
+                "maxPoolSize: " + maxPoolSize + "\n";
         logger.info(msg);
 
         try {
-            BasicDataSource dataSource = new BasicDataSource();
+            HikariDataSource hikariDataSource = new HikariDataSource();
+            hikariDataSource.setDriverClassName(driverClassName);
+            hikariDataSource.setJdbcUrl(dbUrl);
+            hikariDataSource.setUsername(username);
+            hikariDataSource.setPassword(password);
 
-            dataSource.setDriverClassName(driverClassName);
-            dataSource.setUrl(dbUrl);
-            dataSource.setUsername(username);
-            dataSource.setPassword(password);
+            hikariDataSource.setMinimumIdle(minIdle);
+            hikariDataSource.setMaximumPoolSize(maxPoolSize);
 
-            dataSource.setMinIdle(minIdle);
-            dataSource.setMaxIdle(maxIdle);
-            dataSource.setMaxActive(maxActive);
-            dataSource.setMaxOpenPreparedStatements(maxOpenPreparedStatements);
-
-            return dataSource;
+            return hikariDataSource;
         } catch (Exception e) {
             e.printStackTrace();
             return null;
@@ -226,11 +217,14 @@ public class FlowableConfiguration {
         NotificationService notificationService = applicationContext.getBean(
             BEAN_KEY_SYSTEM_ALF_NOTIFICATION_SERVICE, NotificationService.class);
 
+        FlowableEmailSender flowableEmailSender = applicationContext.getBean(FlowableEmailSender.class);
+
         beans.put(FlowableConstants.SERVICE_REGISTRY_BEAN_KEY, descriptorRegistry);
         beans.put(FlowableConstants.COMPLETENESS_SERVICE_JS_KEY, caseCompletenessServiceJS);
         beans.put(FlowableConstants.CASE_STATUS_SERVICE_JS_KEY, caseStatusServiceJS);
         beans.put(FlowableConstants.GLOBAL_PROPERTIES_BEAN_KEY, properties);
         beans.put(FlowableConstants.NOTIFICATION_SERVICE_BEAN_KEY, notificationService);
+        beans.put(FlowableConstants.FLOWABLE_EMAIL_SENDER_BEAN_KEY, flowableEmailSender);
 
         Map<String, FlowableEngineProcessService> engineProcessServices = applicationContext.getBeansOfType(
                 FlowableEngineProcessService.class);

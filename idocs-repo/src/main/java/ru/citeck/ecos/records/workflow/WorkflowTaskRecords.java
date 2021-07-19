@@ -2,6 +2,7 @@ package ru.citeck.ecos.records.workflow;
 
 import com.fasterxml.jackson.databind.node.NullNode;
 import lombok.Data;
+import lombok.RequiredArgsConstructor;
 import org.alfresco.repo.jscript.ScriptNode;
 import org.alfresco.repo.security.authentication.AuthenticationUtil;
 import org.alfresco.repo.template.TemplateNode;
@@ -139,7 +140,7 @@ public class WorkflowTaskRecords extends LocalRecordsDao
 
         String[] outcome = new String[1];
 
-        meta.forEach((n, v) -> {
+        meta.forEachJ((n, v) -> {
             if (n.startsWith(DOCUMENT_FIELD_PREFIX)) {
                 documentProps.set(getEcmFieldName(n), v);
             }
@@ -330,8 +331,9 @@ public class WorkflowTaskRecords extends LocalRecordsDao
 
         WorkflowTaskRecords.TasksQuery tasksQuery = query.getQuery(WorkflowTaskRecords.TasksQuery.class);
         if (tasksQuery.document != null) {
-            if (tasksQuery.document.startsWith("workflow@")) {
-                tasksQuery.setWorkflowId(tasksQuery.document.replaceFirst("workflow@", ""));
+            RecordRef docRecordRef = RecordRef.valueOf(tasksQuery.document);
+            if (docRecordRef.getSourceId().equals("workflow")) {
+                tasksQuery.setWorkflowId(docRecordRef.getId());
                 tasksQuery.setDocument(null);
             } else if (!tasksQuery.document.contains("workspace")) {
                 return new RecordsQueryResult<>();
@@ -390,6 +392,7 @@ public class WorkflowTaskRecords extends LocalRecordsDao
         public List<String> actors;
         public Boolean active;
         public String docStatus;
+        public NodeRef docEcosStatus;
         public List<String> docTypes;
         public String document;
         public List<String> priorities;
@@ -485,13 +488,13 @@ public class WorkflowTaskRecords extends LocalRecordsDao
                         customAttributes.add(ATT_DOC_DISP_NAME);
                         break;
                     case ATT_DOC_STATUS_TITLE:
-                        documentAttributes.put(ATT_DOC_STATUS_TITLE, "icase:caseStatusAssoc.cm:title");
+                        documentAttributes.put(ATT_DOC_STATUS_TITLE, "_status?disp");
                         customAttributes.add(ATT_DOC_STATUS_TITLE);
                         documentAttributes.put(ATT_DOC_STATUS_DISP_PROP, "idocs:documentStatus?disp");
                         customAttributes.add(ATT_DOC_STATUS_DISP_PROP);
                         break;
                     case ATT_DOC_STATUS:
-                        documentAttributes.put(ATT_DOC_STATUS, "icase:caseStatusAssoc.cm:name");
+                        documentAttributes.put(ATT_DOC_STATUS, "_status?str");
                         customAttributes.add(ATT_DOC_STATUS);
                         documentAttributes.put(ATT_DOC_STATUS_STR_PROP, "idocs:documentStatus?str");
                         customAttributes.add(ATT_DOC_STATUS_STR_PROP);
@@ -690,7 +693,7 @@ public class WorkflowTaskRecords extends LocalRecordsDao
                 case ATT_ETYPE:
                     return RecordRef.create("emodel", "type", "workflow-task");
                 case ATT_PERMISSIONS:
-                    return new Permissions();
+                    return new Permissions(taskInfo);
             }
 
             if (name.contains(":")) {
@@ -734,7 +737,7 @@ public class WorkflowTaskRecords extends LocalRecordsDao
             }
             if (value instanceof String) {
                 String valueStr = (String) value;
-                if (valueStr.charAt(0) == 'w' && NodeRef.isNodeRef(valueStr)) {
+                if (!valueStr.isEmpty() && valueStr.charAt(0) == 'w' && NodeRef.isNodeRef(valueStr)) {
                     return RecordRef.valueOf(valueStr);
                 }
             }
@@ -757,7 +760,7 @@ public class WorkflowTaskRecords extends LocalRecordsDao
             if (!name.contains(":") && name.contains("_")) {
                 name = name.replaceFirst("_", ":");
             }
-            return new AlfNodeMetaEdge(context, null, name, this);
+            return new AlfNodeMetaEdge(context, null, name, name, this);
         }
 
         private RecordRef getDocumentRef() {
@@ -776,10 +779,47 @@ public class WorkflowTaskRecords extends LocalRecordsDao
         }
     }
 
-    public static class Permissions implements MetaValue {
+    @RequiredArgsConstructor
+    public class Permissions implements MetaValue {
+
+        private final TaskInfo taskInfo;
+
         @Override
         public boolean has(String name) {
-            return true;
+
+            if (!name.equals("Write") && !name.equals("Read")) {
+                return true;
+            }
+
+            String user = AuthenticationUtil.getFullyAuthenticatedUser();
+            if (StringUtils.isBlank(user)) {
+                return false;
+            }
+            if (authorityService.isAdminAuthority(user)
+                    || Objects.equals(user, AuthenticationUtil.getSystemUserName())) {
+                return true;
+            }
+
+            String assignee = taskInfo.getAssignee();
+            if (StringUtils.isNotBlank(assignee)) {
+                return Objects.equals(user, assignee);
+            }
+
+            List<String> actors = taskInfo.getActors()
+                .stream()
+                .map(actor -> {
+                    if (actor.startsWith("workspace://")) {
+                        return authorityUtils.getAuthorityName(new NodeRef(actor));
+                    } else {
+                        return actor;
+                    }
+                }).collect(Collectors.toList());
+            if (actors.contains(user)) {
+                return true;
+            }
+
+            Set<String> authoritiesForUser = authorityService.getAuthoritiesForUser(user);
+            return actors.stream().anyMatch(authoritiesForUser::contains);
         }
     }
 }

@@ -43,6 +43,7 @@ public class ICaseRoleModel {
     public static final QName PROP_IS_REFERENCE_ROLE = QName.createQName(NAMESPACE, "isReferenceRole");
     public static final QName PROP_SCRIPT = QName.createQName(NAMESPACE, "script");
     public static final QName PROP_DELEGATES = QName.createQName(NAMESPACE, "delegates");
+    public static final QName PROP_ROLES_ASSIGNEES = QName.createQName(NAMESPACE, "rolesAssignees");
 
     // association
     public static final QName ASSOC_ASSIGNEES = QName.createQName(NAMESPACE, "assignees");

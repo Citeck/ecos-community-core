@@ -18,10 +18,9 @@
  */
 package ru.citeck.ecos.attr.prov;
 
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Function;
 
 import org.alfresco.service.cmr.dictionary.AssociationDefinition;
 import org.alfresco.service.cmr.repository.ChildAssociationRef;
@@ -38,13 +37,15 @@ import ru.citeck.ecos.utils.RepoUtils;
 
 /**
  * Child association attribute provider.
- * 
+ *
  * All associations, that are defined in the data dictionary for the types and aspects of node,
  * are considered as defined for this node.
- * 
+ *
  * @author Sergey Tiunov
  */
 public class ChildAssocAttributes extends AbstractAttributeProvider {
+
+    private final Map<QName, Function<NodeRef, List<Object>>> assocResolvers = new ConcurrentHashMap<>();
 
     @Override
     public QNamePattern getAttributeNamePattern() {
@@ -79,13 +80,17 @@ public class ChildAssocAttributes extends AbstractAttributeProvider {
 
     @Override
     public Set<QName> getDefinedAttributeNames(QName typeName, boolean inherit) {
-        return inherit 
+        return inherit
                 ? DictionaryUtils.getAllChildAssociationNames(Collections.singleton(typeName), dictionaryService)
                 : DictionaryUtils.getDefinedChildAssociationNames(typeName, dictionaryService);
     }
 
     @Override
     public Object getAttribute(NodeRef nodeRef, QName attributeName) {
+        Function<NodeRef, List<Object>> assocResolver = assocResolvers.get(attributeName);
+        if (assocResolver != null) {
+            return assocResolver.apply(nodeRef);
+        }
         return RepoUtils.getChildrenByAssoc(nodeRef, attributeName, nodeService);
     }
 
@@ -116,9 +121,12 @@ public class ChildAssocAttributes extends AbstractAttributeProvider {
 
     private AssociationDefinition needDefinition(QName attributeName) {
         AssociationDefinition assocDef = getDefinition(attributeName);
-        if(assocDef == null) 
+        if(assocDef == null)
             throw new IllegalArgumentException("Assocition " + attributeName + " does not exist");
         return assocDef;
     }
 
+    public void registerAssocResolver(QName name, Function<NodeRef, List<Object>> resolver) {
+        this.assocResolvers.put(name, resolver);
+    }
 }

@@ -9,7 +9,7 @@
     "icon": null,
     "typeRef": null,
     "config": {
-        "url": "/share/proxy/alfresco/citeck/print/printpdf?nodeRef=${recordRef}&print=true"
+        "url": "/share/proxy/alfresco/citeck/print/printpdf?nodeRef=${?localId}&print=true"
     },
     "evaluator": {
         "id": null,

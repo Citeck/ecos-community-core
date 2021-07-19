@@ -1,6 +1,5 @@
 {
     "id": "category-document-type/cat-document-accounting-documents",
     "name": "Бухгалтерские документы",
-    "parent": "emodel/type@category-document-type",
-    "inheritActions": true
+    "parent": "emodel/type@category-document-type"
 }

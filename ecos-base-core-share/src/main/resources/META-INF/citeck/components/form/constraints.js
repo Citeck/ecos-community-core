@@ -586,7 +586,7 @@ require([
             }
         }
 
-        if (formKey && formKey.indexOf("uiserv/eform@") !== -1) {
+        if (formKey && formKey.indexOf("uiserv/form@") !== -1) {
             config.formId = formKey;
         } else {
             config.formKey = formKey;

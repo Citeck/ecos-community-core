@@ -1,0 +1,12 @@
+---
+id: idocs-doc
+name: { ru: Документ, en: Document }
+
+parentRef: emodel/type@case
+formRef: ""
+journalRef: uiserv/journal@idocs-doc
+
+properties:
+  alfType: idocs:doc
+
+defaultCreateVariant: false

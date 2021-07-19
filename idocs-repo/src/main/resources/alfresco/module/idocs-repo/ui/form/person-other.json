@@ -1,0 +1,242 @@
+{
+  "id": "person_other",
+  "formKey": "alf_cm:person",
+  "title": {
+    "en": "Other",
+    "ru": "Прочее"
+  },
+  "description": {
+    "en": ""
+  },
+  "customModule": null,
+  "typeRef": "emodel/type@person",
+  "width": "default",
+  "i18n": {
+    "ru": {
+      "cm:userStatus": "Статус",
+      "org:workingCalendar": "Производственный календарь",
+      "ecos:timezone": "Часовой пояс",
+      "deputy:available": "Присутствие на рабочем месте",
+      "ecos:isPersonDisabled": "Отключить учетную запись",
+      "Cancel": "Отмена",
+      "Submit": "Сохранить",
+      "Disabled": "Отключен"
+    },
+    "en": {
+      "cm:userStatus": "Status",
+      "org:workingCalendar": "Working calendar",
+      "ecos:timezone": "Timezone",
+      "deputy:available": "In the workplace",
+      "ecos:isPersonDisabled": "Disabled account",
+      "Cancel": "Cancel",
+      "Submit": "Save",
+      "Disabled": "Disabled"
+    }
+  },
+  "definition": {
+    "components": [
+      {
+        "title": "Additional",
+        "key": "panel2",
+        "type": "panel",
+        "input": false,
+        "components": [
+          {
+            "label": "cm:userStatus",
+            "clearOnHide": false,
+            "disabled": true,
+            "defaultValue": "",
+            "customDefaultValue": "value = instance.t(\"Disabled\");",
+            "key": "fake_userStatus",
+            "customConditional": "const { ecos_isPersonDisabled } = data || {};\n\nshow = ecos_isPersonDisabled === true;",
+            "type": "textfield",
+            "input": true
+          },
+          {
+            "label": "cm:userStatus",
+            "clearOnHide": false,
+            "key": "cm_userStatus",
+            "properties": {
+              "attribute": "cm:userStatus"
+            },
+            "customConditional": "const { ecos_isPersonDisabled } = data || {};\n\nshow = ecos_isPersonDisabled === false;",
+            "type": "textfield",
+            "input": true
+          },
+          {
+            "label": "org:workingCalendar",
+            "journalId": "working-calendar",
+            "key": "org_workingCalendar",
+            "properties": {
+              "attribute": "org:workingCalendar"
+            },
+            "type": "selectJournal",
+            "input": true
+          },
+          {
+            "label": "ecos:timezone",
+            "defaultValue": "",
+            "key": "ecos_timezone",
+            "properties": {
+              "attribute": "ecos:timezone"
+            },
+            "type": "textfield",
+            "input": true
+          },
+          {
+            "label": "deputy:available",
+            "labelPosition": "left-left",
+            "clearOnHide": false,
+            "disabled": true,
+            "key": "deputy_available",
+            "properties": {
+              "attribute": "deputy:available"
+            },
+            "logic": [
+              {
+                "name": "Disable",
+                "trigger": {
+                  "type": "javascript",
+                  "javascript": "const { currentUserData } = data || {};\r\nconst { isAlfrecoAdmin } = currentUserData || {};\r\n\r\nresult = isAlfrecoAdmin === true;"
+                },
+                "actions": [
+                  {
+                    "name": "Disable",
+                    "type": "property",
+                    "property": {
+                      "label": "Disabled",
+                      "value": "disabled",
+                      "type": "boolean"
+                    },
+                    "state": "false"
+                  }
+                ]
+              }
+            ],
+            "type": "checkbox",
+            "input": true
+          },
+          {
+            "label": "ecos:isPersonDisabled",
+            "labelPosition": "left-left",
+            "clearOnHide": false,
+            "disabled": true,
+            "key": "ecos_isPersonDisabled",
+            "properties": {
+              "attribute": "ecos:isPersonDisabled"
+            },
+            "logic": [
+              {
+                "name": "Disable",
+                "trigger": {
+                  "type": "javascript",
+                  "javascript": "const { currentUserData } = data || {};\r\nconst { isAlfrecoAdmin } = currentUserData || {};\r\n\r\nresult = isAlfrecoAdmin === true;"
+                },
+                "actions": [
+                  {
+                    "name": "Disable",
+                    "type": "property",
+                    "property": {
+                      "label": "Disabled",
+                      "value": "disabled",
+                      "type": "boolean"
+                    },
+                    "state": "false"
+                  }
+                ]
+              }
+            ],
+            "type": "checkbox",
+            "input": true
+          }
+        ]
+      },
+      {
+        "columns": [
+          {
+            "components": [
+              {
+                "label": "Cancel",
+                "removeIndents": true,
+                "action": "event",
+                "state": "",
+                "block": true,
+                "clearOnHide": false,
+                "key": "submit2",
+                "type": "button",
+                "input": true,
+                "showValidations": false,
+                "event": "cancel"
+              }
+            ],
+            "md": 3,
+            "type": "column",
+            "input": false,
+            "key": "column",
+            "index": 0
+          },
+          {
+            "md": 3,
+            "type": "column",
+            "input": false,
+            "key": "column",
+            "index": 1,
+            "components": [
+              {
+                "label": "Async Data - currentUserData",
+                "source": {
+                  "type": "record",
+                  "record": {
+                    "id": "people@{{user}}",
+                    "attributes": {
+                      "isAlfrecoAdmin": "authorities?has(\"GROUP_ALFRESCO_ADMINISTRATORS\")"
+                    }
+                  },
+                  "forceLoad": false
+                },
+                "update": {
+                  "type": "once"
+                },
+                "key": "currentUserData",
+                "type": "asyncData",
+                "input": true
+              }
+            ]
+          },
+          {
+            "md": 3,
+            "type": "column",
+            "input": false,
+            "key": "column",
+            "index": 2,
+            "components": []
+          },
+          {
+            "md": 3,
+            "type": "column",
+            "input": false,
+            "key": "column",
+            "index": 3,
+            "components": [
+              {
+                "removeIndents": true,
+                "state": "",
+                "theme": "primary",
+                "block": true,
+                "disableOnInvalid": true,
+                "clearOnHide": false,
+                "key": "submit",
+                "type": "button",
+                "input": true
+              }
+            ]
+          }
+        ],
+        "key": "columns2",
+        "type": "columns",
+        "input": false
+      }
+    ]
+  },
+  "attributes": {}
+}

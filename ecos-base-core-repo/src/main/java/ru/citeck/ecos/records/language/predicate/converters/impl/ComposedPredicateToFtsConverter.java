@@ -3,6 +3,7 @@ package ru.citeck.ecos.records.language.predicate.converters.impl;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import ru.citeck.ecos.records.language.predicate.converters.PredToFtsContext;
 import ru.citeck.ecos.records.language.predicate.converters.delegators.ConvertersDelegator;
 import ru.citeck.ecos.records.language.predicate.converters.PredicateToFtsConverter;
 import ru.citeck.ecos.records2.predicate.model.AndPredicate;
@@ -19,7 +20,7 @@ public class ComposedPredicateToFtsConverter implements PredicateToFtsConverter 
     private ConvertersDelegator delegator;
 
     @Override
-    public void convert(Predicate predicate, FTSQuery query) {
+    public void convert(Predicate predicate, FTSQuery query, PredToFtsContext context) {
         query.open();
 
         List<Predicate> predicates = ((ComposedPredicate) predicate).getPredicates();
@@ -34,7 +35,7 @@ public class ComposedPredicateToFtsConverter implements PredicateToFtsConverter 
                 }
             }
 
-            delegator.delegate(predicates.get(i), query);
+            delegator.delegate(predicates.get(i), query, context);
         }
 
         query.close();

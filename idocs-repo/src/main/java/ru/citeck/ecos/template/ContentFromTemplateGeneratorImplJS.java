@@ -42,6 +42,26 @@ public class ContentFromTemplateGeneratorImplJS extends BaseScopableProcessorExt
         contentFromTemplateGenerator.generateContentByTemplate(persistedObjectRef);
     }
 
+    public void generateContentByTemplate(String nodeRef, String historyDescription) {
+        NodeRef node = new NodeRef(nodeRef);
+
+        if (logger.isDebugEnabled()) {
+            logger.debug("Generating cm:content by dms:templateAssociation for node=" + nodeRef);
+        }
+
+        contentFromTemplateGenerator.generateContentByTemplate(node, historyDescription);
+    }
+
+    public void generateContentByTemplate(String nodeRef, boolean majorVersion, String historyDescription) {
+        NodeRef node = new NodeRef(nodeRef);
+
+        if (logger.isDebugEnabled()) {
+            logger.debug("Generating cm:content by dms:templateAssociation for node=" + nodeRef);
+        }
+
+        contentFromTemplateGenerator.generateContentByTemplate(node, majorVersion, historyDescription);
+    }
+
     public void setContentFromTemplateGenerator(ContentFromTemplateGenerator contentFromTemplateGenerator) {
         this.contentFromTemplateGenerator = contentFromTemplateGenerator;
     }

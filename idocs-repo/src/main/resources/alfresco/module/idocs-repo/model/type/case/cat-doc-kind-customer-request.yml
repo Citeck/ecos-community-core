@@ -1,0 +1,10 @@
+---
+id: cat-doc-type-general-case/cat-doc-kind-customer-request
+
+name:
+  en: Customer request
+  ru: Обращение клиента
+
+parentRef: emodel/type@cat-doc-type-general-case
+
+defaultCreateVariant: false

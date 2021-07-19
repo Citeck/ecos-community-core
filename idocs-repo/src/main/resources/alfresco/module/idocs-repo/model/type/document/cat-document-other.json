@@ -1,6 +1,8 @@
 {
     "id": "category-document-type/cat-document-other",
-    "name": "Прочее",
-    "parent": "emodel/type@category-document-type",
-    "inheritActions": true
+    "name": {
+        "ru": "Прочее",
+        "en": "Other"
+    },
+    "parent": "emodel/type@category-document-type"
 }

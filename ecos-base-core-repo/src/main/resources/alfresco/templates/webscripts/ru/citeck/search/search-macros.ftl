@@ -126,6 +126,8 @@
             }
             <#elseif valueClass == "class org.alfresco.repo.template.TemplateNode">
                 <@nodeJSON value />
+            <#elseif valueClass == "class ru.citeck.ecos.role.script.TemplateCaseRole">
+                <@nodeJSON value />
             <#elseif valueClass == "class org.alfresco.service.cmr.repository.NodeRef">
                 <@nodeJSON companyhome.nodeByReference[value] />
             <#elseif valueClass == "class java.util.Locale">

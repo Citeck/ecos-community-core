@@ -1,0 +1,131 @@
+{
+  "id": "case-status",
+  "formKey": "alf_icase:caseStatus",
+  "title": {
+    "en": "Case status"
+  },
+  "description": {},
+  "customModule": null,
+  "typeRef": "",
+  "width": "default",
+  "i18n": {
+    "ru": {
+      "Save": "Сохранить",
+      "Cancel": "Отмена"
+    },
+    "en": {
+      "Save": "Save",
+      "Cancel": "Cancel"
+    }
+  },
+  "definition": {
+    "components": [
+      {
+        "label": {
+          "ru": "cm:name"
+        },
+        "clearOnHide": false,
+        "defaultValue": "",
+        "validate": {
+          "required": true
+        },
+        "key": "cm_name",
+        "properties": {
+          "attribute": "cm:name"
+        },
+        "type": "textfield",
+        "input": true
+      },
+      {
+        "label": {
+          "ru": "cm:title"
+        },
+        "clearOnHide": false,
+        "defaultValue": "",
+        "validate": {
+          "required": true
+        },
+        "key": "cm_title",
+        "properties": {
+          "attribute": "cm:title"
+        },
+        "type": "textfield",
+        "input": true
+      },
+      {
+        "label": {
+          "ru": "Columns"
+        },
+        "columns": [
+          {
+            "components": [
+              {
+                "label": {
+                  "ru": "Cancel"
+                },
+                "removeIndents": true,
+                "action": "event",
+                "state": "",
+                "showValidations": false,
+                "event": "cancel",
+                "block": true,
+                "clearOnHide": false,
+                "key": "cancel",
+                "type": "button",
+                "input": true
+              }
+            ],
+            "md": 3,
+            "type": "column",
+            "input": false,
+            "key": "column",
+            "index": 0
+          },
+          {
+            "md": 3,
+            "type": "column",
+            "input": false,
+            "key": "column",
+            "index": 1,
+            "components": []
+          },
+          {
+            "md": 3,
+            "type": "column",
+            "input": false,
+            "key": "column",
+            "index": 2,
+            "components": []
+          },
+          {
+            "md": 3,
+            "type": "column",
+            "input": false,
+            "key": "column",
+            "index": 3,
+            "components": [
+              {
+                "label": {
+                  "ru": "Save"
+                },
+                "removeIndents": true,
+                "state": "",
+                "theme": "primary",
+                "block": true,
+                "disableOnInvalid": true,
+                "clearOnHide": false,
+                "key": "submit",
+                "type": "button",
+                "input": true
+              }
+            ]
+          }
+        ],
+        "key": "columns2",
+        "type": "columns",
+        "input": false
+      }
+    ]
+  },
+  "attributes": {}
+}

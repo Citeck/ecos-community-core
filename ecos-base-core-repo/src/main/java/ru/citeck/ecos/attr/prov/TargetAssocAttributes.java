@@ -18,11 +18,10 @@
  */
 package ru.citeck.ecos.attr.prov;
 
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.BiConsumer;
+import java.util.function.Function;
 
 import org.alfresco.service.cmr.dictionary.AssociationDefinition;
 import org.alfresco.service.cmr.repository.NodeRef;
@@ -30,21 +29,26 @@ import org.alfresco.service.namespace.QName;
 import org.alfresco.service.namespace.QNamePattern;
 import org.alfresco.service.namespace.RegexQNamePattern;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import ru.citeck.ecos.attr.AbstractAttributeProvider;
 import ru.citeck.ecos.model.AttributeModel;
 import ru.citeck.ecos.node.NodeInfo;
 import ru.citeck.ecos.utils.DictionaryUtils;
+import ru.citeck.ecos.utils.NodeUtils;
 import ru.citeck.ecos.utils.RepoUtils;
 
 /**
  * Target association attribute provider.
- * 
+ *
  * All associations, that are defined in the data dictionary for the types and aspects of node,
  * are considered as defined for this node.
- * 
+ *
  * @author Sergey Tiunov
  */
 public class TargetAssocAttributes extends AbstractAttributeProvider {
+
+    private final Map<QName, Function<NodeRef, Object>> assocsReaders = new ConcurrentHashMap<>();
+    private final Map<QName, BiConsumer<NodeInfo, Object>> assocsWriters = new ConcurrentHashMap<>();
 
     @Override
     public QNamePattern getAttributeNamePattern() {
@@ -89,11 +93,20 @@ public class TargetAssocAttributes extends AbstractAttributeProvider {
 
     @Override
     public Object getAttribute(NodeRef nodeRef, QName attributeName) {
+        Function<NodeRef, Object> reader = assocsReaders.get(attributeName);
+        if (reader != null) {
+            return reader.apply(nodeRef);
+        }
         return RepoUtils.getTargetNodeRefs(nodeRef, attributeName, nodeService);
     }
 
     @Override
     public void setAttribute(NodeInfo nodeInfo, QName attributeName, Object value) {
+        BiConsumer<NodeInfo, Object> writer = assocsWriters.get(attributeName);
+        if (writer != null) {
+            writer.accept(nodeInfo, value);
+            return;
+        }
         nodeInfo.setTargetAssocs(RepoUtils.anyToNodeRefs(value), attributeName);
     }
 
@@ -119,9 +132,17 @@ public class TargetAssocAttributes extends AbstractAttributeProvider {
 
     private AssociationDefinition needDefinition(QName attributeName) {
         AssociationDefinition assocDef = getDefinition(attributeName);
-        if(assocDef == null) 
+        if (assocDef == null) {
             throw new IllegalArgumentException("Assocition " + attributeName + " does not exist");
+        }
         return assocDef;
     }
 
+    public void addAssocsReader(QName name, Function<NodeRef, Object> func) {
+        assocsReaders.put(name, func);
+    }
+
+    public void addAssocsWriter(QName name, BiConsumer<NodeInfo, Object> func) {
+        assocsWriters.put(name, func);
+    }
 }

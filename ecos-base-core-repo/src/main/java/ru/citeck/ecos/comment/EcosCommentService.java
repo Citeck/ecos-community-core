@@ -3,18 +3,18 @@ package ru.citeck.ecos.comment;
 import org.alfresco.query.PagingRequest;
 import org.alfresco.query.PagingResults;
 import org.alfresco.service.cmr.repository.NodeRef;
-import ru.citeck.ecos.comment.model.CommentDTO;
+import ru.citeck.ecos.comment.model.CommentDto;
 
 /**
  * @author Roman Makarskiy
  */
 public interface EcosCommentService {
 
-    CommentDTO create(CommentDTO commentDTO);
+    CommentDto create(CommentDto commentDTO);
 
-    CommentDTO update(CommentDTO commentDTO);
+    CommentDto update(CommentDto commentDTO);
 
-    CommentDTO getById(String id);
+    CommentDto getById(String id);
 
     void delete(String id);
 

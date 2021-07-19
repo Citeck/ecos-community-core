@@ -5,5 +5,5 @@ import ru.citeck.ecos.search.ftsquery.FTSQuery;
 
 public interface PredicateToFtsConverter {
 
-    void convert(Predicate predicate, FTSQuery query);
+    void convert(Predicate predicate, FTSQuery query, PredToFtsContext context);
 }

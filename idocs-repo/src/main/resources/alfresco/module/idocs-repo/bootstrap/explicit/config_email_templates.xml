@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <view:view xmlns:view="http://www.alfresco.org/view/repository/1.0"
 	xmlns:app="http://www.alfresco.org/model/application/1.0" xmlns:cm="http://www.alfresco.org/model/content/1.0"
-	xmlns:dms="http://www.citeck.ru/model/content/dms/1.0" 
+	xmlns:dms="http://www.citeck.ru/model/content/dms/1.0"
 	xmlns:sys="http://www.alfresco.org/model/system/1.0">
 	<cm:content view:childName="cm:expired-email.html.ftl">
 		<view:aspects>
@@ -61,6 +61,7 @@
 			<cm:title>${spaces.templates.email.default-expired-notification.subject}</cm:title>
             <cm:content>contentUrl=classpath:alfresco/module/idocs-repo/bootstrap/explicit\notification\default-expired-notification.html.ftl|mimetype=text/plain|encoding=UTF-8</cm:content>
             <dms:sendToAssignee>true</dms:sendToAssignee>
+            <dms:ecosNotificationTemplate>notifications/template@default-expired-notification</dms:ecosNotificationTemplate>
         </view:properties>
     </dms:notificationTemplate>
     <dms:notificationTemplate view:childName="cm:default-email-notification.html.ftl">
@@ -73,6 +74,7 @@
             </dms:subjectTemplate>
             <cm:content>contentUrl=classpath:alfresco/module/idocs-repo/bootstrap/explicit\notification\default-email-notification.html.ftl|mimetype=text/plain|encoding=UTF-8</cm:content>
             <dms:sendToAssignee>true</dms:sendToAssignee>
+            <dms:ecosNotificationTemplate>notifications/template@default-email-notification</dms:ecosNotificationTemplate>
         </view:properties>
     </dms:notificationTemplate>
     <dms:notificationTemplate view:childName="cm:pool-task-email-notification.html.ftl">
@@ -82,6 +84,7 @@
 			<cm:title>Задача снята с исполнителя</cm:title>
 			<dms:notificationType>assign_task</dms:notificationType>
             <cm:content>contentUrl=classpath:alfresco/module/idocs-repo/bootstrap/explicit\notification\pool-task-email-notification.html.ftl|mimetype=text/plain|encoding=UTF-8</cm:content>
+            <dms:ecosNotificationTemplate>notifications/template@pool-task-email-notification</dms:ecosNotificationTemplate>
         </view:properties>
     </dms:notificationTemplate>
 </view:view>

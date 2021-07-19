@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <model name="wfm:workflowMirrorModel" xmlns="http://www.alfresco.org/model/dictionary/1.0">
-	<description>Custom workflow model</description>
-	<author>Citeck</author>
-	<version>1.0</version>
+    <description>Custom workflow model</description>
+    <author>Citeck</author>
+    <version>1.0</version>
     <imports>
         <import uri="http://www.alfresco.org/model/dictionary/1.0" prefix="d"/>
         <import uri="http://www.alfresco.org/model/bpm/1.0" prefix="bpm"/>
@@ -15,7 +15,7 @@
 
     <aspects>
         <aspect name="wfm:attributes">
-			<archive>false</archive>
+            <archive>false</archive>
             <properties>
                 <property name="wfm:taskType">
                     <type>d:qname</type>
@@ -28,24 +28,24 @@
                 </property>
                 <property name="wfm:workflowInitiator">
                     <type>d:noderef</type>
-					<multiple>false</multiple>
-					<index enabled="true">
-						<atomic>true</atomic>
-						<stored>false</stored>
-						<tokenised>false</tokenised>
-					</index>
+                    <multiple>false</multiple>
+                    <index enabled="true">
+                        <atomic>true</atomic>
+                        <stored>false</stored>
+                        <tokenised>false</tokenised>
+                    </index>
                 </property>
-				<!-- convenience calculated property to search for actors -->
-				<!-- if cm:owner == null, it contains owner's nodeRef -->
-				<!-- otherwise, it contains bpm:pooledActors -->
+                <!-- convenience calculated property to search for actors -->
+                <!-- if cm:owner == null, it contains owner's nodeRef -->
+                <!-- otherwise, it contains bpm:pooledActors -->
                 <property name="wfm:actors">
                     <type>d:noderef</type>
-					<multiple>true</multiple>
-					<index enabled="true">
-						<atomic>true</atomic>
-						<stored>false</stored>
-						<tokenised>false</tokenised>
-					</index>
+                    <multiple>true</multiple>
+                    <index enabled="true">
+                        <atomic>true</atomic>
+                        <stored>false</stored>
+                        <tokenised>false</tokenised>
+                    </index>
                 </property>
                 <property name="wfm:caseStatus">
                     <type>d:noderef</type>
@@ -56,13 +56,17 @@
                         <tokenised>false</tokenised>
                     </index>
                 </property>
+                <property name="wfm:caseStatus-prop">
+                    <title>ECOS Case status</title>
+                    <type>d:text</type>
+                </property>
                 <property name="wfm:assignee">
                     <type>d:noderef</type>
-					<index enabled="true">
-						<atomic>true</atomic>
-						<stored>false</stored>
-						<tokenised>false</tokenised>
-					</index>
+                    <index enabled="true">
+                        <atomic>true</atomic>
+                        <stored>false</stored>
+                        <tokenised>false</tokenised>
+                    </index>
                 </property>
                 <property name="wfm:document">
                     <type>d:noderef</type>
@@ -140,6 +144,6 @@
                 </property>
             </properties>
         </aspect>
-	</aspects>
+    </aspects>
 
 </model>

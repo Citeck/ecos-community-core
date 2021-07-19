@@ -1,0 +1,348 @@
+{
+  "id": "cat-doc-type-ecos-bpm-process-form",
+  "formKey": "",
+  "title": {
+    "en": "cat-doc-type-ecos-bpm-process-form"
+  },
+  "description": {},
+  "customModule": null,
+  "typeRef": "emodel/type@cat-doc-type-ecos-bpm-process",
+  "width": "default",
+  "i18n": {},
+  "definition": {
+    "components": [
+      {
+        "label": {
+          "ru": "Columns"
+        },
+        "columns": [
+          {
+            "components": [
+              {
+                "label": {
+                  "ru": "Название модели",
+                  "en": "Model name"
+                },
+                "defaultValue": "",
+                "key": "cm_title",
+                "properties": {
+                  "attribute": "cm:title"
+                },
+                "type": "textfield",
+                "input": true
+              },
+              {
+                "label": {
+                  "ru": "Выберите категорию",
+                  "en": "Category"
+                },
+                "dataSrc": "custom",
+                "data": {
+                  "custom": "values = (data.bpm_categories || {}).records || [];"
+                },
+                "defaultValue": "",
+                "refreshOn": [
+                  "bpm_categories"
+                ],
+                "validate": {
+                  "required": true
+                },
+                "key": "ecosbpm_category",
+                "properties": {
+                  "attribute": "ecosbpm:category"
+                },
+                "type": "ecosSelect",
+                "input": true
+              },
+              {
+                "label": {
+                  "ru": "Владелец процесса",
+                  "en": "Process owner"
+                },
+                "currentUserByDefault": true,
+                "defaultValue": "",
+                "key": "ecosbpm_processOwnerAssoc",
+                "properties": {
+                  "attribute": "ecosbpm:processOwnerAssoc"
+                },
+                "type": "selectOrgstruct",
+                "input": true
+              },
+              {
+                "label": {
+                  "ru": "Форма для старта бизнес-процесса",
+                  "en": "Start Workflow Form"
+                },
+                "key": "ecosbpm_startFormRef",
+                "journalId": "ecos-forms",
+                "refreshOn": [],
+                "properties": {
+                  "attribute": "ecosbpm:startFormRef"
+                },
+                "type": "selectJournal",
+                "input": true
+              }
+            ],
+            "type": "column",
+            "input": false,
+            "key": "column",
+            "index": 0
+          },
+          {
+            "index": 1,
+            "type": "column",
+            "input": false,
+            "key": "column",
+            "components": [
+              {
+                "label": {
+                  "ru": "Ключ бизнес-процесса",
+                  "en": "Business process key"
+                },
+                "defaultValue": "",
+                "validate": {
+                  "required": true,
+                  "pattern": "[\\w][\\w-\\.]+",
+                  "minLength": 4,
+                  "maxLength": 100
+                },
+                "key": "ecosbpm_processId",
+                "properties": {
+                  "attribute": "ecosbpm:processId"
+                },
+                "logic": [
+                  {
+                    "name": "disable-editing",
+                    "trigger": {
+                      "type": "javascript",
+                      "javascript": "return instance.options.formMode != 'CREATE';"
+                    },
+                    "actions": [
+                      {
+                        "name": "dispable",
+                        "type": "property",
+                        "property": {
+                          "label": "Disabled",
+                          "value": "disabled",
+                          "type": "boolean"
+                        },
+                        "state": "true"
+                      }
+                    ]
+                  }
+                ],
+                "type": "textfield",
+                "input": true
+              },
+              {
+                "label": {
+                  "ru": "Автор",
+                  "en": "Author"
+                },
+                "currentUserByDefault": true,
+                "key": "ecosbpm_processAuthorAssoc",
+                "properties": {
+                  "attribute": "ecosbpm:processAuthorAssoc"
+                },
+                "type": "selectOrgstruct",
+                "input": true,
+                "defaultValue": ""
+              },
+              {
+                "label": {
+                  "ru": "Эксперт процесса",
+                  "en": "Process Reviewer"
+                },
+                "key": "ecosbpm_processReviewerAssoc",
+                "properties": {
+                  "attribute": "ecosbpm:processReviewerAssoc"
+                },
+                "type": "selectOrgstruct",
+                "input": true,
+                "defaultValue": ""
+              }
+            ]
+          }
+        ],
+        "key": "columns2",
+        "type": "columns",
+        "input": false
+      },
+      {
+        "label": {
+          "ru": "Columns"
+        },
+        "columns": [
+          {
+            "components": [
+              {
+                "label": {
+                  "ru": "Дата начала действия",
+                  "en": "Valid from"
+                },
+                "displayInTimezone": "utc",
+                "format": "yyyy-MM-dd",
+                "datePicker": {
+                  "minDate": "",
+                  "maxDate": ""
+                },
+                "enableTime": false,
+                "defaultDate": "moment()",
+                "defaultValue": "",
+                "key": "ecosbpm_validFrom",
+                "properties": {
+                  "attribute": "ecosbpm:validFrom"
+                },
+                "type": "datetime",
+                "input": true,
+                "suffix": true
+              }
+            ],
+            "type": "column",
+            "input": false,
+            "key": "column",
+            "index": 0
+          },
+          {
+            "index": 1,
+            "type": "column",
+            "input": false,
+            "key": "column",
+            "components": [
+              {
+                "label": {
+                  "ru": "Дата окончания действия",
+                  "en": "Valid to"
+                },
+                "displayInTimezone": "utc",
+                "format": "yyyy-MM-dd",
+                "datePicker": {
+                  "minDate": "",
+                  "maxDate": ""
+                },
+                "enableTime": false,
+                "defaultValue": "",
+                "key": "ecosbpm_validTo",
+                "properties": {
+                  "attribute": "ecosbpm:validTo"
+                },
+                "type": "datetime",
+                "input": true,
+                "suffix": true
+              }
+            ]
+          }
+        ],
+        "key": "columns3",
+        "type": "columns",
+        "input": false
+      },
+      {
+        "label": {
+          "ru": "Описание (не обязательно)",
+          "en": "Description (not mandatory)"
+        },
+        "defaultValue": "",
+        "key": "cm_description",
+        "properties": {
+          "attribute": "cm:description"
+        },
+        "type": "textarea",
+        "input": true
+      },
+      {
+        "label": "bpm_categories",
+        "source": {
+          "type": "recordsQuery",
+          "recordsQuery": {
+            "attributes": {
+              "label": "?disp",
+              "value": "?id"
+            },
+            "query": "value = {\n  \"sourceId\": \"alfresco/bpm-category\",\n  \"language\": \"all\"\n}",
+            "isSingle": false
+          },
+          "forceLoad": false
+        },
+        "update": {
+          "type": "once"
+        },
+        "key": "bpm_categories",
+        "type": "asyncData",
+        "input": true
+      },
+      {
+        "label": {
+          "ru": "Columns"
+        },
+        "columns": [
+          {
+            "components": [],
+            "md": 3,
+            "type": "column",
+            "input": false,
+            "key": "column",
+            "index": 0
+          },
+          {
+            "md": 3,
+            "type": "column",
+            "input": false,
+            "key": "column",
+            "index": 1,
+            "components": []
+          },
+          {
+            "md": 3,
+            "type": "column",
+            "input": false,
+            "key": "column",
+            "index": 2,
+            "components": [
+              {
+                "label": {
+                  "ru": "Отмена",
+                  "en": "Cancel"
+                },
+                "action": "event",
+                "state": "",
+                "block": true,
+                "key": "submit2",
+                "type": "button",
+                "input": true,
+                "showValidations": false,
+                "event": "cancel"
+              }
+            ]
+          },
+          {
+            "md": 3,
+            "type": "column",
+            "input": false,
+            "key": "column",
+            "index": 3,
+            "components": [
+              {
+                "label": {
+                  "ru": "Сохранить",
+                  "en": "Save"
+                },
+                "state": "",
+                "theme": "primary",
+                "block": true,
+                "disableOnInvalid": true,
+                "key": "submit",
+                "type": "button",
+                "input": true
+              }
+            ]
+          }
+        ],
+        "key": "columns4",
+        "type": "columns",
+        "input": false
+      }
+    ]
+  },
+  "attributes": {}
+}

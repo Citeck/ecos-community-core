@@ -1,0 +1,11 @@
+---
+id: budget-item
+name: { ru: Статья бюджета, en: Budget Item }
+
+parentRef: emodel/type@data-list
+journalRef: uiserv/journal@budget-items
+formRef: uiserv/form@budget-item-form
+
+properties:
+  alfType: budget:item
+  alfRoot: /app:company_home/app:dictionary/cm:dataLists/cm:budget-items

@@ -1,0 +1,10 @@
+---
+id: currency
+name: { ru: Валюта, en: Currency }
+
+columns:
+  - id: idocs:currencyCode
+  - id: idocs:currencyName
+    visible: false
+  - id: cm:title
+  - id: idocs:currencyRate

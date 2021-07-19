@@ -63,18 +63,6 @@ public class EProcCaseImporter {
         this.ecosTypeService = ecosTypeService;
     }
 
-    public boolean eprocCaseCreationAllowed(NodeRef caseRef) {
-        RecordRef ecosType = ecosTypeService.getEcosType(caseRef);
-        if (ecosType != null) {
-            if (allowedEcosTypes.contains(ecosType)) {
-                return true;
-            }
-        }
-
-        QName alfCaseType = nodeService.getType(caseRef);
-        return isAlfrescoTypeEnabled(alfCaseType);
-    }
-
     public void importCase(RecordRef caseRef) {
         eprocActivityService.getOptimizedDefinitionWithRevisionId(caseRef)
             .ifPresent(definition -> importCaseImpl(caseRef, definition));

@@ -1,9 +1,0 @@
-{
-    "id": "site",
-    "name": {
-        "en": "Site",
-        "ru": "Сайт"
-    },
-    "inheritActions": true,
-    "dashboardType": "site-details"
-}

@@ -1,0 +1,32 @@
+---
+id: ecos-documents
+name: { ru: Документы, en: Documents }
+
+actions:
+  - uiserv/action@edit
+
+columns:
+  - id: tk:kind
+    computed:
+      - id: options
+        type: attributes
+        config:
+          record: alfresco/@workspace://SpacesStore/category-document-type
+          attributes: cm:subcategories[]{label:?disp,value:?id}
+    editor:
+      type: select
+      config:
+        options: "${$computed.options}"
+  - id: cm:name
+  - id: idocs:note
+  - id: ecos:documentNumber
+  - id: ecos:documentDate
+  - id: idocs:legalEntity
+  - id: idocs:contractor
+  - id: ecos:documentAmount
+  - id: idocs:currencyDocument
+    editor:
+      type: journal
+      config:
+        journalId: currency
+  - id: ecos:VAT

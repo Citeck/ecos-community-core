@@ -1,0 +1,6 @@
+---
+id: reasons-absence
+name: { ru: Причины отсутствия, en: Reasons Absence }
+
+columns:
+  - id: deputy:reason

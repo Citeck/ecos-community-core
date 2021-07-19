@@ -9,6 +9,7 @@ import org.springframework.extensions.surf.util.ISO8601DateFormat;
 import ru.citeck.ecos.cmmn.CMMNUtils;
 import ru.citeck.ecos.cmmn.model.*;
 import ru.citeck.ecos.cmmn.service.CaseExportService;
+import ru.citeck.ecos.commons.json.Json;
 import ru.citeck.ecos.icase.activity.dto.CaseActivity;
 import ru.citeck.ecos.icase.activity.service.CaseActivityService;
 import ru.citeck.ecos.model.*;
@@ -471,6 +472,12 @@ public class CasePlanModelExport {
                         if (value.getClass().equals(Date.class)) {
                             element.getOtherAttributes().put(qName, ISO8601DateFormat.format((Date) value));
                         } else {
+                            if (value instanceof Collection) {
+                                String strValue = Json.getMapper().toString(value);
+                                if (strValue != null) {
+                                    value = strValue;
+                                }
+                            }
                             element.getOtherAttributes().put(qName, value.toString());
                         }
                     } else {

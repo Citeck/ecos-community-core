@@ -1,6 +1,0 @@
-{
-  "id": "workflow-task",
-  "name": "Задача бизнес-процесса",
-  "parent": "emodel/type@base",
-  "inheritActions": true
-}

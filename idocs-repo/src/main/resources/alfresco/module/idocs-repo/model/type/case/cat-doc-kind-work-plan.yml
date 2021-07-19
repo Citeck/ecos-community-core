@@ -1,0 +1,10 @@
+---
+id: cat-doc-type-general-case/cat-doc-kind-work-plan
+
+name:
+  en: Work plan
+  ru: План работ
+
+parentRef: emodel/type@cat-doc-type-general-case
+
+defaultCreateVariant: false

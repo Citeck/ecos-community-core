@@ -9,6 +9,7 @@ import org.alfresco.service.cmr.repository.ContentService;
 import org.alfresco.service.cmr.repository.NodeRef;
 import org.alfresco.service.cmr.workflow.WorkflowService;
 import org.alfresco.util.ParameterCheck;
+import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import ru.citeck.ecos.records2.RecordRef;
@@ -33,12 +34,14 @@ public class EcosBpmAppModelUtils {
         ParameterCheck.mandatory("nodeRef", nodeRef);
 
         ProcessDto processDto = recordsService.getMeta(RecordRef.valueOf(nodeRef.toString()), ProcessDto.class);
-        ParameterCheck.mandatory("engine", processDto.getEngineId());
-
+        String engineId = processDto.engineId;
+        if (StringUtils.isBlank(engineId)) {
+            engineId = "flowable";
+        }
         ContentReader contentReader = contentService.getReader(nodeRef, ContentModel.PROP_CONTENT);
 
         try (InputStream in = contentReader.getReader().getContentInputStream()) {
-            workflowService.deployDefinition(processDto.getEngineId(), in, contentReader.getMimetype());
+            workflowService.deployDefinition(engineId, in, contentReader.getMimetype());
         } catch (IOException e) {
             throw new RuntimeException(e);
         }

@@ -1,6 +1,0 @@
-{
-    "id": "person",
-    "name": "Person",
-    "inheritActions": true,
-    "dashboardType": "profile-details"
-}

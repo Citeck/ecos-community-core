@@ -4,7 +4,9 @@ import ecos.com.google.common.cache.CacheBuilder;
 import ecos.com.google.common.cache.CacheLoader;
 import ecos.com.google.common.cache.LoadingCache;
 import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
 import org.alfresco.repo.i18n.MessageService;
+import org.alfresco.repo.transaction.AlfrescoTransactionSupport;
 import org.alfresco.service.ServiceRegistry;
 import org.alfresco.service.cmr.dictionary.DictionaryService;
 import org.alfresco.service.cmr.repository.NodeRef;
@@ -12,11 +14,16 @@ import org.alfresco.service.cmr.repository.NodeService;
 import org.alfresco.service.cmr.search.SearchService;
 import org.alfresco.service.namespace.NamespaceService;
 import org.alfresco.service.namespace.QName;
+import org.jetbrains.annotations.Nullable;
+import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 import ru.citeck.ecos.graphql.node.GqlAlfNode;
 import ru.citeck.ecos.graphql.node.GqlQName;
+import ru.citeck.ecos.model.lib.status.service.StatusService;
 import ru.citeck.ecos.records2.RecordsService;
 import ru.citeck.ecos.records2.graphql.GqlContext;
 import ru.citeck.ecos.security.EcosPermissionService;
+import ru.citeck.ecos.service.CiteckServices;
+import ru.citeck.ecos.utils.NodeUtils;
 
 import java.util.Collection;
 import java.util.List;
@@ -25,9 +32,10 @@ import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
+@Slf4j
 public class AlfGqlContext extends GqlContext {
 
-    private LoadingCache<NodeRef, GqlAlfNode> nodes;
+    private LoadingCache<NodeRef, GqlAlfNode> nodesCache;
     private LoadingCache<Object, Optional<GqlQName>> qnames;
 
     private final ServiceRegistry serviceRegistry;
@@ -42,6 +50,10 @@ public class AlfGqlContext extends GqlContext {
     private final MessageService messageService;
     @Getter
     private final EcosPermissionService ecosPermissionService;
+    @Getter
+    private final NodeUtils nodeUtils;
+
+    private final StatusService statusService;
 
     private final Map<String, Object> servicesCache = new ConcurrentHashMap<>();
 
@@ -57,13 +69,25 @@ public class AlfGqlContext extends GqlContext {
         this.nodeService = serviceRegistry.getNodeService();
         this.messageService = serviceRegistry.getMessageService();
         this.ecosPermissionService = (EcosPermissionService) serviceRegistry.getService(EcosPermissionService.QNAME);
+        this.nodeUtils = (NodeUtils) serviceRegistry.getService(NodeUtils.QNAME);
 
-        nodes = CacheBuilder.newBuilder()
+        statusService = getStatusService(serviceRegistry);
+
+        nodesCache = CacheBuilder.newBuilder()
                             .maximumSize(500)
                             .build(CacheLoader.from(this::createNode));
         qnames = CacheBuilder.newBuilder()
                              .maximumSize(1000)
                              .build(CacheLoader.from(this::createQName));
+    }
+
+    private StatusService getStatusService(ServiceRegistry serviceRegistry) {
+        try {
+            return (StatusService) serviceRegistry.getService(CiteckServices.STATUS_SERVICE_SERVICE);
+        } catch (NoSuchBeanDefinitionException exception) {
+            log.info("StatusService was not found");
+            return null;
+        }
     }
 
     public List<GqlAlfNode> getNodes(Collection<?> keys) {
@@ -81,10 +105,13 @@ public class AlfGqlContext extends GqlContext {
         NodeRef nodeRef = null;
         if (key instanceof NodeRef) {
             nodeRef = (NodeRef) key;
-        } else if (key instanceof String && NodeRef.isNodeRef((String) key)) {
-            nodeRef = new NodeRef((String) key);
+        } else if (nodeUtils.isNodeRef(key)) {
+            nodeRef = nodeUtils.getNodeRef(key);
         }
-        return nodeRef == null ? Optional.empty() : Optional.of(nodes.getUnchecked(nodeRef));
+        if (nodeRef == null) {
+            return Optional.empty();
+        }
+        return Optional.of(isReadOnlyTxn() ? nodesCache.getUnchecked(nodeRef) : createNode(nodeRef));
     }
 
     private GqlAlfNode createNode(NodeRef nodeRef) {
@@ -131,6 +158,11 @@ public class AlfGqlContext extends GqlContext {
         return serviceRegistry;
     }
 
+    @Nullable
+    public StatusService getStatusService() {
+        return this.statusService;
+    }
+
     @SuppressWarnings("unchecked")
     public <T> T getService(QName name) {
         return (T) serviceRegistry.getService(name);
@@ -141,5 +173,10 @@ public class AlfGqlContext extends GqlContext {
         return (T) servicesCache.computeIfAbsent(beanId, bean ->
             serviceRegistry.getService(QName.createQName(null, beanId))
         );
+    }
+
+    private boolean isReadOnlyTxn() {
+        AlfrescoTransactionSupport.TxnReadState readState = AlfrescoTransactionSupport.getTransactionReadState();
+        return AlfrescoTransactionSupport.TxnReadState.TXN_READ_ONLY.equals(readState);
     }
 }

@@ -1,0 +1,11 @@
+---
+id: cat-doc-type-general-case/cat-doc-kind-application
+
+name:
+  ru: Заявка
+  en: Application
+
+parentRef: emodel/type@cat-doc-type-general-case
+
+defaultCreateVariant: false
+

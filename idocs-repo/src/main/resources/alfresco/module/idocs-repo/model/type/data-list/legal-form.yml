@@ -1,0 +1,21 @@
+---
+id: legal-form
+
+name:
+  en: Legal Form
+  ru: Организационно-правовая форма
+
+parentRef: emodel/type@data-list
+journalRef: uiserv/journal@legal-form
+formRef: uiserv/form@legal-form-form
+
+properties:
+  alfType: idocs:legalForm
+  alfRoot: /app:company_home/app:dictionary/cm:dataLists/cm:legal-form
+
+model:
+  attributes:
+    - id: idocs:legalFormCountry
+      type: ASSOC
+      config:
+        typeRef: emodel/type@country-iso3166

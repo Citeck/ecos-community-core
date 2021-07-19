@@ -35,6 +35,7 @@ import java.util.List;
 public class GenerateContentActionExecuter extends ActionExecuterAbstractBase {
 
     public static final String NAME = "generate-content";
+    public static final String PARAM_HISTORY_MAJOR_VERSION = "history-major-version";
     public static final String PARAM_HISTORY_DESCRIPTION = "history-description";
 
     private ContentFromTemplateGenerator contentFromTemplateGenerator;
@@ -45,11 +46,12 @@ public class GenerateContentActionExecuter extends ActionExecuterAbstractBase {
         if (!nodeService.exists(nodeRef)) {
             return;
         }
+        boolean majorVersion = Boolean.parseBoolean(String.valueOf(action.getParameterValue(PARAM_HISTORY_MAJOR_VERSION)));
         if (action.getParameterValue(PARAM_HISTORY_DESCRIPTION) != null) {
             String historyDescriptionText = (String) action.getParameterValue(PARAM_HISTORY_DESCRIPTION);
-            contentFromTemplateGenerator.generateContentByTemplate(nodeRef, historyDescriptionText);
+            contentFromTemplateGenerator.generateContentByTemplate(nodeRef, majorVersion, historyDescriptionText);
         } else {
-            contentFromTemplateGenerator.generateContentByTemplate(nodeRef);
+            contentFromTemplateGenerator.generateContentByTemplate(nodeRef, majorVersion, null);
         }
     }
 

@@ -83,6 +83,7 @@
                 <field prop="idocs:kpp"/>
                 <field prop="idocs:inila"/>
                 <field prop="idocs:ogrn"/>
+                <field prop="idocs:gln"/>
 
                 <view template="dadata-loader" >
                     <param name="attributes">
@@ -168,6 +169,7 @@
                 <field prop="idocs:inn"/>
                 <field prop="idocs:kpp"/>
                 <field prop="idocs:ogrn"/>
+                <field prop="idocs:gln"/>
             </view>
             <view>
                 <view>

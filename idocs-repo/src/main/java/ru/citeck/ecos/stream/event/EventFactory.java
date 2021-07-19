@@ -26,6 +26,7 @@ import ru.citeck.ecos.history.TaskHistoryUtils;
 import ru.citeck.ecos.model.ActivityModel;
 import ru.citeck.ecos.model.CiteckWorkflowModel;
 import ru.citeck.ecos.model.ICaseTaskModel;
+import ru.citeck.ecos.role.CaseRoleService;
 import ru.citeck.ecos.spring.registry.MappingRegistry;
 import ru.citeck.ecos.utils.AuthorityUtils;
 import ru.citeck.ecos.workflow.listeners.ListenerUtils;
@@ -60,6 +61,7 @@ public class EventFactory {
     private final NodeService nodeService;
     private final TaskHistoryUtils taskHistoryUtils;
     private final MappingRegistry<String, String> panelOfAuthorized;
+    private final CaseRoleService caseRoleService;
 
     private final WorkflowQNameConverter qNameConverter;
     private final String VAR_OUTCOME_PROPERTY_NAME;
@@ -74,7 +76,8 @@ public class EventFactory {
                         AuthorityService authorityService,
                         @Qualifier("panelOfAuthorized.mappingRegistry") MappingRegistry<String, String>
                                 panelOfAuthorized, @Qualifier("NodeService") NodeService nodeService,
-                        TaskHistoryUtils taskHistoryUtils) {
+                        TaskHistoryUtils taskHistoryUtils,
+                        CaseRoleService caseRoleService) {
         this.documentResolverRegistry = documentResolverRegistry;
         this.authorityUtils = authorityUtils;
         this.namespaceService = namespaceService;
@@ -83,6 +86,7 @@ public class EventFactory {
         this.panelOfAuthorized = panelOfAuthorized;
         this.nodeService = nodeService;
         this.taskHistoryUtils = taskHistoryUtils;
+        this.caseRoleService = caseRoleService;
 
         VAR_OUTCOME_PROPERTY_NAME = qNameConverter.mapQNameToName(WorkflowModel.PROP_OUTCOME_PROPERTY_NAME);
         VAR_COMMENT = qNameConverter.mapQNameToName(WorkflowModel.PROP_COMMENT);
@@ -128,7 +132,7 @@ public class EventFactory {
             panelOfAuthorized.getMapping().forEach((auth, description) -> authorized.add(auth));
 
             if (StringUtils.isNotBlank(assignee) && CollectionUtils.isNotEmpty(authorized)) {
-                List<NodeRef> listRoles = taskHistoryUtils.getListRoles(document);
+                List<NodeRef> listRoles = caseRoleService.getRoles(document);
                 String authorizedName = taskHistoryUtils.getAuthorizedName(authorized, listRoles, assignee);
                 roleName = StringUtils.isNoneBlank(authorizedName) ? authorizedName : taskHistoryUtils.getRoleName(
                         packageAssocs, assignee, task.getId(), ActivitiConstants.ENGINE_ID);

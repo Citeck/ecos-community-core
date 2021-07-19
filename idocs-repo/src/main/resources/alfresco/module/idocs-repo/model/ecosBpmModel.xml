@@ -34,6 +34,9 @@
                     <type>d:content</type>
                     <index enabled="false" />
                 </property>
+                <property name="ecosbpm:startFormRef">
+                    <type>d:text</type>
+                </property>
             </properties>
             <associations>
                 <association name="ecosbpm:processAuthorAssoc">

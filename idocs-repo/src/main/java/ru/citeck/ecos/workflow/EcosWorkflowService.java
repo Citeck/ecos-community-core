@@ -5,16 +5,19 @@ import lombok.NonNull;
 import org.alfresco.model.ContentModel;
 import org.alfresco.repo.workflow.WorkflowModel;
 import org.alfresco.service.cmr.dictionary.DictionaryService;
+import org.alfresco.service.cmr.repository.ChildAssociationRef;
 import org.alfresco.service.cmr.repository.NodeRef;
 import org.alfresco.service.cmr.repository.NodeService;
 import org.alfresco.service.cmr.workflow.*;
 import org.alfresco.service.namespace.NamespaceService;
 import org.alfresco.service.namespace.QName;
+import org.alfresco.service.namespace.RegexQNamePattern;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import ru.citeck.ecos.model.CiteckWorkflowModel;
+import ru.citeck.ecos.utils.NodeUtils;
 
 import java.io.Serializable;
 import java.util.*;
@@ -30,16 +33,19 @@ public class EcosWorkflowService {
     private DictionaryService dictionaryService;
     private NamespaceService namespaceService;
     private NodeService nodeService;
+    private NodeUtils nodeUtils;
 
     @Autowired
     public EcosWorkflowService(@Qualifier("WorkflowService") WorkflowService workflowService,
                                DictionaryService dictionaryService,
                                NamespaceService namespaceService,
-                               NodeService nodeService) {
+                               NodeService nodeService,
+                               NodeUtils nodeUtils) {
         this.workflowService = workflowService;
         this.dictionaryService = dictionaryService;
         this.namespaceService = namespaceService;
         this.nodeService = nodeService;
+        this.nodeUtils = nodeUtils;
     }
 
     public void sendSignal(NodeRef nodeRef, String signalName) {
@@ -97,6 +103,34 @@ public class EcosWorkflowService {
 
     public WorkflowInstance cancelWorkflowInstance(String workflowId) {
         return workflowService.cancelWorkflow(workflowId);
+    }
+
+    public WorkflowInstance cancelWorkflowRootInstance(String workflowId) {
+        WorkflowInstance instanceById = getInstanceById(workflowId);
+        if (instanceById == null) {
+            return cancelWorkflowInstance(workflowId);
+        }
+        NodeRef instanceRefByTaskName = instanceById.getWorkflowPackage();
+        if (instanceRefByTaskName == null) {
+            return cancelWorkflowInstance(workflowId);
+        }
+        List<ChildAssociationRef> childrenTaskAssocRefs = nodeService.getChildAssocs(instanceRefByTaskName);
+        if (childrenTaskAssocRefs.isEmpty()) {
+            return cancelWorkflowInstance(workflowId);
+        }
+        NodeRef childrenTaskAssocRef = childrenTaskAssocRefs.get(0).getChildRef();
+        List<ChildAssociationRef> parentAssocRefs = nodeService
+            .getParentAssocs(childrenTaskAssocRef, WorkflowModel.ASSOC_PACKAGE_CONTAINS,
+                RegexQNamePattern.MATCH_ALL);
+        for (ChildAssociationRef parentAssocRef : parentAssocRefs) {
+            NodeRef rootWorkflowPackage = parentAssocRef.getParentRef();
+            String rootWorkflowId = (String) nodeService.getProperty(
+                rootWorkflowPackage, WorkflowModel.PROP_WORKFLOW_INSTANCE_ID);
+            if (rootWorkflowId != null) {
+                return cancelWorkflowInstance(rootWorkflowId);
+            }
+        }
+        return cancelWorkflowInstance(workflowId);
     }
 
     public WorkflowDefinition getDefinitionByName(String workflowName) {
@@ -159,21 +193,21 @@ public class EcosWorkflowService {
     }
 
     private Serializable convertToNode(Object value) {
-        if (value instanceof String && NodeRef.isNodeRef((String) value)) {
-            return new NodeRef((String) value);
-        } else if (value instanceof ArrayList) {
-            ArrayList<NodeRef> refList = new ArrayList<>();
-            for (Object listObject : (ArrayList) value) {
-                if (listObject instanceof String && NodeRef.isNodeRef((String) listObject)) {
-                    refList.add(new NodeRef((String) listObject));
-                } else if (listObject instanceof NodeRef) {
-                    refList.add((NodeRef) listObject);
+
+        if (value instanceof Collection) {
+            ArrayList<Serializable> values = new ArrayList<>();
+            for (Object element : (Collection<?>) value) {
+                Serializable converted = convertToNode(element);
+                if (converted != null) {
+                    values.add(converted);
                 }
             }
-            return refList;
-        } else {
-            return (Serializable) value;
+            return values;
         }
+        if (value instanceof String && NodeRef.isNodeRef((String) value)) {
+            return nodeUtils.getNodeRefOrNull(value);
+        }
+        return (Serializable) value;
     }
 
     private boolean isNotEmptyValue(Object value) {

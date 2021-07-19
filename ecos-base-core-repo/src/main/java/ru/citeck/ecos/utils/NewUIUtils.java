@@ -49,7 +49,7 @@ public class NewUIUtils {
     private final RecordsService recordsService;
     private final EcosTypeService ecosTypeService;
 
-    private final LoadingCache<RecordRefUserKey, String> uiTypeByRecord;
+    private final LoadingCache<RecordRef, String> uiTypeByRecord;
     private final LoadingCache<String, Boolean> isNewUIEnabledForUserCache;
 
     @Autowired
@@ -82,13 +82,6 @@ public class NewUIUtils {
     }
 
     public void invalidateCacheForUser(String username) {
-        List<RecordRefUserKey> recordRefUserKeys = new ArrayList<>();
-        uiTypeByRecord.asMap().forEach((k, v) -> {
-            if (k.getUserName().equals(username)) {
-                recordRefUserKeys.add(k);
-            }
-        });
-        uiTypeByRecord.invalidateAll(recordRefUserKeys);
         isNewUIEnabledForUserCache.invalidate(username);
     }
 
@@ -101,9 +94,9 @@ public class NewUIUtils {
     }
 
     public boolean isOldCardDetailsRequired(RecordRef recordRef) {
-        return getUITypeByRecord(new RecordRefUserKey(
+        return getUITypeForRecordAndUser(
             recordRef,
-            authenticationService.getCurrentUserName())
+            authenticationService.getCurrentUserName()
         ).equals(UI_TYPE_SHARE);
     }
 
@@ -117,16 +110,27 @@ public class NewUIUtils {
     }
 
     public String getUITypeForRecord(RecordRef recordRef) {
-        return getUITypeForRecord(recordRef, authenticationService.getCurrentUserName());
-    }
-
-    public String getUITypeForRecord(RecordRef recordRef, String userName) {
         try {
-            return uiTypeByRecord.getUnchecked(new RecordRefUserKey(recordRef, userName));
+            return uiTypeByRecord.getUnchecked(recordRef);
         } catch (Exception e) {
             log.error("Exception. RecordRef: " + recordRef, e);
             return "";
         }
+    }
+
+    public String getUITypeForRecordAndUser(RecordRef recordRef) {
+        return getUITypeForRecordAndUser(recordRef, authenticationService.getCurrentUserName());
+    }
+
+    public String getUITypeForRecordAndUser(RecordRef recordRef, String userName) {
+        String uiType = getUITypeForRecord(recordRef);
+
+        String resStr = uiType;
+        if (StringUtils.isBlank(uiType)) {
+            resStr = isNewUIEnabledForUser(userName) ? UI_TYPE_REACT : UI_TYPE_SHARE;
+        }
+
+        return resStr;
     }
 
     private boolean isNewUIEnabledForUserImpl(String username) {
@@ -135,9 +139,7 @@ public class NewUIUtils {
         return isNewUIRedirectEnabled || isNewJournalsGroupMember(username) || isNewJournalsEnabledForUser(username);
     }
 
-    private String getUITypeByRecord(RecordRefUserKey refAndUser) {
-
-        RecordRef recordRef = refAndUser.getRecordRef();
+    private String getUITypeByRecord(RecordRef recordRef) {
 
         String att;
         if (recordRef.getSourceId().equals("site")) {
@@ -161,13 +163,15 @@ public class NewUIUtils {
 
         String resStr;
         if (res.isNull() || StringUtils.isBlank(res.asText())) {
-            resStr = isNewUIEnabledForUser(refAndUser.getUserName()) ? UI_TYPE_REACT : UI_TYPE_SHARE;
+            resStr = "";
         } else {
             resStr = res.asText();
+
             if (!UI_TYPE_SHARE.equals(resStr) && !UI_TYPE_REACT.equals(resStr)) {
-                resStr = isNewUIEnabledForUser(refAndUser.getUserName()) ? UI_TYPE_REACT : UI_TYPE_SHARE;
+                resStr = "";
             }
         }
+
         return resStr;
     }
 
@@ -178,8 +182,8 @@ public class NewUIUtils {
         }
         AtomicReference<String> uiType = new AtomicReference<>();
         ecosTypeService.forEachAsc(ecosTypeRef, type -> {
-            if (type.getAttributes() != null) {
-                String parentUiType = type.getAttributes().get(UI_TYPE_ATT).asText();
+            if (type.getProperties() != null) {
+                String parentUiType = type.getProperties().get(UI_TYPE_ATT).asText();
                 if (StringUtils.isNotBlank(parentUiType)) {
                     uiType.set(parentUiType);
                     return true;

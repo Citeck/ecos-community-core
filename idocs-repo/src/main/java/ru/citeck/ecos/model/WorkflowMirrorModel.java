@@ -22,26 +22,27 @@ import org.alfresco.service.namespace.QName;
 
 public interface WorkflowMirrorModel {
 
-    public static final String NAMESPACE = "http://www.citeck.ru/model/workflow-mirror/1.0";
+    String NAMESPACE = "http://www.citeck.ru/model/workflow-mirror/1.0";
 
-    public static final QName ASPECT_ATTRIBUTES = QName.createQName(NAMESPACE, "attributes");
-    public static final QName PROP_TASK_TYPE = QName.createQName(NAMESPACE, "taskType");
-    public static final QName PROP_WORKFLOW_ID = QName.createQName(NAMESPACE, "workflowId");
-    public static final QName PROP_ACTORS = QName.createQName(NAMESPACE, "actors");
-    public static final QName PROP_ASSIGNEE = QName.createQName(NAMESPACE, "assignee");
-    public static final QName PROP_DOCUMENT = QName.createQName(NAMESPACE, "document");
-    public static final QName PROP_DOCUMENT_TYPE = QName.createQName(NAMESPACE, "documentType");
-    public static final QName PROP_DOCUMENT_TYPE_TITLE = QName.createQName(NAMESPACE, "documentTypeTitle");
-    public static final QName PROP_DOCUMENT_KIND = QName.createQName(NAMESPACE, "documentKind");
-    public static final QName PROP_DOCUMENT_KIND_TITLE = QName.createQName(NAMESPACE, "documentKindTitle");
-    public static final QName ASPECT_MIRROR_TASKS = QName.createQName(NAMESPACE, "mirrorTasks");
-    public static final QName ASSOC_MIRROR_TASK = QName.createQName(NAMESPACE, "mirrorTask");
-    public static final QName PROP_ASSIGNEE_MANAGER = QName.createQName(NAMESPACE, "assigneeManager");
-    public static final QName PROP_WORKFLOW_NAME = QName.createQName(NAMESPACE, "workflowName");
-    public static final QName PROP_WORKFLOW_INITIATOR = QName.createQName(NAMESPACE, "workflowInitiator");
-    public static final QName PROP_COUNTERPARTY = QName.createQName(NAMESPACE, "counterparty");
-    public static final QName PROP_CASE_STATUS = QName.createQName(NAMESPACE, "caseStatus");
-    public static final QName PROP_DOCUMENT_ECOS_TYPE = QName.createQName(NAMESPACE, "documentEcosType");
+    QName ASPECT_ATTRIBUTES = QName.createQName(NAMESPACE, "attributes");
+    QName PROP_TASK_TYPE = QName.createQName(NAMESPACE, "taskType");
+    QName PROP_WORKFLOW_ID = QName.createQName(NAMESPACE, "workflowId");
+    QName PROP_ACTORS = QName.createQName(NAMESPACE, "actors");
+    QName PROP_ASSIGNEE = QName.createQName(NAMESPACE, "assignee");
+    QName PROP_DOCUMENT = QName.createQName(NAMESPACE, "document");
+    QName PROP_DOCUMENT_TYPE = QName.createQName(NAMESPACE, "documentType");
+    QName PROP_DOCUMENT_TYPE_TITLE = QName.createQName(NAMESPACE, "documentTypeTitle");
+    QName PROP_DOCUMENT_KIND = QName.createQName(NAMESPACE, "documentKind");
+    QName PROP_DOCUMENT_KIND_TITLE = QName.createQName(NAMESPACE, "documentKindTitle");
+    QName ASPECT_MIRROR_TASKS = QName.createQName(NAMESPACE, "mirrorTasks");
+    QName ASSOC_MIRROR_TASK = QName.createQName(NAMESPACE, "mirrorTask");
+    QName PROP_ASSIGNEE_MANAGER = QName.createQName(NAMESPACE, "assigneeManager");
+    QName PROP_WORKFLOW_NAME = QName.createQName(NAMESPACE, "workflowName");
+    QName PROP_WORKFLOW_INITIATOR = QName.createQName(NAMESPACE, "workflowInitiator");
+    QName PROP_COUNTERPARTY = QName.createQName(NAMESPACE, "counterparty");
+    QName PROP_CASE_STATUS = QName.createQName(NAMESPACE, "caseStatus");
+    QName PROP_CASE_STATUS_PROP = QName.createQName(NAMESPACE, "caseStatus-prop");
+    QName PROP_DOCUMENT_ECOS_TYPE = QName.createQName(NAMESPACE, "documentEcosType");
 
-    public static final QName ASSOC_ASSIGNEE_MIRROR = QName.createQName(NAMESPACE, "assigneeMirror");
+    QName ASSOC_ASSIGNEE_MIRROR = QName.createQName(NAMESPACE, "assigneeMirror");
 }

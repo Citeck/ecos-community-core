@@ -1,0 +1,15 @@
+---
+id: legal-entity
+
+name:
+  en: Legal entity
+  ru: Юридическое лицо
+
+parentRef: emodel/type@data-list
+formRef: uiserv/form@legal-entity-form
+journalRef: uiserv/journal@legal-entities
+
+properties:
+  alfType: idocs:legalEntity
+  alfRoot: /app:company_home/app:dictionary/cm:dataLists/cm:legal-entities
+

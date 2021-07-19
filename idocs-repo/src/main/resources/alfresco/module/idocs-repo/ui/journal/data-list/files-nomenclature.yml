@@ -1,0 +1,9 @@
+---
+id: files-nomenclature
+name: { ru: Номенклатура дел, en: Files Register }
+
+columns:
+  - id: idocs:fileIndex
+  - id: idocs:fileName
+  - id: idocs:fileYear
+

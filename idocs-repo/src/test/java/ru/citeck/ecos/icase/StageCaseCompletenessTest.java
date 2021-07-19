@@ -25,7 +25,7 @@ import java.util.*;
 /**
  * @author Maxim Strizhov
  */
-
+@Ignore
 @RunWith(SpringJUnit4ClassRunner.class)
 //@ContextConfiguration(loader=ApplicationContextHelper.class)
 @Transactional

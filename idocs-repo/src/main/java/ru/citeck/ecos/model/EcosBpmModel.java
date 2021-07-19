@@ -15,4 +15,5 @@ public interface EcosBpmModel {
     QName PROP_PROCESS_ID = QName.createQName(NAMESPACE, "processId");
     QName PROP_ENGINE = QName.createQName(NAMESPACE, "engine");
     QName PROP_MODEL_IMAGE = QName.createQName(NAMESPACE, "modelImage");
+    QName PROP_START_FORM_REF = QName.createQName(NAMESPACE, "startFormRef");
 }

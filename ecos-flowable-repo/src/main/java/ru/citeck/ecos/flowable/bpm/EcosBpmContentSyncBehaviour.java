@@ -13,6 +13,7 @@ import org.alfresco.service.cmr.repository.*;
 import org.alfresco.service.namespace.QName;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.flowable.bpmn.model.ExtensionAttribute;
 import org.flowable.ui.modeler.domain.Model;
 import org.flowable.bpmn.BpmnAutoLayout;
 import org.flowable.bpmn.converter.BpmnXMLConverter;
@@ -45,6 +46,10 @@ public class EcosBpmContentSyncBehaviour extends AbstractBehaviour
     private static final QName PROP_JSON = EcosBpmModel.PROP_JSON_MODEL;
     private static final QName PROP_THUMBNAIL = EcosBpmModel.PROP_THUMBNAIL;
     private static final QName PROP_MODEL_IMG = EcosBpmModel.PROP_MODEL_IMAGE;
+
+    private static final List<QName> EXTENSION_PROC_ATTS = Collections.singletonList(EcosBpmModel.PROP_START_FORM_REF);
+
+    private static final String ECOS_BPMN_NS = "http://www.citeck.ru/ecos/bpmn/1.0";
 
     private static final int THUMBNAIL_WIDTH = 300;
 
@@ -145,6 +150,10 @@ public class EcosBpmContentSyncBehaviour extends AbstractBehaviour
         nodeProps.put(EcosBpmModel.PROP_PROCESS_ID, process.getId());
         nodeProps.put(ContentModel.PROP_TITLE, process.getName());
         nodeProps.put(ContentModel.PROP_DESCRIPTION, process.getDocumentation());
+        nodeProps.put(EcosBpmModel.PROP_START_FORM_REF, process.getAttributeValue(
+            ECOS_BPMN_NS,
+            EcosBpmModel.PROP_START_FORM_REF.getLocalName()
+        ));
 
         return nodeProps;
     }
@@ -158,6 +167,7 @@ public class EcosBpmContentSyncBehaviour extends AbstractBehaviour
 
         List<QName> procProps = Arrays.asList(
                 EcosBpmModel.PROP_PROCESS_ID,
+                EcosBpmModel.PROP_START_FORM_REF,
                 ContentModel.PROP_TITLE,
                 ContentModel.PROP_DESCRIPTION
         );
@@ -166,7 +176,12 @@ public class EcosBpmContentSyncBehaviour extends AbstractBehaviour
         after.forEach((prop, value) -> {
             if (procProps.contains(prop) && !Objects.equals(before.get(prop), value)) {
                 if (value instanceof MLText) {
-                    changed.put(prop, ((MLText) value).getClosestValue(Locale.ENGLISH));
+                    Object beforeVal = before.get(prop);
+                    if (beforeVal instanceof MLText) {
+                        changed.put(prop, getChangedValue((MLText) beforeVal, (MLText) value));
+                    } else {
+                        changed.put(prop, ((MLText) value).getClosestValue(Locale.ENGLISH));
+                    }
                 } else if (value instanceof String) {
                     changed.put(prop, (String) value);
                 }
@@ -189,6 +204,8 @@ public class EcosBpmContentSyncBehaviour extends AbstractBehaviour
             changed.forEach((prop, value) -> {
                 if (EcosBpmModel.PROP_PROCESS_ID.equals(prop)) {
                     process.setId(value);
+                } else if (EcosBpmModel.PROP_START_FORM_REF.equals(prop)) {
+                    setAttributeValue(process, EcosBpmModel.PROP_START_FORM_REF.getLocalName(), value);
                 } else if (ContentModel.PROP_TITLE.equals(prop)) {
                     process.setName(value);
                 } else if (ContentModel.PROP_DESCRIPTION.equals(prop)) {
@@ -200,6 +217,35 @@ public class EcosBpmContentSyncBehaviour extends AbstractBehaviour
             byte[] bytes = xmlConverter.convertToXML(bpmnModel, ENCODING);
             writeBytes(nodeRef, PROP_XML, Format.XML.mimetype(), bytes);
         }
+    }
+
+    private void setAttributeValue(Process process, String name, String value) {
+
+        List<ExtensionAttribute> attributes = process.getAttributes().get(name);
+        if (attributes != null && !attributes.isEmpty()) {
+            for (ExtensionAttribute att : attributes) {
+                if (ECOS_BPMN_NS.equals(att.getNamespace())) {
+                    att.setValue(value);
+                    return;
+                }
+            }
+        }
+        ExtensionAttribute newAtt = new ExtensionAttribute();
+        newAtt.setNamespace(ECOS_BPMN_NS);
+        newAtt.setName(name);
+        newAtt.setValue(value);
+
+        process.addAttribute(newAtt);
+    }
+
+    private String getChangedValue(MLText before, MLText after) {
+        for (Map.Entry<Locale, String> entry : after.entrySet()) {
+            if (!Objects.equals(before.get(entry.getKey()), entry.getValue())) {
+                String value = entry.getValue();
+                return value == null ? "" : value;
+            }
+        }
+        return after.getClosestValue(Locale.ENGLISH);
     }
 
     private BpmnModel xmlToJson(NodeRef nodeRef, ContentData data) {
@@ -275,6 +321,17 @@ public class EcosBpmContentSyncBehaviour extends AbstractBehaviour
 
             BpmnModel bpmnModel = jsonConverter.convertToBpmnModel(jsonModel);
             BpmnXMLConverter xmlConverter = new BpmnXMLConverter();
+
+            bpmnModel.addNamespace("ecos", ECOS_BPMN_NS);
+            Process process = bpmnModel.getProcesses().get(0);
+            Map<QName, Serializable> nodeProps = nodeService.getProperties(nodeRef);
+            EXTENSION_PROC_ATTS.forEach(att -> {
+                Object value = nodeProps.get(att);
+                if (value != null) {
+                    value = value.toString();
+                }
+                setAttributeValue(process, att.getLocalName(), (String) value);
+            });
 
             return new BpmnModelData(bpmnModel, xmlConverter.convertToXML(bpmnModel, ENCODING));
         });

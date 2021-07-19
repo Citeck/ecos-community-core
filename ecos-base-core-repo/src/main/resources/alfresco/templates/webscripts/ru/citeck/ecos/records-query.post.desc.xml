@@ -5,6 +5,6 @@
     <url>/citeck/ecos/records/query</url>
     <format default="json"/>
     <authentication>user</authentication>
-    <transaction allow="readonly">required</transaction>
+    <transaction>none</transaction>
     <lifecycle>public_api</lifecycle>
 </webscript>

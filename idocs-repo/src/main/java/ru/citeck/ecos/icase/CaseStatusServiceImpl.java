@@ -1,13 +1,20 @@
 package ru.citeck.ecos.icase;
 
+import lombok.Setter;
 import org.alfresco.model.ContentModel;
 import org.alfresco.repo.policy.ClassPolicyDelegate;
 import org.alfresco.repo.policy.PolicyComponent;
-import org.alfresco.service.cmr.repository.AssociationRef;
 import org.alfresco.service.cmr.repository.NodeRef;
 import org.alfresco.service.cmr.repository.NodeService;
 import org.alfresco.service.namespace.QName;
+import org.apache.commons.lang3.StringUtils;
+import org.jetbrains.annotations.Nullable;
+import org.springframework.beans.factory.annotation.Autowired;
 import ru.citeck.ecos.model.ICaseModel;
+import ru.citeck.ecos.model.lib.status.dto.StatusDef;
+import ru.citeck.ecos.model.lib.status.service.StatusService;
+import ru.citeck.ecos.node.EcosTypeService;
+import ru.citeck.ecos.records2.RecordRef;
 import ru.citeck.ecos.utils.DictionaryUtils;
 import ru.citeck.ecos.utils.LazyNodeRef;
 import ru.citeck.ecos.utils.RepoUtils;
@@ -24,6 +31,13 @@ public class CaseStatusServiceImpl implements CaseStatusService {
     private PolicyComponent policyComponent;
     private LazyNodeRef caseStatusesPath;
 
+    @Autowired @Setter
+    private CaseStatusAssocDao caseStatusAssocDao;
+    @Autowired @Setter
+    private EcosTypeService ecosTypeService;
+    @Autowired @Setter
+    private StatusService statusService;
+
     private ClassPolicyDelegate<CaseStatusPolicies.OnCaseStatusChangedPolicy> onCaseStatusChangedPolicyDelegate;
 
     public void init() {
@@ -36,25 +50,88 @@ public class CaseStatusServiceImpl implements CaseStatusService {
         mandatoryNodeRef("Case", caseRef);
         mandatoryNodeRef("Case status", caseStatusRef);
 
-        NodeRef beforeCaseStatus = RepoUtils.getFirstTargetAssoc(caseRef, ICaseModel.ASSOC_CASE_STATUS, nodeService);
+        NodeRef currentCaseStatus = caseStatusAssocDao.getStatusByAssoc(caseRef, ICaseModel.ASSOC_CASE_STATUS);
 
-        if (!Objects.equals(beforeCaseStatus, caseStatusRef)) {
-            if (beforeCaseStatus != null) {
-                List<AssociationRef> beforeCaseStatusSavedAssocs =
-                        nodeService.getTargetAssocs(caseRef, ICaseModel.ASSOC_CASE_STATUS_BEFORE);
-                for (AssociationRef assoc : beforeCaseStatusSavedAssocs) {
-                    nodeService.removeAssociation(assoc.getSourceRef(), assoc.getTargetRef(), assoc.getTypeQName());
-                }
-                nodeService.createAssociation(caseRef, beforeCaseStatus, ICaseModel.ASSOC_CASE_STATUS_BEFORE);
-                nodeService.removeAssociation(caseRef, beforeCaseStatus, ICaseModel.ASSOC_CASE_STATUS);
+        if (!Objects.equals(currentCaseStatus, caseStatusRef)) {
+            if (currentCaseStatus != null) {
+                clearBeforeCaseStatus(caseRef);
+                setBeforeCaseStatus(caseRef, currentCaseStatus);
             }
-            nodeService.createAssociation(caseRef, caseStatusRef, ICaseModel.ASSOC_CASE_STATUS);
+            setCaseStatus(caseRef, caseStatusRef);
             nodeService.setProperty(caseRef, ICaseModel.PROP_CASE_STATUS_CHANGED_DATETIME, new Date());
-            Set<QName> classes = new HashSet<>(DictionaryUtils.getNodeClassNames(caseStatusRef, nodeService));
-            CaseStatusPolicies.OnCaseStatusChangedPolicy changedPolicy;
-            changedPolicy = onCaseStatusChangedPolicyDelegate.get(caseStatusRef, classes);
-            changedPolicy.onCaseStatusChanged(caseRef, beforeCaseStatus, caseStatusRef);
+
+            triggerStatusChanged(caseRef, caseStatusRef, currentCaseStatus);
         }
+    }
+
+    private void clearBeforeCaseStatus(NodeRef caseRef) {
+        NodeRef beforeCaseStatus = caseStatusAssocDao.getStatusByAssoc(caseRef, ICaseModel.ASSOC_CASE_STATUS_BEFORE);
+        if (beforeCaseStatus == null) {
+            return;
+        }
+
+        if (isAlfRef(beforeCaseStatus)) {
+            nodeService.removeAssociation(caseRef, beforeCaseStatus, ICaseModel.ASSOC_CASE_STATUS_BEFORE);
+        } else {
+            nodeService.setProperty(caseRef, ICaseModel.ASSOC_CASE_STATUS_BEFORE_PROP, null);
+        }
+    }
+
+    private void setBeforeCaseStatus(NodeRef caseRef, NodeRef beforeCaseStatus) {
+        if (isAlfRef(beforeCaseStatus)) {
+            nodeService.createAssociation(caseRef, beforeCaseStatus, ICaseModel.ASSOC_CASE_STATUS_BEFORE);
+            nodeService.removeAssociation(caseRef, beforeCaseStatus, ICaseModel.ASSOC_CASE_STATUS);
+        } else {
+            nodeService.setProperty(caseRef, ICaseModel.ASSOC_CASE_STATUS_BEFORE_PROP, beforeCaseStatus.getId());
+        }
+    }
+
+    private void setCaseStatus(NodeRef caseRef, NodeRef caseStatusRef) {
+        if (isAlfRef(caseStatusRef)) {
+            nodeService.setProperty(caseRef, ICaseModel.ASSOC_CASE_STATUS_PROP, null);
+            nodeService.createAssociation(caseRef, caseStatusRef, ICaseModel.ASSOC_CASE_STATUS);
+        } else {
+            nodeService.setProperty(caseRef, ICaseModel.ASSOC_CASE_STATUS_PROP, caseStatusRef.getId());
+        }
+    }
+
+    private void triggerStatusChanged(NodeRef caseRef, NodeRef caseStatusRef, NodeRef beforeCaseStatus) {
+        Set<QName> classes;
+        if (isAlfRef(caseStatusRef)) {
+            classes = new HashSet<>(DictionaryUtils.getNodeClassNames(caseStatusRef, nodeService));
+        } else {
+            classes = Collections.singleton(ICaseModel.TYPE_CASE_STATUS);
+        }
+        CaseStatusPolicies.OnCaseStatusChangedPolicy changedPolicy;
+        changedPolicy = onCaseStatusChangedPolicyDelegate.get(caseStatusRef, classes);
+        changedPolicy.onCaseStatusChanged(caseRef, beforeCaseStatus, caseStatusRef);
+    }
+
+    @Override
+    public NodeRef getStatusByName(NodeRef node, String statusName) {
+        if (statusName == null) {
+            return null;
+        }
+        if (node == null) {
+            return getStatusByName(statusName);
+        }
+
+        RecordRef typeRef = ecosTypeService.getEcosType(node);
+        return getStatusByNameAndType(statusName, typeRef);
+    }
+
+    @Override
+    public NodeRef getStatusByNameAndType(String statusName, RecordRef etype) {
+        if (statusName == null || etype == null) {
+            return null;
+        }
+
+        StatusDef statusDef = statusService.getStatusDefByType(etype, statusName);
+        if (statusDef == null) {
+            return getStatusByName(statusName);
+        }
+
+        return caseStatusAssocDao.getVirtualStatus(etype.getId(), statusDef.getId());
     }
 
     @Override
@@ -70,8 +147,13 @@ public class CaseStatusServiceImpl implements CaseStatusService {
     }
 
     @Override
+    public NodeRef getEcosStatus(String etype, String statusName) {
+        return caseStatusAssocDao.getVirtualStatus(etype, statusName);
+    }
+
+    @Override
     public void setStatus(NodeRef document, String status) {
-        NodeRef statusRef = getStatusByName(status);
+        NodeRef statusRef = getStatusByName(document, status);
         if (statusRef == null) {
             throw new IllegalArgumentException("Status " + status + " not found!");
         }
@@ -81,37 +163,60 @@ public class CaseStatusServiceImpl implements CaseStatusService {
     @Override
     public String getStatus(NodeRef caseRef) {
         NodeRef statusRef = getStatusRef(caseRef);
-        return statusRef != null ? (String) nodeService.getProperty(statusRef, ContentModel.PROP_NAME) : null;
+        return getStatusName(caseRef, statusRef);
     }
 
     @Override
     public String getStatusBefore(NodeRef caseRef) {
-        NodeRef statusBeforeRef = getStatusBeforeRef(caseRef);
-        return statusBeforeRef != null ? (String) nodeService.getProperty(statusBeforeRef, ContentModel.PROP_NAME)
-                : null;
+        NodeRef statusRef = getStatusBeforeRef(caseRef);
+        return getStatusName(caseRef, statusRef);
+    }
+
+    @Nullable
+    public String getStatusName(NodeRef caseRef, NodeRef statusRef) {
+        if (statusRef == null) {
+            return null;
+        }
+
+        if (isAlfRef(statusRef)) {
+            return (String) nodeService.getProperty(statusRef, ContentModel.PROP_NAME);
+        } else {
+            StatusDef statusDef = getStatusDef(caseRef, statusRef.getId());
+            // PROP_NAME in caseStatusAssoc equals ID in statusDef
+            return statusDef != null ? statusDef.getId() : null;
+        }
     }
 
     @Override
     public NodeRef getStatusRef(NodeRef caseRef) {
-        return RepoUtils.getFirstTargetAssoc(caseRef, ICaseModel.ASSOC_CASE_STATUS, nodeService);
+        return caseStatusAssocDao.getStatusByAssoc(caseRef, ICaseModel.ASSOC_CASE_STATUS);
+    }
+
+    @Override
+    public StatusDef getStatusDef(NodeRef caseRef, String statusId) {
+        if (StringUtils.isBlank(statusId)) {
+            return null;
+        }
+        RecordRef ecosTypeRef = ecosTypeService.getEcosType(caseRef);
+        return statusService.getStatusDefByType(ecosTypeRef, statusId);
     }
 
     @Override
     public NodeRef getStatusBeforeRef(NodeRef caseRef) {
-        return RepoUtils.getFirstTargetAssoc(caseRef, ICaseModel.ASSOC_CASE_STATUS_BEFORE, nodeService);
+        return caseStatusAssocDao.getStatusByAssoc(caseRef, ICaseModel.ASSOC_CASE_STATUS_BEFORE);
     }
 
     @Override
     public NodeRef getStatusRefFromPrimaryParent(NodeRef childRef) {
         NodeRef parent = RepoUtils.getPrimaryParentRef(childRef, nodeService);
-        return RepoUtils.getFirstTargetAssoc(parent, ICaseModel.ASSOC_CASE_STATUS, nodeService);
+        return caseStatusAssocDao.getStatusByAssoc(parent, ICaseModel.ASSOC_CASE_STATUS);
     }
 
     private void mandatoryNodeRef(String strParamName, NodeRef nodeRef) {
         if (nodeRef == null) {
             throw new IllegalArgumentException(strParamName + " is a mandatory parameter");
         }
-        if (!nodeService.exists(nodeRef)) {
+        if (isAlfRef(nodeRef) && !nodeService.exists(nodeRef)) {
             throw new IllegalArgumentException(strParamName + " with nodeRef: " + nodeRef + " doesn't exist");
         }
     }

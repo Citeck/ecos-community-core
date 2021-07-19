@@ -3,6 +3,7 @@ package ru.citeck.ecos.webscripts.currency;
 import lombok.Setter;
 import org.alfresco.service.cmr.repository.NodeRef;
 import org.springframework.extensions.webscripts.*;
+import ru.citeck.ecos.commons.utils.MandatoryParam;
 import ru.citeck.ecos.currency.CurrencyService;
 
 import java.math.BigDecimal;
@@ -27,8 +28,16 @@ public class LastCurrencyRateGet extends DeclarativeWebScript {
 
     @Override
     protected Map<String, Object> executeImpl(WebScriptRequest req, Status status, Cache cache) {
+
         String baseCurrencyParam = getParameter(req, BASE_CURRENCY_PARAM_NAME);
+        MandatoryParam.checkString(BASE_CURRENCY_PARAM_NAME, baseCurrencyParam);
+
         String targetCurrencyParam = getParameter(req, TARGET_CURRENCY_PARAM_NAME);
+        MandatoryParam.checkString(TARGET_CURRENCY_PARAM_NAME, targetCurrencyParam);
+
+        baseCurrencyParam = baseCurrencyParam.replaceFirst("alfresco/@", "");
+        targetCurrencyParam = targetCurrencyParam.replaceFirst("alfresco/@", "");
+
         String dateParam = getParameter(req, DATE_PARAM_NAME);
 
         String forceConversionParam = req.getParameter(MANUAL_CONVERSION_PARAM_NAME);

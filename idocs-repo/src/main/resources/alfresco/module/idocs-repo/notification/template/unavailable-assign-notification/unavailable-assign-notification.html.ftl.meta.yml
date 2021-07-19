@@ -1,0 +1,23 @@
+{
+  "id" : "unavailable-assign-notification",
+  "name" : "unavailable-assign-notification",
+  "notificationTitle" : {
+    "ru" : "${subject!\"Один из участников отсутствует в офисе\"}",
+    "en" : "${subject!\"One of the participants is absent from the office\"}"
+  },
+  "model" : {
+    "web_url" : "$webUrl",
+    "isSendToAssignee" : "$isSendToAssignee?bool",
+    "isSendToInitiator" : "$isSendToInitiator?bool",
+    "answerByUser" : "$answerByUser?json",
+    "initiator" : "initiator?id",
+    "initiatorUserName" : "initiator.cm:userName?str",
+    "initiatorLastName" : "initiator.cm:lastName?str",
+    "initiatorFirstName" : "initiator.cm:firstName?str",
+    "documentId" : "workflow.documents?id",
+    "taskId" : "?id",
+    "assignees" : "$assignees[]{userName:cm:userName?str, lastName:cm:lastName?str, firstName:cm:firstName?str}",
+    "subject" : "$subject"
+  },
+  "multiTemplateConfig" : []
+}

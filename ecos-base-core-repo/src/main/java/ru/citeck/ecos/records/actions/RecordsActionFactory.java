@@ -6,7 +6,7 @@ import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import ru.citeck.ecos.action.group.*;
 import ru.citeck.ecos.action.group.impl.BaseGroupAction;
-import ru.citeck.ecos.records.RecordsServiceImpl;
+import ru.citeck.ecos.records.RecordGroupActionsService;
 import ru.citeck.ecos.records2.RecordRef;
 
 import javax.annotation.PostConstruct;
@@ -19,9 +19,7 @@ import java.util.stream.Collectors;
  */
 public abstract class RecordsActionFactory implements GroupActionFactory<RecordRef> {
 
-    private static final Log logger = LogFactory.getLog(RecordsActionFactory.class);
-
-    private RecordsServiceImpl recordsService;
+    private RecordGroupActionsService recordsService;
     private GroupActionService groupActionService;
 
     @PostConstruct
@@ -132,7 +130,7 @@ public abstract class RecordsActionFactory implements GroupActionFactory<RecordR
     }
 
     @Autowired
-    public void setRecordsService(RecordsServiceImpl recordsService) {
+    public void setRecordsService(RecordGroupActionsService recordsService) {
         this.recordsService = recordsService;
     }
 

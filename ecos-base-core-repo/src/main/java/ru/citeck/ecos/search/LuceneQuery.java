@@ -378,8 +378,10 @@ public class LuceneQuery implements SearchQueryBuilder {
                 case ASSOC_NOT_EMPTY:
                 case FLOAT_NOT_EMPTY:
                 case INT_NOT_EMPTY:
-                case STRING_NOT_EMPTY:
                     buildEmptyCheckTerm(field, false);
+                    break;
+                case STRING_NOT_EMPTY:
+                    buildEmptyStringTerm(field, false);
                     break;
                 case DATE_EMPTY:
                 case BOOLEAN_EMPTY:
@@ -388,7 +390,7 @@ public class LuceneQuery implements SearchQueryBuilder {
                     buildNullCheckTerm(field, true);
                     break;
                 case STRING_EMPTY:
-                    buildEmptyCheckTerm(field, true);
+                    buildEmptyStringTerm(field, true);
                     break;
                 case NUMBER_LESS_THAN:
                     buildLessThanTerm(field, value, false);
@@ -659,6 +661,17 @@ public class LuceneQuery implements SearchQueryBuilder {
             } else {
                 buildEqualsTerm("ISNOTNULL", propName);
             }
+        }
+
+        private void buildEmptyStringTerm(String field, boolean isEmpty) {
+            StringBuilder term = new StringBuilder();
+            if (isEmpty) {
+                term.append("NOT ");
+            }
+            term.append(field)
+                .append(":[\"\" TO *]");
+
+            appendQuery(term.toString());
         }
 
         private void buildEmptyCheckTerm(String field, boolean isEmpty) {

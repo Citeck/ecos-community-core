@@ -300,6 +300,13 @@
         <property name="serviceRegistry" ref="ServiceRegistry" />
     </bean>
 
+    <bean id="ecosLocaleTemplate"
+          class="ru.citeck.ecos.template.EcosTemplateUtils"
+          parent="baseTemplateImplementation">
+        <property name="extensionName" value="ecosUtils" />
+        <property name="utilsScript" ref="utilsScript" />
+    </bean>
+
     <bean id="duplicatorFilterRegistry" class="org.alfresco.repo.forms.processor.FilterRegistry" />
 
     <bean class="org.springframework.beans.factory.config.MethodInvokingFactoryBean">
@@ -307,6 +314,15 @@
         <property name="arguments">
             <list>
                 <ref bean="ServiceRegistry"/>
+            </list>
+        </property>
+    </bean>
+
+    <bean class="org.springframework.beans.factory.config.MethodInvokingFactoryBean">
+        <property name="staticMethod" value="ru.citeck.ecos.utils.TransactionUtils.setTaskExecutor"/>
+        <property name="arguments">
+            <list>
+                <ref bean="afterCommitTaskExecutor"/>
             </list>
         </property>
     </bean>
@@ -422,11 +438,18 @@
         <property name="serviceRegistry" ref="ServiceRegistry" />
     </bean>
 
+    <bean id="ecos-base-core.repoScriptRecordsService"
+          class="ru.citeck.ecos.records.script.RepoScriptRecordsService"
+          parent="baseJavaScriptExtension">
+        <property name="extensionName" value="Records" />
+        <property name="serviceRegistry" ref="ServiceRegistry" />
+    </bean>
+
     <bean id="RecordsServiceTemplate"
           class="ru.citeck.ecos.records.RecordsServiceTemplate"
           parent="baseTemplateImplementation">
         <property name="extensionName" value="recordsService" />
-        <property name="recordsService" ref="ecos-base-core.recordsServiceJS" />
+        <property name="recordsServiceJs" ref="ecos-base-core.recordsServiceJS" />
     </bean>
 
     <bean class="ru.citeck.ecos.records.source.alf.AlfNodesDefaultParentRegistrar">

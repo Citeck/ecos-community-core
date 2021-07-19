@@ -1,0 +1,15 @@
+
+model-version: "1.0"
+
+name:
+  ru: Бизнес-процесс
+  en: Workflow
+
+source-id: ""
+
+internal: false
+
+controller:
+    type: script
+    config:
+        script: WorkflowModuleController.groovy

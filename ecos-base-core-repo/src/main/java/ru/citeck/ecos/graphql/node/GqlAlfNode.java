@@ -1,8 +1,11 @@
 package ru.citeck.ecos.graphql.node;
 
 import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
 import org.alfresco.model.ContentModel;
 import org.alfresco.repo.node.MLPropertyInterceptor;
+import org.alfresco.repo.security.authentication.AuthenticationUtil;
+import org.alfresco.repo.security.permissions.AccessDeniedException;
 import org.alfresco.service.cmr.dictionary.AssociationDefinition;
 import org.alfresco.service.cmr.dictionary.DictionaryService;
 import org.alfresco.service.cmr.dictionary.PropertyDefinition;
@@ -17,9 +20,10 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
+@Slf4j
 public class GqlAlfNode {
 
-    private NodeRef nodeRef;
+    private final NodeRef nodeRef;
 
     @Getter(lazy = true)
     private final QName type = evalType();
@@ -34,8 +38,8 @@ public class GqlAlfNode {
     @Getter(lazy = true)
     private final GqlAlfNode parent = evalParent();
 
-    private Map<QName, List<NodeRef>> assocs = new ConcurrentHashMap<>();
-    private Map<QName, Attribute> attributes = new ConcurrentHashMap<>();
+    private final Map<QName, List<NodeRef>> assocs = new ConcurrentHashMap<>();
+    private final Map<QName, Attribute> attributes = new ConcurrentHashMap<>();
 
     private AlfGqlContext context;
 
@@ -233,6 +237,10 @@ public class GqlAlfNode {
         boolean mlAwareBefore = MLPropertyInterceptor.setMLAware(true);
         try {
             return context.getNodeService().getProperties(nodeRef);
+        } catch (AccessDeniedException e) {
+            log.error("Access denied for user '" + AuthenticationUtil.getFullyAuthenticatedUser() +
+                "' to nodeRef: '" + nodeRef + "'. Empty properties will be returned.");
+            return Collections.emptyMap();
         } finally {
             MLPropertyInterceptor.setMLAware(mlAwareBefore);
         }

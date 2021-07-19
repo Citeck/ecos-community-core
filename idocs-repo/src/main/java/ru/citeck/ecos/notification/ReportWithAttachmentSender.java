@@ -25,47 +25,54 @@ import java.util.*;
 
 /**
  * Notification Sender for documents (ItemType = NodeRef).
- * 
- * The following implementation is used: 
+ *
+ * The following implementation is used:
  * - subject line: default
  * - template: retrieved by key = node type
- * - template args: 
+ * - template args:
  *   {
  *     "item": "nodeRef"
  *   }
  * - recipients: only a document owner receives notification
- * 
+ *
  * @author Elena Zaripova
  */
-public class ReportWithAttachmentSender extends AbstractNotificationSender<ArrayList<Map<String, Serializable>>>
-{
-	public static final String ARG_ATTACHMENTS = "attachments";
-	
-	@Override
-	protected NodeRef getNotificationTemplate(ArrayList<Map<String, Serializable>> item) {
-		return getNotificationTemplate((String) null);
-	}
-	
-	@Override
-	protected Map<String, Serializable> getNotificationArgs(ArrayList<Map<String, Serializable>> item) {
-		Map<String, Serializable> args = new HashMap<>();
-		args.put(ARG_ATTACHMENTS, item);
-		return args;
-	}
+public class ReportWithAttachmentSender extends AbstractNotificationSender<ArrayList<Map<String, Serializable>>> {
+    public static final String ARG_ATTACHMENTS = "attachments";
 
-	protected void sendToAssignee(ArrayList<Map<String, Serializable>> item, Set<String> authorities)
-	{
-	}
+    @Override
+    protected NodeRef getNotificationTemplate(ArrayList<Map<String, Serializable>> item) {
+        return getNotificationTemplate((String) null);
+    }
 
-	protected void sendToInitiator(ArrayList<Map<String, Serializable>> item, Set<String> authorities)
-	{
-	}
-	protected void sendToOwner(Set<String> authorities, NodeRef node)
-	{
-	}
+    @Override
+    protected Map<String, Serializable> getNotificationArgs(ArrayList<Map<String, Serializable>> item) {
+        Map<String, Serializable> args = new HashMap<>();
+        args.put(ARG_ATTACHMENTS, item);
+        return args;
+    }
 
-	
-	protected void sendToSubscribers(ArrayList<Map<String, Serializable>> item, Set<String> authorities, List<String> taskSubscribers)
-	{
-	}
+    @Override
+    protected Map<String, Object> getEcosNotificationArgs(ArrayList<Map<String, Serializable>> item) {
+        Map<String, Object> args = super.getEcosNotificationArgs(item);
+        args.put(ARG_ATTACHMENTS, item);
+        return args;
+    }
+
+    protected void sendToAssignee(ArrayList<Map<String, Serializable>> item, Set<String> authorities) {
+        // empty
+    }
+
+    protected void sendToInitiator(ArrayList<Map<String, Serializable>> item, Set<String> authorities) {
+        // empty
+    }
+
+    protected void sendToOwner(Set<String> authorities, NodeRef node) {
+        // empty
+    }
+
+
+    protected void sendToSubscribers(ArrayList<Map<String, Serializable>> item, Set<String> authorities, List<String> taskSubscribers) {
+        // empty
+    }
 }

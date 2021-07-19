@@ -767,8 +767,26 @@
         <property name="nodeService" ref="nodeService" />
         <property name="messageScript">
             <value><![CDATA[(function() {
-                var beforeTitle = statusBefore? statusBefore.properties['cm:title'] : "—";
-                var afterTitle = statusAfter? statusAfter.properties['cm:title'] : "—";
+                var beforeTitle = "—";
+                if (!!statusBefore) {
+                    if (statusBeforeIsAlf === true) {
+                        beforeTitle = statusBefore.properties['cm:title'];
+                    } else if (statusBeforeIsAlf === false) {
+                        beforeTitle = statusBefore.getName();
+                        beforeTitle = local ? beforeTitle.getClosestValue(local) : beforeTitle.get();
+                    }
+                }
+
+                var afterTitle = "—";
+                if (!!statusAfter) {
+                    if (statusAfterIsAlf === true) {
+                        afterTitle = statusAfter.properties['cm:title'];
+                    } else if (statusAfterIsAlf === false) {
+                        afterTitle = statusAfter.getName();
+                        afterTitle = local ? afterTitle.getClosestValue(local) : afterTitle.get();
+                    }
+                }
+
                 return beforeTitle + " -> " + afterTitle;
             })()]]></value>
         </property>
@@ -993,7 +1011,7 @@
 
     <bean class="ru.citeck.ecos.behavior.EcosCasePermBehaviour" />
 
-    <bean id="ecos.ecos-type-docs.split-children" parent="ecos.splitChildrenBehaviour">
+<!--    <bean id="ecos.ecos-type-docs.split-children" parent="ecos.splitChildrenBehaviour">
         <property name="splitBehaviour">
             <bean class="ru.citeck.ecos.behavior.common.SplitChildrenBehaviour.UuidSplit" />
         </property>
@@ -1001,7 +1019,7 @@
         <property name="containerType" value="{http://www.alfresco.org/model/content/1.0}folder" />
         <property name="childAssocType" value="{http://www.alfresco.org/model/content/1.0}contains" />
         <property name="order" value="400" />
-    </bean>
+    </bean>-->
 
     <bean id="invalidateCacheBehaviour" class="ru.citeck.ecos.behavior.InvalidateCacheBehaviour"/>
 

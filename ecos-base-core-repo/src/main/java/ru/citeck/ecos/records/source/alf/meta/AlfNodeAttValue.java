@@ -1,6 +1,7 @@
 package ru.citeck.ecos.records.source.alf.meta;
 
 import com.fasterxml.jackson.databind.util.ISO8601Utils;
+import java.io.ByteArrayOutputStream;
 import lombok.Getter;
 import org.alfresco.error.AlfrescoRuntimeException;
 import org.alfresco.model.ContentModel;
@@ -24,6 +25,7 @@ import ru.citeck.ecos.records.source.common.MLTextValue;
 import ru.citeck.ecos.records2.QueryContext;
 import ru.citeck.ecos.records2.graphql.meta.value.MetaField;
 import ru.citeck.ecos.records2.graphql.meta.value.MetaValue;
+import ru.citeck.ecos.records3.record.request.RequestContext;
 import ru.citeck.ecos.utils.DictUtils;
 
 import java.io.Serializable;
@@ -79,6 +81,9 @@ public class AlfNodeAttValue implements MetaValue {
         } else if (qName != null) {
             return qName.shortName();
         }
+        if (rawValue instanceof String) {
+            return (String) rawValue;
+        }
         return null;
     }
 
@@ -133,7 +138,8 @@ public class AlfNodeAttValue implements MetaValue {
         }
         if (rawValue instanceof Number) {
 
-            DecimalFormat format = context.getOrPutData("DecimalFormat", DecimalFormat.class, () -> {
+            DecimalFormat format = RequestContext.getCurrentNotNull()
+                    .getOrPutVar("DecimalFormat", DecimalFormat.class, () -> {
 
                 DecimalFormatSymbols locale = DecimalFormatSymbols.getInstance(Locale.ENGLISH);
                 DecimalFormat fmt = new DecimalFormat("0", locale);
@@ -177,6 +183,16 @@ public class AlfNodeAttValue implements MetaValue {
                     return content.getLocale();
                 case "contentUrl":
                     return content.getContentUrl();
+                case "bytes":
+                    String contentUrl = content.getContentUrl();
+                    ContentService contentService = context.getServiceRegistry().getContentService();
+                    ContentReader reader = contentService.getRawReader(contentUrl);
+                    if (reader != null && reader.exists()) {
+                        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+                        reader.getContent(outputStream);
+                        return outputStream.toByteArray();
+                    }
+                    return null;
             }
         }
         return null;

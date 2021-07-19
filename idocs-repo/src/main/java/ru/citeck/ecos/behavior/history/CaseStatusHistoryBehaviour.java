@@ -1,6 +1,6 @@
 package ru.citeck.ecos.behavior.history;
 
-import org.alfresco.model.ContentModel;
+import lombok.Setter;
 import org.alfresco.repo.policy.Behaviour.NotificationFrequency;
 import org.alfresco.repo.policy.PolicyComponent;
 import org.alfresco.repo.security.authentication.AuthenticationUtil;
@@ -9,9 +9,11 @@ import org.alfresco.service.cmr.repository.NodeService;
 import org.alfresco.service.cmr.repository.ScriptService;
 import org.alfresco.service.namespace.QName;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.extensions.surf.util.I18NUtil;
 import ru.citeck.ecos.behavior.OrderedBehaviour;
 import ru.citeck.ecos.history.HistoryService;
 import ru.citeck.ecos.icase.CaseStatusPolicies;
+import ru.citeck.ecos.icase.CaseStatusService;
 import ru.citeck.ecos.model.HistoryModel;
 import ru.citeck.ecos.model.ICaseModel;
 import ru.citeck.ecos.workflow.listeners.TaskDataListenerUtils;
@@ -38,6 +40,8 @@ public class CaseStatusHistoryBehaviour implements CaseStatusPolicies.OnCaseStat
     private ScriptService scriptService;
     private NodeService nodeService;
     private TaskDataListenerUtils taskDataListenerUtils;
+    @Setter @Autowired
+    private CaseStatusService caseStatusService;
 
     private String messageScript;
 
@@ -71,21 +75,33 @@ public class CaseStatusHistoryBehaviour implements CaseStatusPolicies.OnCaseStat
     }
 
     private String buildEventComment(NodeRef caseRef, NodeRef caseStatusBefore, NodeRef caseStatusAfter) {
-
-        final Map<String, Object> model = new HashMap<>(3);
+        final Map<String, Object> model = new HashMap<>(5);
         model.put(KEY_DOCUMENT, caseRef);
-        model.put(KEY_STATUS_AFTER, caseStatusAfter);
-        model.put(KEY_STATUS_BEFORE, caseStatusBefore);
+        model.put("local", I18NUtil.getLocale());
+        model.putAll(addStatus(caseRef, caseStatusAfter, KEY_STATUS_AFTER));
+        model.putAll(addStatus(caseRef, caseStatusBefore, KEY_STATUS_BEFORE));
 
         return AuthenticationUtil.runAsSystem(() -> String.valueOf(scriptService.executeScriptString(messageScript,
             model)));
     }
 
+    private Map<String, Object> addStatus(NodeRef caseRef, NodeRef caseStatus, String key) {
+        Map<String, Object> model = new HashMap<>(2);
+        if (caseStatusService.isAlfRef(caseStatus)) {
+            model.put(key + "IsAlf", true);
+            model.put(key, caseStatus);
+        } else {
+            model.put(key + "IsAlf", false);
+            model.put(key, caseStatusService.getStatusDef(caseRef, caseStatus.getId()));
+        }
+        return model;
+    }
+
     private boolean isInterestedTransition(NodeRef caseRef, NodeRef before, NodeRef after) {
 
         QName className = nodeService.getType(caseRef);
-        String beforeName = before != null ? (String) nodeService.getProperty(before, ContentModel.PROP_NAME) : null;
-        String afterName = after != null ? (String) nodeService.getProperty(after, ContentModel.PROP_NAME) : null;
+        String beforeName = before != null ? caseStatusService.getStatusName(caseRef, before) : null;
+        String afterName = after != null ? caseStatusService.getStatusName(caseRef, after) : null;
 
         for (StatusTransition transition : transitions) {
             if (transition.isMatch(className, beforeName, afterName)) {

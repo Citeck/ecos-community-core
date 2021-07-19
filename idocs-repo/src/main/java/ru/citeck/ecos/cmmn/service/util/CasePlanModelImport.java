@@ -12,8 +12,11 @@ import ru.citeck.ecos.cmmn.condition.Condition;
 import ru.citeck.ecos.cmmn.condition.ConditionProperty;
 import ru.citeck.ecos.cmmn.condition.ConditionsList;
 import ru.citeck.ecos.cmmn.model.*;
+import ru.citeck.ecos.commons.json.Json;
+import ru.citeck.ecos.icase.CaseStatusAssocDao;
 import ru.citeck.ecos.icase.CaseStatusService;
 import ru.citeck.ecos.model.*;
+import ru.citeck.ecos.role.CaseRoleService;
 import ru.citeck.ecos.service.EcosCoreServices;
 
 import javax.xml.bind.JAXBContext;
@@ -22,10 +25,8 @@ import javax.xml.bind.JAXBException;
 import javax.xml.bind.Unmarshaller;
 import java.io.Serializable;
 import java.io.StringReader;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * @author Maxim Strizhov (maxim.strizhov@citeck.ru)
@@ -35,6 +36,7 @@ public class CasePlanModelImport {
 
     private NodeService nodeService;
     private CaseStatusService caseStatusService;
+    private CaseStatusAssocDao caseStatusAssocDao;
 
     private CMMNUtils utils;
 
@@ -46,6 +48,7 @@ public class CasePlanModelImport {
     public CasePlanModelImport(ServiceRegistry serviceRegistry, CMMNUtils utils) {
         this.nodeService = serviceRegistry.getNodeService();
         this.caseStatusService = EcosCoreServices.getCaseStatusService(serviceRegistry);
+        this.caseStatusAssocDao = EcosCoreServices.getCaseStatusAssocDao(serviceRegistry);
         this.utils = utils;
     }
 
@@ -79,43 +82,43 @@ public class CasePlanModelImport {
         List<JAXBElement<? extends TPlanItemDefinition>> definitions = casePlanModel.getPlanItemDefinition();
         for (JAXBElement<? extends TPlanItemDefinition> jaxbElement : definitions) {
             if (utils.isTask(jaxbElement) || utils.isProcessTask(jaxbElement)) {
-                importTask(caseRef, (TTask) jaxbElement.getValue());
+                importTask(caseRef, (TTask) jaxbElement.getValue(), caseRef);
             } else if (utils.isStage(jaxbElement)) {
-                importStage(caseRef, (Stage) jaxbElement.getValue());
+                importStage(caseRef, (Stage) jaxbElement.getValue(), caseRef);
             } else if (utils.isTimer(jaxbElement)) {
-                importTimer(caseRef, (TTimerEventListener) jaxbElement.getValue());
+                importTimer(caseRef, (TTimerEventListener) jaxbElement.getValue(), caseRef);
             }
         }
         importEvents(casePlanModel);
     }
 
-    private void importTimer(NodeRef parentStageRef, TTimerEventListener timer) {
+    private void importTimer(NodeRef parentStageRef, TTimerEventListener timer, NodeRef caseRef) {
         QName nodeType = QName.createQName(timer.getOtherAttributes().get(CMMNUtils.QNAME_NODE_TYPE));
         NodeRef timerRef = nodeService.createNode(parentStageRef,
                 ActivityModel.ASSOC_ACTIVITIES,
                 ActivityModel.ASSOC_ACTIVITIES,
                 nodeType).getChildRef();
-        importAttributes(timer, timerRef);
+        importAttributes(timer, timerRef, caseRef);
         planItemsMapping.put(timer.getId(), timerRef);
     }
 
-    private void importStage(NodeRef parentStageRef, Stage stage) {
+    private void importStage(NodeRef parentStageRef, Stage stage, NodeRef caseRef) {
         log.debug("Importing stage: " + stage.getId());
         NodeRef stageNodeRef = nodeService.createNode(parentStageRef,
                 ActivityModel.ASSOC_ACTIVITIES,
                 ActivityModel.ASSOC_ACTIVITIES,
                 StagesModel.TYPE_STAGE).getChildRef();
         stage.getOtherAttributes().put(CMMNUtils.QNAME_NEW_ID, stageNodeRef.toString());
-        importAttributes(stage, stageNodeRef);
+        importAttributes(stage, stageNodeRef, caseRef);
         planItemsMapping.put(stage.getId(), stageNodeRef);
         if (!stage.getPlanItemDefinition().isEmpty()) {
             for (JAXBElement<? extends TPlanItemDefinition> jaxbElement : stage.getPlanItemDefinition()) {
                 if (utils.isTask(jaxbElement) || utils.isProcessTask(jaxbElement)) {
-                    importTask(stageNodeRef, (TTask) jaxbElement.getValue());
+                    importTask(stageNodeRef, (TTask) jaxbElement.getValue(), caseRef);
                 } else if (utils.isStage(jaxbElement)) {
-                    importStage(stageNodeRef, (Stage) jaxbElement.getValue());
+                    importStage(stageNodeRef, (Stage) jaxbElement.getValue(), caseRef);
                 } else if (utils.isTimer(jaxbElement)) {
-                    importTimer(stageNodeRef, (TTimerEventListener) jaxbElement.getValue());
+                    importTimer(stageNodeRef, (TTimerEventListener) jaxbElement.getValue(), caseRef);
                 }
             }
         }
@@ -123,7 +126,7 @@ public class CasePlanModelImport {
         addCompletnessLevels(stage, stageNodeRef);
     }
 
-    private void importTask(NodeRef parentStageRef, TTask task) {
+    private void importTask(NodeRef parentStageRef, TTask task, NodeRef caseRef) {
         log.debug("Importing task: " + task.getId());
         QName nodeType = QName.createQName(task.getOtherAttributes().get(CMMNUtils.QNAME_NODE_TYPE));
         NodeRef taskNodeRef = nodeService.createNode(parentStageRef,
@@ -131,7 +134,7 @@ public class CasePlanModelImport {
                 ActivityModel.ASSOC_ACTIVITIES,
                 nodeType).getChildRef();
         addRoles(task, taskNodeRef);
-        importAttributes(task, taskNodeRef);
+        importAttributes(task, taskNodeRef, caseRef);
         planItemsMapping.put(task.getId(), taskNodeRef);
         addCompletnessLevels(task, taskNodeRef);
     }
@@ -177,7 +180,7 @@ public class CasePlanModelImport {
         }
     }
 
-    private void importAttributes(TPlanItemDefinition definition, NodeRef nodeRef) {
+    private void importAttributes(TPlanItemDefinition definition, NodeRef nodeRef, NodeRef caseRef) {
         Map<javax.xml.namespace.QName, String> attributes = definition.getOtherAttributes();
 
         Map<QName, Serializable> properties = new HashMap<>();
@@ -193,10 +196,41 @@ public class CasePlanModelImport {
         }
         for (Map.Entry<javax.xml.namespace.QName, String> entry : attributes.entrySet()) {
             javax.xml.namespace.QName key = entry.getKey();
-            if (!key.getNamespaceURI().equals(CMMNUtils.NAMESPACE)) {
-                String value = entry.getValue();
-                properties.put(utils.convertFromXMLQName(key), value.trim().isEmpty() ? null : value);
+            if (key.getNamespaceURI().equals(CMMNUtils.NAMESPACE)) {
+                continue;
             }
+            String value = entry.getValue();
+            Serializable resultProp = value;
+
+            if (value.trim().isEmpty()) {
+                resultProp = null;
+            } else if (value.length() >= 2) {
+                if (value.equals("[]")) {
+                    resultProp = new ArrayList<>();
+                } else if (value.charAt(0) == '[' && value.charAt(1) == '"') {
+
+                    List<String> list = Json.getMapper().readList(value, String.class);
+
+                    if (!list.isEmpty()) {
+                        resultProp = list.stream()
+                            .map(element -> {
+                                if (element.startsWith(CaseRoleService.ROLE_REF_PROTOCOL + "://")
+                                        && NodeRef.isNodeRef(element)) {
+
+                                    NodeRef roleRef = new NodeRef(element);
+                                    return new NodeRef(
+                                        roleRef.getStoreRef().getProtocol(),
+                                        caseRef.getId(),
+                                        roleRef.getId()
+                                    ).toString();
+                                }
+                                return element;
+                            }).collect(Collectors.toCollection(ArrayList::new));
+                    }
+                }
+            }
+
+            properties.put(utils.convertFromXMLQName(key), resultProp);
         }
 
         String typeVersionStr = attributes.get(utils.convertToXMLQName(ActivityModel.PROP_TYPE_VERSION));
@@ -208,9 +242,9 @@ public class CasePlanModelImport {
         for (Map.Entry<javax.xml.namespace.QName, QName> entry : CMMNUtils.STATUS_ASSOCS_MAPPING.entrySet()) {
             String status = attributes.get(entry.getKey());
             if (status != null) {
-                NodeRef statusRef = caseStatusService.getStatusByName(status);
+                NodeRef statusRef = caseStatusService.getStatusByName(nodeRef, status);
                 if (statusRef != null) {
-                    nodeService.createAssociation(nodeRef, statusRef, entry.getValue());
+                    caseStatusAssocDao.createAssocAndSetEcosStatusByAssoc(nodeRef, entry.getValue(), statusRef);
                 } else {
                     log.error("Status " + status + " not found in system. Please create it and import the template again");
                 }

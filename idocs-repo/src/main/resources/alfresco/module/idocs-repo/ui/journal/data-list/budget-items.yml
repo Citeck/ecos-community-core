@@ -1,0 +1,8 @@
+---
+id: budget-items
+name: { ru: Статья бюджета, en: Budget Item }
+
+columns:
+  - id: budget:itemCode
+  - id: budget:itemName
+

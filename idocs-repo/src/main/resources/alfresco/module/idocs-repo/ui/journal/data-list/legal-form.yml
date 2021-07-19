@@ -1,0 +1,8 @@
+---
+id: legal-form
+name: { ru: Организационно-правовые формы, en: Legal Form }
+
+columns:
+  - id: idocs:legalFormName
+  - id: idocs:legalFormDescription
+  - id: idocs:legalFormCountry

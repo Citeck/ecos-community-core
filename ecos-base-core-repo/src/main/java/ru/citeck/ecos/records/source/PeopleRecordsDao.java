@@ -5,19 +5,22 @@ import org.alfresco.repo.security.authentication.AuthenticationUtil;
 import org.alfresco.service.cmr.repository.NodeRef;
 import org.alfresco.service.cmr.search.SearchService;
 import org.alfresco.service.cmr.security.AuthorityService;
+import org.alfresco.service.cmr.security.AuthorityType;
 import org.alfresco.service.cmr.security.MutableAuthenticationService;
+import org.alfresco.service.namespace.NamespaceService;
 import org.apache.commons.lang.StringUtils;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import ru.citeck.ecos.commons.data.DataValue;
 import ru.citeck.ecos.commons.data.ObjectData;
+import ru.citeck.ecos.model.EcosModel;
 import ru.citeck.ecos.records.source.alf.AlfNodesRecordsDAO;
 import ru.citeck.ecos.records.source.alf.meta.AlfNodeRecord;
 import ru.citeck.ecos.records2.QueryContext;
 import ru.citeck.ecos.records2.RecordMeta;
 import ru.citeck.ecos.records2.RecordRef;
-import ru.citeck.ecos.records2.graphql.meta.value.MetaField;
-import ru.citeck.ecos.records2.graphql.meta.value.MetaValue;
+import ru.citeck.ecos.records2.graphql.meta.value.*;
 import ru.citeck.ecos.records2.request.delete.RecordsDelResult;
 import ru.citeck.ecos.records2.request.delete.RecordsDeletion;
 import ru.citeck.ecos.records2.request.mutation.RecordsMutResult;
@@ -38,7 +41,7 @@ import java.util.stream.Collectors;
 @Component
 public class PeopleRecordsDao extends LocalRecordsDao
     implements LocalRecordsQueryWithMetaDao<PeopleRecordsDao.UserValue>,
-    LocalRecordsMetaDao<PeopleRecordsDao.UserValue>,
+    LocalRecordsMetaDao<Object>,
     MutableRecordsDao {
 
     public static final String ID = "people";
@@ -51,24 +54,29 @@ public class PeopleRecordsDao extends LocalRecordsDao
     private static final String PROP_IS_AVAILABLE = "isAvailable";
     private static final String PROP_IS_MUTABLE = "isMutable";
     private static final String PROP_IS_ADMIN = "isAdmin";
+    private static final String PROP_IS_DISABLED = "isDisabled";
     private static final String PROP_AUTHORITIES = "authorities";
     private static final String ECOS_OLD_PASS = "ecos:oldPass";
     private static final String ECOS_PASS = "ecos:pass";
     private static final String ECOS_PASS_VERIFY = "ecos:passVerify";
+    private static final String GROUPS = "groups";
 
     private final AuthorityUtils authorityUtils;
     private final AuthorityService authorityService;
     private final AlfNodesRecordsDAO alfNodesRecordsDao;
+    private final NamespaceService namespaceService;
     private final MutableAuthenticationService authenticationService;
 
     @Autowired
     public PeopleRecordsDao(AuthorityUtils authorityUtils,
                             AuthorityService authorityService,
+                            NamespaceService namespaceService,
                             AlfNodesRecordsDAO alfNodesRecordsDao,
                             MutableAuthenticationService authenticationService) {
         setId(ID);
         this.authorityUtils = authorityUtils;
         this.authorityService = authorityService;
+        this.namespaceService = namespaceService;
         this.alfNodesRecordsDao = alfNodesRecordsDao;
         this.authenticationService = authenticationService;
     }
@@ -140,9 +148,16 @@ public class PeopleRecordsDao extends LocalRecordsDao
     }
 
     @Override
-    public List<UserValue> getLocalRecordsMeta(List<RecordRef> records, MetaField metaField) {
+    public List<Object> getLocalRecordsMeta(List<RecordRef> records, MetaField metaField) {
         return records.stream()
-            .map(r -> new UserValue(r.toString()))
+            .map(r -> {
+                String authName = r.toString();
+                if (authorityService.authorityExists(authName)) {
+                    return new UserValue(authName);
+                } else {
+                    return EmptyValue.INSTANCE;
+                }
+            })
             .collect(Collectors.toList());
     }
 
@@ -177,6 +192,7 @@ public class PeopleRecordsDao extends LocalRecordsDao
         private final AlfNodeRecord alfNode;
         private String userName;
         private UserAuthorities userAuthorities;
+        private QueryContext queryContext;
 
         UserValue(String userName) {
             this.userName = userName;
@@ -195,6 +211,7 @@ public class PeopleRecordsDao extends LocalRecordsDao
         @Override
         public <T extends QueryContext> void init(T context, MetaField metaField) {
 
+            queryContext = context;
             alfNode.init(context, metaField);
 
             if (userName == null) {
@@ -211,6 +228,14 @@ public class PeopleRecordsDao extends LocalRecordsDao
                     userName = "";
                 }
             }
+        }
+
+        @Override
+        public MetaEdge getEdge(@NotNull String name, @NotNull MetaField field) {
+            if (alfNode == null) {
+                return null;
+            }
+            return alfNode.getEdge(name, field);
         }
 
         @Override
@@ -249,10 +274,15 @@ public class PeopleRecordsDao extends LocalRecordsDao
                     return authenticationService.isAuthenticationMutable(userName);
                 case PROP_IS_ADMIN:
                     return authorityService.isAdminAuthority(userName);
+                case PROP_IS_DISABLED:
+                    String isDisabledProp = EcosModel.PROP_IS_PERSON_DISABLED.toPrefixString(namespaceService);
+                    return alfNode.getAttribute(isDisabledProp, field);
                 case PROP_AUTHORITIES:
                     return getUserAuthorities();
                 case "nodeRef":
                     return alfNode != null ? alfNode.getId() : null;
+                case GROUPS:
+                    return getUserGroups(userName, queryContext, field);
             }
 
             return alfNode.getAttribute(name, field);
@@ -262,6 +292,21 @@ public class PeopleRecordsDao extends LocalRecordsDao
         public RecordRef getRecordType() {
             return ETYPE;
         }
+    }
+
+    private List<AlfNodeRecord> getUserGroups(String userName, QueryContext context, MetaField metaField) {
+        return authorityService.getContainingAuthoritiesInZone(
+            AuthorityType.GROUP,
+            userName,
+            AuthorityService.ZONE_APP_DEFAULT,
+            null,
+            1000
+        ).stream().map(groupId -> {
+            NodeRef nodeRef = authorityService.getAuthorityNodeRef(groupId);
+            AlfNodeRecord record = new AlfNodeRecord(RecordRef.create("", nodeRef.toString()));
+            record.init(context, metaField);
+            return record;
+        }).collect(Collectors.toList());
     }
 
     private class UserAuthorities implements MetaValue {

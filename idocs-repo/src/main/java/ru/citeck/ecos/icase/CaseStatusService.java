@@ -1,6 +1,9 @@
 package ru.citeck.ecos.icase;
 
 import org.alfresco.service.cmr.repository.NodeRef;
+import org.alfresco.service.cmr.repository.StoreRef;
+import ru.citeck.ecos.model.lib.status.dto.StatusDef;
+import ru.citeck.ecos.records2.RecordRef;
 
 /**
  * @author Roman Makarskiy
@@ -29,7 +32,17 @@ public interface CaseStatusService {
      * @param statusName - case status name
      * @return case status nodeRef
      */
+    @Deprecated
     NodeRef getStatusByName(String statusName);
+
+    /**
+     * Get case status by name and document.
+     *
+     * @param statusName - case status name
+     * @param document - document NodeRef
+     * @return case status nodeRef
+     */
+    NodeRef getStatusByName(NodeRef document, String statusName);
 
     /**
      * Get case status
@@ -37,6 +50,27 @@ public interface CaseStatusService {
      * @return case status name or null if status doesn't exists in this case
      */
     String getStatus(NodeRef caseRef);
+
+    /**
+     * Get case status and document
+     *
+     * @return case status name or null if status doesn't exists in this case
+     */
+    String getStatusName(NodeRef caseRef, NodeRef statusRef);
+
+    /**
+     * Get case status and ECOS type
+     *
+     * @return case status name or null if status doesn't exists in this ecos type
+     */
+    NodeRef getStatusByNameAndType(String statusName, RecordRef etype);
+
+    /**
+     * Get ECOS type and ECOS case status name
+     *
+     * @return ECOS virtual case status name or null if case status name is null
+     */
+    NodeRef getEcosStatus(String etype, String statusName);
 
     /**
      * Get case status before
@@ -53,6 +87,13 @@ public interface CaseStatusService {
     NodeRef getStatusRef(NodeRef caseRef);
 
     /**
+     * Get ECOS case status definition
+     *
+     * @return case status StatusDef or null if status doesn't exists in this case
+     */
+    StatusDef getStatusDef(NodeRef caseRef, String statusId);
+
+    /**
      * Get case status before reference
      *
      * @return case status before nodeRef or null if status doesn't exists in this case
@@ -66,4 +107,9 @@ public interface CaseStatusService {
      * @return case status nodeRef or null if status doesn't exists in the primary parent
      */
     NodeRef getStatusRefFromPrimaryParent(NodeRef childRef);
+
+
+    default boolean isAlfRef(NodeRef nodeRef) {
+        return nodeRef == null || StoreRef.STORE_REF_WORKSPACE_SPACESSTORE.equals(nodeRef.getStoreRef());
+    }
 }

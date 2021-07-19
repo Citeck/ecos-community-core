@@ -1,0 +1,33 @@
+---
+id: general-case
+name: { ru: Стандартный кейс, en: General Case}
+
+actions:
+  - uiserv/action@delete
+  - uiserv/action@view-dashboard
+  - uiserv/action@edit
+
+columns:
+  - id: tk:kind
+    computed:
+      - id: options
+        type: attributes
+        config:
+          record: alfresco/@workspace://SpacesStore/cat-doc-type-general-case
+          attributes: cm:subcategories[]{label:?disp,value:?id}
+    editor:
+      type: select
+      config:
+        options: '${$computed.options}'
+
+  - id: cm:name
+  - id: idocs:note
+  - id: ecos:documentNumber
+  - id: ecos:documentDate
+  - id: idocs:legalEntity
+  - id: idocs:contractor
+  - id: ecos:documentAmount
+  - id: idocs:currencyDocument
+  - id: ecos:VAT
+  - id: ecos:startDate
+  - id: ecos:stopDate

@@ -8,7 +8,7 @@
         <order>a5</order>
         <mobile-order>-1</mobile-order>
     </position>
-    <control url="ecosui!cardlet-node-view">
+    <control url="js/citeck/modules/cardlets/remote/remote">
         <prop name="nodeRef">${nodeRef}</prop>
         <prop name="pageid">card-details</prop>
         <prop name="remoteUrl">/share/service/citeck/surf/region</prop>

@@ -133,7 +133,7 @@ public class CaseTemplateBehavior implements NodeServicePolicies.OnCreateNodePol
 
         final CaseServiceType enabledCaseServiceType = getEnabledCaseServiceType();
 
-        if (enabledCaseServiceType == CaseServiceType.EPROC && eProcCaseImporter.eprocCaseCreationAllowed(caseNode)) {
+        if (enabledCaseServiceType == CaseServiceType.EPROC) {
             eprocCopyFromTemplateImpl(caseNode);
         } else {
             alfrescoCopyFromTemplateImpl(caseNode);
@@ -141,10 +141,14 @@ public class CaseTemplateBehavior implements NodeServicePolicies.OnCreateNodePol
     }
 
     private boolean isAllowedCaseNode(NodeRef caseNode) {
-        return caseNode != null && nodeService.exists(caseNode)
-                && !nodeService.hasAspect(caseNode, ContentModel.ASPECT_COPIEDFROM)
-                && !nodeService.hasAspect(caseNode, ICaseModel.ASPECT_COPIED_FROM_TEMPLATE)
-                && !nodeService.hasAspect(caseNode, ICaseModel.ASPECT_CASE_TEMPLATE);
+        if (caseNode == null || !nodeService.exists(caseNode)) {
+            return false;
+        }
+        Set<QName> aspects = nodeService.getAspects(caseNode);
+        return !aspects.contains(ContentModel.ASPECT_COPIEDFROM)
+                && !aspects.contains(ICaseModel.ASPECT_COPIED_FROM_TEMPLATE)
+                && !aspects.contains(ICaseModel.ASPECT_CASE_TEMPLATE)
+                && !aspects.contains(ICaseModel.ASPECT_LEGACY_EDITOR_TEMPLATE);
     }
 
     private Set<NodeRef> getFilledCaseNodes() {

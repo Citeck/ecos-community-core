@@ -22,12 +22,16 @@ import org.alfresco.model.ContentModel;
 import org.alfresco.repo.node.NodeServicePolicies;
 import org.alfresco.repo.policy.PolicyComponent;
 import org.alfresco.repo.security.authentication.AuthenticationUtil;
-import org.alfresco.repo.transaction.TransactionalResourceHelper;
 import org.alfresco.service.cmr.repository.*;
 import org.alfresco.service.namespace.QName;
+import org.springframework.beans.factory.annotation.Autowired;
 import ru.citeck.ecos.behavior.OrderedBehaviour;
 import org.alfresco.repo.policy.Behaviour.NotificationFrequency;
 import org.springframework.extensions.surf.util.I18NUtil;
+import ru.citeck.ecos.node.EcosTypeService;
+import ru.citeck.ecos.records.type.TypeDto;
+import ru.citeck.ecos.records2.RecordRef;
+import ru.citeck.ecos.records2.meta.RecordsTemplateService;
 
 import java.io.Serializable;
 import java.util.*;
@@ -39,7 +43,6 @@ import java.util.function.Function;
  */
 public class TitleGenerationBehaviour implements NodeServicePolicies.OnUpdatePropertiesPolicy {
 
-    private static final String TITLE_UPDATE_TIME_KEY = TitleGenerationBehaviour.class.toString();
     private static final String JAVASCRIPT_ENGINE = "javascript";
 
     // common properties
@@ -48,11 +51,14 @@ public class TitleGenerationBehaviour implements NodeServicePolicies.OnUpdatePro
     private NodeService mlAwareNodeService;
     private TemplateService templateService;
     private ScriptService scriptService;
+    private RecordsTemplateService recordsTemplateService;
 
     // distinct properties
     private QName className;
     private String nodeVariable;
     private String templateEngine;
+    private EcosTypeService ecosTypeService;
+
     private Map<Locale, String> titleMLTemplate = new HashMap<>();
     private Map<Locale, String> descriptionMLTemplate = new HashMap<>();
 
@@ -87,7 +93,28 @@ public class TitleGenerationBehaviour implements NodeServicePolicies.OnUpdatePro
             return;
         }
 
-        setProperty(nodeRef, ContentModel.PROP_TITLE, titleMLTemplate);
+        RecordRef ecosTypeRef = ecosTypeService.getEcosType(nodeRef);
+        TypeDto typeDef = ecosTypeService.getTypeDef(ecosTypeRef);
+        boolean titleGenerated = false;
+
+        if (typeDef != null && !ru.citeck.ecos.commons.data.MLText.isEmpty(typeDef.getInhDispNameTemplate())) {
+
+            ru.citeck.ecos.commons.data.MLText title = recordsTemplateService.resolve(
+                typeDef.getInhDispNameTemplate(),
+                RecordRef.create("", nodeRef.toString())
+            );
+
+            if (!ru.citeck.ecos.commons.data.MLText.isEmpty(title)) {
+                MLText alfMLText = new MLText();
+                title.getValues().forEach(alfMLText::put);
+                nodeService.setProperty(nodeRef, ContentModel.PROP_TITLE, alfMLText);
+                titleGenerated = true;
+            }
+        }
+
+        if (!titleGenerated) {
+            setProperty(nodeRef, ContentModel.PROP_TITLE, titleMLTemplate);
+        }
         setProperty(nodeRef, ContentModel.PROP_DESCRIPTION, descriptionMLTemplate);
     }
 
@@ -202,6 +229,17 @@ public class TitleGenerationBehaviour implements NodeServicePolicies.OnUpdatePro
     public void setDescriptionMLTemplate(Map<Locale, String> descriptionTemplate) {
         this.descriptionMLTemplate.putAll(descriptionTemplate);
     }
+
+    @Autowired
+    public void setEcosTypeService(EcosTypeService ecosTypeService) {
+        this.ecosTypeService = ecosTypeService;
+    }
+
+    @Autowired
+    public void setRecordsTemplateService(RecordsTemplateService recordsTemplateService) {
+        this.recordsTemplateService = recordsTemplateService;
+    }
+
     public void setOrder(int order) {
         this.order = order;
     }
@@ -209,6 +247,4 @@ public class TitleGenerationBehaviour implements NodeServicePolicies.OnUpdatePro
     public void setEnabled(boolean enabled) {
         this.enabled = enabled;
     }
-
-
 }

@@ -1,0 +1,12 @@
+---
+id: idocs-doc
+name: { ru: Документы, en: Documents }
+
+actionsFromType: false
+
+columns:
+  - id: cm:title
+    name: { ru: Имя, en: Name }
+
+  - id: _type
+    name: { ru: Тип, en: Type }

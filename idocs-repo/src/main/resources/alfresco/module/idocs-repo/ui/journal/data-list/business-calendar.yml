@@ -1,0 +1,9 @@
+---
+id: business-calendar
+name: { ru: Рабочий календарь, en: Business Calendar }
+
+columns:
+  - id: bcal:dateFrom
+  - id: bcal:dateTo
+  - id: bcal:remark
+

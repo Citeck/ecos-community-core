@@ -1,5 +1,6 @@
 package ru.citeck.ecos.commands;
 
+import com.rabbitmq.client.ConnectionFactory;
 import lombok.extern.slf4j.Slf4j;
 import org.alfresco.repo.security.authentication.AuthenticationUtil;
 import org.alfresco.repo.transaction.RetryingTransactionHelper;
@@ -63,6 +64,7 @@ public class CommandsServiceFactoryConfig extends CommandsServiceFactory {
     }
 
     @Bean
+    @NotNull
     @Override
     public RemoteCommandsService createRemoteCommandsService() {
 

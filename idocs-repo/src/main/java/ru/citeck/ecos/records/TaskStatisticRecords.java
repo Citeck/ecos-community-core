@@ -26,9 +26,8 @@ import ru.citeck.ecos.model.HistoryModel;
 import ru.citeck.ecos.records.meta.MetaMapValue;
 import ru.citeck.ecos.records.source.alf.meta.AlfNodeAttValue;
 import ru.citeck.ecos.records2.QueryContext;
-import ru.citeck.ecos.records2.RecordMeta;
+import ru.citeck.ecos.records2.ServiceFactoryAware;
 import ru.citeck.ecos.records2.graphql.meta.value.MetaValue;
-import ru.citeck.ecos.records2.meta.RecordsMetaService;
 import ru.citeck.ecos.records2.request.query.RecordsQuery;
 import ru.citeck.ecos.records2.request.query.RecordsQueryResult;
 import ru.citeck.ecos.records2.request.query.SortBy;
@@ -36,6 +35,11 @@ import ru.citeck.ecos.records2.request.query.page.QueryPage;
 import ru.citeck.ecos.records2.request.query.page.SkipPage;
 import ru.citeck.ecos.records2.source.dao.AbstractRecordsDao;
 import ru.citeck.ecos.records2.source.dao.RecordsQueryWithMetaDao;
+import ru.citeck.ecos.records3.RecordsService;
+import ru.citeck.ecos.records3.RecordsServiceFactory;
+import ru.citeck.ecos.records3.record.atts.dto.RecordAtts;
+import ru.citeck.ecos.records3.record.atts.schema.SchemaAtt;
+import ru.citeck.ecos.records3.record.atts.schema.write.AttSchemaWriter;
 import ru.citeck.ecos.search.*;
 import ru.citeck.ecos.search.ftsquery.FTSQuery;
 import ru.citeck.ecos.utils.AuthorityUtils;
@@ -53,7 +57,7 @@ import java.util.stream.Collectors;
  * @author Pavel Simonov
  */
 @Component
-public class TaskStatisticRecords extends AbstractRecordsDao implements RecordsQueryWithMetaDao {
+public class TaskStatisticRecords extends AbstractRecordsDao implements RecordsQueryWithMetaDao, ServiceFactoryAware {
 
     public static final String ID = "task-statistic";
 
@@ -77,8 +81,10 @@ public class TaskStatisticRecords extends AbstractRecordsDao implements RecordsQ
     private final AuthorityUtils authorityUtils;
     private final FTSQueryBuilder queryBuilder;
     private final SearchUtils searchUtils;
-    private final RecordsMetaService recordsMetaService;
     private final EcosConfigService ecosConfigService;
+
+    private RecordsService recordsService;
+    private AttSchemaWriter attSchemaWriter;
 
     @Autowired
     public TaskStatisticRecords(ServiceRegistry serviceRegistry,
@@ -86,7 +92,6 @@ public class TaskStatisticRecords extends AbstractRecordsDao implements RecordsQ
                                 AuthorityUtils authorityUtils,
                                 FTSQueryBuilder queryBuilder,
                                 SearchUtils searchUtils,
-                                RecordsMetaService recordsMetaService,
                                 EcosConfigService ecosConfigService) {
         setId(ID);
         this.personService = serviceRegistry.getPersonService();
@@ -97,19 +102,19 @@ public class TaskStatisticRecords extends AbstractRecordsDao implements RecordsQ
         this.criteriaParser = criteriaParser;
         this.queryBuilder = queryBuilder;
         this.searchUtils = searchUtils;
-        this.recordsMetaService = recordsMetaService;
         this.ecosConfigService = ecosConfigService;
     }
 
     @Override
-    public RecordsQueryResult<RecordMeta> queryRecords(RecordsQuery query, String metaSchema) {
+    public RecordsQueryResult<RecordAtts> queryRecords(RecordsQuery query, List<SchemaAtt> schema, boolean rawAtts) {
 
-        RecordsQueryResult<RecordMeta> records = new RecordsQueryResult<>();
+        Map<String, String> attsToReq = attSchemaWriter.writeToMap(schema);
+
+        RecordsQueryResult<RecordAtts> records = new RecordsQueryResult<>();
         RecordsQueryResult<MetaValue> metaValues = getRecordsImpl(query);
-
         records.merge(metaValues);
-        records.merge(recordsMetaService.getMeta(metaValues.getRecords(), metaSchema));
         records.setHasMore(metaValues.getHasMore());
+        records.setRecords(recordsService.getAtts(metaValues.getRecords(), attsToReq, rawAtts));
 
         long totalCount = getRecordsTotalCount(query);
         records.setTotalCount(totalCount);
@@ -411,4 +416,9 @@ public class TaskStatisticRecords extends AbstractRecordsDao implements RecordsQ
         return StringUtils.isNotBlank(value) ? !Boolean.FALSE.toString().equals(value) : def;
     }
 
+    @Override
+    public void setRecordsServiceFactory(RecordsServiceFactory serviceFactory) {
+        recordsService = serviceFactory.getRecordsServiceV1();
+        attSchemaWriter = serviceFactory.getAttSchemaWriter();
+    }
 }

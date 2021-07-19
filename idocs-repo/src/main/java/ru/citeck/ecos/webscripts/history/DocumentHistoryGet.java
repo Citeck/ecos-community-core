@@ -11,7 +11,6 @@ import org.alfresco.service.cmr.repository.NodeRef;
 import org.alfresco.service.cmr.repository.NodeService;
 import org.alfresco.service.cmr.security.PersonService;
 import org.alfresco.service.namespace.QName;
-import org.alfresco.util.Pair;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -109,9 +108,8 @@ public class DocumentHistoryGet extends AbstractWebScript {
         return formatHistoryNodes(historyRecordMaps, includeEvents, includeTypes);
     }
 
-    public List<ObjectNode> getHistoryEvents(String nodeRef, String filter, String events, String taskTypes) {
+    public List<ObjectNode> getHistoryEvents(String documentId, String filter, String events, String taskTypes) {
 
-        NodeRef documentRef = new NodeRef(nodeRef);
         Set<String> includeEvents = split(events);
         Set<String> includeTypes = split(taskTypes);
         Criteria filterCriteria = null;
@@ -123,16 +121,23 @@ public class DocumentHistoryGet extends AbstractWebScript {
             }
         }
 
-        Boolean useNewHistory = (Boolean) nodeService.getProperty(documentRef, IdocsModel.PROP_USE_NEW_HISTORY);
-        if ((useNewHistory == null || !useNewHistory) && isEnabledRemoteHistoryService()) {
-            historyRemoteService.sendHistoryEventsByDocumentToRemoteService(documentRef);
+        if (NodeRef.isNodeRef(documentId)) {
+            NodeRef documentRef = new NodeRef(documentId);
+            Boolean useNewHistory = (Boolean) nodeService.getProperty(documentRef, IdocsModel.PROP_USE_NEW_HISTORY);
+            if ((useNewHistory == null || !useNewHistory) && isEnabledRemoteHistoryService()) {
+                historyRemoteService.sendHistoryEventsByDocumentToRemoteService(documentRef);
+            }
         }
+
         /* Load data */
         List<Map> historyRecordMaps;
         if (isEnabledRemoteHistoryService()) {
-            historyRecordMaps = historyRemoteService.getHistoryRecords(documentRef.getId());
+            if (NodeRef.isNodeRef(documentId)) {
+                documentId = new NodeRef(documentId).getId();
+            }
+            historyRecordMaps = historyRemoteService.getHistoryRecords(documentId);
         } else {
-            historyRecordMaps = historyGetService.getHistoryEventsByDocumentRef(documentRef);
+            historyRecordMaps = historyGetService.getHistoryEventsByDocumentRef(new NodeRef(documentId));
         }
 
         if (filterCriteria != null) {
@@ -166,8 +171,7 @@ public class DocumentHistoryGet extends AbstractWebScript {
     private List<ObjectNode> formatHistoryNodes(List<Map> historyRecordMaps, Set<String> includeEvents, Set<String> includeTaskTypes) {
 
         List<ObjectNode> result = new ArrayList<>();
-
-        Map<Pair<String, String>, String> outcomeTitles = new HashMap<>();
+        Map<List<String>, String> outcomeTitles = new HashMap<>();
         Map<Object, String> taskTitles = new HashMap<>();
 
         /* Transform records */
@@ -181,7 +185,7 @@ public class DocumentHistoryGet extends AbstractWebScript {
 
             ObjectNode recordObjectNode = objectMapper.createObjectNode();
             recordObjectNode.put(DocumentHistoryConstants.NODE_REF.getKey(),
-                    (String) historyRecordMap.get(DocumentHistoryConstants.NODE_REF.getValue()));
+                (String) historyRecordMap.get(DocumentHistoryConstants.NODE_REF.getValue()));
             ObjectNode attributesNode = objectMapper.createObjectNode();
 
             String taskType = (String) historyRecordMap.get(DocumentHistoryConstants.TASK_TYPE.getValue());
@@ -214,35 +218,34 @@ public class DocumentHistoryGet extends AbstractWebScript {
             OffsetDateTime offsetDateTime = date.toInstant().atOffset(offset);
             attributesNode.put(DocumentHistoryConstants.DOCUMENT_DATE.getKey(), offsetDateTime.toString());
             attributesNode.put(DocumentHistoryConstants.DOCUMENT_VERSION.getKey(),
-                    (String) historyRecordMap.get(DocumentHistoryConstants.DOCUMENT_VERSION.getValue()));
+                (String) historyRecordMap.get(DocumentHistoryConstants.DOCUMENT_VERSION.getValue()));
             attributesNode.put(DocumentHistoryConstants.COMMENTS.getKey(),
-                    (String) historyRecordMap.get(DocumentHistoryConstants.COMMENTS.getValue()));
+                (String) historyRecordMap.get(DocumentHistoryConstants.COMMENTS.getValue()));
             attributesNode.put(DocumentHistoryConstants.EVENT_TYPE.getKey(),
-                    (String) historyRecordMap.get(DocumentHistoryConstants.EVENT_TYPE.getValue()));
+                (String) historyRecordMap.get(DocumentHistoryConstants.EVENT_TYPE.getValue()));
             attributesNode.put(DocumentHistoryConstants.TASK_ROLE.getKey(),
-                    (String) historyRecordMap.get(DocumentHistoryConstants.TASK_ROLE.getValue()));
+                (String) historyRecordMap.get(DocumentHistoryConstants.TASK_ROLE.getValue()));
             attributesNode.put(DocumentHistoryConstants.TASK_OUTCOME.getKey(),
-                    (String) historyRecordMap.get(DocumentHistoryConstants.TASK_OUTCOME.getValue()));
-            attributesNode.put(DocumentHistoryConstants.TASK_OUTCOME_TITLE.getKey(), getTaskOutcomeTitle(
-                    taskTypeShort,
-                    (String) historyRecordMap.get(DocumentHistoryConstants.TASK_OUTCOME.getValue()),
-                    outcomeTitles
-            ));
+                (String) historyRecordMap.get(DocumentHistoryConstants.TASK_OUTCOME.getValue()));
+            attributesNode.put(
+                DocumentHistoryConstants.TASK_OUTCOME_TITLE.getKey(),
+                getTaskOutcomeTitle(taskTypeShort, historyRecordMap, outcomeTitles)
+            );
             attributesNode.put(DocumentHistoryConstants.TASK_INSTANCE_ID.getKey(),
-                    (String) historyRecordMap.get(DocumentHistoryConstants.TASK_INSTANCE_ID.getValue()));
+                (String) historyRecordMap.get(DocumentHistoryConstants.TASK_INSTANCE_ID.getValue()));
 
             ArrayList<NodeRef> attachments = (ArrayList<NodeRef>) historyRecordMap.get(
-                    DocumentHistoryConstants.TASK_ATTACHMENTS.getValue());
+                DocumentHistoryConstants.TASK_ATTACHMENTS.getValue());
             if (attachments != null) {
                 attributesNode.put(DocumentHistoryConstants.TASK_ATTACHMENTS.getKey(),
-                        transformNodeRefsToArrayNode(attachments));
+                    transformNodeRefsToArrayNode(attachments));
             }
 
             ArrayList<NodeRef> pooledActors = (ArrayList<NodeRef>) historyRecordMap.get(
-                    DocumentHistoryConstants.TASK_POOLED_ACTORS.getValue());
+                DocumentHistoryConstants.TASK_POOLED_ACTORS.getValue());
             if (pooledActors != null) {
                 attributesNode.put(DocumentHistoryConstants.TASK_POOLED_ACTORS.getKey(),
-                        transformNodeRefsToArrayNode(pooledActors));
+                    transformNodeRefsToArrayNode(pooledActors));
             }
 
             /* User */
@@ -294,36 +297,37 @@ public class DocumentHistoryGet extends AbstractWebScript {
     }
 
     private String getTaskOutcomeTitle(String taskTypeShort,
-                                       String outcome,
-                                       Map<Pair<String, String>, String> titles) {
+                                       Map<String, Object> historyRecordMap,
+                                       Map<List<String>, String> titles) {
 
+        String outcome = (String) historyRecordMap.get(DocumentHistoryConstants.TASK_OUTCOME.getValue());
         if (outcome == null) {
             return null;
         }
 
-        return titles.computeIfAbsent(new Pair<>(taskTypeShort, outcome), p -> {
+        String taskDefinitionVarKey = DocumentHistoryConstants.TASK_DEFINITION_KEY.getValue();
+        String taskDefinitionKey = (String) historyRecordMap.get(taskDefinitionVarKey);
 
-            String title;
+        return titles.computeIfAbsent(Arrays.asList(taskTypeShort, taskDefinitionKey, outcome), itemKey -> {
 
-            if (StringUtils.isNotBlank(taskTypeShort)) {
-
-                String correctType = taskTypeShort.replaceAll(":", "_");
-                String keyByType = "workflowtask." + correctType + ".outcome." + outcome;
-
-                title = I18NUtil.getMessage(keyByType);
-
+            if (StringUtils.isNotBlank(taskDefinitionKey)) {
+                String key = "flowable.form.button." + taskDefinitionKey + "." + outcome + ".label";
+                String title = I18NUtil.getMessage(key);
                 if (StringUtils.isNotBlank(title)) {
                     return title;
                 }
             }
 
-            String globalKey = "workflowtask.outcome." + outcome;
-            title = I18NUtil.getMessage(globalKey);
-            if (StringUtils.isNotBlank(title)) {
-                return title;
+            if (StringUtils.isNotBlank(taskTypeShort)) {
+                String correctType = taskTypeShort.replaceAll(":", "_");
+                String title = I18NUtil.getMessage("workflowtask." + correctType + ".outcome." + outcome);
+                if (StringUtils.isNotBlank(title)) {
+                    return title;
+                }
             }
 
-            return p.getSecond();
+            String title = I18NUtil.getMessage("workflowtask.outcome." + outcome);
+            return StringUtils.isNotBlank(title) ? title : outcome;
         });
     }
 

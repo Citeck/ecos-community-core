@@ -1,6 +1,7 @@
 package ru.citeck.ecos.records.source.alf.search;
 
 import com.fasterxml.jackson.databind.util.ISO8601Utils;
+import lombok.val;
 import org.alfresco.error.AlfrescoRuntimeException;
 import org.alfresco.model.ContentModel;
 import org.alfresco.service.cmr.repository.StoreRef;
@@ -12,21 +13,33 @@ import org.alfresco.service.namespace.NamespaceService;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.apache.commons.validator.Msg;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import ru.citeck.ecos.commons.data.DataValue;
+import ru.citeck.ecos.domain.model.alf.service.AlfAutoModelService;
 import ru.citeck.ecos.records.source.alf.AlfNodesRecordsDAO;
 import ru.citeck.ecos.records.source.alf.search.AlfNodesSearch.AfterIdType;
 import ru.citeck.ecos.records2.RecordRef;
 import ru.citeck.ecos.records2.request.query.RecordsQuery;
 import ru.citeck.ecos.records2.request.query.RecordsQueryResult;
 import ru.citeck.ecos.records2.request.query.SortBy;
+import ru.citeck.ecos.records3.record.request.RequestContext;
+import ru.citeck.ecos.records3.record.request.msg.MsgLevel;
 
+import java.util.Collections;
 import java.util.Date;
+import java.util.Map;
+import java.util.function.Supplier;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 @Component
 public class SearchServiceAlfNodesSearch {
+
+    public static final String ECOS_PARAMS_DELIM = "__?";
+    public static final String ECOS_TYPE_DELIM = ECOS_PARAMS_DELIM + "_type=";
+    private static final String ECOS_TYPE_DELIM_REGEXP = Pattern.quote(ECOS_TYPE_DELIM);
 
     private static final Log logger = LogFactory.getLog(SearchServiceAlfNodesSearch.class);
 
@@ -34,6 +47,7 @@ public class SearchServiceAlfNodesSearch {
 
     private SearchService searchService;
     private NamespaceService namespaceService;
+    private AlfAutoModelService alfAutoModelService;
 
     @Autowired
     public SearchServiceAlfNodesSearch(SearchService searchService,
@@ -55,7 +69,14 @@ public class SearchServiceAlfNodesSearch {
 
     private RecordsQueryResult<RecordRef> queryRecordsImpl(RecordsQuery recordsQuery, Long afterDbId, Date afterCreated) {
 
-        String query = recordsQuery.getQuery(DataValue.class).asText();
+        val reqCtx = RequestContext.getCurrent();
+
+        String[] queryWithType = recordsQuery.getQuery(DataValue.class)
+            .asText()
+            .split(ECOS_TYPE_DELIM_REGEXP);
+
+        String query = queryWithType[0];
+        RecordRef ecosTypeRef = RecordRef.valueOf(queryWithType.length > 1 ? queryWithType[1] : null);
 
         SearchParameters searchParameters = new SearchParameters();
         searchParameters.addStore(StoreRef.STORE_REF_WORKSPACE_SPACESSTORE);
@@ -94,15 +115,27 @@ public class SearchServiceAlfNodesSearch {
             searchParameters.setSkipCount(recordsQuery.getSkipCount());
         }
 
+        val finalQuery = query;
+        addDebugMsg(reqCtx, () -> "Query: " + finalQuery);
+
         if ("()".equals(query) || StringUtils.isBlank(query))  {
             return new RecordsQueryResult<>();
         }
 
+        query = query.replace("alfresco/@workspace://", "workspace://");
         searchParameters.setQuery(query);
 
         if (!ignoreQuerySort) {
+
+            Map<String, String> propsMapping;
+            if (alfAutoModelService != null) {
+                propsMapping = alfAutoModelService.getPropsMapping(ecosTypeRef);
+            } else {
+                propsMapping = Collections.emptyMap();
+            }
             for (SortBy sortBy : recordsQuery.getSortBy()) {
-                String field = "@" + sortBy.getAttribute();
+                String att = sortBy.getAttribute();
+                String field = "@" + propsMapping.getOrDefault(att, att);
                 if (!afterIdMode || !afterIdSortField.equals(field)) {
                     searchParameters.addSort(field, sortBy.isAscending());
                 }
@@ -133,6 +166,17 @@ public class SearchServiceAlfNodesSearch {
                 resultSet.close();
             }
         }
+    }
+
+    private void addDebugMsg(RequestContext reqCtx, Supplier<String> msg) {
+        if (reqCtx != null && reqCtx.isMsgEnabled(MsgLevel.DEBUG)) {
+            reqCtx.addMsg(MsgLevel.DEBUG, msg.get());
+        }
+    }
+
+    @Autowired(required = false)
+    public void setAlfAutoModelService(AlfAutoModelService alfAutoModelService) {
+        this.alfAutoModelService = alfAutoModelService;
     }
 
     private class SearchWithLanguage implements AlfNodesSearch {

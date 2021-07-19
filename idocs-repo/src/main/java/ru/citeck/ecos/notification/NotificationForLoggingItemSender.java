@@ -19,60 +19,65 @@
 package ru.citeck.ecos.notification;
 
 import java.io.Serializable;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
-import java.util.List;
+import java.util.*;
 
 import org.alfresco.service.ServiceRegistry;
 import org.alfresco.service.cmr.repository.NodeRef;
+import ru.citeck.ecos.records2.RecordRef;
 
 /**
  * Notification Sender for documents (ItemType = NodeRef).
- * 
- * The following implementation is used: 
+ * <p>
+ * The following implementation is used:
  * - subject line: default
  * - template: retrieved by key = node type
- * - template args: 
- *   {
- *     "item": "nodeRef"
- *   }
+ * - template args:
+ * {
+ * "item": "nodeRef"
+ * }
  * - recipients: only a document owner receives notification
- * 
+ *
  * @author Elena Zaripova
  */
-public class NotificationForLoggingItemSender extends AbstractNotificationSender<NodeRef>
-{
-	public static final String ARG_ITEM = "item";
-	public static final String ARG_AUTO_SENT = "autoSent";
-	
-	@Override
-	protected NodeRef getNotificationTemplate(NodeRef item) {
-		String type = nodeService.getType(item).toPrefixString(namespaceService);
-		return getNotificationTemplate(type);
-	}
+public class NotificationForLoggingItemSender extends AbstractNotificationSender<NodeRef> {
+    public static final String ARG_ITEM = "item";
+    public static final String ARG_AUTO_SENT = "autoSent";
 
-	@Override
-	protected Map<String, Serializable> getNotificationArgs(NodeRef item) {
-		Map<String, Serializable> args = new HashMap<>();
-		args.put(ARG_ITEM, item);
-		args.put(ARG_AUTO_SENT, "true");
-		return args;
-	}
+    @Override
+    protected NodeRef getNotificationTemplate(NodeRef item) {
+        String type = nodeService.getType(item).toPrefixString(namespaceService);
+        return getNotificationTemplate(type);
+    }
 
-	protected void sendToAssignee(NodeRef item, Set<String> authorities)
-	{
-	}
+    @Override
+    protected Map<String, Serializable> getNotificationArgs(NodeRef item) {
+        Map<String, Serializable> args = new HashMap<>();
+        args.put(ARG_ITEM, item);
+        args.put(ARG_AUTO_SENT, "true");
+        return args;
+    }
 
-	protected void sendToInitiator(NodeRef item, Set<String> authorities)
-	{
-	}
-	protected void sendToOwner(Set<String> authorities, NodeRef node)
-	{
-	}
+    @Override
+    protected Map<String, Object> getEcosNotificationArgs(NodeRef item) {
+        Map<String, Object> args = super.getEcosNotificationArgs(item);
+        args.put("_record", RecordRef.valueOf(item.toString()));
+        args.put(ARG_AUTO_SENT, "true");
+        return args;
+    }
 
-	
-	protected void sendToSubscribers(NodeRef item, Set<String> authorities, List<String> taskSubscribers)
-	{
-	}
+    protected void sendToAssignee(NodeRef item, Set<String> authorities) {
+        // empty
+    }
+
+    protected void sendToInitiator(NodeRef item, Set<String> authorities) {
+        // empty
+    }
+
+    protected void sendToOwner(Set<String> authorities, NodeRef node) {
+        // empty
+    }
+
+    protected void sendToSubscribers(NodeRef item, Set<String> authorities, List<String> taskSubscribers) {
+        // empty
+    }
 }

@@ -9,11 +9,15 @@ import org.alfresco.repo.i18n.MessageService;
 import org.alfresco.repo.transaction.TransactionalResourceHelper;
 import org.alfresco.service.ServiceRegistry;
 import org.alfresco.service.cmr.dictionary.*;
+import org.alfresco.service.cmr.repository.MLText;
 import org.alfresco.service.namespace.NamespaceService;
 import org.alfresco.service.namespace.QName;
 import org.alfresco.util.Pair;
 import org.apache.commons.lang.StringUtils;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.extensions.surf.util.I18NUtil;
 import org.springframework.stereotype.Component;
 
 import java.util.*;
@@ -41,8 +45,8 @@ public class DictUtils {
         namespaceService = serviceRegistry.getNamespaceService();
 
         this.cachedDisplayNameMappingWithChildren = CacheBuilder.newBuilder()
-                .expireAfterWrite(CACHE_AGE_SECONDS, TimeUnit.SECONDS)
-                .build(CacheLoader.from(this::configureCacheDisplayNameMapping));
+            .expireAfterWrite(CACHE_AGE_SECONDS, TimeUnit.SECONDS)
+            .build(CacheLoader.from(this::configureCacheDisplayNameMapping));
     }
 
     private Map<String, String> configureCacheDisplayNameMapping(Pair<QName, QName> key) {
@@ -63,7 +67,7 @@ public class DictUtils {
             }
             ClassDefinition classDefinition = propertyDefinition.getContainerClass();
             if (classDefinition == null) {
-                log.warn("Return empty mapping because 'classDefinition' was null. 'field' value: "+ field);
+                log.warn("Return empty mapping because 'classDefinition' was null. 'field' value: " + field);
                 return Collections.emptyMap();
             } else {
                 container = classDefinition.getName();
@@ -105,7 +109,7 @@ public class DictUtils {
      * Search property definition in specified container or associated default aspects
      *
      * @param containerName aspect or type name. If null then default property definition will be returned
-     * @param propertyName property name. Must be not null
+     * @param propertyName  property name. Must be not null
      * @return property definition or null if definition not found
      */
     public PropertyDefinition getPropDef(QName containerName, QName propertyName) {
@@ -149,6 +153,30 @@ public class DictUtils {
     public String getTypeTitle(QName typeName) {
         TypeDefinition type = dictionaryService.getType(typeName);
         return type.getTitle(messageService);
+    }
+
+    public MLText getTypeMlTitle(@NotNull QName typeName) {
+        TypeDefinition typeDefinition = dictionaryService.getType(typeName);
+
+        MLText result = new MLText();
+
+        final Locale primaryLocale = I18NUtil.getLocale();
+
+        for (Locale locale : EcosU18NUtils.LOCALES) {
+            I18NUtil.setLocale(locale);
+            String title = typeDefinition.getTitle(messageService);
+            if (StringUtils.isNotBlank(title)) {
+                result.put(locale, title);
+            }
+        }
+
+        if (result.isEmpty()) {
+            result.put(primaryLocale, typeName.toPrefixString());
+        }
+
+        I18NUtil.setLocale(primaryLocale);
+
+        return result;
     }
 
     public ClassAttributeDefinition getAttDefinition(String name) {
@@ -213,7 +241,7 @@ public class DictUtils {
             return cachedDisplayNameMappingWithChildren.get(new Pair<>(container, field));
         } catch (ExecutionException e) {
             log.error("Cannot get cached 'displayName' mapping. \n" +
-                    "Args: 'container': " + container + " 'field': " + field, e);
+                "Args: 'container': " + container + " 'field': " + field, e);
             return Collections.emptyMap();
         }
     }
@@ -230,6 +258,7 @@ public class DictUtils {
         return getListOfValuesConstraint(dictionaryService.getProperty(propertyName));
     }
 
+    @Nullable
     public ListOfValuesConstraint getListOfValuesConstraint(PropertyDefinition propDef) {
 
         if (propDef != null) {

@@ -1,5 +1,8 @@
 package ru.citeck.ecos.comment;
 
+import ecos.com.fasterxml.jackson210.core.JsonProcessingException;
+import ecos.com.fasterxml.jackson210.databind.ObjectMapper;
+import lombok.extern.slf4j.Slf4j;
 import org.alfresco.query.PagingRequest;
 import org.alfresco.query.PagingResults;
 import org.alfresco.repo.forum.CommentServiceImpl;
@@ -8,16 +11,22 @@ import org.alfresco.service.cmr.repository.NodeRef;
 import org.alfresco.service.cmr.repository.NodeService;
 import org.alfresco.service.cmr.security.AccessStatus;
 import org.alfresco.service.cmr.security.PermissionService;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import ru.citeck.ecos.comment.model.CommentDTO;
+import ru.citeck.ecos.comment.model.CommentDto;
+import ru.citeck.ecos.comment.model.CommentTagDto;
+import ru.citeck.ecos.model.EcosCommonModel;
+
+import java.util.List;
 
 /**
- * Facade of alfresco {@link CommentServiceImpl} for working with {@link CommentDTO} in {@link CommentRecords}
+ * Facade of alfresco {@link CommentServiceImpl} for working with {@link CommentDto} in {@link CommentRecords}
  *
  * @author Roman Makarskiy
  */
+@Slf4j
 @Service
 public class EcosCommentServiceImpl implements EcosCommentService {
 
@@ -28,6 +37,8 @@ public class EcosCommentServiceImpl implements EcosCommentService {
     private final CommentFactory commentFactory;
     private final NodeService nodeService;
     private final PermissionService permissionService;
+
+    private final ObjectMapper mapper = new ObjectMapper();
 
     @Autowired
     public EcosCommentServiceImpl(CommentServiceImpl commentService,
@@ -41,7 +52,7 @@ public class EcosCommentServiceImpl implements EcosCommentService {
     }
 
     @Override
-    public CommentDTO create(CommentDTO commentDTO) {
+    public CommentDto create(CommentDto commentDTO) {
         String record = commentDTO.getRecord();
 
         if (StringUtils.isBlank(record)) {
@@ -56,6 +67,7 @@ public class EcosCommentServiceImpl implements EcosCommentService {
         NodeRef createdComment = AuthenticationUtil.runAsSystem(() ->
             commentService.createComment(discussableRef, "", commentDTO.getText(), OFF_SUPPRESS_ROLL_UPS)
         );
+        fillTags(createdComment, commentDTO.getTags());
         return commentFactory.fromNode(createdComment);
     }
 
@@ -64,8 +76,21 @@ public class EcosCommentServiceImpl implements EcosCommentService {
         return AccessStatus.ALLOWED.equals(status);
     }
 
+    private void fillTags(NodeRef comment, List<CommentTagDto> tags) {
+        if (CollectionUtils.isEmpty(tags)) {
+            return;
+        }
+
+        try {
+            String tagsJson = mapper.writeValueAsString(tags);
+            nodeService.setProperty(comment, EcosCommonModel.PROP_TAG, tagsJson);
+        } catch (JsonProcessingException e) {
+            log.error("Failed write comment tags as string", e);
+        }
+    }
+
     @Override
-    public CommentDTO update(CommentDTO commentDTO) {
+    public CommentDto update(CommentDto commentDTO) {
         String commentId = commentDTO.getId();
 
         if (StringUtils.isBlank(commentId)) {
@@ -79,7 +104,7 @@ public class EcosCommentServiceImpl implements EcosCommentService {
     }
 
     @Override
-    public CommentDTO getById(String id) {
+    public CommentDto getById(String id) {
         NodeRef commentRef = toNodeRef(id);
         if (!nodeService.exists(commentRef)) {
             throw new IllegalArgumentException(String.format("Comment with id <%s> not found", id));

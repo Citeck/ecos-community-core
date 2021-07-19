@@ -1,5 +1,6 @@
 package ru.citeck.ecos.journals.records;
 
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import ru.citeck.ecos.graphql.journal.JGqlPageInfoInput;
@@ -15,6 +16,7 @@ import ru.citeck.ecos.records2.request.query.SortBy;
 
 import java.util.stream.Collectors;
 
+@Slf4j
 public class JournalRecordsDao {
 
     private GqlQueryGenerator gqlQueryGenerator;
@@ -26,10 +28,12 @@ public class JournalRecordsDao {
                                                              JGqlPageInfoInput pageInfo,
                                                              boolean debug) {
 
-        String gqlQuery = gqlQueryGenerator.generate(journalType);
-        RecordsQuery recordsQuery = createQuery(journalType.getDataSource(), query, language, pageInfo, debug);
+        log.error("getRecordsWithData is not supported");
 
-        return recordsService.queryRecords(recordsQuery, gqlQuery);
+        //String gqlQuery = gqlQueryGenerator.generate(journalType);
+        //RecordsQuery recordsQuery = createQuery(journalType.getDataSource(), query, language, pageInfo, debug);
+
+        return new RecordsQueryResult<>();//recordsService.queryRecords(recordsQuery, gqlQuery);
     }
 
     public String getJournalGqlSchema(JournalType type) {

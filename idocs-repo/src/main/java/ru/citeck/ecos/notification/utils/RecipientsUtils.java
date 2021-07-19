@@ -1,17 +1,14 @@
 package ru.citeck.ecos.notification.utils;
 
+import lombok.extern.slf4j.Slf4j;
 import org.alfresco.service.ServiceRegistry;
 import org.alfresco.service.cmr.dictionary.DictionaryService;
 import org.alfresco.service.cmr.repository.AssociationRef;
-import org.alfresco.service.cmr.repository.ChildAssociationRef;
 import org.alfresco.service.cmr.repository.NodeRef;
 import org.alfresco.service.cmr.repository.NodeService;
 import org.alfresco.service.namespace.QName;
-import org.alfresco.service.namespace.RegexQNamePattern;
 import org.apache.commons.lang.StringUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-import ru.citeck.ecos.model.ICaseRoleModel;
+import ru.citeck.ecos.role.CaseRoleService;
 import ru.citeck.ecos.utils.RepoUtils;
 
 import java.util.*;
@@ -19,40 +16,38 @@ import java.util.*;
 /**
  * @author Roman Makarskiy
  */
+@Slf4j
 public class RecipientsUtils {
 
-    private static Log logger = LogFactory.getLog(RecipientsUtils.class);
-
     public static Set<String> getRecipientsFromRole(List<String> roles, NodeRef iCase, NodeService nodeService,
-                                                                        DictionaryService dictionaryService) {
+                                                                        DictionaryService dictionaryService,
+                                                                        CaseRoleService caseRoleService) {
         Set<String> recipients = new HashSet<>();
         for (String recipientFromICaseRole : roles) {
-            List<ChildAssociationRef> iCaseRoles = nodeService.getChildAssocs(iCase,
-                    ICaseRoleModel.ASSOC_ROLES, RegexQNamePattern.MATCH_ALL);
+            List<NodeRef> iCaseRoles = caseRoleService.getRoles(iCase);
             if (!iCaseRoles.isEmpty()) {
-                NodeRef iCaseRole = getICaseRoleOrNullNotFound(recipientFromICaseRole, iCaseRoles, nodeService);
-                if (iCaseRole != null && nodeService.exists(iCaseRole)) {
-                    List<AssociationRef> recipientsRef = nodeService.getTargetAssocs(iCaseRole,
-                            ICaseRoleModel.ASSOC_ASSIGNEES);
+                NodeRef iCaseRole = getICaseRoleOrNullNotFound(recipientFromICaseRole, iCaseRoles, caseRoleService);
+                if (iCaseRole != null) {
+                    Set<NodeRef> recipientsRef = caseRoleService.getAssignees(iCaseRole);
                     if (!recipientsRef.isEmpty()) {
-                        for (AssociationRef recipientRef : recipientsRef) {
-                            addRecipient(recipients, recipientRef.getTargetRef(), nodeService, dictionaryService);
+                        for (NodeRef recipientRef : recipientsRef) {
+                            addRecipient(recipients, recipientRef, nodeService, dictionaryService);
                         }
                     } else {
-                        if (logger.isDebugEnabled()) {
-                            logger.debug("Cannot find recipients in case : " + iCaseRole);
+                        if (log.isDebugEnabled()) {
+                            log.debug("Cannot find recipients in case : " + iCaseRole);
                         }
                     }
                 } else {
-                    if (logger.isDebugEnabled()) {
-                        logger.debug("Cannot find needed iCase role: " + recipientFromICaseRole
+                    if (log.isDebugEnabled()) {
+                        log.debug("Cannot find needed iCase role: " + recipientFromICaseRole
                                 + " in document: " + iCase);
                     }
                 }
 
             } else {
-                if (logger.isDebugEnabled()) {
-                    logger.debug("iCase Role is empty in document: " + iCase);
+                if (log.isDebugEnabled()) {
+                    log.debug("iCase Role is empty in document: " + iCase);
                 }
             }
         }
@@ -67,8 +62,8 @@ public class RecipientsUtils {
             if (!recipientList.isEmpty()) {
                 addRecipient(assocRecipientsNames, recipientList.get(0).getTargetRef(), nodeService, dictionaryService);
             } else {
-                if (logger.isDebugEnabled()) {
-                    logger.debug("Cannot find recipient: " + recipient + " for document: " + node);
+                if (log.isDebugEnabled()) {
+                    log.debug("Cannot find recipient: " + recipient + " for document: " + node);
                 }
             }
         }
@@ -93,8 +88,8 @@ public class RecipientsUtils {
                         )
                 );
             } else {
-                if (logger.isDebugEnabled()) {
-                    logger.debug("Cannot find recipient: " + recipient + " for document: " + node);
+                if (log.isDebugEnabled()) {
+                    log.debug("Cannot find recipient: " + recipient + " for document: " + node);
                 }
             }
         }
@@ -111,12 +106,12 @@ public class RecipientsUtils {
         }
     }
 
-    private static NodeRef getICaseRoleOrNullNotFound(String roleName, List<ChildAssociationRef> iCaseRoles,
-                                                      NodeService nodeService) {
-        for (ChildAssociationRef caseRole : iCaseRoles) {
-            String foundRoleName = (String) nodeService.getProperty(caseRole.getChildRef(), ICaseRoleModel.PROP_VARNAME);
+    private static NodeRef getICaseRoleOrNullNotFound(String roleName, List<NodeRef> iCaseRoles,
+                                                      CaseRoleService caseRoleService) {
+        for (NodeRef caseRole : iCaseRoles) {
+            String foundRoleName = caseRoleService.getRoleId(caseRole);
             if (Objects.equals(foundRoleName, roleName)) {
-                return caseRole.getChildRef();
+                return caseRole;
             }
         }
         return null;

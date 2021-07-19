@@ -1,0 +1,15 @@
+{
+  "id": "open-workflow-by-wftask",
+  "name": {
+    "ru": "Открыть бизнес-процесс",
+    "en": "Open workflow"
+  },
+  "key": "open.workflow.by.wftask",
+  "type": "assoc-action",
+  "config": {
+    "action": {
+      "type": "view"
+    },
+    "assoc": "workflow"
+  }
+}

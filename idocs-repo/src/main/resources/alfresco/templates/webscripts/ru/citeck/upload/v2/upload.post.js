@@ -34,6 +34,31 @@ function getNewFile(contentType, destNode, formdata) {
     return destNode.createFile(filename, contentType);
 }
 
+function getNewFileName(oldFullName, newFullName) {
+
+    if (oldFullName == newFullName) {
+        return oldFullName;
+    }
+
+    var lastPointIndexOld = oldFullName.lastIndexOf('.');
+    var oldName;
+    var oldExtension = '';
+    if (lastPointIndexOld > 0) {
+        oldName = oldFullName.substring(0, lastPointIndexOld);
+        oldExtension = oldFullName.substring(lastPointIndexOld + 1);
+    } else {
+        oldName = oldFullName;
+    }
+
+    var lastPointIndexNew = newFullName.lastIndexOf('.');
+    var newExtension = oldExtension;
+    if (lastPointIndexNew > 0) {
+        newExtension = newFullName.substring(lastPointIndexNew + 1);
+    }
+
+    return oldName + (newExtension ? "." + newExtension : '');
+}
+
 function main() {
     try {
         var filename = null,
@@ -209,13 +234,16 @@ function main() {
             /**
              * Update existing file specified in updateNodeRef
              */
+            if (updateNodeRef.startsWith("alfresco/@")){
+                updateNodeRef = updateNodeRef.replace("alfresco/@", "");
+            }
             var updateNode = search.findNode(updateNodeRef);
             if (updateNode === null) {
                 exitUpload(404, "Node specified by updateNodeRef (" + updateNodeRef + ") not found.");
                 return;
             }
-            updateNode.name = formdata.fields[1].value;
 
+            var oldName = updateNode.name;
             var workingcopy = updateNode.hasAspect("cm:workingcopy");
             if (!workingcopy && updateNode.isLocked) {
                 // We cannot update a locked document (except working copy as per MNT-8736)
@@ -238,6 +266,10 @@ function main() {
             // Update the working copy content
             updateNode.properties.content.write(content, false, true);
             updateNode.properties.content.guessMimetype(filename);
+            var newName = getNewFileName(oldName, formdata.fields[1].value);
+            if (oldName != newName) {
+                updateNode.name = newName;
+            }
             // check it in again, with supplied version history note
 
             // Extract the metadata

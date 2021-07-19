@@ -65,6 +65,7 @@ public final class HistoryModel {
     public static final QName PROP_TASK_DUE_DATE = QName.createQName(EVENT_NAMESPACE, "taskDueDate");
     public static final QName PROP_TASK_TITLE = QName.createQName(EVENT_NAMESPACE, "taskTitle");
     public static final QName PROP_TASK_FORM_KEY = QName.createQName(EVENT_NAMESPACE, "taskFormKey");
+    public static final QName PROP_TASK_DEFINITION_KEY = QName.createQName(EVENT_NAMESPACE, "taskDefinitionKey");
     public static final QName INITIATOR = QName.createQName(EVENT_NAMESPACE, "initiator_added");
 
     public static final QName PROP_DOC_TYPE = QName.createQName(EVENT_NAMESPACE, "docType");

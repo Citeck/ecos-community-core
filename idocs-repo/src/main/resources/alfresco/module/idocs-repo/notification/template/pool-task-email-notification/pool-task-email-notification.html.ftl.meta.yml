@@ -1,0 +1,14 @@
+{
+  "id" : "pool-task-email-notification",
+  "name" : "pool-task-email-notification",
+  "notificationTitle" : {
+    "ru" : "${subject!\"Задача снята с исполнителя\"}</#if>",
+    "en" : "${subject!\"The task has been removed from the performer\"}</#if>"
+  },
+  "model" : {
+    "taskId" : ".id",
+    "subject" : "$subject?str",
+    "web_url" : "$webUrl?str"
+  },
+  "multiTemplateConfig" : []
+}

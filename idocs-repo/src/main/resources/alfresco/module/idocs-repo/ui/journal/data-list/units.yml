@@ -1,0 +1,8 @@
+---
+id: units
+name: { ru: Единицы измерения, en: Units }
+
+columns:
+  - id: pas:unitShortName
+  - id: pas:unitName
+

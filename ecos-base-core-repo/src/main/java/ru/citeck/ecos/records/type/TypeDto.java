@@ -7,10 +7,10 @@ import lombok.NoArgsConstructor;
 import org.jetbrains.annotations.NotNull;
 import ru.citeck.ecos.commons.data.MLText;
 import ru.citeck.ecos.commons.data.ObjectData;
-import ru.citeck.ecos.records2.RecordConstants;
+import ru.citeck.ecos.model.lib.type.dto.DocLibDef;
+import ru.citeck.ecos.model.lib.type.dto.TypeModelDef;
 import ru.citeck.ecos.records2.RecordRef;
-import ru.citeck.ecos.records2.graphql.meta.annotation.MetaAtt;
-import ru.citeck.ecos.records2.type.ComputedAttribute;
+import ru.citeck.ecos.records3.record.atts.schema.annotation.AttName;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -30,12 +30,12 @@ public class TypeDto {
     private RecordRef parentRef;
     private RecordRef formRef;
     private RecordRef journalRef;
-    private RecordRef numTemplateRef;
+    private RecordRef inhNumTemplateRef;
     private boolean system;
     private String dashboardType;
     private boolean inheritActions;
 
-    private MLText dispNameTemplate;
+    private MLText inhDispNameTemplate;
     private boolean inheritNumTemplate;
 
     private List<String> aliases = new ArrayList<>();
@@ -43,18 +43,41 @@ public class TypeDto {
     private List<RecordRef> actions = new ArrayList<>();
     private List<AssociationDto> associations = new ArrayList<>();
     private List<CreateVariantDto> createVariants = new ArrayList<>();
-    private List<ComputedAttribute> computedAttributes = new ArrayList<>();
 
-    private ObjectData attributes = ObjectData.create();
+    private ObjectData properties = ObjectData.create();
+    private ObjectData inhAttributes = ObjectData.create();
 
     private RecordRef configFormRef;
     private ObjectData config = ObjectData.create();
 
-    @MetaAtt(".type{id}")
+    @AttName("model?json")
+    private TypeModelDef model;
+
+    @AttName("resolvedModel?json")
+    private TypeModelDef resolvedModel;
+
+    @AttName("_type?id")
     private RecordRef ecosType;
 
-    @MetaAtt(".type")
+    @AttName("docLib?json")
+    private DocLibDef docLib;
+
+    @AttName("resolvedDocLib?json")
+    private DocLibDef resolvedDocLib;
+
+    @AttName("?disp")
+    public MLText getDisplayName() {
+        return name;
+    }
+
+    @AttName("_type")
     public RecordRef getEcosType() {
         return ecosType;
+    }
+
+    public void setDispNameTemplate(MLText dispNameTemplate) {
+        if (MLText.isEmpty(inhDispNameTemplate)) {
+            inhDispNameTemplate = dispNameTemplate;
+        }
     }
 }

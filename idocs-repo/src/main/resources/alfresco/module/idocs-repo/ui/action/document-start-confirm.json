@@ -1,0 +1,25 @@
+{
+  "id": "document-start-confirm",
+  "name": {
+    "ru": "Отправить на согласование",
+    "en": "Start approval"
+  },
+  "type": "open-url",
+  "key": "document.start.confirm",
+  "icon": null,
+  "typeRef": null,
+  "config": {
+    "url": "/share/page/start-specified-workflow?packageItems=${?localId}&workflowId=activiti$confirm"
+  },
+  "evaluator": {
+    "type": "predicate",
+    "config": {
+      "predicate": {
+        "type": "has-permission",
+        "config": {
+          "permission": "Write"
+        }
+      }
+    }
+  }
+}

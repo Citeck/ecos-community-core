@@ -1,0 +1,30 @@
+---
+id: audit-history-all
+name: { ru: Исторические события, en: History Events }
+
+sourceId: history
+actionsFromType: false
+
+predicate:
+  t: and
+  val:
+    - { t: eq, att: _type, val: ''}
+    - { t: eq, att: TYPE, val: '{http://www.citeck.ru/ecos/journals/1.0}audit-history-all' }
+
+columns:
+  - id: historyEventId
+  - id: username
+  - id: documentId
+  - id: creationTime
+  - id: version
+  - id: comments
+  - id: eventType
+  - id: taskRole
+  - id: taskOutcome
+  - id: taskOutcome
+  - id: taskType
+  - id: taskAttachments
+  - id: taskInstanceId
+  - id: taskPooledActors
+  - id: taskTitle
+

@@ -53,7 +53,8 @@ public class UpdateRoleBehaviour implements NodeServicePolicies.OnUpdateProperti
     public void onUpdateProperties(NodeRef roleRef, Map<QName, Serializable> before, Map<QName, Serializable> after) {
         if (nodeService.exists(roleRef)) {
             NodeRef parentRef = nodeService.getPrimaryParent(roleRef).getParentRef();
-            if (nodeService.hasAspect(parentRef, ICaseModel.ASPECT_CASE)) {
+            if (nodeService.hasAspect(parentRef, ICaseModel.ASPECT_CASE)
+                    && !nodeService.hasAspect(parentRef, ICaseModel.ASPECT_LEGACY_EDITOR_TEMPLATE)) {
                 caseRoleService.updateRole(roleRef);
             }
         }

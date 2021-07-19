@@ -1,6 +1,5 @@
 {
     "id": "idocs-cat-doctype-passport",
     "name": "Паспорт",
-    "parent": "emodel/type@user-base",
-    "inheritActions": true
+    "parent": "emodel/type@user-base"
 }

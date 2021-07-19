@@ -1,0 +1,25 @@
+
+id: cat-doc-type-ecos-bpm-process
+
+name:
+  ru: BPM Процесс
+  en: BPM Process
+
+sourceId: alfresco/
+
+parentRef: emodel/type@user-base
+formRef: uiserv/form@cat-doc-type-ecos-bpm-process-form
+
+defaultCreateVariant: true
+
+inheritActions: false
+
+properties:
+  alfType: ecosbpm:processModel
+  alfRoot: workspace://SpacesStore/ecos-bpm-process-root
+
+actions:
+  - uiserv/action@go-to-bpmn-designer
+  - uiserv/action@deploy-bpmn-flowable-model
+  - uiserv/action@content-download
+  - uiserv/action@delete

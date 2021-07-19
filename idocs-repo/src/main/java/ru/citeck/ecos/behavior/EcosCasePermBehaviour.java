@@ -3,6 +3,7 @@ package ru.citeck.ecos.behavior;
 import org.alfresco.model.ContentModel;
 import org.alfresco.repo.node.NodeServicePolicies;
 import org.alfresco.repo.policy.Behaviour;
+import org.alfresco.repo.security.authentication.AuthenticationUtil;
 import org.alfresco.service.cmr.repository.ChildAssociationRef;
 import org.alfresco.service.cmr.repository.NodeRef;
 import org.alfresco.service.cmr.security.PermissionService;
@@ -20,6 +21,7 @@ import ru.citeck.ecos.utils.NodeUtils;
 import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 
 public class EcosCasePermBehaviour extends AbstractBehaviour implements NodeServicePolicies.OnCreateNodePolicy {
 
@@ -39,6 +41,13 @@ public class EcosCasePermBehaviour extends AbstractBehaviour implements NodeServ
     @PolicyMethod(policy = NodeServicePolicies.OnCreateNodePolicy.class,
                   frequency = Behaviour.NotificationFrequency.TRANSACTION_COMMIT)
     public void onCreateNode(ChildAssociationRef childAssociationRef) {
+        AuthenticationUtil.runAsSystem(() -> {
+            onCreateNodeAsAdmin(childAssociationRef);
+            return null;
+        });
+    }
+
+    private void onCreateNodeAsAdmin(ChildAssociationRef childAssociationRef) {
 
         Object paramValue = ecosConfigService.getParamValue(ENABLED_CONFIG_KEY);
         if (!"true".equals(paramValue)) {
@@ -86,7 +95,16 @@ public class EcosCasePermBehaviour extends AbstractBehaviour implements NodeServ
         }
 
         String caseName = (String) caseProps.get(ContentModel.PROP_NAME);
-        QName assocQName = QName.createQName(EcosModel.ECOS_NAMESPACE, caseName);
+        String newCaseName;
+        if (StringUtils.isNotBlank(caseName)) {
+            newCaseName = nodeUtils.getValidChildName(creatorFolder, caseName);
+        } else {
+            newCaseName = UUID.randomUUID().toString();
+        }
+        if (!newCaseName.equals(caseName)) {
+            nodeService.setProperty(caseRef, ContentModel.PROP_NAME, newCaseName);
+        }
+        QName assocQName = QName.createQName(EcosModel.ECOS_NAMESPACE, newCaseName);
         nodeService.moveNode(caseRef, creatorFolder, ContentModel.ASSOC_CONTAINS, assocQName);
     }
 

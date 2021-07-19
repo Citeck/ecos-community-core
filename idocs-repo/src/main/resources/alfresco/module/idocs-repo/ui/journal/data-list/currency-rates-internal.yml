@@ -1,0 +1,10 @@
+---
+id: currency-rates-internal
+name: { ru: Курс валют внутренний, en: Currency rate Internal }
+
+columns:
+  - id: idocs:crrInternalBaseCurrency
+  - id: idocs:crrInternalTargetCurrency
+  - id: idocs:crrInternalValue
+  - id: idocs:crrInternalMonth
+  - id: idocs:crrInternalYear

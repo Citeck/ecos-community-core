@@ -1,0 +1,57 @@
+<?xml version='1.0' encoding='UTF-8'?>
+
+<model name="ecosAutoModel:model" xmlns="http://www.alfresco.org/model/dictionary/1.0"
+	xmlns:xi="http://www.w3.org/2001/XInclude">
+
+	<description>ECOS Auto Model</description>
+	<author>Citeck</author>
+	<version>1.0</version>
+
+	<imports>
+		<import uri="http://www.alfresco.org/model/dictionary/1.0" prefix="d" />
+		<import uri="http://www.alfresco.org/model/content/1.0" prefix="cm" />
+		<import uri="http://www.alfresco.org/model/datalist/1.0" prefix="dl" />
+	</imports>
+
+	<namespaces>
+		<namespace uri="http://www.citeck.ru/ecos/automodel/1.0" prefix="ecosAutoModel" />
+	</namespaces>
+
+	<types>
+
+		<type name="ecosAutoModel:modelDef">
+			<parent>cm:content</parent>
+            <properties>
+                <property name="ecosAutoModel:ecosTypeRef">
+                    <title>ECOS type ref</title>
+                    <type>d:text</type>
+                    <index enabled="true">
+                        <tokenised>false</tokenised>
+                    </index>
+                </property>
+                <property name="ecosAutoModel:modelPrefix">
+                    <title>Model prefix</title>
+                    <type>d:text</type>
+                    <index enabled="true">
+                        <tokenised>false</tokenised>
+                    </index>
+                </property>
+            </properties>
+		</type>
+
+    </types>
+
+    <aspects>
+
+        <aspect name="ecosAutoModel:hasModelsCounter">
+            <properties>
+                <property name="ecosAutoModel:modelsCounter">
+                    <title>Models Counter</title>
+                    <type>d:long</type>
+                </property>
+            </properties>
+        </aspect>
+
+    </aspects>
+
+</model>

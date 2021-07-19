@@ -1,0 +1,647 @@
+{
+  "id": "ecos-bpm-process-dashboard",
+  "typeRef": "emodel/type@cat-doc-type-ecos-bpm-process",
+  "appliedToRef": "",
+  "authority": null,
+  "priority": 0,
+  "config": {
+    "mobile": [
+      {
+        "tab": {
+          "label": "Свойства",
+          "idLayout": "layout_b4b01e70-e01c-457d-abfa-aaaf0a4ca691"
+        },
+        "type": "mobile",
+        "columns": [
+          {
+            "widgets": [
+              {
+                "name": "doc-status",
+                "label": "dashboard-settings.widget.doc-status",
+                "dndId": "c8c32b4e-138c-4746-bb9f-96d38008aa20",
+                "id": "5720648a-db6f-49ff-9917-67fb2eebf18f",
+                "props": {
+                  "id": "5720648a-db6f-49ff-9917-67fb2eebf18f",
+                  "config": {}
+                }
+              },
+              {
+                "dndId": "eb7b66be-bed1-4fe8-b4c3-048ad149379e",
+                "name": "properties",
+                "label": "dashboard-settings.widget.properties",
+                "id": "09623c98-fce2-4c50-9dbf-3f9c6b829092",
+                "props": {
+                  "id": "09623c98-fce2-4c50-9dbf-3f9c6b829092",
+                  "config": {}
+                }
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "tab": {
+          "label": "Задачи",
+          "idLayout": "layout_3cf89517-1d08-4530-be06-bd31bf862c71"
+        },
+        "type": "mobile",
+        "columns": [
+          {
+            "widgets": [
+              {
+                "name": "tasks",
+                "label": "dashboard-settings.widget.tasks",
+                "dndId": "ebcd2f91-f774-4e10-b164-e37f9020abfe",
+                "id": "0c813a7e-4ccc-440f-b288-1272fd6cb73d",
+                "props": {
+                  "id": "0c813a7e-4ccc-440f-b288-1272fd6cb73d",
+                  "config": {}
+                }
+              },
+              {
+                "name": "current-tasks",
+                "label": "dashboard-settings.widget.current-tasks",
+                "dndId": "d192dea4-68e8-4dbe-83c8-ee374d1e6fde",
+                "id": "58ad77ee-00b9-45b1-96ff-d604a26a588b",
+                "props": {
+                  "id": "58ad77ee-00b9-45b1-96ff-d604a26a588b",
+                  "config": {}
+                }
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "tab": {
+          "label": "Просмотр",
+          "idLayout": "layout_4e345aef-8b21-47cb-a653-26e3e897bb5c"
+        },
+        "type": "mobile",
+        "columns": [
+          {
+            "widgets": [
+              {
+                "name": "doc-preview",
+                "label": "dashboard-settings.widget.preview",
+                "dndId": "01972af7-7ca8-403c-9bdb-ba327641e48b",
+                "id": "078b2f66-a426-41f7-bbe9-399819c95418",
+                "props": {
+                  "id": "078b2f66-a426-41f7-bbe9-399819c95418",
+                  "config": {
+                    "link": ""
+                  }
+                }
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "tab": {
+          "label": "Действия",
+          "idLayout": "layout_c5b3186f-5a78-4d92-a730-1c8086562141"
+        },
+        "type": "mobile",
+        "columns": [
+          {
+            "widgets": [
+              {
+                "name": "record-actions",
+                "label": "dashboard-settings.widget.actions",
+                "dndId": "13059de7-854e-474f-9bca-6fe313000714",
+                "id": "2fd922fe-f0de-421d-a40b-b7761d563fb7",
+                "props": {
+                  "id": "2fd922fe-f0de-421d-a40b-b7761d563fb7",
+                  "config": {}
+                }
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "tab": {
+          "label": "Документы",
+          "idLayout": "layout_69e552d9-1323-42b4-b8ac-af176a6084fc"
+        },
+        "type": "mobile",
+        "columns": [
+          {
+            "widgets": [
+              {
+                "name": "documents",
+                "label": "dashboard-settings.widget.documents",
+                "dndId": "1f7b39f6-95ea-42ea-ad20-8d7917ea53e8",
+                "id": "ae30d4c7-1bd6-4ae5-b193-78ac5b9761f5",
+                "props": {
+                  "id": "ae30d4c7-1bd6-4ae5-b193-78ac5b9761f5",
+                  "config": {}
+                }
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "tab": {
+          "label": "Связи документа",
+          "idLayout": "layout_07d39068-7d9b-4d4e-822a-c2db4913cb6d"
+        },
+        "type": "mobile",
+        "columns": [
+          {
+            "widgets": [
+              {
+                "name": "doc-associations",
+                "label": "dashboard-settings.widget.doc-associations",
+                "dndId": "e176af3f-e6a4-4ea3-b66c-2a73a0ca9ad4",
+                "id": "35970600-1790-41e6-81db-7f428ef42d90",
+                "props": {
+                  "id": "35970600-1790-41e6-81db-7f428ef42d90",
+                  "config": {}
+                }
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "tab": {
+          "label": "Комментарии",
+          "idLayout": "layout_b3a3755f-12c4-4b2c-9c87-10821681b76c"
+        },
+        "type": "mobile",
+        "columns": [
+          {
+            "widgets": [
+              {
+                "name": "comments",
+                "label": "dashboard-settings.widget.comments",
+                "dndId": "74d3ff1c-a21a-414a-8b3b-0998521a2002",
+                "id": "6d4b6c6f-0e1c-488d-9acd-54bd90325712",
+                "props": {
+                  "id": "6d4b6c6f-0e1c-488d-9acd-54bd90325712",
+                  "config": {}
+                }
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "tab": {
+          "label": "Журнал версий",
+          "idLayout": "layout_8b060391-384f-4040-a16b-18ed74a8959f"
+        },
+        "type": "mobile",
+        "columns": [
+          {
+            "widgets": [
+              {
+                "name": "versions-journal",
+                "label": "dashboard-settings.widget.versions-journal",
+                "dndId": "3718b6ea-4046-42ca-a7b0-c83e34899430",
+                "id": "a11ba347-98dc-467f-95a8-e6ff79009479",
+                "props": {
+                  "id": "a11ba347-98dc-467f-95a8-e6ff79009479",
+                  "config": {}
+                }
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "tab": {
+          "label": "История событий",
+          "idLayout": "layout_0ae86778-b9a2-4f1b-8bb8-43891c1539cd"
+        },
+        "type": "mobile",
+        "columns": [
+          {
+            "widgets": [
+              {
+                "name": "events-history",
+                "label": "dashboard-settings.widget.events-history",
+                "dndId": "ae360bbf-6283-425d-a285-ff410e777364",
+                "id": "4dc3ad5e-184a-49f0-8f00-d3e5299ecf56",
+                "props": {
+                  "id": "4dc3ad5e-184a-49f0-8f00-d3e5299ecf56",
+                  "config": {}
+                }
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "layouts": [
+      {
+        "tab": {
+          "label": "Основное",
+          "idLayout": "layout_799ac5e5-9eab-4c08-af80-5ed48d768229"
+        },
+        "columns": [
+          {
+            "widgets": [
+              {
+                "dndId": "077bcf0e-5f7e-4f6d-abca-f996d243ea1d",
+                "name": "tasks",
+                "label": "dashboard-settings.widget.tasks",
+                "id": "d5b4372a-cb41-4370-b66e-5580a52aaa6f",
+                "props": {
+                  "id": "d5b4372a-cb41-4370-b66e-5580a52aaa6f",
+                  "config": {}
+                }
+              },
+              {
+                "dndId": "9b8f6180-1a68-4c8f-9e21-249ef2f1143d",
+                "name": "properties",
+                "label": "dashboard-settings.widget.properties",
+                "id": "ecbede90-a55d-423a-9b6b-3ac523600335",
+                "props": {
+                  "id": "ecbede90-a55d-423a-9b6b-3ac523600335",
+                  "config": {}
+                }
+              },
+              {
+                "dndId": "0d0dfc44-20ca-482b-adb8-61aa346a0913",
+                "name": "doc-preview",
+                "label": "dashboard-settings.widget.preview",
+                "id": "921c9b5b-2d6c-49a2-9aad-c2c0f2841ade",
+                "props": {
+                  "id": "921c9b5b-2d6c-49a2-9aad-c2c0f2841ade",
+                  "config": {
+                    "link": ""
+                  }
+                }
+              },
+              {
+                "dndId": "aa0deb44-527e-4244-85cc-89757c0e07eb",
+                "name": "comments",
+                "label": "dashboard-settings.widget.comments",
+                "id": "291afa3a-50c1-4a3a-9700-8b85767926af",
+                "props": {
+                  "id": "291afa3a-50c1-4a3a-9700-8b85767926af",
+                  "config": {}
+                }
+              },
+              {
+                "dndId": "7569abc1-0015-49da-a9de-1cfb0f42096e",
+                "name": "events-history",
+                "label": "dashboard-settings.widget.events-history",
+                "id": "1ab254c7-6bc7-421c-ba90-da266648c22e",
+                "props": {
+                  "id": "1ab254c7-6bc7-421c-ba90-da266648c22e",
+                  "config": {}
+                }
+              }
+            ]
+          },
+          {
+            "width": "25%",
+            "widgets": [
+              {
+                "dndId": "38403ec8-6589-4747-beef-53e182ea14a5",
+                "name": "doc-status",
+                "label": "dashboard-settings.widget.doc-status",
+                "id": "b4bcb077-ed4f-498a-b152-97798fddd8fb",
+                "props": {
+                  "id": "b4bcb077-ed4f-498a-b152-97798fddd8fb",
+                  "config": {}
+                }
+              },
+              {
+                "dndId": "68d2228b-5972-4b90-b465-d317e5f3d0a6",
+                "name": "current-tasks",
+                "label": "dashboard-settings.widget.current-tasks",
+                "id": "6d9d1e54-0c77-4990-9aed-228bec1614f4",
+                "props": {
+                  "id": "6d9d1e54-0c77-4990-9aed-228bec1614f4",
+                  "config": {}
+                }
+              },
+              {
+                "dndId": "8ecb125c-7a47-4d3b-b871-5868fbe76498",
+                "name": "record-actions",
+                "label": "dashboard-settings.widget.actions",
+                "id": "6cb0726f-07c2-4388-84bc-6651823e2ba9",
+                "props": {
+                  "id": "6cb0726f-07c2-4388-84bc-6651823e2ba9",
+                  "config": {}
+                }
+              },
+              {
+                "dndId": "667f668d-b568-4914-84a8-475f122d98f4",
+                "name": "versions-journal",
+                "label": "dashboard-settings.widget.versions-journal",
+                "id": "c726daad-06e9-4636-b4b1-7d7ee73c101c",
+                "props": {
+                  "id": "c726daad-06e9-4636-b4b1-7d7ee73c101c",
+                  "config": {}
+                }
+              },
+              {
+                "dndId": "951e31ba-70c0-4cab-988b-9d271cfa3632",
+                "name": "doc-associations",
+                "label": "dashboard-settings.widget.doc-associations",
+                "id": "c0a9aeee-a536-400d-ae80-326e77ce5202",
+                "props": {
+                  "id": "c0a9aeee-a536-400d-ae80-326e77ce5202",
+                  "config": {}
+                }
+              },
+              {
+                "dndId": "4f314f37-e0df-4df3-970a-b1fa6c545c2e",
+                "name": "barcode",
+                "label": "dashboard-settings.widget.barcode",
+                "id": "46b2bc89-1502-4959-8c2b-2a105c6c61a5",
+                "props": {
+                  "id": "46b2bc89-1502-4959-8c2b-2a105c6c61a5",
+                  "config": {}
+                }
+              }
+            ]
+          }
+        ],
+        "id": "layout_799ac5e5-9eab-4c08-af80-5ed48d768229",
+        "type": "2-columns-big-small"
+      },
+      {
+        "tab": {
+          "label": "Документы",
+          "idLayout": "layout_35cd006c-9ae1-4148-9e25-3a78989fd690"
+        },
+        "columns": [
+          {
+            "widgets": [
+              {
+                "dndId": "9818c1d8-bc41-464f-9824-8d3cd2cf03f2",
+                "name": "documents",
+                "label": "dashboard-settings.widget.documents",
+                "id": "4b5571a3-256d-4bcd-b970-5c52a68e4944",
+                "props": {
+                  "id": "4b5571a3-256d-4bcd-b970-5c52a68e4944",
+                  "config": {
+                    "types": [
+                      {
+                        "formId": null,
+                        "multiple": false,
+                        "type": "emodel/type@category-document-type/kind-d-scan-documents",
+                        "mandatory": false
+                      },
+                      {
+                        "formId": null,
+                        "multiple": false,
+                        "type": "emodel/type@category-document-type/kind-d-counterparty-documents",
+                        "mandatory": false
+                      }
+                    ]
+                  }
+                }
+              }
+            ]
+          }
+        ],
+        "id": "layout_35cd006c-9ae1-4148-9e25-3a78989fd690",
+        "type": "1-column"
+      }
+    ],
+    "v2": {
+      "widgets": [
+        {
+          "name": "properties",
+          "label": "dashboard-settings.widget.properties",
+          "dndId": "bc54a507-97ea-4cba-a00e-4313c624cbf5",
+          "id": "4e525e44-959e-4122-954a-0da7de55b2fa",
+          "props": {
+            "id": "4e525e44-959e-4122-954a-0da7de55b2fa",
+            "config": {
+              "widgetDisplayCondition": null,
+              "elementsDisplayCondition": {}
+            }
+          }
+        },
+        {
+          "dndId": "aa0deb44-527e-4244-85cc-89757c0e07eb",
+          "name": "comments",
+          "label": "dashboard-settings.widget.comments",
+          "id": "291afa3a-50c1-4a3a-9700-8b85767926af",
+          "props": {
+            "id": "291afa3a-50c1-4a3a-9700-8b85767926af",
+            "config": {
+              "widgetDisplayCondition": null,
+              "elementsDisplayCondition": {}
+            }
+          },
+          "description": "Основное"
+        },
+        {
+          "dndId": "7569abc1-0015-49da-a9de-1cfb0f42096e",
+          "name": "events-history",
+          "label": "dashboard-settings.widget.events-history",
+          "id": "1ab254c7-6bc7-421c-ba90-da266648c22e",
+          "props": {
+            "id": "1ab254c7-6bc7-421c-ba90-da266648c22e",
+            "config": {
+              "widgetDisplayCondition": null,
+              "elementsDisplayCondition": {}
+            }
+          },
+          "description": "Основное"
+        },
+        {
+          "dndId": "38403ec8-6589-4747-beef-53e182ea14a5",
+          "name": "doc-status",
+          "label": "dashboard-settings.widget.doc-status",
+          "id": "b4bcb077-ed4f-498a-b152-97798fddd8fb",
+          "props": {
+            "id": "b4bcb077-ed4f-498a-b152-97798fddd8fb",
+            "config": {
+              "widgetDisplayCondition": null,
+              "elementsDisplayCondition": {}
+            }
+          },
+          "description": "Основное"
+        },
+        {
+          "dndId": "8ecb125c-7a47-4d3b-b871-5868fbe76498",
+          "name": "record-actions",
+          "label": "dashboard-settings.widget.actions",
+          "id": "6cb0726f-07c2-4388-84bc-6651823e2ba9",
+          "props": {
+            "id": "6cb0726f-07c2-4388-84bc-6651823e2ba9",
+            "config": {
+              "widgetDisplayCondition": null,
+              "elementsDisplayCondition": {}
+            }
+          },
+          "description": "Основное"
+        },
+        {
+          "dndId": "667f668d-b568-4914-84a8-475f122d98f4",
+          "name": "versions-journal",
+          "label": "dashboard-settings.widget.versions-journal",
+          "id": "c726daad-06e9-4636-b4b1-7d7ee73c101c",
+          "props": {
+            "id": "c726daad-06e9-4636-b4b1-7d7ee73c101c",
+            "config": {
+              "widgetDisplayCondition": null,
+              "elementsDisplayCondition": {}
+            }
+          },
+          "description": "Основное"
+        }
+      ],
+      "desktop": [
+        {
+          "id": "layout_799ac5e5-9eab-4c08-af80-5ed48d768229",
+          "tab": {
+            "label": "Основное",
+            "idLayout": "layout_799ac5e5-9eab-4c08-af80-5ed48d768229"
+          },
+          "type": "2-columns-big-small",
+          "columns": [
+            {
+              "widgets": [
+                "4e525e44-959e-4122-954a-0da7de55b2fa",
+                "291afa3a-50c1-4a3a-9700-8b85767926af",
+                "1ab254c7-6bc7-421c-ba90-da266648c22e"
+              ]
+            },
+            {
+              "widgets": [
+                "b4bcb077-ed4f-498a-b152-97798fddd8fb",
+                "6cb0726f-07c2-4388-84bc-6651823e2ba9",
+                "c726daad-06e9-4636-b4b1-7d7ee73c101c"
+              ],
+              "width": "25%"
+            }
+          ]
+        }
+      ],
+      "mobile": [
+        {
+          "id": "layout_b4b01e70-e01c-457d-abfa-aaaf0a4ca691",
+          "tab": {
+            "label": "Свойства",
+            "idLayout": "layout_b4b01e70-e01c-457d-abfa-aaaf0a4ca691"
+          },
+          "type": "mobile",
+          "columns": [
+            {
+              "widgets": []
+            }
+          ]
+        },
+        {
+          "id": "layout_3cf89517-1d08-4530-be06-bd31bf862c71",
+          "tab": {
+            "label": "Задачи",
+            "idLayout": "layout_3cf89517-1d08-4530-be06-bd31bf862c71"
+          },
+          "type": "mobile",
+          "columns": [
+            {
+              "widgets": []
+            }
+          ]
+        },
+        {
+          "id": "layout_4e345aef-8b21-47cb-a653-26e3e897bb5c",
+          "tab": {
+            "label": "Просмотр",
+            "idLayout": "layout_4e345aef-8b21-47cb-a653-26e3e897bb5c"
+          },
+          "type": "mobile",
+          "columns": [
+            {
+              "widgets": []
+            }
+          ]
+        },
+        {
+          "id": "layout_c5b3186f-5a78-4d92-a730-1c8086562141",
+          "tab": {
+            "label": "Действия",
+            "idLayout": "layout_c5b3186f-5a78-4d92-a730-1c8086562141"
+          },
+          "type": "mobile",
+          "columns": [
+            {
+              "widgets": []
+            }
+          ]
+        },
+        {
+          "id": "layout_69e552d9-1323-42b4-b8ac-af176a6084fc",
+          "tab": {
+            "label": "Документы",
+            "idLayout": "layout_69e552d9-1323-42b4-b8ac-af176a6084fc"
+          },
+          "type": "mobile",
+          "columns": [
+            {
+              "widgets": []
+            }
+          ]
+        },
+        {
+          "id": "layout_07d39068-7d9b-4d4e-822a-c2db4913cb6d",
+          "tab": {
+            "label": "Связи документа",
+            "idLayout": "layout_07d39068-7d9b-4d4e-822a-c2db4913cb6d"
+          },
+          "type": "mobile",
+          "columns": [
+            {
+              "widgets": []
+            }
+          ]
+        },
+        {
+          "id": "layout_b3a3755f-12c4-4b2c-9c87-10821681b76c",
+          "tab": {
+            "label": "Комментарии",
+            "idLayout": "layout_b3a3755f-12c4-4b2c-9c87-10821681b76c"
+          },
+          "type": "mobile",
+          "columns": [
+            {
+              "widgets": []
+            }
+          ]
+        },
+        {
+          "id": "layout_8b060391-384f-4040-a16b-18ed74a8959f",
+          "tab": {
+            "label": "Журнал версий",
+            "idLayout": "layout_8b060391-384f-4040-a16b-18ed74a8959f"
+          },
+          "type": "mobile",
+          "columns": [
+            {
+              "widgets": []
+            }
+          ]
+        },
+        {
+          "id": "layout_0ae86778-b9a2-4f1b-8bb8-43891c1539cd",
+          "tab": {
+            "label": "История событий",
+            "idLayout": "layout_0ae86778-b9a2-4f1b-8bb8-43891c1539cd"
+          },
+          "type": "mobile",
+          "columns": [
+            {
+              "widgets": []
+            }
+          ]
+        }
+      ]
+    },
+    "version": "v2"
+  },
+  "attributes": {}
+}

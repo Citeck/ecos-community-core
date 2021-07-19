@@ -154,9 +154,19 @@ public class CaseTaskListener implements BeforeStartedActivityListener, OnResetA
         Map<String, String> attributesMapping = attributesMappingByWorkflow.get(workflowDefinitionName);
 
         if (attributesMapping != null) {
+
             for (Map.Entry<String, String> entry : attributesMapping.entrySet()) {
+
                 QName key = QName.createQName(entry.getKey(), namespaceService);
                 QName value = QName.createQName(entry.getValue(), namespaceService);
+
+                AssociationDefinition assocDef = dictionaryService.getAssociation(value);
+                if (assocDef != null && ICaseRoleModel.TYPE_ROLE.equals(assocDef.getTargetClass().getName())) {
+                    QName targetProp = QName.createQName(value.getNamespaceURI(), value.getLocalName() + "-prop");
+                    QName sourceProp = QName.createQName(key.getNamespaceURI(), key.getLocalName() + "-prop");
+                    workflowProperties.put(targetProp, getAttribute(caseRef, instance, sourceProp, targetProp));
+                }
+
                 workflowProperties.put(value, getAttribute(caseRef, instance, key, value));
             }
         }
