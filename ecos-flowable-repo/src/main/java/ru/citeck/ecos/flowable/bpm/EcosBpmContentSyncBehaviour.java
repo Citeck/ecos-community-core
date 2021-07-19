@@ -50,6 +50,7 @@ public class EcosBpmContentSyncBehaviour extends AbstractBehaviour
     private static final List<QName> EXTENSION_PROC_ATTS = Collections.singletonList(EcosBpmModel.PROP_START_FORM_REF);
 
     private static final String ECOS_BPMN_NS = "http://www.citeck.ru/ecos/bpmn/1.0";
+    private static final String ECOS_BPMN_NS_PREFIX = "ecos";
 
     private static final int THUMBNAIL_WIDTH = 300;
 
@@ -201,6 +202,13 @@ public class EcosBpmContentSyncBehaviour extends AbstractBehaviour
             process = null;
         }
         if (process != null) {
+
+            boolean hasEcosNs = bpmnModel.getNamespaces() != null
+                && bpmnModel.getNamespaces().containsValue(ECOS_BPMN_NS);
+            if (!hasEcosNs && EXTENSION_PROC_ATTS.stream().anyMatch(changed::containsKey)) {
+                bpmnModel.addNamespace(ECOS_BPMN_NS_PREFIX, ECOS_BPMN_NS);
+            }
+
             changed.forEach((prop, value) -> {
                 if (EcosBpmModel.PROP_PROCESS_ID.equals(prop)) {
                     process.setId(value);
@@ -322,7 +330,7 @@ public class EcosBpmContentSyncBehaviour extends AbstractBehaviour
             BpmnModel bpmnModel = jsonConverter.convertToBpmnModel(jsonModel);
             BpmnXMLConverter xmlConverter = new BpmnXMLConverter();
 
-            bpmnModel.addNamespace("ecos", ECOS_BPMN_NS);
+            bpmnModel.addNamespace(ECOS_BPMN_NS_PREFIX, ECOS_BPMN_NS);
             Process process = bpmnModel.getProcesses().get(0);
             Map<QName, Serializable> nodeProps = nodeService.getProperties(nodeRef);
             EXTENSION_PROC_ATTS.forEach(att -> {
