@@ -26,6 +26,8 @@ import ru.citeck.ecos.records2.RecordRef;
 import ru.citeck.ecos.records2.graphql.meta.value.EmptyValue;
 import ru.citeck.ecos.records2.graphql.meta.value.MetaField;
 import ru.citeck.ecos.records2.graphql.meta.value.MetaValue;
+import ru.citeck.ecos.records2.predicate.PredicateService;
+import ru.citeck.ecos.records2.predicate.model.Predicates;
 import ru.citeck.ecos.records2.request.delete.RecordsDelResult;
 import ru.citeck.ecos.records2.request.delete.RecordsDeletion;
 import ru.citeck.ecos.records2.request.mutation.RecordsMutResult;
@@ -36,6 +38,8 @@ import ru.citeck.ecos.records2.source.dao.MutableRecordsDao;
 import ru.citeck.ecos.records2.source.dao.local.LocalRecordsDao;
 import ru.citeck.ecos.records2.source.dao.local.v2.LocalRecordsMetaDao;
 import ru.citeck.ecos.records2.source.dao.local.v2.LocalRecordsQueryWithMetaDao;
+import ru.citeck.ecos.records3.RecordsService;
+import ru.citeck.ecos.records3.record.dao.query.dto.query.Consistency;
 import ru.citeck.ecos.utils.WorkflowUtils;
 import ru.citeck.ecos.workflow.EcosWorkflowService;
 
@@ -92,8 +96,13 @@ public class WorkflowRecordsDao extends LocalRecordsDao
                     WorkflowDefinition definition = ecosWorkflowService.getDefinitionByName(ref.getId()
                         .replaceFirst(DEFINITION_PREFIX, ""));
                     if (definition != null) {
-                        return new WorkflowDefinitionRecord(ecosWorkflowService.getDefinitionByName(ref.getId()
-                            .replaceFirst(DEFINITION_PREFIX, "")), ref.getId());
+                        return new WorkflowDefinitionRecord(
+                            recordsServiceV1,
+                            ecosWorkflowService.getDefinitionByName(
+                                ref.getId().replaceFirst(DEFINITION_PREFIX, "")
+                            ),
+                            ref.getId()
+                        );
                     } else {
                         return EmptyValue.INSTANCE;
                     }
@@ -283,6 +292,7 @@ public class WorkflowRecordsDao extends LocalRecordsDao
 
         private static final String WORKFLOW_PREFIX = "workflow_";
 
+        private RecordsService recordsService;
         private WorkflowDefinition definition;
         private String definitionId;
 
@@ -296,6 +306,26 @@ public class WorkflowRecordsDao extends LocalRecordsDao
             switch (name) {
                 case RecordConstants.ATT_FORM_KEY:
                     return WORKFLOW_PREFIX + definition.getName();
+                case "startFormRef":
+
+                    if (!definitionId.contains("flowable$")) {
+                        return null;
+                    }
+                    String defIdWithoutPrefix = definitionId.replaceFirst(
+                        DEFINITION_PREFIX + "flowable\\$", "");
+
+                    return recordsService.queryOne(
+                        ru.citeck.ecos.records3.record.dao.query.dto.query.RecordsQuery.create()
+                            .withQuery(Predicates.and(
+                                Predicates.eq("type", "ecosbpm:processModel"),
+                                Predicates.eq("ecosbpm:engine", "flowable"),
+                                Predicates.eq("ecosbpm:processId", defIdWithoutPrefix)
+                            ))
+                            .withLanguage(PredicateService.LANGUAGE_PREDICATE)
+                            .withConsistency(Consistency.TRANSACTIONAL)
+                            .build(),
+                            "ecosbpm:startFormRef"
+                    );
             }
             return null;
         }

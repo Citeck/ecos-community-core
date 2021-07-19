@@ -67,6 +67,20 @@
                 },
                 "type": "selectOrgstruct",
                 "input": true
+              },
+              {
+                "label": {
+                  "ru": "Форма для старта бизнес-процесса",
+                  "en": "Start Workflow Form"
+                },
+                "key": "ecosbpm_startFormRef",
+                "journalId": "ecos-forms",
+                "refreshOn": [],
+                "properties": {
+                  "attribute": "ecosbpm:startFormRef"
+                },
+                "type": "selectJournal",
+                "input": true
               }
             ],
             "type": "column",

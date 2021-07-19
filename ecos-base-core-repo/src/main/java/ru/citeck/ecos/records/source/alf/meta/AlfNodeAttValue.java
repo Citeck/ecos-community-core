@@ -81,6 +81,9 @@ public class AlfNodeAttValue implements MetaValue {
         } else if (qName != null) {
             return qName.shortName();
         }
+        if (rawValue instanceof String) {
+            return (String) rawValue;
+        }
         return null;
     }
 
