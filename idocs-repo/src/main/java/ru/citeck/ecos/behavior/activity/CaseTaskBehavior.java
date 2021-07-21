@@ -34,7 +34,7 @@ import ru.citeck.ecos.model.ICaseTaskModel;
 import ru.citeck.ecos.records.RecordsUtils;
 import ru.citeck.ecos.records2.RecordRef;
 import ru.citeck.ecos.role.CaseRoleService;
-import ru.citeck.ecos.service.DueDateService;
+import ru.citeck.ecos.services.duedate.DueDateService;
 import ru.citeck.ecos.utils.AlfActivityUtils;
 import ru.citeck.ecos.utils.RepoUtils;
 import ru.citeck.ecos.utils.performance.ActionPerformance;

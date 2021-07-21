@@ -1,4 +1,4 @@
-package ru.citeck.ecos.service;
+package ru.citeck.ecos.services.duedate;
 
 import ru.citeck.ecos.records2.RecordRef;
 
