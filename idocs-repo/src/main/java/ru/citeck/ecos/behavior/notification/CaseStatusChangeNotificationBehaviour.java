@@ -44,7 +44,11 @@ public class CaseStatusChangeNotificationBehaviour extends AbstractICaseDocument
             return;
         }
 
-        if (!isActive(caseRef) || sender == null || !nodeService.exists(caseStatusAfter)) {
+        if (caseStatusService.isAlfRef(caseStatusAfter) && !nodeService.exists(caseStatusAfter)) {
+            return;
+        }
+
+        if (!isActive(caseRef) || sender == null) {
             return;
         }
 
@@ -69,8 +73,7 @@ public class CaseStatusChangeNotificationBehaviour extends AbstractICaseDocument
             sender.sendNotification(caseRef, caseStatusAfter, recipients,
                     notificationType, subjectTemplate);
         } else {
-            String currentStatus = (String) nodeService.getProperty(caseStatusAfter,
-                    ContentModel.PROP_NAME);
+            String currentStatus = caseStatusService.getStatusName(caseRef, caseStatusAfter);
             if (currentStatus.equals(caseStatus)) {
                 sender.sendNotification(caseRef, caseStatusAfter, recipients,
                         notificationType, subjectTemplate);
