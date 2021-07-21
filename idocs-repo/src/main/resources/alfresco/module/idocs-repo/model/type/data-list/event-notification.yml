@@ -3,11 +3,57 @@ id: event-notification
 name:
   ru: Уведомление о событиях
   en: Event notification
-
 parentRef: emodel/type@data-list
 formRef: uiserv/form@dms-notificationTemplate
 journalRef: uiserv/journal@event-notifications
-
+model:
+  attributes:
+    - id: cm:name
+      name:
+        ru: Имя
+    - id: dms:notificationType
+      name:
+        ru: Тип уведомления
+    - id: dms:ecosType
+      name:
+        ru: Тип ECOS
+      type: ASSOC
+    - id: dms:workflowName
+      name:
+        ru: Название процесса
+    - id: dms:taskName
+      name:
+        ru: Название задачи
+    - id: dms:notSearchable
+      name:
+        ru: Не доступен для поиска
+      type: BOOLEAN
+    - id: dms:notificationDisabled
+      name:
+        ru: Уведомление отключено
+      type: BOOLEAN
+    - id: dms:sendToOwner
+      name:
+        ru: Отправить автору документа
+      type: BOOLEAN
+    - id: dms:sendToInitiator
+      name:
+        ru: Отправить инициатору
+      type: BOOLEAN
+    - id: dms:sendToAssignee
+      name:
+        ru: Отправить исполнителю
+      type: BOOLEAN
+    - id: dms:taskSubscribers
+      name:
+        ru: Другие адресаты
+    - id: dms:additionRecipients
+      name:
+        ru: Доп. адресаты (пользователи, группы)
+    - id: dms:ecosNotificationTemplate
+      name:
+        ru: Шаблон уведомления ECOS
+      type: ASSOC
 properties:
   alfType: dms:notificationTemplate
   alfRoot: /app:company_home/app:dictionary/app:email_templates/cm:workflownotification
