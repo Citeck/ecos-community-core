@@ -139,12 +139,6 @@ public class SystemNotificationRecordsDao extends LocalRecordsDao
             }
         }
 
-        public void setEndTime(ZonedDateTime endTime) {
-            if (endTime != null) {
-                super.setEndTime(endTime.toInstant());
-            }
-        }
-
         @MetaAtt(".disp")
         public String getDisplayName() {
             String name = MLText.getClosestValue(getMessage(), QueryContext.getCurrent().getLocale());
