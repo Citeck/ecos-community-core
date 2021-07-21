@@ -44,7 +44,7 @@ public class CaseStatusChangeNotificationBehaviour extends AbstractICaseDocument
             return;
         }
 
-        if (!caseStatusService.isAlfRef(caseStatusAfter)) {
+        if (caseStatusService.isAlfRef(caseStatusAfter) && !nodeService.exists(caseStatusAfter)) {
             return;
         }
 
