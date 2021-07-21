@@ -7,6 +7,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import ru.citeck.ecos.apps.EcosAppsServiceFactory;
 import ru.citeck.ecos.apps.app.EcosAppsService;
+import ru.citeck.ecos.apps.app.domain.buildinfo.service.BuildInfoService;
 import ru.citeck.ecos.apps.app.provider.EcosAppsProvider;
 import ru.citeck.ecos.apps.module.controller.ModuleControllerService;
 import ru.citeck.ecos.apps.module.handler.ModuleHandlersService;
@@ -78,6 +79,12 @@ public class EcosAppsFactoryConfig extends EcosAppsServiceFactory {
 
         localModulesService.setModuleLocations(mapping);
         return localModulesService;
+    }
+
+    @Bean
+    @NotNull
+    protected BuildInfoService createBuildInfoService() {
+        return super.createBuildInfoService();
     }
 
     @Bean
