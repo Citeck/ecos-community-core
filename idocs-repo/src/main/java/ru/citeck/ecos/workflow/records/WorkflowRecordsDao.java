@@ -185,7 +185,7 @@ public class WorkflowRecordsDao extends LocalRecordsDao
 
     private Map<String, Object> prepareProps(ObjectData metaAttributes) {
         Map<String, Object> resultProps = new HashMap<>();
-        metaAttributes.forEach((n, v) -> {
+        metaAttributes.forEachJ((n, v) -> {
 
             Object value = v.asJavaObj();
 

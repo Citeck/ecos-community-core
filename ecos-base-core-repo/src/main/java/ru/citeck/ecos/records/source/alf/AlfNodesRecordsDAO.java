@@ -131,7 +131,7 @@ public class AlfNodesRecordsDAO extends LocalRecordsDao
         ObjectData attributes = record.getAttributes();
 
         // if we get "att_add_someAtt" and "someAtt", then ignore "att_add_*"
-        attributes.forEach((name, value) -> {
+        attributes.forEachJ((name, value) -> {
 
             if (name.startsWith(ADD_CMD_PREFIX) || name.startsWith(REMOVE_CMD_PREFIX)) {
 
