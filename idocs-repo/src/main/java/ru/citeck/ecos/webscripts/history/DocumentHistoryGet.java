@@ -3,6 +3,7 @@ package ru.citeck.ecos.webscripts.history;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import org.alfresco.model.ContentModel;
 import org.alfresco.repo.i18n.MessageService;
 import org.alfresco.service.ServiceRegistry;
 import org.alfresco.service.cmr.dictionary.DictionaryService;
@@ -10,6 +11,7 @@ import org.alfresco.service.cmr.dictionary.TypeDefinition;
 import org.alfresco.service.cmr.repository.NodeRef;
 import org.alfresco.service.cmr.repository.NodeService;
 import org.alfresco.service.cmr.security.PersonService;
+import org.alfresco.service.namespace.NamespaceService;
 import org.alfresco.service.namespace.QName;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
@@ -36,7 +38,7 @@ public class DocumentHistoryGet extends AbstractWebScript {
 
     private static final String ENABLED_REMOTE_HISTORY_SERVICE = "ecos.citeck.history.service.enabled";
 
-    public static final String ALFRESCO_NAMESPACE = "http://www.alfresco.org/model/content/1.0";
+    public static final String ALFRESCO_NAMESPACE = NamespaceService.CONTENT_MODEL_1_0_URI;
     public static final String HISTORY_PROPERTY_NAME = "history";
     public static final String ATTRIBUTES_PROPERTY_NAME = "attributes";
 
@@ -359,16 +361,16 @@ public class DocumentHistoryGet extends AbstractWebScript {
         ObjectNode userNode = objectMapper.createObjectNode();
         userNode.put("nodeRef", userNodeRef.toString());
         userNode.put("type", "cm:person");
-        userNode.put("cm:userName", (String) nodeService.getProperty(userNodeRef,
-                QName.createQName(ALFRESCO_NAMESPACE, "userName")));
-        userNode.put("cm:firstName", (String) nodeService.getProperty(userNodeRef,
-                QName.createQName(ALFRESCO_NAMESPACE, "firstName")));
-        userNode.put("cm:lastName", (String) nodeService.getProperty(userNodeRef,
-                QName.createQName(ALFRESCO_NAMESPACE, "lastName")));
-        userNode.put("cm:middleName", (String) nodeService.getProperty(userNodeRef,
-                QName.createQName(ALFRESCO_NAMESPACE, "middleName")));
-        String displayName = userNode.get("cm:lastName") + " " + userNode.get("cm:firstName") + " "
-                + userNode.get("cm:middleName");
+        userNode.put("cm:userName", (String) nodeService.getProperty(userNodeRef, ContentModel.PROP_USERNAME));
+        String firstName = (String) nodeService.getProperty(userNodeRef, ContentModel.PROP_FIRSTNAME);
+        userNode.put("cm:firstName", firstName);
+        String lastName = (String) nodeService.getProperty(userNodeRef, ContentModel.PROP_LASTNAME);
+        userNode.put("cm:lastName", lastName);
+        String middleName = (String) nodeService.getProperty(userNodeRef,
+            QName.createQName(NamespaceService.CONTENT_MODEL_1_0_URI, "middleName"));
+        userNode.put("cm:middleName", middleName);
+        userNode.put("cm:email", (String) nodeService.getProperty(userNodeRef, ContentModel.PROP_EMAIL));
+        String displayName = lastName + " " + firstName + " " + middleName;
         userNode.put("displayName", displayName.trim());
         result.add(userNode);
         return result;

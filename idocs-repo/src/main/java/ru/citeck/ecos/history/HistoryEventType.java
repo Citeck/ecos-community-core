@@ -6,4 +6,6 @@ public interface HistoryEventType {
     String TASK_ASSIGN = "task.assign";
     String NODE_UPDATED = "node.updated";
     String NODE_CREATED = "node.created";
+    String ASSOC_ADDED = "assoc.added";
+    String EMAIL_SENT = "email.sent";
 }

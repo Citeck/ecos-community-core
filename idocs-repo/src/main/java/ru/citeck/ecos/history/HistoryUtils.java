@@ -26,9 +26,9 @@ public class HistoryUtils {
 
     private static final SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("dd.MM.yyyy");
 
-    public static final Serializable NODE_CREATED = "node.created";
-    public static final Serializable NODE_UPDATED = "node.updated";
-    public static final Serializable ASSOC_ADDED = "assoc.added";
+    public static final Serializable NODE_CREATED = HistoryEventType.NODE_CREATED;
+    public static final Serializable NODE_UPDATED = HistoryEventType.NODE_UPDATED;
+    public static final Serializable ASSOC_ADDED = HistoryEventType.ASSOC_ADDED;
     public static final Serializable ASSOC_REMOVED = "assoc.removed";
     public static final Serializable ASSOC_UPDATED = "assoc.updated";
     public static final Serializable CHILD_ASSOC_ADDED = "child.assoc.added";
