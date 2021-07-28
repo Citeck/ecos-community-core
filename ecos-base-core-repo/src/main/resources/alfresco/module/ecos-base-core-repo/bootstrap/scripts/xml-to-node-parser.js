@@ -150,7 +150,9 @@ var parser = {
                 var propValue = props[prop];
                 rec.att(prop, propValue);
             }
-            rec.att("_parentAtt", assocType);
+            if (assocType) {
+                rec.att("_parentAtt", assocType);
+            }
             createdNode = search.findNode(rec.save().getLocalId());
         } else {
             createdNode = root.createNode(null, type, props, assocType);
