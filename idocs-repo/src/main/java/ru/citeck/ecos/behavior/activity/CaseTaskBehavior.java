@@ -55,8 +55,6 @@ public class CaseTaskBehavior implements CaseActivityPolicies.BeforeCaseActivity
     private static final String DEFAULT_SLA_JOURNAL_ITEM_ID = "actual-default-sla-duration";
     private static final String DEFAULT_RAW_SLA = "0";
 
-    private enum HoursToDaysConverterBehavior { ROUND, CEIL }
-
     private final ValueConverter valueConverter = new ValueConverter();
 
     private Map<String, Map<String, String>> attributesMappingByWorkflow = new HashMap<>();
@@ -251,7 +249,7 @@ public class CaseTaskBehavior implements CaseActivityPolicies.BeforeCaseActivity
         }
 
         RecordRef documentRef = alfActivityUtils.getDocumentId(taskRef);
-        int days = hoursToDays(expectedPerformTime, HoursToDaysConverterBehavior.CEIL);
+        int days = hoursToDays(expectedPerformTime);
         String dueDateStr = dueDateService.getDueDateForDocument(documentRef, days);
         if (dueDateStr == null) {
             return getDefaultWorkflowDueDate(taskProps);
@@ -278,7 +276,7 @@ public class CaseTaskBehavior implements CaseActivityPolicies.BeforeCaseActivity
             }
 
             if (expectedPerformTime > 0) {
-                int days = hoursToDays(expectedPerformTime, HoursToDaysConverterBehavior.ROUND);
+                int days = hoursToDays(expectedPerformTime);
                 workflowDueDate = addDays(startDate, days);
             }
         }
@@ -293,10 +291,8 @@ public class CaseTaskBehavior implements CaseActivityPolicies.BeforeCaseActivity
         return calendar.getTime();
     }
 
-    private int hoursToDays(int hoursToAdd, HoursToDaysConverterBehavior behavior) {
-        return behavior == HoursToDaysConverterBehavior.ROUND
-            ? Math.round(hoursToAdd / 8f)
-            : (int) Math.ceil(hoursToAdd / 8f);
+    private int hoursToDays(int hoursToAdd) {
+        return Math.round(hoursToAdd / 8f);
     }
 
     private int getDefaultSLA() {

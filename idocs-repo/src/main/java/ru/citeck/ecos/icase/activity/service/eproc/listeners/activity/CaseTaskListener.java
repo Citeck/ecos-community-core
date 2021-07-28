@@ -40,12 +40,15 @@ import ru.citeck.ecos.model.CiteckWorkflowModel;
 import ru.citeck.ecos.model.EcosProcessModel;
 import ru.citeck.ecos.model.ICaseRoleModel;
 import ru.citeck.ecos.records.RecordsUtils;
+import ru.citeck.ecos.records2.RecordRef;
 import ru.citeck.ecos.role.CaseRoleService;
+import ru.citeck.ecos.services.duedate.DueDateService;
 import ru.citeck.ecos.workflow.variable.type.NodeRefsList;
 import ru.citeck.ecos.workflow.variable.type.StringsList;
 
 import javax.annotation.PostConstruct;
 import java.io.Serializable;
+import java.time.ZonedDateTime;
 import java.util.*;
 
 @Slf4j
@@ -66,6 +69,7 @@ public class CaseTaskListener implements BeforeStartedActivityListener, OnResetA
     private NodeService nodeService;
     private WorkflowQNameConverter qnameConverter;
     private EcosConfigService ecosConfigService;
+    private DueDateService dueDateService;
 
     //inject as map beans
     private Map<String, Map<String, String>> attributesMappingByWorkflow;
@@ -149,7 +153,7 @@ public class CaseTaskListener implements BeforeStartedActivityListener, OnResetA
     private Map<QName, Serializable> getWorkflowProperties(NodeRef caseRef, ActivityInstance instance, String workflowDefinitionName) {
         Map<QName, Serializable> workflowProperties = new HashMap<>();
 
-        setWorkflowPropertiesFromITask(workflowProperties, instance);
+        setWorkflowPropertiesFromITask(caseRef, workflowProperties, instance);
 
         Map<String, String> attributesMapping = attributesMappingByWorkflow.get(workflowDefinitionName);
 
@@ -172,7 +176,9 @@ public class CaseTaskListener implements BeforeStartedActivityListener, OnResetA
         return workflowProperties;
     }
 
-    private void setWorkflowPropertiesFromITask(Map<QName, Serializable> workflowProperties, ActivityInstance instance) {
+    private void setWorkflowPropertiesFromITask(NodeRef caseRef,
+                                                Map<QName, Serializable> workflowProperties,
+                                                ActivityInstance instance) {
         String taskTitle = EProcUtils.getAnyAttribute(instance, CmmnDefinitionConstants.TITLE);
         workflowProperties.put(WorkflowModel.PROP_WORKFLOW_DESCRIPTION, taskTitle);
 
@@ -182,7 +188,7 @@ public class CaseTaskListener implements BeforeStartedActivityListener, OnResetA
             workflowProperties.put(CiteckWorkflowModel.PROP_TASK_TITLE, taskTitle);
         }
 
-        Date workflowDueDate = getWorkflowDueDate(instance);
+        Date workflowDueDate = getWorkflowDueDate(caseRef, instance);
         if (workflowDueDate != null) {
             EProcUtils.setAttribute(instance, CmmnInstanceConstants.PLANNED_END_DATE, workflowDueDate);
         }
@@ -192,7 +198,31 @@ public class CaseTaskListener implements BeforeStartedActivityListener, OnResetA
         workflowProperties.put(WorkflowModel.PROP_WORKFLOW_PRIORITY, workflowPriority);
     }
 
-    private Date getWorkflowDueDate(ActivityInstance instance) {
+    private Date getWorkflowDueDate(NodeRef caseRef, ActivityInstance instance) {
+        if (dueDateService == null) {
+            return getDefaultWorkflowDueDate(instance);
+        }
+
+        Integer expectedPerformTime = EProcUtils.getAnyAttribute(instance,
+            CmmnDefinitionConstants.EXPECTED_PERFORM_TIME, Integer.class);
+        if (expectedPerformTime == null || expectedPerformTime < 0) {
+            expectedPerformTime = 0;
+        }
+
+        int days = hoursToDays(expectedPerformTime);
+        String dueDateStr = dueDateService.getDueDateForDocument(RecordRef.valueOf(caseRef.toString()), days);
+        if (dueDateStr == null) {
+            return getDefaultWorkflowDueDate(instance);
+        }
+
+        if (expectedPerformTime == 0) {
+            return null;
+        }
+
+        return new Date(ZonedDateTime.parse(dueDateStr).toInstant().toEpochMilli());
+    }
+
+    private Date getDefaultWorkflowDueDate(ActivityInstance instance) {
         Date workflowDueDate = null;
 
         Date startDate = instance.getActivated();
@@ -205,7 +235,8 @@ public class CaseTaskListener implements BeforeStartedActivityListener, OnResetA
             }
 
             if (expectedPerformTime > 0) {
-                workflowDueDate = addDays(startDate, hoursToDays(expectedPerformTime));
+                int days = hoursToDays(expectedPerformTime);
+                workflowDueDate = addDays(startDate, days);
             }
         }
 
@@ -388,6 +419,11 @@ public class CaseTaskListener implements BeforeStartedActivityListener, OnResetA
             isActive = true;
         }
         return isActive;
+    }
+
+    @Autowired(required = false)
+    public void setDueDateService(DueDateService dueDateService) {
+        this.dueDateService = dueDateService;
     }
 
     public void registerAttributesMapping(Map<String, Map<String, String>> attributesMappingByWorkflow) {
