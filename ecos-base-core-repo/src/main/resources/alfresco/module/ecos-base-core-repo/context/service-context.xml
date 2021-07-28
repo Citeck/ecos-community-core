@@ -486,4 +486,13 @@
         </property>
     </bean>
 
+    <bean id="ecos-base-core.ecosTypeServiceJS"
+          class="ru.citeck.ecos.node.EcosTypeServiceJS"
+          parent="baseJavaScriptExtension">
+        <property name="extensionName" value="ecosTypeService" />
+        <property name="serviceRegistry" ref="ServiceRegistry" />
+        <property name="ecosTypeService" ref="ecosTypeService" />
+    </bean>
+
+
 </beans>

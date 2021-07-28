@@ -56,13 +56,15 @@ var parser = {
         this.parserData.cmTitleEnFromProp = xml.cmTitle_EN_fromProp;
         this.parserData.updateEnabled = xml.updateEnabled === "true";
         this.parserData.identityProp = xml.identityProp;
+        this.parserData.ecosType = xml.ecosType || null;
 
         var objects = this.helper.getObjects(xml);
         var objCount = objects.length;
 
-        logger.warn(this.parserScriptName + " Start processing...method: " + method + ", type: " + this.parserData.type);
+        logger.warn(this.parserScriptName + " Start processing...method: " + method
+            + ", type: " + this.parserData.type
+            + " ecosType: " + this.parserData.ecosType);
         logger.warn(this.parserScriptName + " Found " + objCount + " objects in XNI data. Processing in progress...");
-
 
         switch (method + "") {
             case METHOD_SAVE:
@@ -90,7 +92,7 @@ var parser = {
             //TODO: Fix multi threads import. In Alfresco 5 multithreaded javascript batch processor does not work correctly - SQL Duplicate key exception.
             threads: 1,
             onNode: function (row) {
-                var propObj = parser.getProperties(row);
+                var propObj = parser.getProperties(row, parser.parserData.ecosType);
 
                 var existingNode = parser.helper.searchByUuid(propObj);
                 if (existingNode) {
@@ -121,21 +123,53 @@ var parser = {
                 existingNode = parser.helper.searchByIdentityProp(parser.parserData.path,
                     parser.parserData.identityProp, propObj);
                 if (existingNode) {
-                    parser.updateNode(existingNode, propObj, row);
+                    parser.updateNode(
+                        existingNode,
+                        propObj,
+                        row,
+                        parser.parserData.ecosType
+                    );
                 } else {
-                    parser.createNode(root, parser.parserData.type, "cm:contains", propObj, row);
+                    parser.createNode(
+                        root,
+                        parser.parserData.type,
+                        "cm:contains",
+                        propObj,
+                        row,
+                        parser.parserData.ecosType
+                    );
                 }
             }
         });
     },
-    createNode: function (root, type, assocType, props, row) {
-        var createdNode = root.createNode(null, type, props, assocType);
+    createNode: function (root, type, assocType, props, row, ecosType) {
+        var createdNode;
+        if (ecosType) {
+            var rec = Records.get("@");
+            for (var prop in props) {
+                var propValue = props[prop];
+                rec.att(prop, propValue);
+            }
+            rec.att("_parentAtt", assocType);
+            createdNode = search.findNode(rec.save().getLocalId());
+        } else {
+            createdNode = root.createNode(null, type, props, assocType);
+        }
         parser.helper.fillNodeTitle(createdNode);
         parser.helper.fillAssocs(row, createdNode);
     },
-    updateNode: function (node, props, row) {
-        this.mergeProperties(node, props);
-        node.save();
+    updateNode: function (node, props, row, ecosType) {
+        if (ecosType) {
+            var rec = Records.get(node);
+            for (var prop in props) {
+                var propValue = props[prop];
+                rec.att(prop, propValue);
+            }
+            rec.save();
+        } else {
+            this.mergeProperties(node, props);
+            node.save();
+        }
         parser.helper.fillNodeTitle(node);
         parser.helper.fillAssocs(row, node);
     },
@@ -151,8 +185,11 @@ var parser = {
         });
 
     },
-    getProperties: function (obj) {
+    getProperties: function (obj, ecosType) {
         var propObj = {};
+        if (ecosType) {
+            propObj['_type'] = ecosType;
+        }
 
         var properties = obj.properties;
         var propCount = properties.*.length();
@@ -160,10 +197,16 @@ var parser = {
         var propValueForUuid = "";
         var propValueForCmName = "";
 
+        var propAtts = ecosTypeService.getAttsIdListByType(ecosType);
 
         for (var i = 0; i < propCount; i++) {
             var prop = properties.child(i);
-            var propType = prop.name().toString().split('_').join(':');
+
+            var propType = prop.name().toString();
+            if (propAtts.indexOf(propType) === -1) {
+                propType = propType.split('_').join(':');
+            }
+
             var propValue = prop.toString();
 
             if (propType != "cm:title:ru" && propType != "cm:title:en") {
