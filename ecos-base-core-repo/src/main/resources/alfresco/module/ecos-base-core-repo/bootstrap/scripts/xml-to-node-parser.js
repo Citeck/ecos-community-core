@@ -111,7 +111,7 @@ var parser = {
                     }
                 }
 
-                existingNode = parser.helper.searchByCmName(parser.parserData.path, propObj);
+                existingNode = parser.helper.searchByCmName(parser.parserData.path, propObj, parser.parserData.ecosType);
                 if (existingNode) {
                     if (parser.parserData.updateEnabled) {
                         parser.updateNode(existingNode, propObj, row);
@@ -502,7 +502,7 @@ var parser = {
                 rootNode = ecosTypeService.getRootForType(ecosType, true);
             }
             if (!rootNode) {
-                logger.error(this.parserScriptName + " cannot find root node by path: " + path);
+                logger.error(this.parserScriptName + " cannot find root node by path: " + path + " ecosType: " + ecosType);
             }
             return rootNode;
         },
@@ -512,9 +512,9 @@ var parser = {
             }
             return null;
         },
-        searchByCmName: function (path, propObj) {
+        searchByCmName: function (path, propObj, ecosType) {
             if (propObj['cm:name']) {
-                var root = this.getRootNodeByPath(path);
+                var root = this.getRootNodeByPath(path, ecosType);
                 if (root) {
                     return root.childByNamePath(propObj['cm:name']);
                 }
