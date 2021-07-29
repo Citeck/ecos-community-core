@@ -492,6 +492,7 @@
         <property name="extensionName" value="ecosTypeService" />
         <property name="serviceRegistry" ref="ServiceRegistry" />
         <property name="ecosTypeService" ref="ecosTypeService" />
+        <property name="ecosTypeRootService" ref="ecosTypeRootService" />
     </bean>
 
 

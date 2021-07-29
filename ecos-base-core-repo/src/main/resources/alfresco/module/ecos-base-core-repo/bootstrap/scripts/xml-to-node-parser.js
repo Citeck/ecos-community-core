@@ -41,8 +41,13 @@ var parser = {
 
         this.parserData.path = xml.path;
         this.parserData.type = xml.type;
+        if (xml.ecosType && ('' + xml.ecosType)) {
+            this.parserData.ecosType = '' + xml.ecosType;
+        } else {
+            this.parserData.ecosType = null;
+        }
 
-        var root = this.helper.getRootNodeByPath(this.parserData.path);
+        var root = this.helper.getRootNodeByPath(this.parserData.path, this.parserData.ecosType);
         if (!root) {
             return false;
         }
@@ -56,7 +61,6 @@ var parser = {
         this.parserData.cmTitleEnFromProp = xml.cmTitle_EN_fromProp;
         this.parserData.updateEnabled = xml.updateEnabled === "true";
         this.parserData.identityProp = xml.identityProp;
-        this.parserData.ecosType = xml.ecosType || null;
 
         var objects = this.helper.getObjects(xml);
         var objCount = objects.length;
@@ -153,10 +157,14 @@ var parser = {
             if (assocType) {
                 rec.att("_parentAtt", assocType);
             }
+            if (root) {
+                rec.att("_parent", '' + root.nodeRef);
+            }
             createdNode = search.findNode(rec.save().getLocalId());
         } else {
             createdNode = root.createNode(null, type, props, assocType);
         }
+        logger.warn("[xml-to-node] New nodeRef: " + createdNode.nodeRef);
         parser.helper.fillNodeTitle(createdNode);
         parser.helper.fillAssocs(row, createdNode);
     },
@@ -185,12 +193,15 @@ var parser = {
                 row.remove();
             }
         });
-
     },
     getProperties: function (obj, ecosType) {
         var propObj = {};
         if (ecosType) {
-            propObj['_type'] = ecosType;
+            if (ecosType.indexOf('emodel/type@') === -1) {
+                propObj['_type'] = 'emodel/type@' + ecosType;
+            } else {
+                propObj['_type'] = ecosType;
+            }
         }
 
         var properties = obj.properties;
@@ -482,8 +493,14 @@ var parser = {
             }
             return null;
         },
-        getRootNodeByPath: function (path) {
-            var rootNode = search.selectNodes(path)[0];
+        getRootNodeByPath: function (path, ecosType) {
+            var rootNode = null;
+            if (path) {
+                rootNode = (search.selectNodes(path) || [])[0];
+            }
+            if (!rootNode && ecosType) {
+                rootNode = ecosTypeService.getRootForType(ecosType, true);
+            }
             if (!rootNode) {
                 logger.error(this.parserScriptName + " cannot find root node by path: " + path);
             }
