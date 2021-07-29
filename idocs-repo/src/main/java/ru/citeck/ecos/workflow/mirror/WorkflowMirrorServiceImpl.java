@@ -223,10 +223,6 @@ public class WorkflowMirrorServiceImpl extends BaseProcessorExtension implements
 
             if (nodeUtils.isValidNode(taskMirror)) {
                 nodeInfoFactory.persist(taskMirror, nodeInfo, fullPersist);
-
-                // Set due date as is
-                Date actualDueDate = (Date) nodeInfo.getProperty(WorkflowModel.PROP_DUE_DATE);
-                nodeService.setProperty(taskMirror, WorkflowModel.PROP_DUE_DATE, actualDueDate);
             }
 
         } else if (task == null && taskMirror != null) {
