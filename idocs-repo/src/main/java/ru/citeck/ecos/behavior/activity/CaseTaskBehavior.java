@@ -259,7 +259,7 @@ public class CaseTaskBehavior implements CaseActivityPolicies.BeforeCaseActivity
             return null;
         }
 
-        return new Date(ZonedDateTime.parse(dueDateStr).toInstant().toEpochMilli());
+        return Date.from(ZonedDateTime.parse(dueDateStr).toInstant());
     }
 
     private Date getDefaultWorkflowDueDate(Map<QName, Serializable> taskProps) {

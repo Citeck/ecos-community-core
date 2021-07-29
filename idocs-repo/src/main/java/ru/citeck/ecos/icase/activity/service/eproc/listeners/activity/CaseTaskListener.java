@@ -219,7 +219,7 @@ public class CaseTaskListener implements BeforeStartedActivityListener, OnResetA
             return null;
         }
 
-        return new Date(ZonedDateTime.parse(dueDateStr).toInstant().toEpochMilli());
+        return Date.from(ZonedDateTime.parse(dueDateStr).toInstant());
     }
 
     private Date getDefaultWorkflowDueDate(ActivityInstance instance) {
