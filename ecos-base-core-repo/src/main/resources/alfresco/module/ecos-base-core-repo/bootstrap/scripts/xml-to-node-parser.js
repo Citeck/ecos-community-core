@@ -41,8 +41,13 @@ var parser = {
 
         this.parserData.path = xml.path;
         this.parserData.type = xml.type;
+        if (xml.ecosType && ('' + xml.ecosType)) {
+            this.parserData.ecosType = '' + xml.ecosType;
+        } else {
+            this.parserData.ecosType = null;
+        }
 
-        var root = this.helper.getRootNodeByPath(this.parserData.path);
+        var root = this.helper.getRootNodeByPath(this.parserData.path, this.parserData.ecosType);
         if (!root) {
             return false;
         }
@@ -60,9 +65,10 @@ var parser = {
         var objects = this.helper.getObjects(xml);
         var objCount = objects.length;
 
-        logger.warn(this.parserScriptName + " Start processing...method: " + method + ", type: " + this.parserData.type);
+        logger.warn(this.parserScriptName + " Start processing...method: " + method
+            + ", type: " + this.parserData.type
+            + " ecosType: " + this.parserData.ecosType);
         logger.warn(this.parserScriptName + " Found " + objCount + " objects in XNI data. Processing in progress...");
-
 
         switch (method + "") {
             case METHOD_SAVE:
@@ -90,7 +96,7 @@ var parser = {
             //TODO: Fix multi threads import. In Alfresco 5 multithreaded javascript batch processor does not work correctly - SQL Duplicate key exception.
             threads: 1,
             onNode: function (row) {
-                var propObj = parser.getProperties(row);
+                var propObj = parser.getProperties(row, parser.parserData.ecosType);
 
                 var existingNode = parser.helper.searchByUuid(propObj);
                 if (existingNode) {
@@ -105,7 +111,7 @@ var parser = {
                     }
                 }
 
-                existingNode = parser.helper.searchByCmName(parser.parserData.path, propObj);
+                existingNode = parser.helper.searchByCmName(parser.parserData.path, propObj, parser.parserData.ecosType);
                 if (existingNode) {
                     if (parser.parserData.updateEnabled) {
                         parser.updateNode(existingNode, propObj, row);
@@ -121,21 +127,59 @@ var parser = {
                 existingNode = parser.helper.searchByIdentityProp(parser.parserData.path,
                     parser.parserData.identityProp, propObj);
                 if (existingNode) {
-                    parser.updateNode(existingNode, propObj, row);
+                    parser.updateNode(
+                        existingNode,
+                        propObj,
+                        row,
+                        parser.parserData.ecosType
+                    );
                 } else {
-                    parser.createNode(root, parser.parserData.type, "cm:contains", propObj, row);
+                    parser.createNode(
+                        root,
+                        parser.parserData.type,
+                        "cm:contains",
+                        propObj,
+                        row,
+                        parser.parserData.ecosType
+                    );
                 }
             }
         });
     },
-    createNode: function (root, type, assocType, props, row) {
-        var createdNode = root.createNode(null, type, props, assocType);
+    createNode: function (root, type, assocType, props, row, ecosType) {
+        var createdNode;
+        if (ecosType) {
+            var rec = Records.get("@");
+            for (var prop in props) {
+                var propValue = props[prop];
+                rec.att(prop, propValue);
+            }
+            if (assocType) {
+                rec.att("_parentAtt", assocType);
+            }
+            if (root) {
+                rec.att("_parent", '' + root.nodeRef);
+            }
+            createdNode = search.findNode(rec.save().getLocalId());
+        } else {
+            createdNode = root.createNode(null, type, props, assocType);
+        }
+        logger.warn("[xml-to-node] New nodeRef: " + createdNode.nodeRef);
         parser.helper.fillNodeTitle(createdNode);
         parser.helper.fillAssocs(row, createdNode);
     },
-    updateNode: function (node, props, row) {
-        this.mergeProperties(node, props);
-        node.save();
+    updateNode: function (node, props, row, ecosType) {
+        if (ecosType) {
+            var rec = Records.get(node);
+            for (var prop in props) {
+                var propValue = props[prop];
+                rec.att(prop, propValue);
+            }
+            rec.save();
+        } else {
+            this.mergeProperties(node, props);
+            node.save();
+        }
         parser.helper.fillNodeTitle(node);
         parser.helper.fillAssocs(row, node);
     },
@@ -149,10 +193,16 @@ var parser = {
                 row.remove();
             }
         });
-
     },
-    getProperties: function (obj) {
+    getProperties: function (obj, ecosType) {
         var propObj = {};
+        if (ecosType) {
+            if (ecosType.indexOf('emodel/type@') === -1) {
+                propObj['_type'] = 'emodel/type@' + ecosType;
+            } else {
+                propObj['_type'] = ecosType;
+            }
+        }
 
         var properties = obj.properties;
         var propCount = properties.*.length();
@@ -160,10 +210,16 @@ var parser = {
         var propValueForUuid = "";
         var propValueForCmName = "";
 
+        var propAtts = ecosTypeService.getAttsIdListByType(ecosType);
 
         for (var i = 0; i < propCount; i++) {
             var prop = properties.child(i);
-            var propType = prop.name().toString().split('_').join(':');
+
+            var propType = prop.name().toString();
+            if (propAtts.indexOf(propType) === -1) {
+                propType = propType.split('_').join(':');
+            }
+
             var propValue = prop.toString();
 
             if (propType != "cm:title:ru" && propType != "cm:title:en") {
@@ -437,10 +493,16 @@ var parser = {
             }
             return null;
         },
-        getRootNodeByPath: function (path) {
-            var rootNode = search.selectNodes(path)[0];
+        getRootNodeByPath: function (path, ecosType) {
+            var rootNode = null;
+            if (path) {
+                rootNode = (search.selectNodes(path) || [])[0];
+            }
+            if (!rootNode && ecosType) {
+                rootNode = ecosTypeService.getRootForType(ecosType, true);
+            }
             if (!rootNode) {
-                logger.error(this.parserScriptName + " cannot find root node by path: " + path);
+                logger.error(this.parserScriptName + " cannot find root node by path: " + path + " ecosType: " + ecosType);
             }
             return rootNode;
         },
@@ -450,9 +512,9 @@ var parser = {
             }
             return null;
         },
-        searchByCmName: function (path, propObj) {
+        searchByCmName: function (path, propObj, ecosType) {
             if (propObj['cm:name']) {
-                var root = this.getRootNodeByPath(path);
+                var root = this.getRootNodeByPath(path, ecosType);
                 if (root) {
                     return root.childByNamePath(propObj['cm:name']);
                 }
