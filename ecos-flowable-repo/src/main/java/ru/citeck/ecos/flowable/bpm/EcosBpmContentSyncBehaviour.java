@@ -229,6 +229,10 @@ public class EcosBpmContentSyncBehaviour extends AbstractBehaviour
 
     private void setAttributeValue(Process process, String name, String value) {
 
+        if (value == null) {
+            value = "";
+        }
+
         List<ExtensionAttribute> attributes = process.getAttributes().get(name);
         if (attributes != null && !attributes.isEmpty()) {
             for (ExtensionAttribute att : attributes) {
