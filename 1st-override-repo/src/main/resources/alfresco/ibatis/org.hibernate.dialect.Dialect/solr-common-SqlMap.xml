@@ -31,9 +31,9 @@
         <result property="store.identifier" column="identifier" jdbcType="VARCHAR" javaType="java.lang.String"/>
         <result property="uuid" column="uuid" jdbcType="VARCHAR" javaType="java.lang.String"/>
     </resultMap>
-    
+
     <!-- SELECTS -->
-    
+
     <select id="select_ChangeSets_Summary" parameterType="SOLRTrackingParameters" resultMap="result_AclChangeSet">
         select
             acs.id              as id,
@@ -74,7 +74,7 @@
                and <![CDATA[acl.id >= #{fromIdInclusive}]]>
             </if>
             <if test="ids != null">
-                and acl.acl_change_set in 
+                and acl.acl_change_set in
                 <foreach item="item" index="index" collection="ids" open="(" separator="," close=")">
                     #{item}
                 </foreach>
@@ -94,8 +94,9 @@
             alf_transaction txn
         join alf_node node on (txn.id = node.transaction_id)
         <where>
+           exists(select node.id from alf_node node where node.transaction_id=txn.id)
            <if test="fromCommitTimeInclusive != null">
-               <![CDATA[txn.commit_time_ms >= #{fromCommitTimeInclusive}]]>
+               and <![CDATA[txn.commit_time_ms >= #{fromCommitTimeInclusive}]]>
            </if>
            <if test="fromIdInclusive != null">
                and <![CDATA[txn.id >= #{fromIdInclusive}]]>
@@ -131,7 +132,7 @@
         <where>
            <choose>
 	           <when test="transactionIds != null">
-	                txn.id in 
+	                txn.id in
 	                <foreach item="item" index="index" collection="transactionIds" open="(" separator="," close=")">
 	                    #{item}
 	                </foreach>
@@ -159,13 +160,13 @@
                 and store.identifier = #{storeIdentifier}
            </if>
            <if test="includeTypeIds != null">
-                and node.type_qname_id in 
+                and node.type_qname_id in
                 <foreach item="item" index="index" collection="includeTypeIds" open="(" separator="," close=")">
                     #{item}
                 </foreach>
            </if>
            <if test="excludeTypeIds != null">
-                and node.type_qname_id not in 
+                and node.type_qname_id not in
                 <foreach item="item" index="index" collection="excludeTypeIds" open="(" separator="," close=")">
                     #{item}
                 </foreach>
@@ -176,7 +177,7 @@
                     from alf_node_aspects aspects
                     where
                     aspects.node_id = node.id
-                    and aspects.qname_id in 
+                    and aspects.qname_id in
                     <foreach item="item" index="index" collection="includeAspectIds" open="(" separator="," close=")">
                         #{item}
                     </foreach>
@@ -188,7 +189,7 @@
                     from alf_node_aspects aspects
                     where
                     aspects.node_id = node.id
-                    and aspects.qname_id in 
+                    and aspects.qname_id in
                     <foreach item="item" index="index" collection="excludeAspectIds" open="(" separator="," close=")">
                         #{item}
                     </foreach>
@@ -197,5 +198,5 @@
         </where>
         order by node.id ASC
     </select>
-    
+
 </mapper>
