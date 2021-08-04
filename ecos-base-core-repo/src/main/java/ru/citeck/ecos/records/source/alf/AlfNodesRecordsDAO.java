@@ -148,6 +148,12 @@ public class AlfNodesRecordsDAO extends LocalRecordsDao
     private RecordMeta processSingleRecord(RecordMeta record) {
 
         ObjectData initialAtts = record.getAtts().deepCopy();
+        for (String field : initialAtts.fieldNamesList()) {
+            if (RecordConstants.ATT_DISP.equals(field)) {
+                initialAtts.set("cm:title", initialAtts.get(field));
+                initialAtts.remove(field);
+            }
+        }
         initialAtts.forEachJ((k, v) -> {
             DataValue fixed = fixNodeRef(v);
             if (fixed != v) {
