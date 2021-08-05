@@ -46,6 +46,7 @@ public class EcosBpmContentSyncBehaviour extends AbstractBehaviour
     private static final QName PROP_JSON = EcosBpmModel.PROP_JSON_MODEL;
     private static final QName PROP_THUMBNAIL = EcosBpmModel.PROP_THUMBNAIL;
     private static final QName PROP_MODEL_IMG = EcosBpmModel.PROP_MODEL_IMAGE;
+    private static final QName PROP_ENGINE = EcosBpmModel.PROP_ENGINE;
 
     private static final List<QName> EXTENSION_PROC_ATTS = Collections.singletonList(EcosBpmModel.PROP_START_FORM_REF);
 
@@ -61,7 +62,7 @@ public class EcosBpmContentSyncBehaviour extends AbstractBehaviour
 
     private ContentService contentService;
 
-    private ObjectMapper objectMapper = new ObjectMapper();
+    private final ObjectMapper objectMapper = new ObjectMapper();
     private FlowableImageService imageService;
 
     @Override
@@ -78,6 +79,9 @@ public class EcosBpmContentSyncBehaviour extends AbstractBehaviour
         NodeRef nodeRef = childAssocRef.getChildRef();
 
         Map<QName, Serializable> props = nodeService.getProperties(nodeRef);
+        if (props.get(PROP_ENGINE) == null) {
+            nodeService.setProperty(nodeRef, PROP_ENGINE, "flowable");
+        }
 
         Serializable content = props.get(PROP_XML);
 
