@@ -80,6 +80,7 @@ public class FlowableConfiguration {
     private static final String ASYNC_EXECUTOR_ACTIVATE = "flowable.bpmn.async.executor.activate";
     private static final String ASYNC_EXECUTOR_CORE_POOL_SIZE = "flowable.bpmn.async.executor.core-pool-size";
     private static final String ASYNC_EXECUTOR_MAX_POOL_SIZE = "flowable.bpmn.async.executor.max-pool-size";
+    private static final String LOCK_TIME_ASYNC_JOB_WAIT_TIME_SEC = "flowable.bpmn.async.lock-time-async-job-wait-time-sec";
 
     private static final String ASYNC_HISTORY_EXECUTOR_ACTIVATE = "flowable.bpmn.async.history-executor.activate";
     private static final String ASYNC_HISTORY_EXECUTOR_CORE_POOL_SIZE = "flowable.bpmn.async.history-executor.core-pool-size";
@@ -181,6 +182,7 @@ public class FlowableConfiguration {
             setBoolProp(ASYNC_EXECUTOR_ACTIVATE, true, config::setAsyncExecutorActivate);
             setIntProp(ASYNC_EXECUTOR_CORE_POOL_SIZE, null, config::setAsyncExecutorCorePoolSize);
             setIntProp(ASYNC_EXECUTOR_MAX_POOL_SIZE, null, config::setAsyncExecutorMaxPoolSize);
+            setIntProp(LOCK_TIME_ASYNC_JOB_WAIT_TIME_SEC, null, config::setLockTimeAsyncJobWaitTime);
 
             setBoolProp(ASYNC_HISTORY_EXECUTOR_ACTIVATE, null, config::setAsyncHistoryExecutorActivate);
             setIntProp(ASYNC_HISTORY_EXECUTOR_CORE_POOL_SIZE, null, config::setAsyncHistoryExecutorCorePoolSize);
