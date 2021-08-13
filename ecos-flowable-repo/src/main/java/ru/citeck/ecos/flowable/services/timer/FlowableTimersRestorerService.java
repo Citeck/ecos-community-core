@@ -18,11 +18,12 @@ import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import ru.citeck.ecos.commons.json.Json;
-import ru.citeck.ecos.icase.CaseStatusService;
+import ru.citeck.ecos.model.CiteckWorkflowModel;
 import ru.citeck.ecos.utils.JavaScriptImplUtils;
 
 import javax.annotation.PostConstruct;
 import java.util.*;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -35,8 +36,6 @@ public class FlowableTimersRestorerService {
     private ManagementService flowableManagementService;
     @Autowired
     private NodeService nodeService;
-    @Autowired
-    private CaseStatusService caseStatusService;
     @Autowired
     private TransactionService transactionService;
 
@@ -189,7 +188,7 @@ public class FlowableTimersRestorerService {
             boolean isNeedChangeStatus = false;
             for (Job job : jobs) {
                 String exceptionMessage = job.getExceptionMessage();
-                if (isConcurrentlyException(exceptionMessage)) {
+                if (isExceptionToRestore(exceptionMessage)) {
                     restoreTimer(job);
                 } else {
                     log.info("Timer was not restore, because error is not concurrently."
@@ -199,14 +198,15 @@ public class FlowableTimersRestorerService {
                     isNeedChangeStatus = isNeedChangeStatus || checkNeedChangeStatus(job);
                 }
             }
-
             if (isNeedChangeStatus) {
                 changeStatusForProcess(processInstanceId);
             }
         }
 
-        private boolean isConcurrentlyException(String exceptionMessage) {
-            return exceptionMessage.endsWith("was updated by another transaction concurrently");
+        private boolean isExceptionToRestore(String exceptionMessage) {
+            return config.exceptionMsgPatterns
+                .stream()
+                .anyMatch(pattern -> pattern.matcher(exceptionMessage).matches());
         }
 
         private void restoreTimer(Job job) {
@@ -235,7 +235,7 @@ public class FlowableTimersRestorerService {
                 .contains(activity);
         }
 
-        private void changeStatusForProcess(String processInstanceId) {
+        public void changeStatusForProcess(String processInstanceId) {
             Map<String, Object> variables = flowableRuntimeService.getVariables(processInstanceId);
 
             Object docObject = variables.get("document");
@@ -247,10 +247,16 @@ public class FlowableTimersRestorerService {
 
             try {
                 transactionHelper.doInTransaction(() -> {
-                    String status = caseStatusService.getStatus(nodeRef);
-                    if (!ECOS_FLOWABLE_TIMER_ERROR.equals(status)) {
-                        caseStatusService.setStatus(nodeRef, ECOS_FLOWABLE_TIMER_ERROR);
-                        log.info("Node " + nodeRef + " status changed to ecos-process-timer-error");
+                    String currentStatus =
+                        (String) nodeService.getProperty(nodeRef, CiteckWorkflowModel.PROP_TIMER_ERROR_STATUS);
+
+                    if (!ECOS_FLOWABLE_TIMER_ERROR.equals(currentStatus)) {
+                        nodeService.setProperty(
+                            nodeRef,
+                            CiteckWorkflowModel.PROP_TIMER_ERROR_STATUS,
+                            ECOS_FLOWABLE_TIMER_ERROR
+                        );
+                        log.info("Node " + nodeRef + " status changed to " + ECOS_FLOWABLE_TIMER_ERROR);
                     }
                     return null;
                 });
@@ -262,10 +268,27 @@ public class FlowableTimersRestorerService {
 
     @Data
     public static class Config {
+
         private final int maxCountJobForProcess;
         private final int retriesCount;
         private final int batchSize;
         private final Map<String, Set<String>> processActivitiesToChangeStatus;
+        private final List<Pattern> exceptionMsgPatterns;
+
+        public Config(
+            int maxCountJobForProcess,
+            int retriesCount,
+            int batchSize,
+            Map<String, Set<String>> processActivitiesToChangeStatus) {
+
+            this(
+                maxCountJobForProcess,
+                retriesCount,
+                batchSize,
+                processActivitiesToChangeStatus,
+                Collections.singletonList(".*was updated by another transaction concurrently$")
+            );
+        }
 
         /**
          * @param processActivitiesToChangeStatus - Map where key is flowableProcessId, value is set of timers ids.
@@ -275,7 +298,8 @@ public class FlowableTimersRestorerService {
             int maxCountJobForProcess,
             int retriesCount,
             int batchSize,
-            Map<String, Set<String>> processActivitiesToChangeStatus
+            Map<String, Set<String>> processActivitiesToChangeStatus,
+            List<String> exceptionMsgPatterns
         ) {
             if (maxCountJobForProcess <= 0) {
                 throw new IllegalArgumentException("maxCountJobForProcess must be more then 0");
@@ -292,6 +316,9 @@ public class FlowableTimersRestorerService {
             this.batchSize = batchSize;
             this.processActivitiesToChangeStatus = processActivitiesToChangeStatus == null
                 ? Collections.emptyMap() : processActivitiesToChangeStatus;
+            this.exceptionMsgPatterns = exceptionMsgPatterns.stream()
+                .map(Pattern::compile)
+                .collect(Collectors.toList());
         }
     }
 }
