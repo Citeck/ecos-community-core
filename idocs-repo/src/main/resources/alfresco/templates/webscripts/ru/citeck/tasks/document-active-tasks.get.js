@@ -21,10 +21,17 @@
                         }
                     }
 
+                    var dueDateTime = task.properties['cwf:dueDateTime'];
+                    if (dueDateTime) {
+                        var sdf = new Packages.java.text.SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ");
+                        dueDateTime = sdf.format(dueDateTime);
+                    }
+
                     taskNodeRef.push({
                         'nodeRef': task.nodeRef.toString(),
                         'name': task.name,
                         'title': taskTitleMessage,
+                        'dueDateTime': dueDateTime,
                         'task': task
                     });
                 }

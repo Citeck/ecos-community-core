@@ -34,6 +34,7 @@ import ru.citeck.ecos.model.ICaseTaskModel;
 import ru.citeck.ecos.records.RecordsUtils;
 import ru.citeck.ecos.records2.RecordRef;
 import ru.citeck.ecos.role.CaseRoleService;
+import ru.citeck.ecos.services.duedate.DueDateService;
 import ru.citeck.ecos.utils.AlfActivityUtils;
 import ru.citeck.ecos.utils.RepoUtils;
 import ru.citeck.ecos.utils.performance.ActionPerformance;
@@ -41,6 +42,7 @@ import ru.citeck.ecos.workflow.variable.type.NodeRefsList;
 import ru.citeck.ecos.workflow.variable.type.StringsList;
 
 import java.io.Serializable;
+import java.time.ZonedDateTime;
 import java.util.*;
 
 /**
@@ -66,6 +68,7 @@ public class CaseTaskBehavior implements CaseActivityPolicies.BeforeCaseActivity
     private PolicyComponent policyComponent;
     private CaseRoleService caseRoleService;
     private NodeService nodeService;
+    private DueDateService dueDateService;
 
     private WorkflowQNameConverter qnameConverter;
 
@@ -225,7 +228,7 @@ public class CaseTaskBehavior implements CaseActivityPolicies.BeforeCaseActivity
         }
         workflowProperties.put(WorkflowModel.PROP_WORKFLOW_DESCRIPTION, taskTitle);
 
-        Date workflowDueDate = getWorkflowDueDate(taskProps);
+        Date workflowDueDate = getWorkflowDueDate(taskRef, taskProps);
         if (workflowDueDate != null) {
             nodeService.setProperty(taskRef, ActivityModel.PROP_PLANNED_END_DATE, workflowDueDate);
         }
@@ -235,8 +238,31 @@ public class CaseTaskBehavior implements CaseActivityPolicies.BeforeCaseActivity
         workflowProperties.put(WorkflowModel.PROP_WORKFLOW_PRIORITY, workflowPriority);
     }
 
-    private Date getWorkflowDueDate(Map<QName, Serializable> taskProps) {
+    private Date getWorkflowDueDate(NodeRef taskRef, Map<QName, Serializable> taskProps) {
+        if (dueDateService == null) {
+            return getDefaultWorkflowDueDate(taskProps);
+        }
 
+        Integer expectedPerformTime = (Integer) taskProps.get(ActivityModel.PROP_EXPECTED_PERFORM_TIME);
+        if (expectedPerformTime == null || expectedPerformTime < 0) {
+            expectedPerformTime = 0;
+        }
+
+        RecordRef documentRef = alfActivityUtils.getDocumentId(taskRef);
+        int days = hoursToDays(expectedPerformTime);
+        String dueDateStr = dueDateService.getDueDateForDocument(documentRef, days);
+        if (dueDateStr == null) {
+            return getDefaultWorkflowDueDate(taskProps);
+        }
+
+        if (expectedPerformTime == 0) {
+            return null;
+        }
+
+        return Date.from(ZonedDateTime.parse(dueDateStr).toInstant());
+    }
+
+    private Date getDefaultWorkflowDueDate(Map<QName, Serializable> taskProps) {
         Date workflowDueDate = null;
 
         Date startDate = (Date) taskProps.get(ActivityModel.PROP_ACTUAL_START_DATE);
@@ -250,7 +276,8 @@ public class CaseTaskBehavior implements CaseActivityPolicies.BeforeCaseActivity
             }
 
             if (expectedPerformTime > 0) {
-                workflowDueDate = addDays(startDate, hoursToDays(expectedPerformTime));
+                int days = hoursToDays(expectedPerformTime);
+                workflowDueDate = addDays(startDate, days);
             }
         }
 
@@ -264,7 +291,7 @@ public class CaseTaskBehavior implements CaseActivityPolicies.BeforeCaseActivity
         return calendar.getTime();
     }
 
-    private static int hoursToDays(int hoursToAdd) {
+    private int hoursToDays(int hoursToAdd) {
         return Math.round(hoursToAdd / 8f);
     }
 
@@ -411,6 +438,11 @@ public class CaseTaskBehavior implements CaseActivityPolicies.BeforeCaseActivity
 
     public void setCaseRoleService(CaseRoleService caseRoleService) {
         this.caseRoleService = caseRoleService;
+    }
+
+    @Autowired(required = false)
+    public void setDueDateService(DueDateService dueDateService) {
+        this.dueDateService = dueDateService;
     }
 
     /**
