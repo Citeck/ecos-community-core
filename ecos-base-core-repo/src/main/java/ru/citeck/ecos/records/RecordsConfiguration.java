@@ -186,7 +186,7 @@ public class RecordsConfiguration extends RecordsServiceFactory {
         return appName -> {
 
             EcosServiceInstanceInfo instanceInfo = ecosServiceDiscovery.getInstanceInfo(appName);
-            if (instanceInfo == null) {
+            if (instanceInfo == null || StringUtils.isBlank(instanceInfo.getHost())) {
                 return null;
             }
 
