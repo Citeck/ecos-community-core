@@ -22,9 +22,9 @@
             {key: 'attributes["bpm:description"]'},
             {key: 'attributes["wfm:actors"][0].nodeRef'},
             {key: 'attributes["bpm:dueDate"]'},
+            {key: 'attributes["cwf:dueDateTime"]'},
             {key: 'attributes["cwf:taskTitle"]'},
-            {key: 'taskTitle'},
-            {key: 'dueDateTime'}
+            {key: 'taskTitle'}
             ]}
         </prop>
         <prop name="twisterKey">current-tasks</prop>
