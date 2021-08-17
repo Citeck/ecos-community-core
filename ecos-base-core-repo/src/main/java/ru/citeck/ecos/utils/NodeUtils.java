@@ -1,6 +1,7 @@
 package ru.citeck.ecos.utils;
 
 import org.alfresco.model.ContentModel;
+import org.alfresco.repo.security.authentication.AuthenticationUtil;
 import org.alfresco.repo.transaction.AlfrescoTransactionSupport;
 import org.alfresco.repo.transaction.AlfrescoTransactionSupport.TxnReadState;
 import org.alfresco.repo.transaction.TransactionalResourceHelper;
@@ -114,13 +115,16 @@ public class NodeUtils {
     }
 
     public String getValidChildName(NodeRef parentRef, QName childAssoc, String name) {
+        return AuthenticationUtil.runAsSystem(() -> getValidChildNameImpl(parentRef, childAssoc, name));
+    }
 
+    public String getValidChildNameImpl(NodeRef parentRef, QName childAssoc, String name) {
         AssociationDefinition assoc = dictionaryService.getAssociation(childAssoc);
 
         name = getValidName(name);
 
         if (!(assoc instanceof ChildAssociationDefinition) ||
-                ((ChildAssociationDefinition) assoc).getDuplicateChildNamesAllowed()) {
+            ((ChildAssociationDefinition) assoc).getDuplicateChildNamesAllowed()) {
             return name;
         }
 
