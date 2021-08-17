@@ -119,25 +119,26 @@ public class NodeUtils {
     }
 
     public String getValidChildNameImpl(NodeRef parentRef, QName childAssoc, String name) {
-        String finalName = getValidName(name);
         AssociationDefinition assoc = dictionaryService.getAssociation(childAssoc);
+
+        name = getValidName(name);
 
         if (!(assoc instanceof ChildAssociationDefinition) ||
             ((ChildAssociationDefinition) assoc).getDuplicateChildNamesAllowed()) {
-            return finalName;
+            return name;
         }
 
-        NodeRef child = nodeService.getChildByName(parentRef, childAssoc, finalName);
+        NodeRef child = nodeService.getChildByName(parentRef, childAssoc, name);
         if (child == null) {
-            return finalName;
+            return name;
         }
 
-        String extension = FilenameUtils.getExtension(finalName);
+        String extension = FilenameUtils.getExtension(name);
 
         if (StringUtils.isNotBlank(extension)) {
             extension = "." + extension;
         }
-        String nameWithoutExt = FilenameUtils.removeExtension(finalName);
+        String nameWithoutExt = FilenameUtils.removeExtension(name);
 
         int index = 0;
         String newNameWithIndex;
