@@ -115,37 +115,39 @@ public class NodeUtils {
     }
 
     public String getValidChildName(NodeRef parentRef, QName childAssoc, String name) {
+        return AuthenticationUtil.runAsSystem(() -> getValidChildNameImpl(parentRef, childAssoc, name));
+    }
+
+    public String getValidChildNameImpl(NodeRef parentRef, QName childAssoc, String name) {
         String finalName = getValidName(name);
-        return AuthenticationUtil.runAsSystem(() -> {
-            AssociationDefinition assoc = dictionaryService.getAssociation(childAssoc);
+        AssociationDefinition assoc = dictionaryService.getAssociation(childAssoc);
 
-            if (!(assoc instanceof ChildAssociationDefinition) ||
-                ((ChildAssociationDefinition) assoc).getDuplicateChildNamesAllowed()) {
-                return finalName;
-            }
+        if (!(assoc instanceof ChildAssociationDefinition) ||
+            ((ChildAssociationDefinition) assoc).getDuplicateChildNamesAllowed()) {
+            return finalName;
+        }
 
-            NodeRef child = nodeService.getChildByName(parentRef, childAssoc, finalName);
-            if (child == null) {
-                return finalName;
-            }
+        NodeRef child = nodeService.getChildByName(parentRef, childAssoc, finalName);
+        if (child == null) {
+            return finalName;
+        }
 
-            String extension = FilenameUtils.getExtension(finalName);
+        String extension = FilenameUtils.getExtension(finalName);
 
-            if (StringUtils.isNotBlank(extension)) {
-                extension = "." + extension;
-            }
-            String nameWithoutExt = FilenameUtils.removeExtension(finalName);
+        if (StringUtils.isNotBlank(extension)) {
+            extension = "." + extension;
+        }
+        String nameWithoutExt = FilenameUtils.removeExtension(finalName);
 
-            int index = 0;
-            String newNameWithIndex;
+        int index = 0;
+        String newNameWithIndex;
 
-            do {
-                newNameWithIndex = nameWithoutExt + " (" + (++index) + ")" + extension;
-                child = nodeService.getChildByName(parentRef, childAssoc, newNameWithIndex);
-            } while (child != null);
+        do {
+            newNameWithIndex = nameWithoutExt + " (" + (++index) + ")" + extension;
+            child = nodeService.getChildByName(parentRef, childAssoc, newNameWithIndex);
+        } while (child != null);
 
-            return newNameWithIndex;
-        });
+        return newNameWithIndex;
     }
 
     public NodeRef createNode(NodeRef parentRef, QName type, QName childAssoc, Map<QName, Serializable> props) {
