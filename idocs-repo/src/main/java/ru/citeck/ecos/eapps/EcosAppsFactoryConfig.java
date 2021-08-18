@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import ru.citeck.ecos.apps.EcosAppsServiceFactory;
+import ru.citeck.ecos.apps.app.domain.buildinfo.service.BuildInfoService;
 import ru.citeck.ecos.apps.app.domain.ecostype.service.ModelTypeArtifactService;
 import ru.citeck.ecos.apps.app.domain.handler.ArtifactHandlerService;
 import ru.citeck.ecos.apps.app.service.LocalAppService;
@@ -55,6 +56,12 @@ public class EcosAppsFactoryConfig extends EcosAppsServiceFactory {
     @Override
     protected ModelTypeArtifactService createModelTypeArtifactsService() {
         return super.createModelTypeArtifactsService();
+    }
+
+    @Bean
+    @NotNull
+    protected BuildInfoService createBuildInfoService() {
+        return super.createBuildInfoService();
     }
 
     @Bean

@@ -7,6 +7,8 @@ import org.quartz.JobExecutionContext;
 import ru.citeck.ecos.flowable.services.timer.FlowableTimersRestorerService;
 import ru.citeck.ecos.job.AbstractLockedJob;
 
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
 
@@ -28,10 +30,27 @@ public class FlowableRecoveryTimersJob extends AbstractLockedJob {
             int batchSize = data.getInt("batchSize");
             @SuppressWarnings("unchecked")
             Map<String, Set<String>> processActivitiesToChangeStatus = (Map<String, Set<String>>) data.get("processActivitiesToChangeStatus");
+            @SuppressWarnings("unchecked")
+            Collection<String> exceptionMsgPatterns = (Collection<String>) data.get("exceptionMsgPatterns");
 
-            FlowableTimersRestorerService.Config config = new FlowableTimersRestorerService.Config(
-                maxCountJobForProcess, retriesCount, batchSize, processActivitiesToChangeStatus
-            );
+            FlowableTimersRestorerService.Config config;
+            if (exceptionMsgPatterns == null || exceptionMsgPatterns.isEmpty()) {
+                config = new FlowableTimersRestorerService.Config(
+                    maxCountJobForProcess,
+                    retriesCount,
+                    batchSize,
+                    processActivitiesToChangeStatus
+                );
+            } else {
+                config = new FlowableTimersRestorerService.Config(
+                    maxCountJobForProcess,
+                    retriesCount,
+                    batchSize,
+                    processActivitiesToChangeStatus,
+                    new ArrayList<>(exceptionMsgPatterns)
+                );
+            }
+
             flowableTimersRestorerService.restore(config);
 
             return null;

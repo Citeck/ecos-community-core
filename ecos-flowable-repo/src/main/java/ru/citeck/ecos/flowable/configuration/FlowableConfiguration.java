@@ -45,6 +45,7 @@ import ru.citeck.ecos.workflow.variable.handler.EcosPojoTypeHandler;
 
 import javax.sql.DataSource;
 import java.util.*;
+import java.util.function.Consumer;
 
 /**
  * Flowable configuration
@@ -76,6 +77,14 @@ public class FlowableConfiguration {
     private static final String FLOWABLE_MAIL_SERVER_USE_TLS = "flowable.mail.server.use.tls";
     private static final String FLOWABLE_MAIL_SERVER_USE_SSL = "flowable.mail.server.use.ssl";
 
+    private static final String ASYNC_EXECUTOR_ACTIVATE = "flowable.bpmn.async.executor.activate";
+    private static final String ASYNC_EXECUTOR_CORE_POOL_SIZE = "flowable.bpmn.async.executor.core-pool-size";
+    private static final String ASYNC_EXECUTOR_MAX_POOL_SIZE = "flowable.bpmn.async.executor.max-pool-size";
+    private static final String LOCK_TIME_ASYNC_JOB_WAIT_TIME_SEC = "flowable.bpmn.async.lock-time-async-job-wait-time-sec";
+
+    private static final String ASYNC_HISTORY_EXECUTOR_ACTIVATE = "flowable.bpmn.async.history-executor.activate";
+    private static final String ASYNC_HISTORY_EXECUTOR_CORE_POOL_SIZE = "flowable.bpmn.async.history-executor.core-pool-size";
+    private static final String ASYNC_HISTORY_EXECUTOR_MAX_POOL_SIZE = "flowable.bpmn.async.history-executor.max-pool-size";
 
     private static final String BEAN_KEY_COMPLETENESS_SERVICE_JS = "caseCompletenessServiceJS";
     private static final String BEAN_KEY_SYSTEM_ALF_NOTIFICATION_SERVICE = "systemAlfNotificationService";
@@ -164,45 +173,78 @@ public class FlowableConfiguration {
                                                                         ProcessBpmnParseHandler processBpmnParseHandler,
                                                                         UserTaskBpmnParseHandler taskBpmnParseHandler) {
         if (dataSource != null) {
-            SpringProcessEngineConfiguration engineConfiguration = new SpringProcessEngineConfiguration();
-            engineConfiguration.setDataSource(dataSource);
+            SpringProcessEngineConfiguration config = new SpringProcessEngineConfiguration();
+            config.setDataSource(dataSource);
 
             //TODO: Need to implement transaction manager with multiple data source? alfresco + flowable
-            engineConfiguration.setTransactionManager(transactionManager);
+            config.setTransactionManager(transactionManager);
 
-            engineConfiguration.setAsyncExecutorActivate(true);
-            engineConfiguration.setDatabaseSchemaUpdate(ProcessEngineConfiguration.DB_SCHEMA_UPDATE_TRUE);
+            setBoolProp(ASYNC_EXECUTOR_ACTIVATE, true, config::setAsyncExecutorActivate);
+            setIntProp(ASYNC_EXECUTOR_CORE_POOL_SIZE, null, config::setAsyncExecutorCorePoolSize);
+            setIntProp(ASYNC_EXECUTOR_MAX_POOL_SIZE, null, config::setAsyncExecutorMaxPoolSize);
+            setIntProp(LOCK_TIME_ASYNC_JOB_WAIT_TIME_SEC, null, config::setLockTimeAsyncJobWaitTime);
 
-            engineConfiguration.setTransactionSynchronizationAdapterOrder(
+            setBoolProp(ASYNC_HISTORY_EXECUTOR_ACTIVATE, null, config::setAsyncHistoryExecutorActivate);
+            setIntProp(ASYNC_HISTORY_EXECUTOR_CORE_POOL_SIZE, null, config::setAsyncHistoryExecutorCorePoolSize);
+            setIntProp(ASYNC_HISTORY_EXECUTOR_MAX_POOL_SIZE, null, config::setAsyncHistoryExecutorMaxPoolSize);
+
+            config.setDatabaseSchemaUpdate(ProcessEngineConfiguration.DB_SCHEMA_UPDATE_TRUE);
+            config.setTransactionSynchronizationAdapterOrder(
                     AlfrescoTransactionSupport.SESSION_SYNCHRONIZATION_ORDER - 100
             );
 
             List<CommandInterceptor> customPostCommandInterceptors = new ArrayList<>();
             customPostCommandInterceptors.add(new FlowableAuthenticationInterceptor());
-            engineConfiguration.setCustomPostCommandInterceptors(customPostCommandInterceptors);
+            config.setCustomPostCommandInterceptors(customPostCommandInterceptors);
 
             Set<Class<?>> customMybatisMappers = new HashSet<>();
             customMybatisMappers.add(ModelMapper.class);
-            engineConfiguration.setCustomMybatisMappers(customMybatisMappers);
-            engineConfiguration.setBeans(getEngineBeans(descriptorRegistry));
+            config.setCustomMybatisMappers(customMybatisMappers);
+            config.setBeans(getEngineBeans(descriptorRegistry));
 
-            setMailConfiguration(engineConfiguration);
+            setMailConfiguration(config);
 
             List<BpmnParseHandler> parseHandlers = new ArrayList<>(2);
             parseHandlers.add(processBpmnParseHandler);
             parseHandlers.add(taskBpmnParseHandler);
-            engineConfiguration.setPreBpmnParseHandlers(parseHandlers);
+            config.setPreBpmnParseHandlers(parseHandlers);
 
-            List<VariableType> types = engineConfiguration.getCustomPreVariableTypes();
+            List<VariableType> types = config.getCustomPreVariableTypes();
             types = types != null ? new ArrayList<>(types) : new ArrayList<>();
             types.add(new FlowableEcosPojoTypeHandler(ecosPojoTypeHandler));
             types.add(flowableScriptNodeVariableType);
             types.add(flowableScriptNodeListVariableType);
-            engineConfiguration.setCustomPreVariableTypes(types);
+            config.setCustomPreVariableTypes(types);
 
-            return engineConfiguration;
+            return config;
         } else {
             return null;
+        }
+    }
+
+    private void setBoolProp(String key, Boolean deflt, Consumer<Boolean> propSetter) {
+        String propValueStr = properties.getProperty(key);
+        Boolean propValue;
+        if (StringUtils.isBlank(propValueStr)) {
+            propValue = deflt;
+        } else {
+            propValue = Boolean.parseBoolean(propValueStr);
+        }
+        if (propValue != null) {
+            propSetter.accept(propValue);
+        }
+    }
+
+    private void setIntProp(String key, Integer deflt, Consumer<Integer> propSetter) {
+        String propValueStr = properties.getProperty(key);
+        Integer propValue;
+        if (StringUtils.isBlank(propValueStr)) {
+            propValue = deflt;
+        } else {
+            propValue = Integer.parseInt(propValueStr);
+        }
+        if (propValue != null) {
+            propSetter.accept(propValue);
         }
     }
 

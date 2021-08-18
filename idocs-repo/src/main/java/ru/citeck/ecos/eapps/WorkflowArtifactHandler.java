@@ -104,6 +104,10 @@ public class WorkflowArtifactHandler implements EcosArtifactHandler<WorkflowArti
         listener.accept(artifact);
     }
 
+    @Override
+    public void deleteArtifact(@NotNull String s) {
+    }
+
     @Autowired
     public void setBpmAppUtils(EcosBpmAppModelUtils bpmAppUtils) {
         this.bpmAppUtils = bpmAppUtils;
