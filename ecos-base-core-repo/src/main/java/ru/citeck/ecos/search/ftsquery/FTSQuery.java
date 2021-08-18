@@ -33,6 +33,7 @@ public class FTSQuery implements OperatorExpected, OperandExpected {
     private static final String TYPE = "TYPE";
     private static final String PATH = "PATH";
     private static final String ASPECT = "ASPECT";
+    private static final String EXISTS = "EXISTS";
     private static final String VALUE_ENVELOP_START = "(";
     private static final String VALUE_ENVELOP_END = ")";
 
@@ -113,14 +114,19 @@ public class FTSQuery implements OperatorExpected, OperandExpected {
 
     @Override
     public FTSQuery empty(QName field) {
-        return open().isNull(field).or()
-            .isUnset(field)
+        return open()
+            .isNull(field).or()
+            .isUnset(field).or()
+            .isNotExists(field)
             .close();
     }
 
     @Override
     public FTSQuery emptyString(QName field) {
-        return not().range(field, "\"\"", "*");
+        return open()
+            .isNotExists(field).or()
+            .not().range(field, "\"\"", "*")
+            .close();
     }
 
     @Override
@@ -205,6 +211,17 @@ public class FTSQuery implements OperatorExpected, OperandExpected {
     @Override
     public FTSQuery aspect(QName aspectName) {
         group.addTerm(new SysValueOperator(ASPECT, aspectName));
+        return this;
+    }
+
+    public FTSQuery exists(QName fieldName) {
+        group.addTerm(new SysValueOperator(EXISTS, fieldName));
+        return this;
+    }
+
+    public FTSQuery isNotExists(QName fieldName) {
+        group.setUnOperator(new UnOperatorTerm(NOT));
+        group.addTerm(new SysValueOperator(EXISTS, fieldName));
         return this;
     }
 
