@@ -200,7 +200,7 @@
         <dependency>
             <groupId>ru.citeck.ecos</groupId>
             <artifactId>ecos-curator-framework</artifactId>
-            <version>5.0.0</version>
+            <version>${ecos.curator.version}</version>
         </dependency>
 
         <dependency>

@@ -14,7 +14,7 @@ import ru.citeck.ecos.events2.rabbitmq.RabbitMqEvents;
 import ru.citeck.ecos.events2.remote.RemoteEvents;
 import ru.citeck.ecos.rabbitmq.RabbitMqConn;
 import ru.citeck.ecos.rabbitmq.RabbitMqConnProvider;
-import ru.citeck.ecos.records2.RecordsServiceFactory;
+import ru.citeck.ecos.records3.RecordsServiceFactory;
 import ru.citeck.ecos.zookeeper.EcosZooKeeper;
 
 import javax.annotation.PostConstruct;
@@ -37,7 +37,7 @@ public class EcosEventsConfig extends EventServiceFactory {
 
     @PostConstruct
     public void init() {
-        setRecordsFactory(recordsServiceFactory);
+        setRecordsServiceFactory(recordsServiceFactory);
     }
 
     @Bean
@@ -67,6 +67,6 @@ public class EcosEventsConfig extends EventServiceFactory {
         if (connection == null) {
             throw new IllegalStateException("RabbitMQ connection is null");
         }
-        return new RabbitMqEvents(this, connection, ecosZooKeeper);
+        return new RabbitMqEvents(connection, this, ecosZooKeeper);
     }
 }

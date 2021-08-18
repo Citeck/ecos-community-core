@@ -58,7 +58,7 @@ public class NewEventsTest implements NodeServicePolicies.OnCreateNodePolicy {
                 new JavaBehaviour(this, "onCreateNode", NotificationFrequency.EVERY_EVENT)
         );
 
-        emitter = eventService.getEmitter(EmitterConfig.create(b -> {
+        emitter = eventService.getEmitter(EmitterConfig.Companion.create(b -> {
             b.setEventClass(EventData.class);
             b.setEventType("record-created");
             b.setFamily("alfresco-family");

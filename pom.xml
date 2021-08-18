@@ -76,8 +76,10 @@
         <ecos.meta-repo.version>1.1.0</ecos.meta-repo.version>
         <ecos.notifications.lib.version>2.1.1</ecos.notifications.lib.version>
         <ecos.model-lib.version>2.4.10</ecos.model-lib.version>
-        <ecos.zookeeper.version>1.0.0-SNAPSHOT</ecos.zookeeper.version>
-        <zookeeper.version>3.6.0</zookeeper.version>
+
+        <ecos.events2.version>2.0.0</ecos.events2.version>
+        <ecos.zookeeper.version>1.1.0</ecos.zookeeper.version>
+        <ecos.curator.version>5.2.0</ecos.curator.version>
 
         <spring.retry.version>1.2.4.RELEASE</spring.retry.version>
 

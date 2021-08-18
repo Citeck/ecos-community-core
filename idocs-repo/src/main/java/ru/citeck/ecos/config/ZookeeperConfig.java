@@ -30,14 +30,14 @@ public class ZookeeperConfig {
 
         log.info("EcosZookeeper init");
 
-        String host = properties.getProperty(PROP_HOST_KEY, String.class);
+        /*String host = properties.getProperty(PROP_HOST_KEY, String.class);
         if (StringUtils.isBlank(host)) {
             throw new IllegalStateException("'" + PROP_HOST_KEY + "' is undefined");
-        }
-        Integer port = properties.getProperty(PROP_PORT_KEY, Integer.class, () -> 2181);
+        }*/
+        //Integer port = properties.getProperty(PROP_PORT_KEY, Integer.class, () -> 2181);
 
         RetryPolicy retryPolicy = new ExponentialBackoffRetry(5_000, 10);
-        String connectString = host + ":" + port;
+        String connectString = "localhost" + ":" + "2181";
 
         log.info("=========================================================");
         log.info("Connect to Zookeeper with URL: " + connectString);
