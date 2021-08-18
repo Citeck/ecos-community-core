@@ -115,18 +115,15 @@ public class FTSQuery implements OperatorExpected, OperandExpected {
     @Override
     public FTSQuery empty(QName field) {
         return open()
+            .not().exists(field).or()
             .isNull(field).or()
-            .isUnset(field).or()
-            .isNotExists(field)
+            .isUnset(field)
             .close();
     }
 
     @Override
     public FTSQuery emptyString(QName field) {
-        return open()
-            .isNotExists(field).or()
-            .not().range(field, "\"\"", "*")
-            .close();
+        return not().range(field, "\"\"", "*");
     }
 
     @Override
@@ -215,12 +212,6 @@ public class FTSQuery implements OperatorExpected, OperandExpected {
     }
 
     public FTSQuery exists(QName fieldName) {
-        group.addTerm(new SysValueOperator(EXISTS, fieldName));
-        return this;
-    }
-
-    public FTSQuery isNotExists(QName fieldName) {
-        group.setUnOperator(new UnOperatorTerm(NOT));
         group.addTerm(new SysValueOperator(EXISTS, fieldName));
         return this;
     }
