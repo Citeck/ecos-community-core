@@ -290,16 +290,14 @@ public class ValuePredicateToFtsConverter implements PredicateToFtsConverter {
             return;
         }
 
-        FTSQuery innerQuery = FTSQuery.createRaw();
-        innerQuery.maxItems(INNER_QUERY_MAX_ITEMS);
+        String assocVal = String.format(CONTAINS_STRING_TEMPLATE, value);
 
         Map<QName, Serializable> attributes = new HashMap<>();
 
-        String assocVal = String.format(CONTAINS_STRING_TEMPLATE, value);
+        getQNameConfigValueDelimitedByComma(SEARCH_PROPS)
+            .forEach(attribute -> attributes.put(attribute, assocVal));
 
-        attributes.put(ContentModel.PROP_TITLE, assocVal);
-        attributes.put(ContentModel.PROP_NAME, assocVal);
-
+        FTSQuery innerQuery = FTSQuery.createRaw();
         if (targetTypeName != null) {
 
             innerQuery.type(targetTypeName);
