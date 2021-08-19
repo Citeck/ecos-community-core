@@ -13,6 +13,7 @@ import org.alfresco.service.namespace.QName;
 import org.alfresco.util.Pair;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import ru.citeck.ecos.config.EcosConfigService;
 import ru.citeck.ecos.model.EcosTypeModel;
@@ -56,6 +57,9 @@ public class ValuePredicateToFtsConverter implements PredicateToFtsConverter {
 
     private DictUtils dictUtils;
     private AuthorityUtils authorityUtils;
+
+    @Value("${value.predicate.to.fts.inner.query.max.items}")
+    private Integer innerQueryMaxItems;
 
     @Override
     public void convert(Predicate predicate, FTSQuery query) {
@@ -298,6 +302,8 @@ public class ValuePredicateToFtsConverter implements PredicateToFtsConverter {
             .forEach(attribute -> attributes.put(attribute, assocVal));
 
         FTSQuery innerQuery = FTSQuery.createRaw();
+        innerQuery.maxItems(Optional.ofNullable(innerQueryMaxItems).orElse(20));
+        
         if (targetTypeName != null) {
 
             innerQuery.type(targetTypeName);
