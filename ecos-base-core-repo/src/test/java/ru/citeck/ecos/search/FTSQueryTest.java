@@ -73,7 +73,7 @@ public class FTSQueryTest {
 
         assertEquals(fieldQuery + " AND " + fieldQuery + " AND " +
                 "(" + fieldQuery + " OR " + fieldQuery + " OR " +
-                    "(ISNULL:\"" + field + "\" OR ISUNSET:\"" + field + "\")" +
+                    "(NOT EXISTS:\"" + field + "\" OR ISNULL:\"" + field + "\" OR ISUNSET:\"" + field + "\")" +
                 ") OR " + fieldQuery, query.getQuery()) ;
 
         query = FTSQuery.createRaw()
