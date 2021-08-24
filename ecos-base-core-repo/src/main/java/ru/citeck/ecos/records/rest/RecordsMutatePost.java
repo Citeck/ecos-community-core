@@ -19,7 +19,10 @@ public class RecordsMutatePost extends AbstractWebScript {
 
     @Override
     public void execute(WebScriptRequest req, WebScriptResponse res) throws IOException {
-        utils.writeResp(res, restHandlerAdapter.mutateRecords(utils.readBody(req, JsonNode.class)));
+        utils.doWithRequestContext(() -> {
+            utils.writeResp(res, restHandlerAdapter.mutateRecords(utils.readBody(req, JsonNode.class)));
+            return null;
+        });
     }
 
     @Autowired

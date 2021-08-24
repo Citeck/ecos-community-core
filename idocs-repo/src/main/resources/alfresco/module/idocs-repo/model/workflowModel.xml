@@ -265,6 +265,14 @@
             </associations>
         </aspect>
 
+        <aspect name="cwf:hasTimerErrorStatus">
+            <properties>
+                <property name="cwf:timerErrorStatus">
+                    <type>d:text</type>
+                </property>
+            </properties>
+        </aspect>
+
     </aspects>
 
 </model>

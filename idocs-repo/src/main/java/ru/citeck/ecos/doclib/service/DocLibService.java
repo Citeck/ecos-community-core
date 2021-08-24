@@ -56,6 +56,8 @@ public class DocLibService {
 
     public static final String TYPE_DELIM = "$";
 
+    private static final String PARENT_LOCAL_ID_ATT = "_parent?localId";
+
     private static final DocLibNodeInfo EMPTY_NODE = new DocLibNodeInfo(
         RecordRef.EMPTY,
         DocLibNodeType.FILE,
@@ -197,14 +199,16 @@ public class DocLibService {
 
         List<DocLibNodeInfo> invPath = new ArrayList<>();
 
-        String parentRefStr = recordsService.getAtt(RecordRef.valueOf(entityId.getLocalId()), "_parent?id").asText();
+        RecordRef entityRecordRef = RecordRef.valueOf(entityId.getLocalId());
+        String parentRefStr = recordsService.getAtt(entityRecordRef, PARENT_LOCAL_ID_ATT).asText();
         while (NodeRef.isNodeRef(parentRefStr) && !rootNodeRefStr.equals(parentRefStr)) {
             DocLibNodeInfo nodeInfo = getDocLibNodeInfo(getEntityRef(entityId.getTypeRef(), parentRefStr));
             if (RecordRef.isEmpty(nodeInfo.getTypeRef())) {
                 break;
             }
             invPath.add(nodeInfo);
-            parentRefStr = recordsService.getAtt(RecordRef.valueOf(parentRefStr), "_parent?id").asText();
+            entityRecordRef = RecordRef.valueOf(parentRefStr);
+            parentRefStr = recordsService.getAtt(entityRecordRef, PARENT_LOCAL_ID_ATT).asText();
         }
 
         for (int i = invPath.size() - 1; i >= 0; i--) {

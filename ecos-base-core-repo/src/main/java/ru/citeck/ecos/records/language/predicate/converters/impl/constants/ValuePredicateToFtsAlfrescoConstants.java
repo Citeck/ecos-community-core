@@ -22,6 +22,10 @@ public class ValuePredicateToFtsAlfrescoConstants {
     public static final String IS_UNSET = "ISUNSET";
     public static final String ECOS_STATUS = "_status";
 
+    // Date and time constants
+
+    public static final String TODAY = "$TODAY";
+
     // System journal search parameters
     public static final String SEARCH_PROPS = "search-value-properties-names";
     public static final String SEARCH_EXCLUDED_TYPES = "search-type-names-excluded";

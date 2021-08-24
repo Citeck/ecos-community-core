@@ -4,15 +4,15 @@ import org.jetbrains.annotations.Nullable;
 import ru.citeck.ecos.commons.utils.ExceptionUtils;
 import ru.citeck.ecos.commons.utils.func.UncheckedSupplier;
 
-public class EcosAuthContext {
+public class EcosReqContext {
 
-    private static final ThreadLocal<EcosAuthContextData> context = new ThreadLocal<>();
+    private static final ThreadLocal<EcosReqContextData> context = new ThreadLocal<>();
 
-    private EcosAuthContext() {
+    private EcosReqContext() {
     }
 
-    public static <T> T doWith(EcosAuthContextData data, UncheckedSupplier<T> action) {
-        final EcosAuthContextData dataBefore = context.get();
+    public static <T> T doWith(EcosReqContextData data, UncheckedSupplier<T> action) {
+        final EcosReqContextData dataBefore = context.get();
         if (data != null) {
             context.set(data);
         } else {
@@ -33,7 +33,17 @@ public class EcosAuthContext {
     }
 
     @Nullable
-    public static EcosAuthContextData getCurrent() {
+    public static EcosReqContextData getCurrent() {
         return context.get();
+    }
+
+    public static boolean isSystemRequest() {
+        EcosReqContextData data = context.get();
+        return data != null && data.isSystemRequest();
+    }
+
+    public static float getUtcOffset() {
+        EcosReqContextData data = context.get();
+        return data == null ? 0 : data.getUtcOffset();
     }
 }
