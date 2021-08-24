@@ -16,6 +16,7 @@ import org.alfresco.util.Pair;
 import org.apache.commons.lang.StringUtils;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import ru.citeck.ecos.commons.data.DataValue;
 import ru.citeck.ecos.config.EcosConfigService;
@@ -65,6 +66,9 @@ public class ValuePredicateToFtsConverter implements PredicateToFtsConverter {
 
     private DictUtils dictUtils;
     private AuthorityUtils authorityUtils;
+
+    @Value("${value.predicate.to.fts.inner.query.max.items}")
+    private Integer innerQueryMaxItems;
 
     @Override
     public void convert(Predicate predicate, FTSQuery query, PredToFtsContext context) {
@@ -370,16 +374,16 @@ public class ValuePredicateToFtsConverter implements PredicateToFtsConverter {
             return;
         }
 
-        FTSQuery innerQuery = FTSQuery.createRaw();
-        innerQuery.maxItems(INNER_QUERY_MAX_ITEMS);
+        String assocVal = String.format(CONTAINS_STRING_TEMPLATE, value);
 
         Map<QName, Serializable> attributes = new HashMap<>();
 
-        String assocVal = String.format(CONTAINS_STRING_TEMPLATE, value);
+        getQNameConfigValueDelimitedByComma(SEARCH_PROPS)
+            .forEach(attribute -> attributes.put(attribute, assocVal));
 
-        attributes.put(ContentModel.PROP_TITLE, assocVal);
-        attributes.put(ContentModel.PROP_NAME, assocVal);
-
+        FTSQuery innerQuery = FTSQuery.createRaw();
+        innerQuery.maxItems(Optional.ofNullable(innerQueryMaxItems).orElse(20));
+        
         if (targetTypeName != null) {
 
             innerQuery.type(targetTypeName);
