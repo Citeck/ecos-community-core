@@ -35,6 +35,7 @@ import ru.citeck.ecos.search.ftsquery.FTSQuery;
 import ru.citeck.ecos.utils.AuthorityUtils;
 import ru.citeck.ecos.utils.DictUtils;
 
+import javax.annotation.PostConstruct;
 import javax.xml.datatype.Duration;
 import java.io.Serializable;
 import java.time.Instant;
@@ -68,7 +69,15 @@ public class ValuePredicateToFtsConverter implements PredicateToFtsConverter {
     private AuthorityUtils authorityUtils;
 
     @Value("${value.predicate.to.fts.inner.query.max.items}")
-    private Integer innerQueryMaxItems;
+    private String innerQueryMaxItemsStr;
+    private int innerQueryMaxItems = 20;
+
+    @PostConstruct
+    void init() {
+        if (StringUtils.isNotBlank(innerQueryMaxItemsStr) && innerQueryMaxItemsStr.charAt(0) != '$') {
+            innerQueryMaxItems = Integer.parseInt(innerQueryMaxItemsStr);
+        }
+    }
 
     @Override
     public void convert(Predicate predicate, FTSQuery query, PredToFtsContext context) {
@@ -382,8 +391,8 @@ public class ValuePredicateToFtsConverter implements PredicateToFtsConverter {
             .forEach(attribute -> attributes.put(attribute, assocVal));
 
         FTSQuery innerQuery = FTSQuery.createRaw();
-        innerQuery.maxItems(Optional.ofNullable(innerQueryMaxItems).orElse(20));
-        
+        innerQuery.maxItems(innerQueryMaxItems);
+
         if (targetTypeName != null) {
 
             innerQuery.type(targetTypeName);
