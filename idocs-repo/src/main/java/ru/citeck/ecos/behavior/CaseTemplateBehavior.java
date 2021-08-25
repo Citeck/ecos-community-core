@@ -215,6 +215,7 @@ public class CaseTemplateBehavior implements NodeServicePolicies.OnCreateNodePol
         return e -> {
             itemsUpdateState.endUpdate(CaseTemplateBehavior.class, caseNode, true, true);
             caseStatusService.setStatus(caseNode, STATUS_PROCESS_START_ERROR);
+            log.debug("Error copyFromTemplate, nodeRef: " + caseNode, e);
         };
     }
 

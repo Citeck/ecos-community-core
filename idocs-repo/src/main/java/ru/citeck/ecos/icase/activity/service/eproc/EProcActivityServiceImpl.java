@@ -194,13 +194,9 @@ public class EProcActivityServiceImpl implements EProcActivityService {
         findProcDefCommand.setEcosTypeRef(key.getEcosType());
         findProcDefCommand.setAlfTypes(key.getAlfTypes());
 
-        CommandResult commandResult = commandsService.executeSync(findProcDefCommand, EPROC_TARGET_APP_NAME);
-        commandResult.throwPrimaryErrorIfNotNull();
-        if (CollectionUtils.isNotEmpty(commandResult.getErrors())) {
-            throw new RuntimeException("Exception while find of process definition. " +
-                    "For detailed information see logs");
-        }
-
+        String infoErrorMsg = "Exception while find of process definition. For detailed see logs, ecosType: " +
+            key.getEcosType();
+        CommandResult commandResult = executeWithLog(findProcDefCommand, infoErrorMsg);
         FindProcDefResp response = commandResult.getResultAs(FindProcDefResp.class);
         if (response == null) {
             return Optional.empty();
@@ -222,13 +218,9 @@ public class EProcActivityServiceImpl implements EProcActivityService {
         getProcDefRevCommand.setProcType(CMMN_PROCESS_TYPE);
         getProcDefRevCommand.setProcDefRevId(definitionRevisionId);
 
-        CommandResult commandResult = commandsService.executeSync(getProcDefRevCommand, EPROC_TARGET_APP_NAME);
-        commandResult.throwPrimaryErrorIfNotNull();
-        if (CollectionUtils.isNotEmpty(commandResult.getErrors())) {
-            throw new RuntimeException("Exception while receiving of process definition revision. " +
-                    "For detailed information see logs");
-        }
-
+        String infoErrorMsg = "Exception while receiving of process definition revision." +
+            " For detailed see logs, definitionRevisionId: " + definitionRevisionId;
+        CommandResult commandResult = executeWithLog(getProcDefRevCommand, infoErrorMsg);
         return commandResult.getResultAs(GetProcDefRevResp.class);
     }
 
@@ -279,11 +271,8 @@ public class EProcActivityServiceImpl implements EProcActivityService {
         createProc.setProcDefRevId(definitionRevisionId);
         createProc.setRecordRef(caseRef);
 
-        CommandResult commandResult = commandsService.executeSync(createProc, EPROC_TARGET_APP_NAME);
-        commandResult.throwPrimaryErrorIfNotNull();
-        if (CollectionUtils.isNotEmpty(commandResult.getErrors())) {
-            throw new RuntimeException("Exception while creation of process state. For detailed information see logs");
-        }
+        String infoErrorMsg = "Exception while creation of process state. For detailed see logs, caseRef: " + caseRef;
+        CommandResult commandResult = executeWithLog(createProc, infoErrorMsg);
         return commandResult.getResultAs(CreateProcResp.class);
     }
 
@@ -372,11 +361,8 @@ public class EProcActivityServiceImpl implements EProcActivityService {
         getProcStateCommand.setProcType(CMMN_PROCESS_TYPE);
         getProcStateCommand.setProcStateId(stateId);
 
-        CommandResult commandResult = commandsService.executeSync(getProcStateCommand, EPROC_TARGET_APP_NAME);
-        commandResult.throwPrimaryErrorIfNotNull();
-        if (CollectionUtils.isNotEmpty(commandResult.getErrors())) {
-            throw new RuntimeException("Exception while receiving of process state. For detailed information see logs");
-        }
+        String infoErrorMsg = "Exception while receiving of process state. For detailed see logs, stateId: " + stateId;
+        CommandResult commandResult = executeWithLog(getProcStateCommand, infoErrorMsg);
         return commandResult.getResultAs(GetProcStateResp.class);
     }
 
@@ -459,7 +445,7 @@ public class EProcActivityServiceImpl implements EProcActivityService {
 
         UpdateProcStateResp result = updateStateInMicroservice(prevStateId, processInstance);
         if (result == null || StringUtils.isBlank(result.getProcStateId())) {
-            throw new RuntimeException("Error while state saving");
+            throw new RuntimeException("Error while state saving, case: " + caseRef);
         }
 
         try {
@@ -476,16 +462,30 @@ public class EProcActivityServiceImpl implements EProcActivityService {
         byte[] stateData = Json.getMapper().toBytes(processInstance);
         if (stateData == null) {
             throw new IllegalArgumentException("Can not parse processInstance to bytes. " +
-                    "For detailed information see logs");
+                    "For detailed information see logs, caseRef: " + processInstance.getCaseRef());
         }
         updateProcState.setStateData(stateData);
 
-        CommandResult commandResult = commandsService.executeSync(updateProcState, EPROC_TARGET_APP_NAME);
-        commandResult.throwPrimaryErrorIfNotNull();
-        if (CollectionUtils.isNotEmpty(commandResult.getErrors())) {
-            throw new RuntimeException("Exception while state updating. For detailed information see logs");
-        }
+        String infoErrorMsg = "Exception while state updating. For detailed see logs, caseRef: " +
+            processInstance.getCaseRef();
+        CommandResult commandResult = executeWithLog(updateProcState, infoErrorMsg);
         return commandResult.getResultAs(UpdateProcStateResp.class);
+    }
+
+    private CommandResult executeWithLog(Object command, String infoErrorMsg) {
+        Runnable printErrorMsg = () -> log.debug(infoErrorMsg);
+        CommandResult commandResult;
+        try {
+            commandResult = commandsService.executeSync(command, EPROC_TARGET_APP_NAME);
+        } catch (Exception e) {
+            printErrorMsg.run();
+            throw e;
+        }
+        commandResult.throwPrimaryErrorIfNotNull(printErrorMsg);
+        if (CollectionUtils.isNotEmpty(commandResult.getErrors())) {
+            throw new RuntimeException(infoErrorMsg);
+        }
+        return commandResult;
     }
 
     @Override
