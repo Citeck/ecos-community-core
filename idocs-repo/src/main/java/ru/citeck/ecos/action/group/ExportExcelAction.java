@@ -188,6 +188,7 @@ public class ExportExcelAction implements GroupActionFactory<RecordRef> {
             CellStyle headerStyle = defaultWorkbook.createCellStyle();
             headerStyle.setFillForegroundColor(IndexedColors.SKY_BLUE.getIndex());
             headerStyle.setFillPattern(CellStyle.SOLID_FOREGROUND);
+            headerStyle.setAlignment(CellStyle.ALIGN_CENTER);
             Font font = defaultWorkbook.createFont();
             font.setFontName("Arial");
             font.setFontHeightInPoints((short) 14);
@@ -210,6 +211,8 @@ public class ExportExcelAction implements GroupActionFactory<RecordRef> {
                 valueCellStyle.cloneStyleFrom(formatCell.getCellStyle());
                 doubleCellStyle.cloneStyleFrom(formatCell.getCellStyle());
             }
+            valueCellStyle.setWrapText(true);
+            valueCellStyle.setVerticalAlignment(CellStyle.VERTICAL_CENTER);
         }
 
         private void createColumnTitlesRow(List<String> columnTitles) {
@@ -247,7 +250,6 @@ public class ExportExcelAction implements GroupActionFactory<RecordRef> {
                         newCell.setCellValue(dataValue.asInt());
                     } else {
                         try {
-                            //Todo: test hyperlink case
                             URL urlValue = new URL(dataValue.asText());
                             newCell.setCellType(Cell.CELL_TYPE_FORMULA);
                             newCell.setCellFormula(
@@ -263,6 +265,7 @@ public class ExportExcelAction implements GroupActionFactory<RecordRef> {
         }
 
         private void autoSizeColumns(){
+            //autosize does not work for hyperlink cells
             for (int idx = 0; idx < requestedAttributes.size(); idx++) {
                 sheet.autoSizeColumn(idx);
             }
