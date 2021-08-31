@@ -17,6 +17,7 @@ import org.alfresco.service.namespace.QName;
 import org.apache.commons.lang.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.extensions.surf.util.I18NUtil;
 import org.springframework.stereotype.Component;
 import ru.citeck.ecos.commons.data.ObjectData;
 import ru.citeck.ecos.model.CiteckWorkflowModel;
@@ -335,6 +336,12 @@ public class WorkflowRecordsDao extends LocalRecordsDao
             String dispName = definition.getDescription();
             if (StringUtils.isBlank(dispName)) {
                 dispName = definition.getTitle();
+            }
+            if (StringUtils.isNotBlank(dispName)) {
+                String localized = I18NUtil.getMessage(dispName);
+                if (StringUtils.isNotBlank(localized)) {
+                    dispName = localized;
+                }
             }
             return dispName;
         }
