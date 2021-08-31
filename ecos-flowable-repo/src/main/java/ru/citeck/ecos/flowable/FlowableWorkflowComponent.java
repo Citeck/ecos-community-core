@@ -486,10 +486,6 @@ public class FlowableWorkflowComponent implements WorkflowComponent, Initializin
     private WorkflowInstance deleteProcessInstanceWithReason(String workflowId, String reason) {
         ProcessInstance processInstance = flowableProcessInstanceService.getProcessInstanceById(getLocalValue(workflowId));
         if (processInstance != null) {
-            if (!processInstance.getId().equals(processInstance.getRootProcessInstanceId())) {
-                processInstance = flowableProcessInstanceService
-                    .getProcessInstanceById(processInstance.getRootProcessInstanceId());
-            }
             NodeRef bpmPackage = (NodeRef) runtimeService.getVariable(processInstance.getId(), "bpm_package");
             runtimeService.deleteProcessInstance(processInstance.getId(), reason);
             deleteMirrorTasks(bpmPackage);

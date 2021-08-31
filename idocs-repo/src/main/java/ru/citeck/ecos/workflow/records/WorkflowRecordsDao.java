@@ -171,7 +171,8 @@ public class WorkflowRecordsDao extends LocalRecordsDao
         if (meta.hasAttribute("cancel")) {
             boolean cancel = meta.getAttribute("cancel").asBoolean();
             if (cancel) {
-                WorkflowInstance mutatedInstance = ecosWorkflowService.cancelWorkflowInstance(meta.getId().getId());
+                // Temporarily we always cancel root workflow.
+                WorkflowInstance mutatedInstance = ecosWorkflowService.cancelWorkflowRootInstance(meta.getId().getId());
                 meta.setId(mutatedInstance.getId());
             }
         }
