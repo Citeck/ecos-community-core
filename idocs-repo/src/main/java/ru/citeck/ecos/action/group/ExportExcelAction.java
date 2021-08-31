@@ -46,8 +46,7 @@ public class ExportExcelAction implements GroupActionFactory<RecordRef> {
     private NodeService nodeService;
 
     @Autowired
-    public ExportExcelAction(TransactionService transactionService,
-                             GroupActionService groupActionService,
+    public ExportExcelAction(GroupActionService groupActionService,
                              ContentService contentService,
                              NodeService nodeService,
                              RecordsService recordsService) {
@@ -82,12 +81,15 @@ public class ExportExcelAction implements GroupActionFactory<RecordRef> {
             String templatePath = config.getStrParam(PARAM_TEMPLATE);
             if (StringUtils.isBlank(templatePath)) {
                 log.warn("The template path parameter '{}' is emptry or was not defined", PARAM_TEMPLATE);
-            } else
-                try (InputStream bookTemplateStream = Thread.currentThread().getContextClassLoader().getResourceAsStream("/" + templatePath)) {
+            } else {
+                try (InputStream bookTemplateStream = Thread.currentThread()
+                             .getContextClassLoader()
+                             .getResourceAsStream("/" + templatePath)) {
                     workbook = WorkbookFactory.create(bookTemplateStream);
                 } catch (InvalidFormatException | IOException e) {
                     log.error("Failed to create Excel-file", e);
                 }
+            }
             if (workbook == null) {
                 workbook = createDefaultWorkbook();
             }
