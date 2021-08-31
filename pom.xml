@@ -75,7 +75,7 @@
         <ecos.rabbitmq.version>2.1.1</ecos.rabbitmq.version>
         <ecos.meta-repo.version>1.1.0</ecos.meta-repo.version>
         <ecos.notifications.lib.version>2.1.1</ecos.notifications.lib.version>
-        <ecos.model-lib.version>2.4.4</ecos.model-lib.version>
+        <ecos.model-lib.version>2.4.12</ecos.model-lib.version>
 
         <spring.retry.version>1.2.4.RELEASE</spring.retry.version>
 
