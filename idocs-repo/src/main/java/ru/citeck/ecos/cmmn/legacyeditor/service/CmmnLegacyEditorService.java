@@ -84,7 +84,7 @@ public class CmmnLegacyEditorService {
         contentRecData.set("url", DataValue.createStr(cmmnTemplate));
 
         RequestContext.doWithCtxJ(recordsServiceFactory, b -> {}, ctx -> {
-            recordsService.mutate(
+            recordsService.mutateAtt(
                 originalTemplateRef,
                 "_content",
                 Collections.singletonList(contentRecData)
