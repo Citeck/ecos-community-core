@@ -1,12 +1,11 @@
 package ru.citeck.ecos.flowable.services;
 
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.StringUtils;
 import org.flowable.common.engine.impl.interceptor.CommandExecutor;
 import org.flowable.common.engine.impl.service.CommonEngineServiceImpl;
 import org.flowable.engine.RuntimeService;
 import org.flowable.engine.runtime.ProcessInstance;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import ru.citeck.ecos.flowable.cmd.SendWorkflowSignalCmd;
@@ -18,10 +17,9 @@ import java.util.List;
 
 import static ru.citeck.ecos.flowable.constants.FlowableConstants.ENGINE_PREFIX;
 
+@Slf4j
 @Service
 public class FlowableEngineWorkflowService implements EngineWorkflowService {
-
-    public static final Logger logger = LoggerFactory.getLogger(FlowableEngineWorkflowService.class);
 
     private CommandExecutor commandExecutor;
     private final FlowableProcessInstanceService flowableProcessInstanceService;
@@ -40,7 +38,7 @@ public class FlowableEngineWorkflowService implements EngineWorkflowService {
     @Override
     public void sendSignal(List<String> processes, String signalName) {
         if (commandExecutor == null) {
-            logger.error("Command executor is null!");
+            log.error("Command executor is null!");
             return;
         }
         commandExecutor.execute(new SendWorkflowSignalCmd(processes, signalName, false));

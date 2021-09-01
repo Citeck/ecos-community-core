@@ -2,6 +2,7 @@ package ru.citeck.ecos.workflow;
 
 import lombok.Getter;
 import lombok.NonNull;
+import lombok.extern.slf4j.Slf4j;
 import org.alfresco.model.ContentModel;
 import org.alfresco.repo.workflow.WorkflowModel;
 import org.alfresco.service.cmr.dictionary.DictionaryService;
@@ -12,8 +13,6 @@ import org.alfresco.service.namespace.NamespaceService;
 import org.alfresco.service.namespace.QName;
 import org.apache.commons.lang.StringUtils;
 import org.jetbrains.annotations.Nullable;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
@@ -25,6 +24,7 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 public class EcosWorkflowService {
 
@@ -35,8 +35,6 @@ public class EcosWorkflowService {
     private NamespaceService namespaceService;
     private NodeService nodeService;
     private NodeUtils nodeUtils;
-
-    private static final Logger logger = LoggerFactory.getLogger(EcosWorkflowService.class);
 
     @Autowired
     public EcosWorkflowService(@Qualifier("WorkflowService") WorkflowService workflowService,
@@ -113,7 +111,7 @@ public class EcosWorkflowService {
         EngineWorkflowService service = needWorkflowService(id.engineId);
         String rootProcessId = service.getRootProcessInstanceId(id.localId);
         if(StringUtils.isBlank(rootProcessId)) {
-            logger.warn("rootProcessId is blank: " + rootProcessId);
+            log.warn("rootProcessId is blank: " + rootProcessId);
             return cancelWorkflowInstance(workflowId);
         }
         return cancelWorkflowInstance(rootProcessId);
