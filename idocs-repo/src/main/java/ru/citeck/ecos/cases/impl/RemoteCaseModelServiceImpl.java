@@ -16,9 +16,12 @@ import org.alfresco.service.cmr.repository.NodeService;
 import org.alfresco.service.namespace.QName;
 import org.alfresco.service.namespace.RegexQNamePattern;
 import org.alfresco.service.transaction.TransactionService;
+import org.apache.commons.lang3.time.FastDateFormat;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.http.*;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.util.*;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
@@ -28,7 +31,6 @@ import ru.citeck.ecos.model.*;
 
 import java.io.IOException;
 import java.io.Serializable;
-import java.text.SimpleDateFormat;
 import java.util.*;
 
 /**
@@ -79,14 +81,12 @@ public class RemoteCaseModelServiceImpl implements RemoteCaseModelService {
     /**
      * Date format
      */
-    private static final ThreadLocal<SimpleDateFormat> DATE_FORMAT = ThreadLocal.withInitial(() ->
-        new SimpleDateFormat("yyyy-MM-dd"));
+    private static final FastDateFormat DATE_FORMAT = FastDateFormat.getInstance("yyyy-MM-dd");
 
     /**
      * Datetime format
      */
-    private static final ThreadLocal<SimpleDateFormat> DATE_TIME_FORMAT = ThreadLocal.withInitial(() ->
-        new SimpleDateFormat("yyyy-MM-dd HH:mm:ss"));
+    private static final FastDateFormat DATE_TIME_FORMAT = FastDateFormat.getInstance("yyyy-MM-dd HH:mm:ss");
 
     /**
      * Object mapper
@@ -220,16 +220,16 @@ public class RemoteCaseModelServiceImpl implements RemoteCaseModelService {
         }
         /* Case info */
         if (nodeService.getProperty(caseModelRef, ActivityModel.PROP_PLANNED_START_DATE) != null) {
-            objectNode.put("plannedStartDate", DATE_FORMAT.get().format((Date) nodeService.getProperty(caseModelRef, ActivityModel.PROP_PLANNED_START_DATE)));
+            objectNode.put("plannedStartDate", DATE_FORMAT.format((Date) nodeService.getProperty(caseModelRef, ActivityModel.PROP_PLANNED_START_DATE)));
         }
         if (nodeService.getProperty(caseModelRef, ActivityModel.PROP_PLANNED_END_DATE) != null) {
-            objectNode.put("plannedEndDate", DATE_FORMAT.get().format((Date) nodeService.getProperty(caseModelRef, ActivityModel.PROP_PLANNED_END_DATE)));
+            objectNode.put("plannedEndDate", DATE_FORMAT.format((Date) nodeService.getProperty(caseModelRef, ActivityModel.PROP_PLANNED_END_DATE)));
         }
         if (nodeService.getProperty(caseModelRef, ActivityModel.PROP_ACTUAL_START_DATE) != null) {
-            objectNode.put("actualStartDate", DATE_FORMAT.get().format((Date) nodeService.getProperty(caseModelRef, ActivityModel.PROP_ACTUAL_START_DATE)));
+            objectNode.put("actualStartDate", DATE_FORMAT.format((Date) nodeService.getProperty(caseModelRef, ActivityModel.PROP_ACTUAL_START_DATE)));
         }
         if (nodeService.getProperty(caseModelRef, ActivityModel.PROP_ACTUAL_END_DATE) != null) {
-            objectNode.put("actualEndDate", DATE_FORMAT.get().format((Date) nodeService.getProperty(caseModelRef, ActivityModel.PROP_ACTUAL_END_DATE)));
+            objectNode.put("actualEndDate", DATE_FORMAT.format((Date) nodeService.getProperty(caseModelRef, ActivityModel.PROP_ACTUAL_END_DATE)));
         }
         objectNode.put("expectedPerformTime", (Integer) nodeService.getProperty(caseModelRef, ActivityModel.PROP_EXPECTED_PERFORM_TIME));
         objectNode.put("manualStarted", (Boolean) nodeService.getProperty(caseModelRef, ActivityModel.PROP_MANUAL_STARTED));
@@ -261,11 +261,11 @@ public class RemoteCaseModelServiceImpl implements RemoteCaseModelService {
     private void fillBaseNodeInfo(NodeRef nodeRef, ObjectNode objectNode) {
         objectNode.put("nodeUUID", nodeRef.getId());
         if (nodeService.getProperty(nodeRef, ContentModel.PROP_CREATED) != null) {
-            objectNode.put("created", DATE_TIME_FORMAT.get().format((Date) nodeService.getProperty(nodeRef, ContentModel.PROP_CREATED)));
+            objectNode.put("created", DATE_TIME_FORMAT.format((Date) nodeService.getProperty(nodeRef, ContentModel.PROP_CREATED)));
         }
         objectNode.put("creator", (String) nodeService.getProperty(nodeRef, ContentModel.PROP_CREATOR));
         if (nodeService.getProperty(nodeRef, ContentModel.PROP_MODIFIED) != null) {
-            objectNode.put("modified", DATE_TIME_FORMAT.get().format((Date) nodeService.getProperty(nodeRef, ContentModel.PROP_MODIFIED)));
+            objectNode.put("modified", DATE_TIME_FORMAT.format((Date) nodeService.getProperty(nodeRef, ContentModel.PROP_MODIFIED)));
         }
         objectNode.put("modifier", (String) nodeService.getProperty(nodeRef, ContentModel.PROP_MODIFIER));
         objectNode.put("title", (String) nodeService.getProperty(nodeRef, ContentModel.PROP_TITLE));
@@ -703,7 +703,7 @@ public class RemoteCaseModelServiceImpl implements RemoteCaseModelService {
         objectNode.put("computedExpression", (String) nodeService.getProperty(caseModelRef, CaseTimerModel.PROP_COMPUTED_EXPRESSION));
         objectNode.put("repeatCounter", (Integer) nodeService.getProperty(caseModelRef, CaseTimerModel.PROP_REPEAT_COUNTER));
         if (nodeService.getProperty(caseModelRef, CaseTimerModel.PROP_OCCUR_DATE) != null) {
-            objectNode.put("occurDate", DATE_TIME_FORMAT.get().format((Date) nodeService.getProperty(caseModelRef, CaseTimerModel.PROP_OCCUR_DATE)));
+            objectNode.put("occurDate", DATE_TIME_FORMAT.format((Date) nodeService.getProperty(caseModelRef, CaseTimerModel.PROP_OCCUR_DATE)));
         }
     }
 
@@ -718,7 +718,7 @@ public class RemoteCaseModelServiceImpl implements RemoteCaseModelService {
         objectNode.put("workflowDefinitionName", (String) nodeService.getProperty(caseModelRef, ICaseTaskModel.PROP_WORKFLOW_DEFINITION_NAME));
         objectNode.put("workflowInstanceId", (String) nodeService.getProperty(caseModelRef, ICaseTaskModel.PROP_WORKFLOW_INSTANCE_ID));
         if (nodeService.getProperty(caseModelRef, ICaseTaskModel.PROP_DEADLINE) != null) {
-            objectNode.put("dueDate", DATE_TIME_FORMAT.get().format((Date) nodeService.getProperty(caseModelRef, ICaseTaskModel.PROP_DEADLINE)));
+            objectNode.put("dueDate", DATE_TIME_FORMAT.format((Date) nodeService.getProperty(caseModelRef, ICaseTaskModel.PROP_DEADLINE)));
         }
         objectNode.put("priority", (Integer) nodeService.getProperty(caseModelRef, ICaseTaskModel.PROP_PRIORITY));
         /* BPM Package */
@@ -778,7 +778,7 @@ public class RemoteCaseModelServiceImpl implements RemoteCaseModelService {
         resultNode.put("typeName", typeName.toString());
         resultNode.put("valueClass", value.getClass().getName());
         if (value instanceof Date) {
-            resultNode.put("value", DATE_TIME_FORMAT.get().format((Date) value));
+            resultNode.put("value", DATE_TIME_FORMAT.format((Date) value));
             return resultNode;
         }
         if (value instanceof Number || value instanceof String || value instanceof Boolean) {

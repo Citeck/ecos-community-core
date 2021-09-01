@@ -34,6 +34,7 @@ import org.alfresco.service.cmr.security.PersonService;
 import org.alfresco.service.namespace.QName;
 import org.alfresco.service.transaction.TransactionService;
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.time.FastDateFormat;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import ru.citeck.ecos.config.EcosConfigService;
@@ -50,7 +51,6 @@ import ru.citeck.ecos.utils.TransactionUtils;
 import javax.transaction.UserTransaction;
 import java.io.Serializable;
 import java.text.SimpleDateFormat;
-import java.time.ZoneId;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -104,15 +104,8 @@ public class HistoryService {
     private static final String PROPERTY_PREFIX = "event";
     private static final String HISTORY_ROOT = "/" + "history:events";
 
-    private static final ThreadLocal<SimpleDateFormat> DATE_FORMAT;
-
-    static {
-        DATE_FORMAT = ThreadLocal.withInitial(() -> {
-            SimpleDateFormat dateFormat = new SimpleDateFormat("dd.MM.yyyy HH:mm:ss");
-            dateFormat.setTimeZone(TimeZone.getTimeZone(ZoneId.of("UTC")));
-            return dateFormat;
-        });
-    }
+    private static final FastDateFormat DATE_FORMAT = FastDateFormat.getInstance(
+        "dd.MM.yyyy HH:mm:ss", TimeZone.getTimeZone("UTC"));
 
     private boolean isHistoryTransferring = false;
     private boolean isHistoryTransferringInterrupted = false;
@@ -256,7 +249,7 @@ public class HistoryService {
         if (HistoryEventType.NODE_CREATED.equals(eventType) || HistoryEventType.NODE_UPDATED.equals(eventType)) {
             now.setTime(now.getTime() - 5000);
         }
-        requestParams.put(CREATION_TIME, DATE_FORMAT.get().format(now));
+        requestParams.put(CREATION_TIME, DATE_FORMAT.format(now));
         /* Expected perform time */
         NodeRef taskCaseRef = (NodeRef) properties.get(HistoryModel.PROP_CASE_TASK);
         if (taskCaseRef != null) {

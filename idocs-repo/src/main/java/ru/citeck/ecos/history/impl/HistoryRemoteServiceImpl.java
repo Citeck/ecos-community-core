@@ -12,8 +12,7 @@ import org.alfresco.service.cmr.security.PersonService;
 import org.alfresco.service.namespace.QName;
 import org.alfresco.service.transaction.TransactionService;
 import org.apache.commons.lang.StringUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.apache.commons.lang3.time.FastDateFormat;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
@@ -35,7 +34,6 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
-import java.text.SimpleDateFormat;
 import java.util.*;
 
 import static org.alfresco.repo.transaction.AlfrescoTransactionSupport.getTransactionReadState;
@@ -69,10 +67,8 @@ public class HistoryRemoteServiceImpl implements HistoryRemoteService {
     };
     private static final String HISTORY_RECORD_FILE_NAME = "history_record";
     private static final String DELIMITER = "||";
-    private static final ThreadLocal<SimpleDateFormat> DATE_FORMAT = ThreadLocal.withInitial(() ->
-        new SimpleDateFormat("yyyy_MM_dd_HH_mm_ss"));
-    private static final ThreadLocal<SimpleDateFormat> IMPORT_DATE_FORMAT = ThreadLocal.withInitial(() ->
-        new SimpleDateFormat("dd.MM.yyyy HH:mm:ss"));
+    private static final FastDateFormat DATE_FORMAT = FastDateFormat.getInstance("yyyy_MM_dd_HH_mm_ss");
+    private static final FastDateFormat IMPORT_DATE_FORMAT = FastDateFormat.getInstance("dd.MM.yyyy HH:mm:ss");
     private static final String SEND_NEW_RECORD_QUEUE = "send_new_record_queue";
     private static final String SEND_NEW_RECORDS_QUEUE = "send_new_records_queue";
     private static final String DELETE_RECORDS_BY_DOCUMENT_QUEUE = "delete_records_by_document_queue";
@@ -297,7 +293,7 @@ public class HistoryRemoteServiceImpl implements HistoryRemoteService {
         entryMap.put(DocumentHistoryConstants.COMMENTS.getValue(),
             nodeService.getProperty(eventRef, HistoryModel.PROP_TASK_COMMENT));
         entryMap.put(DocumentHistoryConstants.DOCUMENT_DATE.getValue(),
-            IMPORT_DATE_FORMAT.get().format((Date) nodeService.getProperty(eventRef, HistoryModel.PROP_DATE)));
+            IMPORT_DATE_FORMAT.format((Date) nodeService.getProperty(eventRef, HistoryModel.PROP_DATE)));
         entryMap.put(DocumentHistoryConstants.TASK_ROLE.getValue(),
             nodeService.getProperty(eventRef, HistoryModel.PROP_TASK_ROLE));
         entryMap.put(DocumentHistoryConstants.TASK_OUTCOME.getValue(),
@@ -380,7 +376,7 @@ public class HistoryRemoteServiceImpl implements HistoryRemoteService {
         }
         csvResult.append("\n");
         /* Create file */
-        String currentDate = DATE_FORMAT.get().format(new Date());
+        String currentDate = DATE_FORMAT.format(new Date());
         File csvFile = new File(properties.getProperty(CSV_RESULT_FOLDER, DEFAULT_RESULT_CSV_FOLDER)
             + HISTORY_RECORD_FILE_NAME + currentDate + ".csv");
         try {

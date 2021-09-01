@@ -9,6 +9,7 @@ import org.alfresco.service.cmr.repository.ChildAssociationRef;
 import org.alfresco.service.cmr.repository.NodeRef;
 import org.alfresco.service.cmr.repository.NodeService;
 import org.alfresco.service.namespace.QName;
+import org.apache.commons.lang3.time.FastDateFormat;
 import org.springframework.util.CollectionUtils;
 import ru.citeck.ecos.cases.RemoteCaseModelService;
 import ru.citeck.ecos.cases.RemoteRestoreCaseModelService;
@@ -18,7 +19,6 @@ import ru.citeck.ecos.model.*;
 import java.io.Serializable;
 import java.lang.reflect.InvocationTargetException;
 import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -43,8 +43,7 @@ public class RemoteRestoreCaseModelServiceImpl implements RemoteRestoreCaseModel
     /**
      * Datetime format
      */
-    private static final ThreadLocal<SimpleDateFormat> DATE_TIME_FORMAT = ThreadLocal.withInitial(() ->
-        new SimpleDateFormat("yyyy-MM-dd HH:mm:ss"));
+    private static final FastDateFormat DATE_TIME_FORMAT = FastDateFormat.getInstance("yyyy-MM-dd HH:mm:ss");
 
     /**
      * Node service
@@ -694,7 +693,7 @@ public class RemoteRestoreCaseModelServiceImpl implements RemoteRestoreCaseModel
             return rawValue;
         }
         if (className.equals(Date.class)) {
-            return DATE_TIME_FORMAT.get().parse(rawValue);
+            return DATE_TIME_FORMAT.parse(rawValue);
         }
         if (Number.class.isAssignableFrom(className) || className.equals(Boolean.class)) {
             return (Serializable) className.getDeclaredConstructor(String.class).newInstance(rawValue);

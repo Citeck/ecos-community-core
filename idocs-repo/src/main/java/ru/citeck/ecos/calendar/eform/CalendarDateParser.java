@@ -1,22 +1,18 @@
 package ru.citeck.ecos.calendar.eform;
 
 import org.alfresco.util.ISO8601DateFormat;
+import org.apache.commons.lang3.time.FastDateFormat;
 
 import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
 
 class CalendarDateParser {
 
-    private static final ThreadLocal<SimpleDateFormat> SLASH_TIME = ThreadLocal.withInitial(() ->
-        new SimpleDateFormat("yyyy/MM/dd HH:mm"));
-    private static final ThreadLocal<SimpleDateFormat> SLASH_DATE = ThreadLocal.withInitial(() ->
-        new SimpleDateFormat("yyyy/MM/dd"));
-    private static final ThreadLocal<SimpleDateFormat> DASH_TIME = ThreadLocal.withInitial(() ->
-        new SimpleDateFormat("yyyy-MM-dd HH:mm"));
-    private static final ThreadLocal<SimpleDateFormat> DASH_DATE = ThreadLocal.withInitial(() ->
-        new SimpleDateFormat("yyyy-MM-dd"));
+    private static final FastDateFormat SLASH_TIME = FastDateFormat.getInstance("yyyy/MM/dd HH:mm");
+    private static final FastDateFormat SLASH_DATE = FastDateFormat.getInstance("yyyy/MM/dd");
+    private static final FastDateFormat DASH_TIME = FastDateFormat.getInstance("yyyy-MM-dd HH:mm");
+    private static final FastDateFormat DASH_DATE = FastDateFormat.getInstance("yyyy-MM-dd");
 
     /**
      * Gets the date from the String, trying the various formats
@@ -48,21 +44,21 @@ class CalendarDateParser {
 
         // Try YYYY/MM/DD
         try {
-            return SLASH_TIME.get().parse(date);
+            return SLASH_TIME.parse(date);
         } catch (ParseException ignored) {
         }
         try {
-            return SLASH_DATE.get().parse(date);
+            return SLASH_DATE.parse(date);
         } catch (ParseException ignored) {
         }
 
         // Try YYYY-MM-DD
         try {
-            return DASH_TIME.get().parse(date);
+            return DASH_TIME.parse(date);
         } catch (ParseException ignored) {
         }
         try {
-            return DASH_DATE.get().parse(date);
+            return DASH_DATE.parse(date);
         } catch (ParseException ignored) {
         }
 

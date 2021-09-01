@@ -4,13 +4,13 @@ import org.alfresco.service.cmr.repository.NodeRef;
 import org.alfresco.service.cmr.repository.StoreRef;
 import org.alfresco.service.cmr.search.ResultSet;
 import org.alfresco.service.cmr.search.SearchParameters;
+import org.apache.commons.lang3.time.FastDateFormat;
 import ru.citeck.ecos.model.IdocsModel;
 import ru.citeck.ecos.search.SearchQuery;
 
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.math.MathContext;
-import java.text.SimpleDateFormat;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
@@ -27,8 +27,7 @@ public class CurrencyServiceImpl implements CurrencyService {
         " AND @idocs\\:crrTargetCurrency_added:\"%s\"" +
         " AND @idocs\\:crrDate:[MIN TO \"%s\"]";
 
-    private static final ThreadLocal<SimpleDateFormat> SDF = ThreadLocal.withInitial(() ->
-        new SimpleDateFormat("yyyy-MM-dd"));
+    private static final FastDateFormat FDF = FastDateFormat.getInstance("yyyy-MM-dd");
     private static final int MANUAL_CONVERSION_SCALE = 4;
 
     private CurrencyDAO currencyDAO;
@@ -93,7 +92,7 @@ public class CurrencyServiceImpl implements CurrencyService {
     }
 
     private Optional<BigDecimal> getCurrencyRateFromRecord(NodeRef baseCurrency, NodeRef targetCurrency, Date date) {
-        String dateStr = SDF.get().format(date);
+        String dateStr = FDF.format(date);
         String query = String.format(CURRENCY_RATE_QUERY_TEMPLATE, baseCurrency, targetCurrency, dateStr);
         return search(query).map(this::getRateValueFromCurrencyRecord);
     }
