@@ -2,12 +2,12 @@ package ru.citeck.ecos.webscripts.currency;
 
 import lombok.Setter;
 import org.alfresco.service.cmr.repository.NodeRef;
+import org.apache.commons.lang3.time.FastDateFormat;
 import org.springframework.extensions.webscripts.*;
 import ru.citeck.ecos.currency.CurrencyService;
 
 import java.math.BigDecimal;
 import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -19,8 +19,7 @@ public class LastCurrencyRateGet extends DeclarativeWebScript {
     private static final String DATE_PARAM_NAME = "date";
     private static final String MANUAL_CONVERSION_PARAM_NAME = "manualConversion";
     private static final String DATE_FORMAT = "yyyy-MM-dd";
-
-    private SimpleDateFormat sdf = new SimpleDateFormat(DATE_FORMAT);
+    private static final FastDateFormat FDF = FastDateFormat.getInstance(DATE_FORMAT);
 
     @Setter
     private CurrencyService currencyService;
@@ -36,7 +35,7 @@ public class LastCurrencyRateGet extends DeclarativeWebScript {
 
         Date date;
         try {
-            date = sdf.parse(dateParam);
+            date = FDF.parse(dateParam);
         } catch (ParseException e) {
             throw new WebScriptException("Parameter date must be in " + DATE_FORMAT + " format");
         }

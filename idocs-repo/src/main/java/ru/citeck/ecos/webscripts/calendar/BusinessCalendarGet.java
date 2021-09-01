@@ -18,22 +18,16 @@
  */
 package ru.citeck.ecos.webscripts.calendar;
 
-import org.springframework.extensions.webscripts.Cache;
-import org.springframework.extensions.webscripts.DeclarativeWebScript;
-import org.springframework.extensions.webscripts.Status;
-import org.springframework.extensions.webscripts.WebScriptRequest;
 import org.alfresco.service.cmr.search.SearchService;
-
+import org.apache.commons.lang3.time.FastDateFormat;
+import org.springframework.extensions.webscripts.*;
 import ru.citeck.ecos.calendar.BusinessCalendar;
 
-import java.util.Map;
-import java.util.HashMap;
-import java.util.Date;
-import java.util.Calendar;
-import java.text.SimpleDateFormat;
 import java.text.ParseException;
-
-import org.springframework.extensions.webscripts.WebScriptException;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 
 public class BusinessCalendarGet extends DeclarativeWebScript {
 
@@ -41,7 +35,7 @@ public class BusinessCalendarGet extends DeclarativeWebScript {
     private static final String PARAM_ADD_FIELD = "addField";
     private static final String PARAM_ADD_AMOUNT = "addAmount";
     private static final String PARAM_CURRENT_DATE = "currentDate";
-    private SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXXX");
+    private static final FastDateFormat DATE_FORMAT = FastDateFormat.getInstance("yyyy-MM-dd'T'HH:mm:ss.SSSXXX");
 
     private SearchService searchService;
 
@@ -65,7 +59,7 @@ public class BusinessCalendarGet extends DeclarativeWebScript {
 
         Date currentDate = null;
         try {
-            currentDate = dateFormat.parse(currentDateParam);
+            currentDate = DATE_FORMAT.parse(currentDateParam);
         } catch (ParseException ex) {
             throw new WebScriptException("Unable to parse date: " + ex.getMessage(), ex);
         }
