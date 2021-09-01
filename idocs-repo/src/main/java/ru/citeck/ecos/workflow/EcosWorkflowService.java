@@ -114,7 +114,7 @@ public class EcosWorkflowService {
             log.warn("rootProcessId is blank: " + rootProcessId);
             return cancelWorkflowInstance(workflowId);
         }
-        return cancelWorkflowInstance(rootProcessId);
+        return cancelWorkflowInstance(id.engineId + "$" + rootProcessId);
     }
 
     public WorkflowDefinition getDefinitionByName(String workflowName) {

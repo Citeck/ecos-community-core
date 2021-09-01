@@ -15,6 +15,7 @@ import ru.citeck.ecos.workflow.EcosWorkflowService;
 import ru.citeck.ecos.workflow.EngineWorkflowService;
 
 import java.util.List;
+import java.util.regex.Pattern;
 
 @Slf4j
 @Component
@@ -41,8 +42,14 @@ public class ActivitiEngineWorkflowService implements EngineWorkflowService {
     @Override
     public String getRootProcessInstanceId(String processId) {
 
-        //TODO The old code, used for activiti. May be it works, may be not. Need to refactor
         String fullProcessId = ENGINE_PREFIX + processId;
+        String resultWithPrefix = getRootProcessInstanceIdThroughPackage(fullProcessId);
+        return resultWithPrefix.replaceFirst(Pattern.quote(ENGINE_PREFIX), "");
+    }
+
+    private String getRootProcessInstanceIdThroughPackage(String fullProcessId) {
+
+        //TODO The old code, used for activiti. May be it works, may be not. Need to refactor
         WorkflowInstance instanceById = workflowService.getWorkflowById(fullProcessId);
         if (instanceById == null) {
             return fullProcessId;

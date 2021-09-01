@@ -15,8 +15,6 @@ import ru.citeck.ecos.workflow.EngineWorkflowService;
 
 import java.util.List;
 
-import static ru.citeck.ecos.flowable.constants.FlowableConstants.ENGINE_PREFIX;
-
 @Slf4j
 @Service
 public class FlowableEngineWorkflowService implements EngineWorkflowService {
@@ -53,10 +51,10 @@ public class FlowableEngineWorkflowService implements EngineWorkflowService {
         if (procInstanceId != null) {
             String rootProcInstId = procInstanceId.getRootProcessInstanceId();
             if (StringUtils.isNotBlank(rootProcInstId)) {
-                return ENGINE_PREFIX + rootProcInstId;
+                return rootProcInstId;
             }
         }
-        return ENGINE_PREFIX + processId;
+        return processId;
     }
 
 }
