@@ -57,9 +57,10 @@ public class HistoryGet extends BaseAbstractWebscript {
     // TODO refactor with AssociationIndexPropertyRegistry
     private static final String LINKED_POSTFIX = "_added";
 
-    private HistoryService historyService;
+    private static final ThreadLocal<SimpleDateFormat> DATE_FORMAT = ThreadLocal.withInitial(() ->
+        new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss"));
 
-    private SimpleDateFormat dateFormat;
+    private HistoryService historyService;
 
     private NodeService nodeService;
 
@@ -67,7 +68,6 @@ public class HistoryGet extends BaseAbstractWebscript {
 
     public void setHistoryService(HistoryService historyService) {
         this.historyService = historyService;
-        this.dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss");
     }
 
     public void setNodeService(NodeService nodeService) {
@@ -102,7 +102,7 @@ public class HistoryGet extends BaseAbstractWebscript {
                 return historyService.getEventsByInitiator(new NodeRef(user));
             } else {
                 try {
-                    return historyService.getEventsByInitiator(new NodeRef(user), dateFormat.parse(limitDate));
+                    return historyService.getEventsByInitiator(new NodeRef(user), DATE_FORMAT.get().parse(limitDate));
                 } catch (ParseException ex) {
                     throw new WebScriptException("Unable to parse date: " + ex.getMessage(), ex);
                 }

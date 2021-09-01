@@ -41,7 +41,8 @@ public class BusinessCalendarGet extends DeclarativeWebScript {
     private static final String PARAM_ADD_FIELD = "addField";
     private static final String PARAM_ADD_AMOUNT = "addAmount";
     private static final String PARAM_CURRENT_DATE = "currentDate";
-    private SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXXX");
+    private static final ThreadLocal<SimpleDateFormat> DATE_FORMAT = ThreadLocal.withInitial(() ->
+        new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXXX"));
 
     private SearchService searchService;
 
@@ -65,7 +66,7 @@ public class BusinessCalendarGet extends DeclarativeWebScript {
 
         Date currentDate = null;
         try {
-            currentDate = dateFormat.parse(currentDateParam);
+            currentDate = DATE_FORMAT.get().parse(currentDateParam);
         } catch (ParseException ex) {
             throw new WebScriptException("Unable to parse date: " + ex.getMessage(), ex);
         }

@@ -23,11 +23,12 @@ import java.util.Optional;
 public class CurrencyServiceImpl implements CurrencyService {
 
     private static final String CURRENCY_RATE_QUERY_TEMPLATE = "TYPE:\"idocs:currencyRateRecord\"" +
-            " AND @idocs\\:crrBaseCurrency_added:\"%s\"" +
-            " AND @idocs\\:crrTargetCurrency_added:\"%s\"" +
-            " AND @idocs\\:crrDate:[MIN TO \"%s\"]";
+        " AND @idocs\\:crrBaseCurrency_added:\"%s\"" +
+        " AND @idocs\\:crrTargetCurrency_added:\"%s\"" +
+        " AND @idocs\\:crrDate:[MIN TO \"%s\"]";
 
-    private static final SimpleDateFormat SDF = new SimpleDateFormat("yyyy-MM-dd");
+    private static final ThreadLocal<SimpleDateFormat> SDF = ThreadLocal.withInitial(() ->
+        new SimpleDateFormat("yyyy-MM-dd"));
     private static final int MANUAL_CONVERSION_SCALE = 4;
 
     private CurrencyDAO currencyDAO;
@@ -92,7 +93,7 @@ public class CurrencyServiceImpl implements CurrencyService {
     }
 
     private Optional<BigDecimal> getCurrencyRateFromRecord(NodeRef baseCurrency, NodeRef targetCurrency, Date date) {
-        String dateStr = SDF.format(date);
+        String dateStr = SDF.get().format(date);
         String query = String.format(CURRENCY_RATE_QUERY_TEMPLATE, baseCurrency, targetCurrency, dateStr);
         return search(query).map(this::getRateValueFromCurrencyRecord);
     }

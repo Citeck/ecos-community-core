@@ -3,13 +3,12 @@ package ru.citeck.ecos.cases.impl;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
+import lombok.extern.slf4j.Slf4j;
 import org.alfresco.model.ContentModel;
 import org.alfresco.service.cmr.repository.ChildAssociationRef;
 import org.alfresco.service.cmr.repository.NodeRef;
 import org.alfresco.service.cmr.repository.NodeService;
 import org.alfresco.service.namespace.QName;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.springframework.util.CollectionUtils;
 import ru.citeck.ecos.cases.RemoteCaseModelService;
 import ru.citeck.ecos.cases.RemoteRestoreCaseModelService;
@@ -28,6 +27,7 @@ import java.util.Map;
 /**
  * Remote restore case model service
  */
+@Slf4j
 public class RemoteRestoreCaseModelServiceImpl implements RemoteRestoreCaseModelService {
 
     /**
@@ -41,14 +41,10 @@ public class RemoteRestoreCaseModelServiceImpl implements RemoteRestoreCaseModel
     private static final String WORKSPACE_PREFIX = "workspace://SpacesStore/";
 
     /**
-     * Logger
-     */
-    private static Log logger = LogFactory.getLog(RemoteRestoreCaseModelServiceImpl.class);
-
-    /**
      * Datetime format
      */
-    private SimpleDateFormat dateTimeFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+    private static final ThreadLocal<SimpleDateFormat> DATE_TIME_FORMAT = ThreadLocal.withInitial(() ->
+        new SimpleDateFormat("yyyy-MM-dd HH:mm:ss"));
 
     /**
      * Node service
@@ -654,7 +650,7 @@ public class RemoteRestoreCaseModelServiceImpl implements RemoteRestoreCaseModel
                 }
             }
         } catch (Exception e) {
-            logger.error(e);
+            log.error(e.getMessage(), e);
             throw new RuntimeException(e);
         }
     }
@@ -677,7 +673,7 @@ public class RemoteRestoreCaseModelServiceImpl implements RemoteRestoreCaseModel
                 nodeService.setProperty(taskModelRef, typeName, propertyValue);
             }
         } catch (Exception e) {
-            logger.error(e);
+            log.error(e.getMessage(), e);
             throw new RuntimeException(e);
         }
     }
@@ -698,7 +694,7 @@ public class RemoteRestoreCaseModelServiceImpl implements RemoteRestoreCaseModel
             return rawValue;
         }
         if (className.equals(Date.class)) {
-            return dateTimeFormat.parse(rawValue);
+            return DATE_TIME_FORMAT.get().parse(rawValue);
         }
         if (Number.class.isAssignableFrom(className) || className.equals(Boolean.class)) {
             return (Serializable) className.getDeclaredConstructor(String.class).newInstance(rawValue);

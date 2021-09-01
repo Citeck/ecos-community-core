@@ -104,11 +104,14 @@ public class HistoryService {
     private static final String PROPERTY_PREFIX = "event";
     private static final String HISTORY_ROOT = "/" + "history:events";
 
-    private static final SimpleDateFormat dateFormat;
+    private static final ThreadLocal<SimpleDateFormat> DATE_FORMAT;
 
     static {
-        dateFormat = new SimpleDateFormat("dd.MM.yyyy HH:mm:ss");
-        dateFormat.setTimeZone(TimeZone.getTimeZone(ZoneId.of("UTC")));
+        DATE_FORMAT = ThreadLocal.withInitial(() -> {
+            SimpleDateFormat dateFormat = new SimpleDateFormat("dd.MM.yyyy HH:mm:ss");
+            dateFormat.setTimeZone(TimeZone.getTimeZone(ZoneId.of("UTC")));
+            return dateFormat;
+        });
     }
 
     private boolean isHistoryTransferring = false;
@@ -253,7 +256,7 @@ public class HistoryService {
         if (HistoryEventType.NODE_CREATED.equals(eventType) || HistoryEventType.NODE_UPDATED.equals(eventType)) {
             now.setTime(now.getTime() - 5000);
         }
-        requestParams.put(CREATION_TIME, dateFormat.format(now));
+        requestParams.put(CREATION_TIME, DATE_FORMAT.get().format(now));
         /* Expected perform time */
         NodeRef taskCaseRef = (NodeRef) properties.get(HistoryModel.PROP_CASE_TASK);
         if (taskCaseRef != null) {

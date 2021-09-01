@@ -24,7 +24,8 @@ import java.util.*;
  */
 public class HistoryUtils {
 
-    private static final SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("dd.MM.yyyy");
+    private static final ThreadLocal<SimpleDateFormat> DATE_FORMAT = ThreadLocal.withInitial(() ->
+        new SimpleDateFormat("dd.MM.yyyy"));
 
     public static final Serializable NODE_CREATED = HistoryEventType.NODE_CREATED;
     public static final Serializable NODE_UPDATED = HistoryEventType.NODE_UPDATED;
@@ -194,7 +195,7 @@ public class HistoryUtils {
 
     private static String transformValueToString(Serializable value, NodeService nodeService) {
         if (value instanceof Date) {
-            return DATE_FORMAT.format((Date) value);
+            return DATE_FORMAT.get().format((Date) value);
         }
         if (value instanceof NodeRef) {
             if (nodeService.exists((NodeRef) value)) {

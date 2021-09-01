@@ -9,11 +9,14 @@ import java.util.Date;
 
 class CalendarDateParser {
 
-    private static final SimpleDateFormat SLASH_TIME = new SimpleDateFormat("yyyy/MM/dd HH:mm");
-    private static final SimpleDateFormat SLASH_DATE = new SimpleDateFormat("yyyy/MM/dd");
-
-    private static final SimpleDateFormat DASH_TIME = new SimpleDateFormat("yyyy-MM-dd HH:mm");
-    private static final SimpleDateFormat DASH_DATE = new SimpleDateFormat("yyyy-MM-dd");
+    private static final ThreadLocal<SimpleDateFormat> SLASH_TIME = ThreadLocal.withInitial(() ->
+        new SimpleDateFormat("yyyy/MM/dd HH:mm"));
+    private static final ThreadLocal<SimpleDateFormat> SLASH_DATE = ThreadLocal.withInitial(() ->
+        new SimpleDateFormat("yyyy/MM/dd"));
+    private static final ThreadLocal<SimpleDateFormat> DASH_TIME = ThreadLocal.withInitial(() ->
+        new SimpleDateFormat("yyyy-MM-dd HH:mm"));
+    private static final ThreadLocal<SimpleDateFormat> DASH_DATE = ThreadLocal.withInitial(() ->
+        new SimpleDateFormat("yyyy-MM-dd"));
 
     /**
      * Gets the date from the String, trying the various formats
@@ -45,21 +48,21 @@ class CalendarDateParser {
 
         // Try YYYY/MM/DD
         try {
-            return SLASH_TIME.parse(date);
+            return SLASH_TIME.get().parse(date);
         } catch (ParseException ignored) {
         }
         try {
-            return SLASH_DATE.parse(date);
+            return SLASH_DATE.get().parse(date);
         } catch (ParseException ignored) {
         }
 
         // Try YYYY-MM-DD
         try {
-            return DASH_TIME.parse(date);
+            return DASH_TIME.get().parse(date);
         } catch (ParseException ignored) {
         }
         try {
-            return DASH_DATE.parse(date);
+            return DASH_DATE.get().parse(date);
         } catch (ParseException ignored) {
         }
 
