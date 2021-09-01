@@ -51,15 +51,14 @@ public class FlowableEngineWorkflowService implements EngineWorkflowService {
         if (StringUtils.isBlank(processId)) {
           return processId;
         }
-        ProcessInstance procInstanceId = flowableProcessInstanceService.getProcessInstanceById(
-            processId.startsWith(ENGINE_PREFIX) ? processId.substring(ENGINE_PREFIX.length()) : processId);
+        ProcessInstance procInstanceId = flowableProcessInstanceService.getProcessInstanceById(processId);
         if (procInstanceId != null) {
             String rootProcInstId = procInstanceId.getRootProcessInstanceId();
             if (StringUtils.isNotBlank(rootProcInstId)) {
                 return ENGINE_PREFIX + rootProcInstId;
             }
         }
-        return processId;
+        return ENGINE_PREFIX + processId;
     }
 
 }

@@ -111,7 +111,7 @@ public class EcosWorkflowService {
     public WorkflowInstance cancelWorkflowRootInstance(String workflowId) {
         WorkflowId id = new WorkflowId(workflowId);
         EngineWorkflowService service = needWorkflowService(id.engineId);
-        String rootProcessId = service.getRootProcessInstanceId(workflowId);
+        String rootProcessId = service.getRootProcessInstanceId(id.localId);
         if(StringUtils.isBlank(rootProcessId)) {
             logger.warn("rootProcessId is blank: " + rootProcessId);
             return cancelWorkflowInstance(workflowId);
