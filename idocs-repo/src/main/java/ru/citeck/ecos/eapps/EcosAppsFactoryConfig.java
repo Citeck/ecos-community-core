@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import ru.citeck.ecos.apps.EcosAppsServiceFactory;
+import ru.citeck.ecos.apps.app.domain.artifact.source.ArtifactSourceProvider;
 import ru.citeck.ecos.apps.app.domain.buildinfo.service.BuildInfoService;
 import ru.citeck.ecos.apps.app.domain.ecostype.service.ModelTypeArtifactService;
 import ru.citeck.ecos.apps.app.domain.handler.ArtifactHandlerService;
@@ -18,11 +19,15 @@ import ru.citeck.ecos.records3.RecordsServiceFactory;
 
 import javax.annotation.PostConstruct;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 @Slf4j
 @Configuration
 public class EcosAppsFactoryConfig extends EcosAppsServiceFactory {
+
+    private List<ArtifactSourceProvider> artifactSourceProviders;
 
     @PostConstruct
     public void init() {
@@ -34,6 +39,13 @@ public class EcosAppsFactoryConfig extends EcosAppsServiceFactory {
     @Override
     protected ArtifactHandlerService createArtifactHandlerService() {
         return super.createArtifactHandlerService();
+    }
+
+    @NotNull
+    @Override
+    protected List<ArtifactSourceProvider> createArtifactSourceProviders() {
+        Objects.requireNonNull(artifactSourceProviders);
+        return artifactSourceProviders;
     }
 
     @Bean
@@ -93,5 +105,10 @@ public class EcosAppsFactoryConfig extends EcosAppsServiceFactory {
     @Autowired
     public void injectRecordsServices(RecordsServiceFactory services) {
         setRecordsServices(services);
+    }
+
+    @Autowired
+    public void setArtifactSourceProviders(List<ArtifactSourceProvider> artifactSourceProviders) {
+        this.artifactSourceProviders = artifactSourceProviders;
     }
 }

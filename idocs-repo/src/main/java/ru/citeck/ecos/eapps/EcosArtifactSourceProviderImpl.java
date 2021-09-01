@@ -1,20 +1,19 @@
 package ru.citeck.ecos.eapps;
 
 import kotlin.Unit;
+import kotlin.jvm.functions.Function1;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import ru.citeck.ecos.apps.app.domain.artifact.reader.ArtifactsReader;
 import ru.citeck.ecos.apps.app.domain.artifact.source.ArtifactSourceInfo;
 import ru.citeck.ecos.apps.app.domain.artifact.source.ArtifactSourceProvider;
 import ru.citeck.ecos.apps.app.domain.artifact.source.ArtifactSourceType;
 import ru.citeck.ecos.apps.app.domain.artifact.source.SourceKey;
-import ru.citeck.ecos.apps.app.service.LocalAppService;
 import ru.citeck.ecos.apps.app.util.AppDirWatchUtils;
-import ru.citeck.ecos.apps.artifact.ArtifactService;
 import ru.citeck.ecos.apps.artifact.type.TypeContext;
-import ru.citeck.ecos.apps.eapps.service.RemoteEappsService;
 import ru.citeck.ecos.commons.io.file.EcosFile;
 import ru.citeck.ecos.commons.io.file.std.EcosStdFile;
 
@@ -33,26 +32,24 @@ public class EcosArtifactSourceProviderImpl implements ArtifactSourceProvider {
     private static final String ALF_MODULE_SOURCE_PREFIX = "alf-module-";
 
     private final EappsUtils eappsUtils;
-    private final ArtifactService artifactService;
-    private final RemoteEappsService remoteEappsService;
+    private ArtifactsReader artifactsReader;
 
     private final Map<String, ModuleArtifactsSource> sources = new ConcurrentHashMap<>();
 
     private boolean initialized = false;
 
-    @Autowired
-    public EcosArtifactSourceProviderImpl(EappsUtils eappsUtils,
-                                          ArtifactService artifactService,
-                                          LocalAppService localAppService,
-                                          RemoteEappsService remoteEappsService) {
-        this.eappsUtils = eappsUtils;
-        this.artifactService = artifactService;
-        this.remoteEappsService = remoteEappsService;
+    private Function1<? super ArtifactSourceInfo, Unit> listener = null;
 
-        localAppService.setSourceProvider(this);
+    @Autowired
+    public EcosArtifactSourceProviderImpl(EappsUtils eappsUtils) {
+        this.eappsUtils = eappsUtils;
     }
 
-    public void init() {
+    @Override
+    public void init(@NotNull ArtifactsReader artifactsReader) {
+
+        this.artifactsReader = artifactsReader;
+
         if (!initialized) {
             initSources();
             initWatcher();
@@ -111,7 +108,7 @@ public class EcosArtifactSourceProviderImpl implements ArtifactSourceProvider {
                         log.info("File change detected: " + file);
                         source.lastModified = Instant.now();
 
-                        remoteEappsService.artifactsForceUpdate(ArtifactSourceInfo.create(builder -> {
+                        listener.invoke(ArtifactSourceInfo.create(builder -> {
                             builder.withKey(sourceId, ArtifactSourceType.APPLICATION);
                             builder.withLastModified(source.lastModified);
                             return Unit.INSTANCE;
@@ -128,8 +125,6 @@ public class EcosArtifactSourceProviderImpl implements ArtifactSourceProvider {
     @NotNull
     @Override
     public List<ArtifactSourceInfo> getArtifactSources() {
-
-        init();
 
         List<ArtifactSourceInfo> result = new ArrayList<>();
 
@@ -150,18 +145,26 @@ public class EcosArtifactSourceProviderImpl implements ArtifactSourceProvider {
                                                   @NotNull List<? extends TypeContext> types,
                                                   @NotNull Instant since) {
 
-
-
         ModuleArtifactsSource source = sources.get(sourceKey.getId());
         if (source == null) {
             return Collections.emptyMap();
         }
-        return artifactService.readArtifacts(source.artifactsDir, types);
+        return artifactsReader.readArtifacts(source.artifactsDir, types);
     }
 
     public void update() {
         sources.values()
             .forEach(it -> it.lastModified = Instant.now());
+    }
+
+    @Override
+    public boolean isStatic() {
+        return true;
+    }
+
+    @Override
+    public void listenChanges(@NotNull Function1<? super ArtifactSourceInfo, Unit> listener) {
+        this.listener = listener;
     }
 
     @Data
