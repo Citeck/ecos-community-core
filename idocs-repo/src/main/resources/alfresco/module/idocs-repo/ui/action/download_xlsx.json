@@ -8,7 +8,6 @@
   "config": {
     "id": "download-xlsx-report-action",
     "params": {
-      "journalId": "general-case",
       "template": "alfresco/templates/reports/ru/citeck/default.xlsx",
       "reportTitle": "REPORT",
       "actionId": "download-xlsx-report-action",
