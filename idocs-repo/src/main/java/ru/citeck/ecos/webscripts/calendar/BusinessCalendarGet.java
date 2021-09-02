@@ -35,7 +35,7 @@ public class BusinessCalendarGet extends DeclarativeWebScript {
     private static final String PARAM_ADD_FIELD = "addField";
     private static final String PARAM_ADD_AMOUNT = "addAmount";
     private static final String PARAM_CURRENT_DATE = "currentDate";
-    private static final FastDateFormat DATE_FORMAT = FastDateFormat.getInstance("yyyy-MM-dd'T'HH:mm:ss.SSSXXX");
+    private static final FastDateFormat DATE_FORMAT = FastDateFormat.getInstance("yyyy-MM-dd'T'HH:mm:ss.SSSZZ");
 
     private SearchService searchService;
 
