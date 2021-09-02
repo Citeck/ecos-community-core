@@ -1,0 +1,24 @@
+{
+  "id": "alf-download-report-group-action-xlsx",
+  "type": "server-group-action",
+  "name": {
+    "ru": "Скачать Excel-файл",
+    "en": "Download Excel-file"
+  },
+  "config": {
+    "id": "download-xlsx-report-action",
+    "params": {
+      "journalId": "general-case",
+      "template": "alfresco/templates/reports/ru/citeck/default.xlsx",
+      "reportTitle": "REPORT",
+      "actionId": "download-xlsx-report-action",
+      "evaluateBatch": "true",
+      "columns": "$reportColumns"
+    }
+  },
+  "features": {
+    "execForQuery": true,
+    "execForRecord": false,
+    "execForRecords": true
+  }
+}

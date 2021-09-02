@@ -1,28 +1,20 @@
 package ru.citeck.ecos.action.group;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import lombok.extern.slf4j.Slf4j;
-import org.alfresco.model.ContentModel;
 import org.alfresco.service.cmr.repository.ContentService;
-import org.alfresco.service.cmr.repository.ContentWriter;
-import org.alfresco.service.cmr.repository.NodeRef;
 import org.alfresco.service.cmr.repository.NodeService;
-import org.alfresco.service.namespace.QName;
-import org.alfresco.service.transaction.TransactionService;
-import org.alfresco.util.GUID;
 import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.validator.routines.UrlValidator;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import ru.citeck.ecos.action.group.impl.BaseGroupAction;
 import ru.citeck.ecos.commons.data.DataValue;
 import ru.citeck.ecos.records2.RecordRef;
 import ru.citeck.ecos.records3.RecordsService;
-import ru.citeck.ecos.utils.RepoUtils;
+import ru.citeck.ecos.records3.record.atts.dto.RecordAtts;
 
 import java.io.*;
 import java.net.MalformedURLException;
@@ -34,12 +26,6 @@ import java.util.*;
 public class ExportExcelAction implements GroupActionFactory<RecordRef> {
 
     private static final String ACTION_ID = "download-xlsx-report-action";
-    private static final String PARAM_TEMPLATE = "template";
-    private static final String PARAM_REPORT_TITLE = "reportTitle";
-    private static final String PARAM_REPORT_COLUMNS = "columns";
-    private static final String COLUMN_ID = "id";
-    private static final String COLUMN_TITLE = "name";
-    private static final NodeRef rootNodeRef = new NodeRef("workspace://SpacesStore/attachments-root");
 
     private RecordsService recordsService;
     private ContentService contentService;
@@ -66,28 +52,30 @@ public class ExportExcelAction implements GroupActionFactory<RecordRef> {
         return ACTION_ID;
     }
 
-    class Action extends BaseGroupAction<RecordRef> {
+    class Action extends ExportAction {
+        private static final String MIMETYPE = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
 
         private Workbook workbook;
         private Sheet sheet;
         private CellStyle valueCellStyle;
         private CellStyle doubleCellStyle;
-        private int nodesRowIdx = 1;
-
-        List<String> requestedAttributes = new ArrayList<>();
 
         Action(GroupActionConfig config) {
-            super(config);
+            super(config, contentService, nodeService, recordsService, MIMETYPE, null);
             String templatePath = config.getStrParam(PARAM_TEMPLATE);
             if (StringUtils.isBlank(templatePath)) {
                 log.warn("The template path parameter '{}' is emptry or was not defined", PARAM_TEMPLATE);
             } else {
                 try (InputStream bookTemplateStream = Thread.currentThread()
-                             .getContextClassLoader()
-                             .getResourceAsStream("/" + templatePath)) {
-                    workbook = WorkbookFactory.create(bookTemplateStream);
+                    .getContextClassLoader()
+                    .getResourceAsStream("/" + templatePath)) {
+                    if (bookTemplateStream != null) {
+                        workbook = WorkbookFactory.create(bookTemplateStream);
+                    }else{
+                        log.warn("The template '{}' was not found", templatePath);
+                    }
                 } catch (InvalidFormatException | IOException e) {
-                    log.error("Failed to create Excel-file", e);
+                    log.error("Failed to create Excel-file {}", config, e);
                 }
             }
             if (workbook == null) {
@@ -107,80 +95,56 @@ public class ExportExcelAction implements GroupActionFactory<RecordRef> {
                     header.setCenter(headerCenter);
                 }
             }
-
-            List<String> columnTitles = new ArrayList<>();
-            JsonNode columns = config.getParams().get(PARAM_REPORT_COLUMNS);
-            if (columns != null && columns.isArray()) {
-                for (final JsonNode column : columns) {
-                    JsonNode idNode = column.get(COLUMN_ID);
-                    if (idNode != null) {
-                        requestedAttributes.add(idNode.asText());
-                    }
-                    JsonNode titleNode = column.get(COLUMN_TITLE);
-                    String title = titleNode != null ? titleNode.asText() : "";
-                    columnTitles.add(title == null ? "" : title);
-                }
-            }
-
             createColumnTitlesRow(columnTitles);
             createCellStyles();
         }
 
         @Override
-        protected void processNodesImpl(List<RecordRef> nodes) {
-            if (CollectionUtils.isEmpty(nodes)){
-                log.warn("Process node was not defined");
-                return;
+        protected int writeData(List<RecordRef> nodes, int nextRowIndex) {
+            if (requestedAttributes.isEmpty()) {
+                return nextRowIndex;
             }
-            for (RecordRef node: nodes) {
-                nodesRowIdx = writeData(node, nodesRowIdx);
+
+            List<RecordAtts> nodesAttributes = recordsService.getAtts(nodes, requestedAttributes);
+            for (RecordAtts attribute : nodesAttributes) {
+                Row currentRow = sheet.createRow(nextRowIndex);
+                for (int attIdx = 0; attIdx < requestedAttributes.size(); attIdx++) {
+                    String attributeName = requestedAttributes.get(attIdx);
+                    Cell newCell = currentRow.createCell(attIdx);
+                    newCell.setCellStyle(valueCellStyle);
+                    DataValue dataValue = attribute.getAtt(attributeName);
+                    if (dataValue != null) {
+                        if (dataValue.isDouble()) {
+                            newCell.setCellStyle(doubleCellStyle);
+                            newCell.setCellValue(dataValue.asDouble());
+                        } else if (dataValue.isInt()) {
+                            newCell.setCellValue(dataValue.asInt());
+                        } else {
+                            if (dataValue.isTextual() && UrlValidator.getInstance().isValid(dataValue.asText())) {
+                                try {
+                                    URL urlValue = new URL(dataValue.asText());
+                                    newCell.setCellType(Cell.CELL_TYPE_FORMULA);
+                                    newCell.setCellFormula(
+                                        String.format("HYPERLINK(\"%s\", \"%s\")", urlValue,
+                                            dataValue.asText()));
+                                } catch (MalformedURLException e) {
+                                    newCell.setCellValue(dataValue.asText());
+                                }
+                            } else {
+                                newCell.setCellValue(dataValue.asText());
+                            }
+                        }
+                    }
+                }
+                ++nextRowIndex;
             }
+            return nextRowIndex;
         }
 
         @Override
-        protected void onComplete() {
-            super.onComplete();
-            ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-            try {
-                autoSizeColumns();
-                workbook.write(outputStream);
-                List<ActionResult<RecordRef>> actionResultList = createContentNode(outputStream, rootNodeRef);
-                onProcessed(actionResultList);
-            } catch (IOException e) {
-                log.error("Failed to write Excel-file", e);
-                ActionResult<RecordRef> result = new ActionResult<>(RecordRef.valueOf("Report"), ActionStatus.error(e));
-                onProcessed(Collections.singletonList(result));
-            } finally {
-                IOUtils.closeQuietly(outputStream);
-            }
-        }
-
-        protected List<ActionResult<RecordRef>> createContentNode(ByteArrayOutputStream byteArrayOutputStream,
-                                                                  NodeRef parentRef) {
-            Map<QName, Serializable> props = new HashMap(1);
-            String name = GUID.generate();
-            props.put(ContentModel.PROP_NAME, name);
-
-            NodeRef contentNode = nodeService.createNode(parentRef, ContentModel.ASSOC_CHILDREN,
-                QName.createQName("http://www.alfresco.org/model/content/1.0", name),
-                ContentModel.TYPE_CONTENT, props).getChildRef();
-            ActionStatus groupActionStatus;
-            try (InputStream byteArrayInputStream = new ByteArrayInputStream(byteArrayOutputStream.toByteArray())) {
-                ContentWriter writer = contentService.getWriter(contentNode, ContentModel.PROP_CONTENT, true);
-                writer.setMimetype("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
-                writer.setEncoding("UTF-8");
-                writer.putContent(byteArrayInputStream);
-                groupActionStatus = ActionStatus.ok();
-            } catch (Exception e) {
-                log.error("Failed to write node content", e);
-                groupActionStatus = ActionStatus.error(e);
-            }
-
-            groupActionStatus.setUrl(RepoUtils.getDownloadURL(contentNode, nodeService));
-            ActionResult<RecordRef> groupActionResult = new ActionResult(
-                RecordRef.valueOf("Document"),
-                groupActionStatus);
-            return Collections.singletonList(groupActionResult);
+        protected void writeToStream(ByteArrayOutputStream outputStream) throws IOException {
+            autoSizeColumns();
+            workbook.write(outputStream);
         }
 
         private Workbook createDefaultWorkbook() {
@@ -219,7 +183,7 @@ public class ExportExcelAction implements GroupActionFactory<RecordRef> {
 
         private void createColumnTitlesRow(List<String> columnTitles) {
             if (CollectionUtils.isEmpty(columnTitles)) {
-                log.warn("Report columns list is empty");
+                log.warn(EMPTY_REPORT_MSG);
                 return;
             }
             Row row = sheet.getRow(0);
@@ -233,50 +197,11 @@ public class ExportExcelAction implements GroupActionFactory<RecordRef> {
             }
         }
 
-        private int writeData(RecordRef node, int nextRowIndex) {
-            if (requestedAttributes.isEmpty()) {
-                return nextRowIndex;
-            }
-
-            Row currentRow = sheet.createRow(nextRowIndex);
-            for (int attIdx = 0; attIdx < requestedAttributes.size(); attIdx++) {
-                String attributeName = requestedAttributes.get(attIdx);
-                Cell newCell = currentRow.createCell(attIdx);
-                newCell.setCellStyle(valueCellStyle);
-                DataValue dataValue = recordsService.getAtt(node, attributeName);
-                if (dataValue != null) {
-                    if (dataValue.isDouble()) {
-                        newCell.setCellStyle(doubleCellStyle);
-                        newCell.setCellValue(dataValue.asDouble());
-                    } else if (dataValue.isInt()) {
-                        newCell.setCellValue(dataValue.asInt());
-                    } else {
-                        try {
-                            URL urlValue = new URL(dataValue.asText());
-                            newCell.setCellType(Cell.CELL_TYPE_FORMULA);
-                            newCell.setCellFormula(
-                                String.format("HYPERLINK(\"%s\", \"%s\")", urlValue,
-                                    dataValue.asText()));
-                        } catch (MalformedURLException e) {
-                            newCell.setCellValue(dataValue.asText());
-                        }
-                    }
-                }
-            }
-            return nextRowIndex + 1;
-        }
-
-        private void autoSizeColumns(){
+        private void autoSizeColumns() {
             //autosize does not work for hyperlink cells
             for (int idx = 0; idx < requestedAttributes.size(); idx++) {
                 sheet.autoSizeColumn(idx);
             }
-        }
-
-        private String replaceIllegalChars(String source) {
-            return source != null
-                ? source.replaceAll("[\\\\/:*?\"<>|]", "_")
-                : null;
         }
     }
 }
