@@ -273,6 +273,14 @@
             </properties>
         </aspect>
 
+        <aspect name="cwf:hasDocument">
+            <properties>
+                <property name="cwf:document-prop">
+                    <type>d:text</type>
+                </property>
+            </properties>
+        </aspect>
+
     </aspects>
 
 </model>

@@ -22,6 +22,8 @@ import org.springframework.stereotype.Service;
 import ru.citeck.ecos.cmmn.model.Definitions;
 import ru.citeck.ecos.commands.CommandsService;
 import ru.citeck.ecos.commands.dto.CommandResult;
+import ru.citeck.ecos.commons.data.DataValue;
+import ru.citeck.ecos.commons.data.ObjectData;
 import ru.citeck.ecos.commons.json.Json;
 import ru.citeck.ecos.commons.utils.MandatoryParam;
 import ru.citeck.ecos.icase.activity.dto.*;
@@ -31,9 +33,12 @@ import ru.citeck.ecos.icase.activity.service.eproc.importer.parser.CmmnSchemaPar
 import ru.citeck.ecos.icase.activity.service.eproc.importer.pojo.OptimizedProcessDefinition;
 import ru.citeck.ecos.icase.activity.service.eproc.importer.pojo.SentrySearchKey;
 import ru.citeck.ecos.model.EcosProcessModel;
-import ru.citeck.ecos.node.EcosTypeService;
 import ru.citeck.ecos.records.RecordsUtils;
+import ru.citeck.ecos.records2.RecordConstants;
 import ru.citeck.ecos.records2.RecordRef;
+import ru.citeck.ecos.records3.RecordsService;
+import ru.citeck.ecos.records3.record.atts.dto.RecordAtts;
+import ru.citeck.ecos.records3.record.atts.schema.ScalarType;
 import ru.citeck.ecos.utils.TransactionUtils;
 
 import java.io.Serializable;
@@ -50,12 +55,16 @@ public class EProcActivityServiceImpl implements EProcActivityService {
     private static final String EPROC_SAVE_STATE_TRANSACTION_KEY = EProcActivityServiceImpl.class.getName() + ".save-state";
     private static final String EPROC_CASE_STATE_BY_ID_KEY_PREFIX = "eproc-case-state-by-id";
 
+    private static final String ATT_PROC_STATE = "_proc";
+    private static final String ATT_PROC_STATE_JSON = "_proc?json";
+    private static final String ATT_PROC_STATE_STATE_ID = ATT_PROC_STATE + "." + EcosProcessModel.PROP_STATE_ID.getLocalName();
+
     private final CmmnSchemaParser cmmnSchemaParser;
     private final CommandsService commandsService;
-    private final EcosTypeService ecosTypeService;
     private final DictionaryService dictionaryService;
     private final NodeService nodeService;
     private final BehaviourFilter behaviourFilter;
+    private final RecordsService recordsService;
 
     private final LoadingCache<EcosAlfTypesKey, Optional<String>> typesToRevisionIdCache;
     private final LoadingCache<String, OptimizedProcessDefinition> revisionIdToProcessDefinitionCache;
@@ -63,16 +72,16 @@ public class EProcActivityServiceImpl implements EProcActivityService {
     @Autowired
     public EProcActivityServiceImpl(CmmnSchemaParser cmmnSchemaParser,
                                     CommandsService commandsService,
-                                    EcosTypeService ecosTypeService,
                                     DictionaryService dictionaryService,
                                     NodeService nodeService,
+                                    RecordsService recordsService,
                                     @Qualifier("policyBehaviourFilter") BehaviourFilter behaviourFilter) {
 
         this.commandsService = commandsService;
-        this.ecosTypeService = ecosTypeService;
         this.cmmnSchemaParser = cmmnSchemaParser;
         this.dictionaryService = dictionaryService;
         this.nodeService = nodeService;
+        this.recordsService = recordsService;
         this.behaviourFilter = behaviourFilter;
 
         this.typesToRevisionIdCache = CacheBuilder.newBuilder()
@@ -94,8 +103,7 @@ public class EProcActivityServiceImpl implements EProcActivityService {
     @Override
     public Optional<Pair<String, OptimizedProcessDefinition>> getOptimizedDefinitionWithRevisionId(RecordRef caseRef) {
 
-        NodeRef caseNodeRef = RecordsUtils.toNodeRef(caseRef);
-        return getRevisionIdForNode(caseNodeRef).map(procRevId -> {
+        return getRevisionIdForNode(caseRef).map(procRevId -> {
             OptimizedProcessDefinition result = revisionIdToProcessDefinitionCache.getUnchecked(procRevId);
             if (result == null) {
                 return null;
@@ -118,19 +126,26 @@ public class EProcActivityServiceImpl implements EProcActivityService {
 
         NodeRef caseNodeRef = RecordsUtils.toNodeRef(caseRef);
 
-        Map<QName, Serializable> props = nodeService.getProperties(caseNodeRef);
+        String defRevId;
+        String stateId;
+        if (caseNodeRef != null) {
+            Map<QName, Serializable> props = nodeService.getProperties(caseNodeRef);
+            defRevId = (String) props.get(EcosProcessModel.PROP_DEFINITION_REVISION_ID);
+            stateId = (String) props.get(EcosProcessModel.PROP_STATE_ID);
+        } else {
+            DataValue procData = recordsService.getAtt(caseRef, ATT_PROC_STATE_JSON);
+            defRevId = procData.get(EcosProcessModel.PROP_DEFINITION_REVISION_ID.getLocalName()).asText();
+            stateId = procData.get(EcosProcessModel.PROP_STATE_ID.getLocalName()).asText();
+        }
 
-        String defRevId = (String) props.get(EcosProcessModel.PROP_DEFINITION_REVISION_ID);
         if (StringUtils.isNotBlank(defRevId)) {
             return Optional.of(getFullDefinitionByRevisionId(defRevId));
         }
-
-        String stateId = (String) props.get(EcosProcessModel.PROP_STATE_ID);
         if (StringUtils.isNotBlank(stateId)) {
             return Optional.of(getFullDefinitionForExistingByStateId(stateId));
         }
 
-        return getFullDefinitionForNewCase(caseNodeRef);
+        return getFullDefinitionForNewCase(caseRef);
     }
 
     private OptimizedProcessDefinition getFullDefinitionForExistingByStateId(String stateId) {
@@ -143,8 +158,9 @@ public class EProcActivityServiceImpl implements EProcActivityService {
         return getFullDefinitionByRevisionId(procDefRevId);
     }
 
-    private Optional<OptimizedProcessDefinition> getFullDefinitionForNewCase(NodeRef caseNodeRef) {
-        return getRevisionIdForNode(caseNodeRef).map(this::getFullDefinitionByRevisionId);
+    private Optional<OptimizedProcessDefinition> getFullDefinitionForNewCase(RecordRef caseRef) {
+        return getRevisionIdForNode(caseRef)
+            .map(this::getFullDefinitionByRevisionId);
     }
 
     private OptimizedProcessDefinition getFullDefinitionByRevisionId(String processRevisionId) {
@@ -155,16 +171,22 @@ public class EProcActivityServiceImpl implements EProcActivityService {
         return result;
     }
 
-    private Optional<String> getRevisionIdForNode(NodeRef caseNodeRef) {
-        EcosAlfTypesKey ecosAlfTypesKey = composeEcosAlfTypesKey(caseNodeRef);
+    private Optional<String> getRevisionIdForNode(RecordRef caseRef) {
+        EcosAlfTypesKey ecosAlfTypesKey = composeEcosAlfTypesKey(caseRef);
         return typesToRevisionIdCache.getUnchecked(ecosAlfTypesKey);
     }
 
-    private EcosAlfTypesKey composeEcosAlfTypesKey(NodeRef caseNodeRef) {
-        RecordRef ecosType = ecosTypeService.getEcosType(caseNodeRef);
+    private EcosAlfTypesKey composeEcosAlfTypesKey(RecordRef caseNodeRef) {
 
-        List<QName> alfQNameTypes = getTypeInheritanceListForCase(caseNodeRef);
-        List<String> alfTypes = toString(alfQNameTypes);
+        String typeAtt = RecordConstants.ATT_TYPE + ScalarType.ID.getSchema();
+        RecordRef ecosType = RecordRef.valueOf(recordsService.getAtt(caseNodeRef, typeAtt).asText());
+
+        NodeRef nodeRef = RecordsUtils.toNodeRef(caseNodeRef);
+        List<String> alfTypes = Collections.emptyList();
+        if (nodeRef != null) {
+            List<QName> alfQNameTypes = getTypeInheritanceListForCase(nodeRef);
+            alfTypes = toString(alfQNameTypes);
+        }
 
         return new EcosAlfTypesKey(ecosType, alfTypes);
     }
@@ -218,11 +240,11 @@ public class EProcActivityServiceImpl implements EProcActivityService {
         if (response == null) {
             return null;
         }
-
         return cmmnSchemaParser.parse(response.getData());
     }
 
     private GetProcDefRevResp getProcessDefByRevIdFromMicroserviceImpl(String definitionRevisionId) {
+
         GetProcDefRev getProcDefRevCommand = new GetProcDefRev();
         getProcDefRevCommand.setProcType(CMMN_PROCESS_TYPE);
         getProcDefRevCommand.setProcDefRevId(definitionRevisionId);
@@ -240,18 +262,14 @@ public class EProcActivityServiceImpl implements EProcActivityService {
     @Override
     public ProcessInstance createDefaultState(RecordRef caseRef) {
 
-        NodeRef caseNodeRef = RecordsUtils.toNodeRef(caseRef);
-
-        EcosAlfTypesKey ecosAlfTypesKey = composeEcosAlfTypesKey(caseNodeRef);
+        EcosAlfTypesKey ecosAlfTypesKey = composeEcosAlfTypesKey(caseRef);
         String definitionRevisionId = typesToRevisionIdCache.getUnchecked(ecosAlfTypesKey)
                 .orElseThrow(() -> new IllegalStateException("Def revision ID is null. CaseRef: " + caseRef));
 
         CreateProcResp createProcResp = createProcessInstanceInMicroservice(definitionRevisionId, caseRef);
-        nodeService.setProperty(caseNodeRef, EcosProcessModel.PROP_PROCESS_ID, createProcResp.getProcId());
-        nodeService.setProperty(caseNodeRef, EcosProcessModel.PROP_STATE_ID, createProcResp.getProcStateId());
-        nodeService.setProperty(caseNodeRef, EcosProcessModel.PROP_DEFINITION_REVISION_ID, definitionRevisionId);
+        setState(caseRef, createProcResp, definitionRevisionId);
 
-        OptimizedProcessDefinition optimizedProcessDefinition = getFullDefinitionForNewCase(caseNodeRef)
+        OptimizedProcessDefinition optimizedProcessDefinition = getFullDefinitionForNewCase(caseRef)
                 .orElseThrow(() -> new IllegalStateException("Proc definition is null. CaseRef: " + caseRef));
         ProcessInstance processInstance = createProcessInstanceFromDefinition(createProcResp.getProcId(),
                 caseRef, optimizedProcessDefinition.getProcessDefinition());
@@ -264,19 +282,36 @@ public class EProcActivityServiceImpl implements EProcActivityService {
     @Override
     public ProcessInstance createDefaultState(RecordRef caseRef, String revisionId,
                                               OptimizedProcessDefinition optimizedProcessDefinition) {
-        NodeRef caseNodeRef = RecordsUtils.toNodeRef(caseRef);
 
         CreateProcResp createProcResp = createProcessInstanceInMicroservice(revisionId, caseRef);
-        nodeService.setProperty(caseNodeRef, EcosProcessModel.PROP_PROCESS_ID, createProcResp.getProcId());
-        nodeService.setProperty(caseNodeRef, EcosProcessModel.PROP_STATE_ID, createProcResp.getProcStateId());
-        nodeService.setProperty(caseNodeRef, EcosProcessModel.PROP_DEFINITION_REVISION_ID, revisionId);
+        setState(caseRef, createProcResp, revisionId);
 
-        ProcessInstance processInstance = createProcessInstanceFromDefinition(createProcResp.getProcId(),
-                caseRef, optimizedProcessDefinition.getProcessDefinition());
+        ProcessInstance processInstance = createProcessInstanceFromDefinition(
+            createProcResp.getProcId(),
+            caseRef,
+            optimizedProcessDefinition.getProcessDefinition()
+        );
 
         putInstanceToTransactionScopeByStateId(caseRef, processInstance);
 
         return processInstance;
+    }
+
+    private void setState(RecordRef caseRef, CreateProcResp data, String defRevId) {
+
+        NodeRef caseNodeRef = RecordsUtils.toNodeRef(caseRef);
+
+        if (caseNodeRef != null) {
+            nodeService.setProperty(caseNodeRef, EcosProcessModel.PROP_PROCESS_ID, data.getProcId());
+            nodeService.setProperty(caseNodeRef, EcosProcessModel.PROP_STATE_ID, data.getProcStateId());
+            nodeService.setProperty(caseNodeRef, EcosProcessModel.PROP_DEFINITION_REVISION_ID, defRevId);
+        } else {
+            Map<String, Object> stateProps = new HashMap<>();
+            stateProps.put(EcosProcessModel.PROP_PROCESS_ID.getLocalName(), data.getProcId());
+            stateProps.put(EcosProcessModel.PROP_STATE_ID.getLocalName(), data.getProcStateId());
+            stateProps.put(EcosProcessModel.PROP_DEFINITION_REVISION_ID.getLocalName(), defRevId);
+            recordsService.mutateAtt(caseRef, ATT_PROC_STATE, stateProps);
+        }
     }
 
     private CreateProcResp createProcessInstanceInMicroservice(String definitionRevisionId, RecordRef caseRef) {
@@ -333,8 +368,17 @@ public class EProcActivityServiceImpl implements EProcActivityService {
     public Optional<ProcessInstance> getFullState(RecordRef caseRef) {
 
         NodeRef caseNodeRef = RecordsUtils.toNodeRef(caseRef);
-        String stateId = (String) nodeService.getProperty(caseNodeRef, EcosProcessModel.PROP_STATE_ID);
-        String procId = (String) nodeService.getProperty(caseNodeRef, EcosProcessModel.PROP_PROCESS_ID);
+        String stateId;
+        String procId;
+        if (caseNodeRef != null) {
+            stateId = (String) nodeService.getProperty(caseNodeRef, EcosProcessModel.PROP_STATE_ID);
+            procId = (String) nodeService.getProperty(caseNodeRef, EcosProcessModel.PROP_PROCESS_ID);
+        } else {
+            DataValue procData = recordsService.getAtt(caseRef, ATT_PROC_STATE_JSON);
+            stateId = procData.get(EcosProcessModel.PROP_STATE_ID.getLocalName()).asText();
+            procId = procData.get(EcosProcessModel.PROP_PROCESS_ID.getLocalName()).asText();
+        }
+
         if (StringUtils.isBlank(stateId) || StringUtils.isBlank(procId)) {
             return Optional.empty();
         }
@@ -373,6 +417,7 @@ public class EProcActivityServiceImpl implements EProcActivityService {
     }
 
     private GetProcStateResp getProcessStateFromMicroservice(String stateId) {
+
         GetProcState getProcStateCommand = new GetProcState();
         getProcStateCommand.setProcType(CMMN_PROCESS_TYPE);
         getProcStateCommand.setProcStateId(stateId);
@@ -454,10 +499,17 @@ public class EProcActivityServiceImpl implements EProcActivityService {
     }
 
     private void saveStateImpl(RecordRef caseRef) {
+
         MandatoryParam.check("caseRef", caseRef);
 
         NodeRef caseNodeRef = RecordsUtils.toNodeRef(caseRef);
-        String prevStateId = (String) nodeService.getProperty(caseNodeRef, EcosProcessModel.PROP_STATE_ID);
+
+        String prevStateId;
+        if (caseNodeRef != null) {
+            prevStateId = (String) nodeService.getProperty(caseNodeRef, EcosProcessModel.PROP_STATE_ID);
+        } else {
+            prevStateId = recordsService.getAtt(caseRef, ATT_PROC_STATE_STATE_ID).asText();
+        }
 
         ProcessInstance processInstance = getFullState(caseRef)
                 .orElseThrow(() -> new IllegalStateException("State is not found for case: " + caseRef));
@@ -467,11 +519,17 @@ public class EProcActivityServiceImpl implements EProcActivityService {
             throw new RuntimeException("Error while state saving");
         }
 
-        try {
+        if (caseNodeRef != null) {
             behaviourFilter.disableBehaviour(caseNodeRef);
-            nodeService.setProperty(caseNodeRef, EcosProcessModel.PROP_STATE_ID, result.getProcStateId());
-        } finally {
-            behaviourFilter.enableBehaviour(caseNodeRef);
+            try {
+                nodeService.setProperty(caseNodeRef, EcosProcessModel.PROP_STATE_ID, result.getProcStateId());
+            } finally {
+                behaviourFilter.enableBehaviour(caseNodeRef);
+            }
+        } else {
+            DataValue state = recordsService.getAtt(caseRef, ATT_PROC_STATE_JSON);
+            state.set(EcosProcessModel.PROP_STATE_ID.getLocalName(), result.getProcStateId());
+            recordsService.mutateAtt(caseRef, ATT_PROC_STATE, state);
         }
     }
 

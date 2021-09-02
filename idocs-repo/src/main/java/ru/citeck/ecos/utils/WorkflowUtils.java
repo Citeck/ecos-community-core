@@ -12,6 +12,7 @@ import org.alfresco.service.cmr.repository.ChildAssociationRef;
 import org.alfresco.service.cmr.repository.MLText;
 import org.alfresco.service.cmr.repository.NodeRef;
 import org.alfresco.service.cmr.repository.NodeService;
+import org.alfresco.service.cmr.search.SearchService;
 import org.alfresco.service.cmr.security.AuthorityService;
 import org.alfresco.service.cmr.security.PersonService;
 import org.alfresco.service.cmr.workflow.*;
@@ -25,6 +26,8 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.extensions.surf.util.I18NUtil;
 import org.springframework.stereotype.Component;
 import ru.citeck.ecos.model.CiteckWorkflowModel;
+import ru.citeck.ecos.records2.RecordRef;
+import ru.citeck.ecos.search.ftsquery.FTSQuery;
 
 import java.io.Serializable;
 import java.math.BigDecimal;
@@ -53,6 +56,7 @@ public class WorkflowUtils {
     private final WorkflowQNameConverter qnameConverter;
     private final NamespaceService namespaceService;
     private final DictionaryService dictionaryService;
+    private final SearchService searchService;
 
     @Autowired
     public WorkflowUtils(
@@ -63,8 +67,10 @@ public class WorkflowUtils {
         PersonService personService,
         WorkflowAdminService workflowAdminService,
         NamespaceService namespaceService,
-        DictionaryService dictionaryService
+        DictionaryService dictionaryService,
+        SearchService searchService
     ) {
+        this.searchService = searchService;
         this.workflowService = workflowService;
         this.authorityUtils = authorityUtils;
         this.nodeService = nodeService;
@@ -135,8 +141,12 @@ public class WorkflowUtils {
     }
 
     public List<WorkflowTask> getDocumentTasks(NodeRef nodeRef) {
-        List<WorkflowTask> tasks = new ArrayList<>(getDocumentTasks(nodeRef, true));
-        tasks.addAll(new ArrayList<>(getDocumentTasks(nodeRef, false)));
+        return getDocumentTasks(RecordRef.create("", nodeRef.toString()));
+    }
+
+    public List<WorkflowTask> getDocumentTasks(RecordRef recordRef) {
+        List<WorkflowTask> tasks = new ArrayList<>(getDocumentTasks(recordRef, true));
+        tasks.addAll(new ArrayList<>(getDocumentTasks(recordRef, false)));
         return tasks;
     }
 
@@ -144,16 +154,35 @@ public class WorkflowUtils {
         return getDocumentTasks(nodeRef, active, null);
     }
 
-    public List<WorkflowTask> getDocumentTasks(NodeRef nodeRef, Boolean tasksStatus, String engine,
+    public List<WorkflowTask> getDocumentTasks(RecordRef recordRef, boolean active) {
+        return getDocumentTasks(recordRef, active, null);
+    }
+
+    public List<WorkflowTask> getDocumentTasks(NodeRef nodeRef,
+                                               Boolean tasksStatus,
+                                               String engine,
+                                               boolean filterByCurrentUser) {
+
+        return getDocumentTasks(
+            RecordRef.create("", nodeRef.toString()),
+            tasksStatus,
+            engine,
+            filterByCurrentUser
+        );
+    }
+
+    public List<WorkflowTask> getDocumentTasks(RecordRef recordRef,
+                                               Boolean tasksStatus,
+                                               String engine,
                                                boolean filterByCurrentUser) {
 
         List<WorkflowTask> tasks = new ArrayList<>();
 
         if (tasksStatus != null) {
-            tasks = getDocumentTasks(nodeRef, tasksStatus, engine);
+            tasks = getDocumentTasks(recordRef, tasksStatus, engine);
         } else {
-            tasks.addAll(getDocumentTasks(nodeRef, false, engine));
-            tasks.addAll(getDocumentTasks(nodeRef, true, engine));
+            tasks.addAll(getDocumentTasks(recordRef, false, engine));
+            tasks.addAll(getDocumentTasks(recordRef, true, engine));
         }
 
         if (filterByCurrentUser) {
@@ -167,8 +196,43 @@ public class WorkflowUtils {
      * @return list of document task. Filtered from prefix {@link WorkflowUtils#TASK_START_PREFIX}
      */
     public List<WorkflowTask> getDocumentTasks(NodeRef nodeRef, boolean active, String engine) {
+        return getDocumentTasks(RecordRef.create("", nodeRef.toString()), active, engine);
+    }
 
-        List<WorkflowInstance> workflows = workflowService.getWorkflowsForContent(nodeRef, active);
+    /**
+     * @return list of document task. Filtered from prefix {@link WorkflowUtils#TASK_START_PREFIX}
+     */
+    public List<WorkflowTask> getDocumentTasks(RecordRef recordRef, boolean active, String engine) {
+
+        List<WorkflowInstance> workflows = Collections.emptyList();
+
+        if (recordRef.getId().startsWith(NodeUtils.WORKSPACE_PREFIX)) {
+
+            NodeRef nodeRef = new NodeRef(recordRef.getId());
+            workflows = workflowService.getWorkflowsForContent(nodeRef, active);
+
+        } else {
+
+            NodeRef packageRef = FTSQuery.create()
+                .type(WorkflowModel.TYPE_PACKAGE).and()
+                .exact(CiteckWorkflowModel.PROP_DOCUMENT_PROP, recordRef.toString())
+                .transactional()
+                .queryOne(searchService)
+                .orElse(null);
+
+            if (packageRef == null) {
+                return Collections.emptyList();
+            }
+
+            String workflowInstance = (String) nodeService.getProperty(packageRef, WorkflowModel.PROP_WORKFLOW_INSTANCE_ID);
+            if (workflowInstance != null && workflowInstance.length() > 0) {
+                workflows = Collections.singletonList(workflowService.getWorkflowById(workflowInstance));
+            }
+        }
+
+        if (workflows.isEmpty()) {
+            return Collections.emptyList();
+        }
 
         if (StringUtils.isNotBlank(engine)) {
             String enginePrefix = engine + "$";

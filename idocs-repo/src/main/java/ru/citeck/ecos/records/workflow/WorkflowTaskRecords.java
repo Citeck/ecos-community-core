@@ -205,7 +205,7 @@ public class WorkflowTaskRecords extends LocalRecordsDao
 
     private boolean isChangeOwnerAction(RecordMeta meta) {
         DataValue changeOwner = meta.getAttribute(ATT_CHANGE_OWNER);
-        return changeOwner != null && !changeOwner.isNull();
+        return !changeOwner.isNull();
     }
 
     private void processChangeOwnerAction(RecordMeta meta, String taskId) {
@@ -256,7 +256,7 @@ public class WorkflowTaskRecords extends LocalRecordsDao
     }
 
     @Override
-    public RecordsDelResult delete(RecordsDeletion deletion) {
+    public RecordsDelResult delete(@NotNull RecordsDeletion deletion) {
         throw new UnsupportedOperationException();
     }
 
@@ -276,26 +276,12 @@ public class WorkflowTaskRecords extends LocalRecordsDao
             return null;
         }
 
-        NodeRef docRef = null;
+        RecordRef docRef = RecordRef.valueOf(query.document);
         String workflowId = null;
 
-        if (query.document != null) {
-
-            int idx = document.lastIndexOf('@');
-            if (idx > -1 && idx < document.length() - 1) {
-                document = document.substring(idx + 1);
-            }
-
-            if (NodeRef.isNodeRef(document)) {
-                docRef = new NodeRef(document);
-            } else {
-                return null;
-            }
-        } else {
-
+        if (RecordRef.isEmpty(docRef)) {
             workflowId = query.getWorkflowId();
         }
-
 
         if ((query.actors != null && query.actors.size() == 1)) {
 
@@ -313,10 +299,9 @@ public class WorkflowTaskRecords extends LocalRecordsDao
 
         if (query.actors == null) {
             String finalWfId = workflowId;
-            NodeRef finalDocRef = docRef;
             return AuthenticationUtil.runAsSystem(() -> {
                 if (finalWfId == null) {
-                    return workflowUtils.getDocumentTasks(finalDocRef, query.active, query.engine, false);
+                    return workflowUtils.getDocumentTasks(docRef, query.active, query.engine, false);
                 } else {
                     return workflowUtils.getWorkflowTasks(finalWfId, query.active, false);
                 }
@@ -335,8 +320,6 @@ public class WorkflowTaskRecords extends LocalRecordsDao
             if (docRecordRef.getSourceId().equals("workflow")) {
                 tasksQuery.setWorkflowId(docRecordRef.getId());
                 tasksQuery.setDocument(null);
-            } else if (!tasksQuery.document.contains("workspace")) {
-                return new RecordsQueryResult<>();
             }
         }
 

@@ -35,12 +35,16 @@ public class NodeUtils {
 
     public static final QName QNAME = QName.createQName("", "nodeUtils");
 
+    public static final String WORKSPACE_PREFIX = StoreRef.PROTOCOL_WORKSPACE + StoreRef.URI_FILLER;
+    public static final String ARCHIVE_PREFIX = StoreRef.PROTOCOL_ARCHIVE + StoreRef.URI_FILLER;
+    public static final String DELETED_PREFIX = StoreRef.PROTOCOL_DELETED + StoreRef.URI_FILLER;
+
     private static final String KEY_PENDING_DELETE_NODES = "DbNodeServiceImpl.pendingDeleteNodes";
 
     private static final List<String> NODE_REF_PREFIXES = Arrays.asList(
-        StoreRef.PROTOCOL_WORKSPACE + "://",
-        StoreRef.PROTOCOL_ARCHIVE + "://",
-        StoreRef.PROTOCOL_DELETED + "://"
+        WORKSPACE_PREFIX,
+        ARCHIVE_PREFIX,
+        DELETED_PREFIX
     );
 
     private NodeService nodeService;

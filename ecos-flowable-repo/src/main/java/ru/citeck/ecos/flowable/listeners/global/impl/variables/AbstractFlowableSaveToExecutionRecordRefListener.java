@@ -2,7 +2,6 @@ package ru.citeck.ecos.flowable.listeners.global.impl.variables;
 
 import lombok.extern.slf4j.Slf4j;
 import org.alfresco.service.ServiceRegistry;
-import org.alfresco.service.cmr.repository.NodeRef;
 import org.alfresco.service.cmr.repository.NodeService;
 import org.apache.commons.lang.StringUtils;
 import org.flowable.engine.RuntimeService;
@@ -14,6 +13,7 @@ import ru.citeck.ecos.flowable.listeners.global.GlobalEndExecutionListener;
 import ru.citeck.ecos.flowable.listeners.global.GlobalStartExecutionListener;
 import ru.citeck.ecos.flowable.listeners.global.GlobalTakeExecutionListener;
 import ru.citeck.ecos.flowable.utils.FlowableListenerUtils;
+import ru.citeck.ecos.records2.RecordRef;
 
 /**
  * This class is flowable task/execution listener, which provide fill some data to execution variables.
@@ -23,8 +23,8 @@ import ru.citeck.ecos.flowable.utils.FlowableListenerUtils;
  * @author Roman Makarskiy
  */
 @Slf4j
-public abstract class AbstractFlowableSaveToExecutionListener implements GlobalStartExecutionListener, GlobalEndExecutionListener,
-        GlobalTakeExecutionListener, GlobalAllTaskListener, SaveToExecutionProcessor {
+public abstract class AbstractFlowableSaveToExecutionRecordRefListener implements GlobalStartExecutionListener, GlobalEndExecutionListener,
+        GlobalTakeExecutionListener, GlobalAllTaskListener, SaveToExecutionRecordRefProcessor {
 
     @Autowired
     protected NodeService nodeService;
@@ -37,7 +37,7 @@ public abstract class AbstractFlowableSaveToExecutionListener implements GlobalS
 
     @Override
     public void notify(DelegateExecution execution) {
-        NodeRef document = FlowableListenerUtils.getDocument(execution, nodeService);
+        RecordRef document = FlowableListenerUtils.getDocumentRecordRef(execution, nodeService);
         if (saveIsRequired(document)) {
             saveToExecution(execution.getId(), document);
         }
@@ -54,7 +54,7 @@ public abstract class AbstractFlowableSaveToExecutionListener implements GlobalS
             return;
         }
 
-        NodeRef document = FlowableListenerUtils.getDocument(delegateTask, nodeService);
+        RecordRef document = FlowableListenerUtils.getDocumentRecordRef(delegateTask, nodeService);
         if (saveIsRequired(document)) {
             saveToExecution(executionId, document);
         }
@@ -63,8 +63,7 @@ public abstract class AbstractFlowableSaveToExecutionListener implements GlobalS
     @Override
     public void setVariable(String executionId, String variableName, Object value) {
         if (log.isDebugEnabled()) {
-            log.debug("Set variable: <" + variableName + "> value: <" + value + "> executionId: <" + executionId
-                    + ">");
+            log.debug("Set variable: <" + variableName + "> value: <" + value + "> executionId: <" + executionId + ">");
         }
         runtimeService.setVariable(executionId, variableName, value);
     }

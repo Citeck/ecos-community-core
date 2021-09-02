@@ -22,9 +22,9 @@ import ru.citeck.ecos.icase.activity.service.eproc.EProcActivityService;
 import ru.citeck.ecos.icase.activity.service.eproc.importer.pojo.OptimizedProcessDefinition;
 import ru.citeck.ecos.icase.element.CaseElementService;
 import ru.citeck.ecos.model.RequirementModel;
-import ru.citeck.ecos.node.EcosTypeService;
 import ru.citeck.ecos.records.RecordsUtils;
 import ru.citeck.ecos.records2.RecordRef;
+import ru.citeck.ecos.utils.NodeUtils;
 
 import java.util.Set;
 
@@ -32,18 +32,16 @@ import java.util.Set;
 @Component
 public class EProcCaseImporter {
 
-    private EProcActivityService eprocActivityService;
+    private final EProcActivityService eprocActivityService;
 
-    private NodeService nodeService;
-    private DictionaryService dictionaryService;
-    private AuthorityService authorityService;
-    private CaseElementService caseElementService;
-    private CMMNUtils utils;
+    private final NodeService nodeService;
+    private final DictionaryService dictionaryService;
+    private final AuthorityService authorityService;
+    private final CaseElementService caseElementService;
+    private final CMMNUtils utils;
 
-    private EcosTypeService ecosTypeService;
-
-    private Set<RecordRef> allowedEcosTypes = new ConcurrentHashSet<>();
-    private Set<QName> allowedAlfTypes = new ConcurrentHashSet<>();
+    private final Set<RecordRef> allowedEcosTypes = new ConcurrentHashSet<>();
+    private final Set<QName> allowedAlfTypes = new ConcurrentHashSet<>();
 
     @Autowired
     public EProcCaseImporter(EProcActivityService eprocActivityService,
@@ -51,8 +49,7 @@ public class EProcCaseImporter {
                              DictionaryService dictionaryService,
                              AuthorityService authorityService,
                              CaseElementService caseElementService,
-                             CMMNUtils utils,
-                             EcosTypeService ecosTypeService) {
+                             CMMNUtils utils) {
 
         this.eprocActivityService = eprocActivityService;
         this.nodeService = nodeService;
@@ -60,7 +57,6 @@ public class EProcCaseImporter {
         this.authorityService = authorityService;
         this.caseElementService = caseElementService;
         this.utils = utils;
-        this.ecosTypeService = ecosTypeService;
     }
 
     public void importCase(RecordRef caseRef) {
@@ -69,7 +65,11 @@ public class EProcCaseImporter {
     }
 
     private void importCaseImpl(RecordRef caseRef, Pair<String, OptimizedProcessDefinition> data) {
-        NodeRef caseNodeRef = RecordsUtils.toNodeRef(caseRef);
+
+        NodeRef caseNodeRef = null;
+        if (caseRef.getId().contains(NodeUtils.WORKSPACE_PREFIX)) {
+            caseNodeRef = RecordsUtils.toNodeRef(caseRef);
+        }
 
         String revisionId = data.getFirst();
         OptimizedProcessDefinition optimizedProcessDefinition = data.getSecond();
@@ -81,13 +81,16 @@ public class EProcCaseImporter {
 
         Case caseItem = definitions.getCase().get(0);
 
-        CaseRolesImport caseRolesImport = new CaseRolesImport(nodeService, authorityService, utils);
-        caseRolesImport.importRoles(caseNodeRef, caseItem.getCaseRoles());
+        if (caseNodeRef != null) {
 
-        CaseElementImport caseElementImport = new CaseElementImport(caseElementService);
-        caseElementImport.importCaseElementTypes(caseNodeRef, caseItem);
+            CaseRolesImport caseRolesImport = new CaseRolesImport(nodeService, authorityService, utils);
+            caseRolesImport.importRoles(caseNodeRef, caseItem.getCaseRoles());
 
-        importCaseCompletenessLevels(caseNodeRef, caseItem.getCasePlanModel());
+            CaseElementImport caseElementImport = new CaseElementImport(caseElementService);
+            caseElementImport.importCaseElementTypes(caseNodeRef, caseItem);
+
+            importCaseCompletenessLevels(caseNodeRef, caseItem.getCasePlanModel());
+        }
 
         eprocActivityService.createDefaultState(caseRef, revisionId, optimizedProcessDefinition);
     }

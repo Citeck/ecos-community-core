@@ -1,6 +1,7 @@
 package ru.citeck.ecos.flowable.services;
 
 import org.alfresco.service.cmr.repository.NodeRef;
+import ru.citeck.ecos.records2.RecordRef;
 
 import java.util.Set;
 
@@ -22,6 +23,8 @@ public interface FlowableRecipientsService {
      * @return emails comma {@code EMAIL_SEPARATOR} separated from case role
      */
     String getRoleEmails(NodeRef document, String caseRoleName);
+
+    String getRoleEmails(RecordRef document, String caseRoleName);
 
     /**
      * Method to get user email
@@ -50,6 +53,8 @@ public interface FlowableRecipientsService {
      */
     Set<String> getRoleGroups(NodeRef document, String caseRoleName);
 
+    Set<String> getRoleGroups(RecordRef document, String caseRoleName);
+
     /**
      * Method to get users names {@code ContentModel.PROP_USERNAME} from case role,
      * its usually uses in recipients users in user task.
@@ -60,4 +65,5 @@ public interface FlowableRecipientsService {
      */
     Set<String> getRoleUsers(NodeRef document, String caseRoleName);
 
+    Set<String> getRoleUsers(RecordRef document, String caseRoleName);
 }
