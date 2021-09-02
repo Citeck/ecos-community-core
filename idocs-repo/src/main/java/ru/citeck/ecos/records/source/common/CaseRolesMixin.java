@@ -102,7 +102,7 @@ public class CaseRolesMixin implements AttributesMixin<Class<RecordRef>, RecordR
         public Object getAtt(String name) {
             switch (name) {
                 case "name": return roleDef.getName();
-                case "attribute": return roleDef.getAttribute();
+                case "attribute": return roleDef.getAttributes();
                 case "assignees": return roleDef.getAssignees();
                 case "resolvedAssignees":
                     return caseRoleService.getAssignees(roleId)
