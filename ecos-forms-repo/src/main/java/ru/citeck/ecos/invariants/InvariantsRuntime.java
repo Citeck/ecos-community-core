@@ -211,7 +211,7 @@ class InvariantsRuntime {
         private Map<String, Object> model;
 
         private EnumMap<Feature, RuntimeFeature> features;
-        
+
         /*
          * Attribute initialization.
          */
@@ -256,7 +256,7 @@ class InvariantsRuntime {
                 feature.setInvariants(matchingInvariants);
             }
         }
-        
+
         /*
          * Attribute interface.
          */
@@ -282,7 +282,7 @@ class InvariantsRuntime {
             }
             return model;
         }
-        
+
         /*
          * Attribute features.
          */
@@ -369,6 +369,10 @@ class InvariantsRuntime {
             return getFeatureValue(Feature.MANDATORY, false);
         }
 
+        public boolean isValidOnProtected() {
+            return getFeatureValue(Feature.VALID_ON_PROTECTED, false);
+        }
+
         public boolean isProtected() {
             return getInvariantValue() != null || getFeatureValue(Feature.PROTECTED, false);
         }
@@ -386,19 +390,19 @@ class InvariantsRuntime {
 
         public boolean isValid() {
             if (!isRelevant()) return true;
-            if (isEmpty()) return !isMandatory() || isProtected();
+            if (isEmpty()) return !isMandatory() || (!isValidOnProtected() && isProtected());
             return invariantValid();
         }
 
         public InvariantDefinition getFailedInvariant() {
             if (!isRelevant()) return null;
             if (isEmpty()) {
-                if (!isMandatory() || isProtected()) return null;
+                if (!isMandatory() || (!isValidOnProtected() && isProtected())) return null;
                 return features.get(Feature.MANDATORY).activeInvariant;
             }
             return features.get(Feature.VALID).activeInvariant;
         }
-        
+
         /*
          * Helper methods
          */

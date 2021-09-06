@@ -18,10 +18,10 @@
  */
 package ru.citeck.ecos.invariants;
 
+import org.alfresco.service.namespace.QName;
+
 import java.util.Collections;
 import java.util.List;
-
-import org.alfresco.service.namespace.QName;
 
 public enum Feature {
 
@@ -29,6 +29,12 @@ public enum Feature {
     OPTIONS(List.class, Collections.emptyList(), "options"),
     DEFAULT(Object.class, null, "default value"),
     MANDATORY(Boolean.class, false, "attribute is mandatory"),
+    VALID_ON_PROTECTED(Boolean.class, false, "attribute should be valid on protected"){
+        @Override
+        public String toString() {
+            return "valid-on-protected";
+        }
+    },
     PROTECTED(Boolean.class, false, "attribute is protected"),
     MULTIPLE(Boolean.class, false, "attribute is multiple"),
     RELEVANT(Boolean.class, true, "attribute is relevant"),
@@ -68,25 +74,25 @@ public enum Feature {
             return "nonblocking-value";
         }
     };
-    
+
     private final Class<?> type;
     private final Object defaultValue;
     private final String defaultDescription;
-    
+
     private Feature(Class<?> type, Object defaultValue, String defaultDescription) {
         this.type = type;
         this.defaultValue = defaultValue;
         this.defaultDescription = defaultDescription;
     }
-    
+
     public static Feature valueOf(ru.citeck.ecos.invariants.xml.Feature on) {
         return valueOf(on.toString());
     }
-    
+
     public Class<?> getType() {
         return type;
     }
-    
+
     public boolean isSearchedValue(Object value) {
         return value != null;
     }
