@@ -13,6 +13,7 @@ import org.alfresco.util.ParameterCheck;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.mutable.MutableBoolean;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.BeanNameAware;
@@ -187,15 +188,15 @@ public class ContentDeployer<T> extends AbstractLifecycleBean implements BeanNam
 
         ByteArrayInputStream inputBytesStream = new ByteArrayInputStream(info.data);
 
-        boolean[] skip = { false };
+        MutableBoolean skip = new MutableBoolean(false);
 
         Optional<? extends ContentData<?>> data = repoContentDAO.getFirstContentData(info.keys, false);
         NodeRef contentNode = data.map(contentData -> {
-            skip[0] = deployIfNotExistsOnly;
+            skip.setValue(deployIfNotExistsOnly);
             return contentData.getNodeRef();
         }).orElseGet(() -> repoContentDAO.createNode(info.metadata));
 
-        if (skip[0]) {
+        if (skip.isTrue()) {
             return;
         }
 
