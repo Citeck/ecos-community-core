@@ -1,0 +1,24 @@
+{
+  "id": "alf-download-report-group-action-csv",
+  "type": "server-group-action",
+  "name": {
+    "ru": "Скачать Csv-файл",
+    "en": "Download Csv-file"
+  },
+  "config": {
+    "id": "download-csv-report-action",
+    "params": {
+      "journalId": "general-case",
+      "reportTitle": "REPORT",
+      "actionId": "download-csv-report-action",
+      "evaluateBatch": "true",
+      "delimiter": ";",
+      "columns": "$reportColumns"
+    }
+  },
+  "features": {
+    "execForQuery": true,
+    "execForRecord": false,
+    "execForRecords": true
+  }
+}

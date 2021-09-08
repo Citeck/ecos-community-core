@@ -997,11 +997,26 @@ public class RepoUtils {
         return clazz.cast(serializable);
     }
 
+    /**
+     * Compute URL for downloading data from node on client side
+     * @deprecated This method is no longer acceptable to get downloading URL.
+     * <p> Use {@link #getDownloadURL(NodeRef)} instead.
+     * @param nodeRef node contains data for downloading
+     * @param nodeService do not use
+     * @return URL for downloading on client side
+     */
+    @Deprecated
     public static String getDownloadURL(NodeRef nodeRef, NodeService nodeService) {
-        Object fileName = nodeService.getProperty(nodeRef, PROP_FILE_NAME);
-        String downloadURL = DOWNLOAD_API_PREFIX + nodeRef.getId()
-            + (fileName != null ? "/" + fileName.toString() : "");
-        return downloadURL;
+        return DOWNLOAD_API_PREFIX + nodeRef.getId();
+    }
+
+    /**
+     * Compute URL for downloading data from node on client side
+     * @param nodeRef node contains data for downloading
+     * @return URL for downloading data on client side
+     */
+    public static String getDownloadURL(NodeRef nodeRef) {
+        return DOWNLOAD_API_PREFIX + nodeRef.getId();
     }
 
     /**
