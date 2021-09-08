@@ -154,7 +154,7 @@
       <xs:enumeration value="options"/>
       <xs:enumeration value="default"/>
       <xs:enumeration value="mandatory"/>
-      <xs:enumeration value="valid-on-protected"/>
+      <xs:enumeration value="mandatory-on-protected"/>
       <xs:enumeration value="protected"/>
       <xs:enumeration value="multiple"/>
       <xs:enumeration value="relevant"/>

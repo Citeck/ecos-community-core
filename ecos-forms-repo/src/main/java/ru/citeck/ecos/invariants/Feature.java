@@ -29,10 +29,10 @@ public enum Feature {
     OPTIONS(List.class, Collections.emptyList(), "options"),
     DEFAULT(Object.class, null, "default value"),
     MANDATORY(Boolean.class, false, "attribute is mandatory"),
-    VALID_ON_PROTECTED(Boolean.class, false, "attribute should be valid on protected"){
+    MANDATORY_ON_PROTECTED(Boolean.class, false, "attribute should be mandatory on protected"){
         @Override
         public String toString() {
-            return "valid-on-protected";
+            return "mandatory-on-protected";
         }
     },
     PROTECTED(Boolean.class, false, "attribute is protected"),

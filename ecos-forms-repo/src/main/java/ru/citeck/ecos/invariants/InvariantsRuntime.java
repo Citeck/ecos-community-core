@@ -369,8 +369,8 @@ class InvariantsRuntime {
             return getFeatureValue(Feature.MANDATORY, false);
         }
 
-        public boolean isValidOnProtected() {
-            return getFeatureValue(Feature.VALID_ON_PROTECTED, false);
+        public boolean isMandatoryOnProtected() {
+            return getFeatureValue(Feature.MANDATORY_ON_PROTECTED, false);
         }
 
         public boolean isProtected() {
@@ -390,14 +390,14 @@ class InvariantsRuntime {
 
         public boolean isValid() {
             if (!isRelevant()) return true;
-            if (isEmpty()) return !isMandatory() || (!isValidOnProtected() && isProtected());
+            if (isEmpty()) return !isMandatory() || (!isMandatoryOnProtected() && isProtected());
             return invariantValid();
         }
 
         public InvariantDefinition getFailedInvariant() {
             if (!isRelevant()) return null;
             if (isEmpty()) {
-                if (!isMandatory() || (!isValidOnProtected() && isProtected())) return null;
+                if (!isMandatory() || (!isMandatoryOnProtected() && isProtected())) return null;
                 return features.get(Feature.MANDATORY).activeInvariant;
             }
             return features.get(Feature.VALID).activeInvariant;

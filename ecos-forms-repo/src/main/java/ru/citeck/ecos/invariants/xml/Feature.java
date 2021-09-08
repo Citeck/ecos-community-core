@@ -18,7 +18,7 @@ import javax.xml.bind.annotation.XmlType;
  *     &lt;enumeration value="options"/>
  *     &lt;enumeration value="default"/>
  *     &lt;enumeration value="mandatory"/>
- *     &lt;enumeration value="valid-on-protected"/>
+ *     &lt;enumeration value="mandatory-on-protected"/>
  *     &lt;enumeration value="protected"/>
  *     &lt;enumeration value="multiple"/>
  *     &lt;enumeration value="relevant"/>
@@ -46,8 +46,8 @@ public enum Feature {
     OPTIONS("options"),
     @XmlEnumValue("default")
     DEFAULT("default"),
-    @XmlEnumValue("valid-on-protected")
-    VALID_ON_PROTECTED("valid-on-protected"),
+    @XmlEnumValue("mandatory-on-protected")
+    VALID_ON_PROTECTED("mandatory-on-protected"),
     @XmlEnumValue("mandatory")
     MANDATORY("mandatory"),
     @XmlEnumValue("protected")
