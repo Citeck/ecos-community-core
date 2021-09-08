@@ -8,7 +8,7 @@ import javax.xml.bind.annotation.XmlType;
 
 /**
  * <p>Java class for feature.
- * 
+ *
  * <p>The following schema fragment specifies the expected content contained within this class.
  * <p>
  * <pre>
@@ -18,6 +18,7 @@ import javax.xml.bind.annotation.XmlType;
  *     &lt;enumeration value="options"/>
  *     &lt;enumeration value="default"/>
  *     &lt;enumeration value="mandatory"/>
+ *     &lt;enumeration value="mandatory-on-protected"/>
  *     &lt;enumeration value="protected"/>
  *     &lt;enumeration value="multiple"/>
  *     &lt;enumeration value="relevant"/>
@@ -33,7 +34,7 @@ import javax.xml.bind.annotation.XmlType;
  *   &lt;/restriction>
  * &lt;/simpleType>
  * </pre>
- * 
+ *
  */
 @XmlType(name = "feature")
 @XmlEnum
@@ -45,6 +46,8 @@ public enum Feature {
     OPTIONS("options"),
     @XmlEnumValue("default")
     DEFAULT("default"),
+    @XmlEnumValue("mandatory-on-protected")
+    VALID_ON_PROTECTED("mandatory-on-protected"),
     @XmlEnumValue("mandatory")
     MANDATORY("mandatory"),
     @XmlEnumValue("protected")
