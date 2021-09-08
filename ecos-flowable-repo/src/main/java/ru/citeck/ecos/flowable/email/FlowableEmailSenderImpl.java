@@ -23,6 +23,7 @@ public class FlowableEmailSenderImpl implements FlowableEmailSender {
     private static final String PROCESS_VARIABLE = "process";
     private static final String EVENT_INITIATOR = "eventInitiator";
     private static final String FORCE_STR_PREFIX = "!str_";
+    private static final String APP_ALFRESCO = "alfresco";
 
     private final NotificationService notificationService;
     private FlowableStdEmailSender flowableStdEmailSender;
@@ -88,10 +89,10 @@ public class FlowableEmailSenderImpl implements FlowableEmailSender {
         });
 
         String langStr = emailDto.getLang();
-        String recordStr = emailDto.getRecord();
+        RecordRef record = resolveCompletedDocumentRecord(emailDto);
 
         Notification notification = new Notification.Builder()
-            .record(RecordRef.valueOf(recordStr))
+            .record(record)
             .templateRef(RecordRef.valueOf(emailDto.getTemplate()))
             .notificationType(notificationType)
             .recipients(to)
@@ -112,6 +113,20 @@ public class FlowableEmailSenderImpl implements FlowableEmailSender {
 
         String runAsUserName = AuthenticationUtil.getRunAsUser();
         return RecordRef.valueOf("people@" + runAsUserName);
+    }
+
+    private RecordRef resolveCompletedDocumentRecord(SendEmailDto emailDto) {
+        String record = emailDto.getRecord();
+        if (StringUtils.isBlank(record)) {
+            return RecordRef.EMPTY;
+        }
+
+        RecordRef rawRef = RecordRef.valueOf(record);
+        if (StringUtils.isNotBlank(rawRef.getAppName())) {
+            return rawRef;
+        }
+
+        return RecordRef.create(APP_ALFRESCO, rawRef.getSourceId(), rawRef.getId());
     }
 
     public void setFlowableStdEmailSender(FlowableStdEmailSender flowableStdEmailSender) {

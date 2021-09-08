@@ -2,16 +2,16 @@ package ru.citeck.ecos.workflow;
 
 import lombok.Getter;
 import lombok.NonNull;
+import lombok.extern.slf4j.Slf4j;
 import org.alfresco.model.ContentModel;
 import org.alfresco.repo.workflow.WorkflowModel;
 import org.alfresco.service.cmr.dictionary.DictionaryService;
-import org.alfresco.service.cmr.repository.ChildAssociationRef;
 import org.alfresco.service.cmr.repository.NodeRef;
 import org.alfresco.service.cmr.repository.NodeService;
 import org.alfresco.service.cmr.workflow.*;
 import org.alfresco.service.namespace.NamespaceService;
 import org.alfresco.service.namespace.QName;
-import org.alfresco.service.namespace.RegexQNamePattern;
+import org.apache.commons.lang.StringUtils;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -24,6 +24,7 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 public class EcosWorkflowService {
 
@@ -106,31 +107,14 @@ public class EcosWorkflowService {
     }
 
     public WorkflowInstance cancelWorkflowRootInstance(String workflowId) {
-        WorkflowInstance instanceById = getInstanceById(workflowId);
-        if (instanceById == null) {
+        WorkflowId id = new WorkflowId(workflowId);
+        EngineWorkflowService service = needWorkflowService(id.engineId);
+        String rootProcessId = service.getRootProcessInstanceId(id.localId);
+        if(StringUtils.isBlank(rootProcessId)) {
+            log.warn("rootProcessId is blank: " + rootProcessId);
             return cancelWorkflowInstance(workflowId);
         }
-        NodeRef instanceRefByTaskName = instanceById.getWorkflowPackage();
-        if (instanceRefByTaskName == null) {
-            return cancelWorkflowInstance(workflowId);
-        }
-        List<ChildAssociationRef> childrenTaskAssocRefs = nodeService.getChildAssocs(instanceRefByTaskName);
-        if (childrenTaskAssocRefs.isEmpty()) {
-            return cancelWorkflowInstance(workflowId);
-        }
-        NodeRef childrenTaskAssocRef = childrenTaskAssocRefs.get(0).getChildRef();
-        List<ChildAssociationRef> parentAssocRefs = nodeService
-            .getParentAssocs(childrenTaskAssocRef, WorkflowModel.ASSOC_PACKAGE_CONTAINS,
-                RegexQNamePattern.MATCH_ALL);
-        for (ChildAssociationRef parentAssocRef : parentAssocRefs) {
-            NodeRef rootWorkflowPackage = parentAssocRef.getParentRef();
-            String rootWorkflowId = (String) nodeService.getProperty(
-                rootWorkflowPackage, WorkflowModel.PROP_WORKFLOW_INSTANCE_ID);
-            if (rootWorkflowId != null) {
-                return cancelWorkflowInstance(rootWorkflowId);
-            }
-        }
-        return cancelWorkflowInstance(workflowId);
+        return cancelWorkflowInstance(id.engineId + "$" + rootProcessId);
     }
 
     public WorkflowDefinition getDefinitionByName(String workflowName) {

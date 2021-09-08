@@ -1,6 +1,7 @@
 package ru.citeck.ecos.config;
 
 import org.apache.activemq.ActiveMQConnectionFactory;
+import org.jetbrains.annotations.Nullable;
 import org.springframework.amqp.rabbit.connection.CachingConnectionFactory;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -8,6 +9,10 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.jms.core.JmsTemplate;
+import ru.citeck.ecos.rabbitmq.RabbitMqConn;
+import ru.citeck.ecos.rabbitmq.RabbitMqConnFactory;
+import ru.citeck.ecos.rabbitmq.RabbitMqConnProps;
+import ru.citeck.ecos.rabbitmq.RabbitMqConnProvider;
 
 import java.util.Properties;
 
@@ -32,7 +37,6 @@ public class MessagingConfiguration {
     @Autowired
     @Qualifier("global-properties")
     private Properties properties;
-
 
     /**
      * ActiveMQ connection factory
@@ -63,7 +67,6 @@ public class MessagingConfiguration {
         }
     }
 
-
     /**
      * Connection factory bean
      * @return Connection factory or null (in case of absence "rabbitmq.server.host" global property)
@@ -73,7 +76,7 @@ public class MessagingConfiguration {
         if (properties.getProperty(RABBIT_MQ_HOST) != null) {
             CachingConnectionFactory connectionFactory = new CachingConnectionFactory();
             connectionFactory.setHost(properties.getProperty(RABBIT_MQ_HOST));
-            connectionFactory.setPort(Integer.valueOf(properties.getProperty(RABBIT_MQ_PORT)));
+            connectionFactory.setPort(Integer.parseInt(properties.getProperty(RABBIT_MQ_PORT)));
             connectionFactory.setUsername(properties.getProperty(RABBIT_MQ_USERNAME));
             connectionFactory.setPassword(properties.getProperty(RABBIT_MQ_PASSWORD));
             return connectionFactory;
@@ -94,6 +97,38 @@ public class MessagingConfiguration {
             return new RabbitTemplate(connectionFactory);
         } else {
             return null;
+        }
+    }
+
+    @Bean
+    public RabbitMqConnProvider getProvider(RabbitMqConnProps mqProps) {
+        return new Provider(mqProps);
+    }
+
+    @Bean
+    public RabbitMqConnProps getConnProperties() {
+
+        RabbitMqConnProps props = new RabbitMqConnProps();
+        props.setHost(properties.getProperty(RABBIT_MQ_HOST));
+        props.setPort(Integer.parseInt(properties.getProperty(RABBIT_MQ_PORT)));
+        props.setUsername(properties.getProperty(RABBIT_MQ_USERNAME));
+        props.setPassword(properties.getProperty(RABBIT_MQ_PASSWORD));
+
+        return props;
+    }
+
+    private static class Provider implements RabbitMqConnProvider {
+
+        private final RabbitMqConn connection;
+
+        public Provider(RabbitMqConnProps mqProps) {
+            connection = new RabbitMqConnFactory().createConnection(mqProps);
+        }
+
+        @Nullable
+        @Override
+        public RabbitMqConn getConnection() {
+            return connection;
         }
     }
 }
