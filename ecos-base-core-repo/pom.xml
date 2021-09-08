@@ -107,6 +107,13 @@
         </dependency>
 
         <dependency>
+            <groupId>ru.citeck.ecos.context</groupId>
+            <artifactId>ecos-context-lib</artifactId>
+            <version>${ecos.context-lib.version}</version>
+            <scope>compile</scope>
+        </dependency>
+
+        <dependency>
             <groupId>io.jsonwebtoken</groupId>
             <artifactId>jjwt-api</artifactId>
             <version>${jjwt.version}</version>
