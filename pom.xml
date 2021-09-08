@@ -68,16 +68,16 @@
         <ecos.context-lib.version>1.1.0</ecos.context-lib.version>
 
         <ecos.flowable.version>3.0.5.4</ecos.flowable.version>
-        <ecos.records.version>3.34.1</ecos.records.version>
+        <ecos.records.version>3.35.1</ecos.records.version>
         <ecos.apps.lib.version>3.11.1</ecos.apps.lib.version>
         <ecos.jackson.version>2.10.4.3</ecos.jackson.version>
         <ecos.snakeyaml.version>2.2.0</ecos.snakeyaml.version>
-        <ecos.commons.version>2.5.0</ecos.commons.version>
+        <ecos.commons.version>2.5.4</ecos.commons.version>
         <ecos.commands.version>2.5.0</ecos.commands.version>
         <ecos.rabbitmq.version>2.2.0</ecos.rabbitmq.version>
         <ecos.meta-repo.version>1.1.0</ecos.meta-repo.version>
         <ecos.notifications.lib.version>2.3.0</ecos.notifications.lib.version>
-        <ecos.model-lib.version>2.5.3</ecos.model-lib.version>
+        <ecos.model-lib.version>2.7.0</ecos.model-lib.version>
 
         <ecos.events2.version>2.3.0</ecos.events2.version>
         <ecos.zookeeper.version>1.2.2</ecos.zookeeper.version>
@@ -85,7 +85,7 @@
 
         <spring.retry.version>1.2.4.RELEASE</spring.retry.version>
 
-        <kotlin.version>1.5.21</kotlin.version>
+        <kotlin.version>1.5.30</kotlin.version>
         <kotlin.logging.version>1.12.5</kotlin.logging.version>
 
         <web.compression.skip>false</web.compression.skip>
