@@ -5,4 +5,6 @@ import java.util.List;
 public interface EngineWorkflowService {
 
     void sendSignal(List<String> processes, String signalName);
+
+    String getRootProcessInstanceId(String processId);
 }
