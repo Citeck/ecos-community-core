@@ -8,7 +8,7 @@ import org.apache.commons.validator.routines.UrlValidator;
 import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Component;
 import ru.citeck.ecos.commons.data.DataValue;
 import ru.citeck.ecos.records3.record.atts.dto.RecordAtts;
@@ -29,12 +29,6 @@ public class ExportExcelActionFactory extends AbstractExportActionFactory<Export
     private static final String ACTION_ID = "download-report-xlsx-action";
     private static final String MIMETYPE = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
 
-/*    @Autowired
-    public ExportExcelActionFactory(GroupActionService groupActionService) {
-        mimeType = MIMETYPE;
-        groupActionService.register(this);
-    }*/
-
     @Override
     public String getActionId() {
         return ACTION_ID;
@@ -46,15 +40,13 @@ public class ExportExcelActionFactory extends AbstractExportActionFactory<Export
         Workbook workbook = null;
         String templatePath = config.getStrParam(PARAM_TEMPLATE);
         if (StringUtils.isBlank(templatePath)) {
-            log.warn("The template path parameter '{}' is emptry or was not defined", PARAM_TEMPLATE);
+            log.debug("The template path parameter '{}' is emptry or was not defined", PARAM_TEMPLATE);
         } else {
-            try (InputStream bookTemplateStream = Thread.currentThread()
-                .getContextClassLoader()
-                .getResourceAsStream("/" + templatePath)) {
+            try (InputStream bookTemplateStream = new ClassPathResource(templatePath).getInputStream()) {
                 if (bookTemplateStream != null) {
                     workbook = WorkbookFactory.create(bookTemplateStream);
                 } else {
-                    log.warn("The template '{}' was not found", templatePath);
+                    log.error("The template '{}' was not found", templatePath);
                 }
             } catch (InvalidFormatException | IOException e) {
                 log.error("Failed to create Excel-file {}", config, e);
@@ -84,33 +76,31 @@ public class ExportExcelActionFactory extends AbstractExportActionFactory<Export
 
     @Override
     protected int writeData(List<RecordAtts> nodesAttributes, int nextRowIndex, List<String> requestedAttributes, ExcelEnvironment excelEnvironment) {
-        for (RecordAtts attribute : nodesAttributes) {
+        for (RecordAtts attributes : nodesAttributes) {
             Row currentRow = excelEnvironment.getSheet().createRow(nextRowIndex);
             for (int attIdx = 0; attIdx < requestedAttributes.size(); attIdx++) {
                 String attributeName = requestedAttributes.get(attIdx);
                 Cell newCell = currentRow.createCell(attIdx);
                 newCell.setCellStyle(excelEnvironment.getValueCellStyle());
-                DataValue dataValue = attribute.getAtt(attributeName);
-                if (dataValue != null) {
-                    if (dataValue.isDouble()) {
-                        newCell.setCellStyle(excelEnvironment.getDoubleCellStyle());
-                        newCell.setCellValue(dataValue.asDouble());
-                    } else if (dataValue.isInt()) {
-                        newCell.setCellValue(dataValue.asInt());
-                    } else {
-                        if (dataValue.isTextual() && UrlValidator.getInstance().isValid(dataValue.asText())) {
-                            try {
-                                URL urlValue = new URL(dataValue.asText());
-                                newCell.setCellType(Cell.CELL_TYPE_FORMULA);
-                                newCell.setCellFormula(
-                                    String.format("HYPERLINK(\"%s\", \"%s\")", urlValue,
-                                        dataValue.asText()));
-                            } catch (MalformedURLException e) {
-                                newCell.setCellValue(dataValue.asText());
-                            }
-                        } else {
+                DataValue dataValue = attributes.getAtt(attributeName);
+                if (dataValue.isDouble()) {
+                    newCell.setCellStyle(excelEnvironment.getDoubleCellStyle());
+                    newCell.setCellValue(dataValue.asDouble());
+                } else if (dataValue.isInt()) {
+                    newCell.setCellValue(dataValue.asInt());
+                } else {
+                    if (dataValue.isTextual() && UrlValidator.getInstance().isValid(dataValue.asText())) {
+                        try {
+                            URL urlValue = new URL(dataValue.asText());
+                            newCell.setCellType(Cell.CELL_TYPE_FORMULA);
+                            newCell.setCellFormula(
+                                String.format("HYPERLINK(\"%s\", \"%s\")", urlValue,
+                                    dataValue.asText()));
+                        } catch (MalformedURLException e) {
                             newCell.setCellValue(dataValue.asText());
                         }
+                    } else {
+                        newCell.setCellValue(dataValue.asText());
                     }
                 }
             }
@@ -120,7 +110,7 @@ public class ExportExcelActionFactory extends AbstractExportActionFactory<Export
     }
 
     @Override
-    protected void writeToStream(ByteArrayOutputStream outputStream, ExcelEnvironment excelEnvironment) throws IOException {
+    protected void writeToStream(ByteArrayOutputStream outputStream, ExcelEnvironment excelEnvironment) throws Exception {
         //autosize does not work for hyperlink cells
         for (int idx = 0; idx <= excelEnvironment.getSheet().getRow(0).getLastCellNum(); idx++) {
             excelEnvironment.getSheet().autoSizeColumn(idx);
