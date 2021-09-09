@@ -6,10 +6,10 @@
     "en": "Download Html-file"
   },
   "config": {
-    "id": "download-html-report-action",
+    "id": "download-report-html-action",
     "params": {
       "reportTitle": "REPORT",
-      "actionId": "download-html-report-action",
+      "actionId": "download-report-html-action",
       "evaluateBatch": "true",
       "columns": "$reportColumns"
     }

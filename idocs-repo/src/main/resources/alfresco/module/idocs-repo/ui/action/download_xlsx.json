@@ -6,11 +6,11 @@
     "en": "Download Excel-file"
   },
   "config": {
-    "id": "download-xlsx-report-action",
+    "id": "download-report-xlsx-action",
     "params": {
       "template": "alfresco/templates/reports/ru/citeck/default.xlsx",
       "reportTitle": "REPORT",
-      "actionId": "download-xlsx-report-action",
+      "actionId": "download-report-xlsx-action",
       "evaluateBatch": "true",
       "columns": "$reportColumns"
     }

@@ -1,9 +1,10 @@
 package ru.citeck.ecos.action.group;
 
+import lombok.AllArgsConstructor;
+import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import ru.citeck.ecos.commons.data.DataValue;
 import ru.citeck.ecos.processor.report.ReportProducer;
@@ -21,19 +22,13 @@ import java.util.stream.Collectors;
  */
 @Slf4j
 @Component
-public class ExportCsvActionFactory extends AbstractExportActionFactory<CsvEnvironment> {
-    private static final String ACTION_ID = "download-csv-report-action";
+public class ExportCsvActionFactory extends AbstractExportActionFactory<ExportCsvActionFactory.CsvEnvironment> {
+    private static final String ACTION_ID = "download-report-csv-action";
     private static final String MIMETYPE = "text/csv";
 
     private static final String CONFIG_DELIMITER = "delimiter";
     private static final String DEFAULT_DELIMITER = "\t";
     private static final String DEFAULT_SEPARATOR = "\r\n";
-
-    @Autowired
-    public ExportCsvActionFactory(GroupActionService groupActionService) {
-        mimeType = MIMETYPE;
-        groupActionService.register(this);
-    }
 
     @Override
     public String getActionId() {
@@ -42,6 +37,7 @@ public class ExportCsvActionFactory extends AbstractExportActionFactory<CsvEnvir
 
     @Override
     protected CsvEnvironment createEnvironment(GroupActionConfig config, List<String> requestedAttributes, List<String> columnTitles) {
+        mimeType = MIMETYPE;
         String configDelimiter = config.getStrParam(CONFIG_DELIMITER);
         CsvEnvironment environment = new CsvEnvironment(
             StringUtils.isNotBlank(configDelimiter) ? configDelimiter : DEFAULT_DELIMITER,
@@ -95,5 +91,15 @@ public class ExportCsvActionFactory extends AbstractExportActionFactory<CsvEnvir
             return source.replaceAll("[\r\n]", " ").trim();
         }
         return null;
+    }
+
+    /**
+     * Objects necessary for export to Csv-file
+     */
+    @Data
+    @AllArgsConstructor
+    public class CsvEnvironment {
+        private final String cellDelimiter;
+        private StringBuilder reportBuilder;
     }
 }

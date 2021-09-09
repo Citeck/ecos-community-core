@@ -6,10 +6,10 @@
     "en": "Download Csv-file"
   },
   "config": {
-    "id": "download-csv-report-action",
+    "id": "download-report-csv-action",
     "params": {
       "reportTitle": "REPORT",
-      "actionId": "download-csv-report-action",
+      "actionId": "download-report-csv-action",
       "evaluateBatch": "true",
       "delimiter": ";",
       "columns": "$reportColumns"

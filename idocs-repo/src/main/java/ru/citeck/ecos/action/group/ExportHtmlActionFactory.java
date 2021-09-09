@@ -3,10 +3,10 @@ package ru.citeck.ecos.action.group;
 import freemarker.template.Configuration;
 import freemarker.template.Template;
 import freemarker.template.TemplateException;
+import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.validator.routines.UrlValidator;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import ru.citeck.ecos.commons.data.DataValue;
 import ru.citeck.ecos.records3.record.atts.dto.RecordAtts;
@@ -15,7 +15,9 @@ import java.io.*;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Factory of group action "Export to Html-file".
@@ -23,8 +25,8 @@ import java.util.List;
  */
 @Slf4j
 @Component
-public class ExportHtmlActionFactory extends AbstractExportActionFactory<HtmlEnvironment> {
-    private static final String ACTION_ID = "download-html-report-action";
+public class ExportHtmlActionFactory extends AbstractExportActionFactory<ExportHtmlActionFactory.HtmlEnvironment> {
+    private static final String ACTION_ID = "download-report-html-action";
     private static final String MIMETYPE = "text/html";
 
     private static final String FTL_COLUMN_TITLES = "columnTitles";
@@ -36,19 +38,14 @@ public class ExportHtmlActionFactory extends AbstractExportActionFactory<HtmlEnv
     private static final String PARAM_NODES = "nodes";
     private static final String ERROR_MSG = "Failed to generate Html-report {}";
 
-    @Autowired
-    public ExportHtmlActionFactory(GroupActionService groupActionService) {
-        mimeType = MIMETYPE;
-        groupActionService.register(this);
-    }
-
     @Override
     public String getActionId() {
         return ACTION_ID;
     }
 
     @Override
-    protected HtmlEnvironment createEnvironment(GroupActionConfig config, List<String> requestedAttributes, List<String> columnTitles) {
+    protected HtmlEnvironment createEnvironment(GroupActionConfig config, List<String> requestedAttributes, List<String> columnTitles) throws Exception {
+        mimeType = MIMETYPE;
         URL templateUrl = Thread.currentThread().getContextClassLoader().getResource(FTL_TEMPLATE_PATH);
         if (templateUrl == null) {
             log.error("Failed to find export action template {}", config);
@@ -64,6 +61,7 @@ public class ExportHtmlActionFactory extends AbstractExportActionFactory<HtmlEnv
             htmlEnvironment.setWriter(new OutputStreamWriter(htmlEnvironment.getInnerStream(), encoding));
         } catch (UnsupportedEncodingException e) {
             log.error("Failed to create export action {}", config, e);
+            throw e;
         } catch (IOException e) {
             log.error("Failed to setup export action template configuration {}", config, e);
         }
@@ -137,6 +135,22 @@ public class ExportHtmlActionFactory extends AbstractExportActionFactory<HtmlEnv
             headerTemplate.process(htmlEnvironment.getTemplateParams(), htmlEnvironment.getWriter());
         } catch (TemplateException | IOException e) {
             log.error(ERROR_MSG, htmlEnvironment.getConfig(), e);
+        }
+    }
+
+    /**
+     * Objects necessary for export to Html-file
+     */
+    @Data
+    public class HtmlEnvironment {
+        private GroupActionConfig config;
+        private Writer writer;
+        private Configuration templateConfiguration;
+        private ByteArrayOutputStream innerStream;
+        private Map<String, Object> templateParams = new HashMap<>();
+
+        HtmlEnvironment(GroupActionConfig config) {
+            this.config = config;
         }
     }
 }

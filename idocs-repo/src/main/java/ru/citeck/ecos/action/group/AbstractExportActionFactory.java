@@ -20,6 +20,7 @@ import ru.citeck.ecos.records3.RecordsService;
 import ru.citeck.ecos.records3.record.atts.dto.RecordAtts;
 import ru.citeck.ecos.utils.RepoUtils;
 
+import javax.annotation.PostConstruct;
 import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
@@ -35,12 +36,11 @@ import java.util.*;
 @Slf4j
 public abstract class AbstractExportActionFactory<T> implements GroupActionFactory<RecordRef> {
 
-    @Autowired
     protected RecordsService recordsService;
-    @Autowired
     protected ContentService contentService;
-    @Autowired
     protected NodeService nodeService;
+    @Autowired
+    protected GroupActionService groupActionService;
 
     protected String mimeType = "text/plain";
     protected String encoding = StandardCharsets.UTF_8.name();
@@ -52,6 +52,28 @@ public abstract class AbstractExportActionFactory<T> implements GroupActionFacto
     protected static final String PARAM_REPORT_COLUMNS = "columns";
     protected static final String REPORT = "Report";
     protected static final NodeRef ROOT_NODE_REF = new NodeRef("workspace://SpacesStore/attachments-root");
+
+    @Autowired
+    public void setRecordsService(RecordsService recordsService) {
+        this.recordsService = recordsService;
+    }
+
+    @Autowired
+    public void setContentService(ContentService contentService) {
+        this.contentService = contentService;
+    }
+
+    @Autowired
+    public void setNodeService(NodeService nodeService) {
+        this.nodeService = nodeService;
+    }
+
+    @PostConstruct
+    protected void register() {
+        if (groupActionService != null) {
+            groupActionService.register(this);
+        }
+    }
 
     @Override
     public ExportAction createAction(GroupActionConfig config) {
@@ -65,8 +87,9 @@ public abstract class AbstractExportActionFactory<T> implements GroupActionFacto
      * @param requestedAttributes attributes requested by action settings for export @see ReportColumnDef
      * @param columnTitles        Column titles which export file must provide @see ReportColumnDef
      * @return environment object with default settings
+     * @throws Exception
      */
-    protected abstract T createEnvironment(GroupActionConfig config, List<String> requestedAttributes, List<String> columnTitles);
+    protected abstract T createEnvironment(GroupActionConfig config, List<String> requestedAttributes, List<String> columnTitles) throws Exception;
 
     /**
      * Writes nodes data according to the PARAM_REPORT_COLUMNS configuration.
@@ -85,9 +108,9 @@ public abstract class AbstractExportActionFactory<T> implements GroupActionFacto
      *
      * @param outputStream
      * @param environment
-     * @throws IOException
+     * @throws Exception
      */
-    protected abstract void writeToStream(ByteArrayOutputStream outputStream, T environment) throws IOException;
+    protected abstract void writeToStream(ByteArrayOutputStream outputStream, T environment) throws Exception;
 
     protected static String replaceIllegalChars(String source) {
         return source != null
@@ -128,8 +151,11 @@ public abstract class AbstractExportActionFactory<T> implements GroupActionFacto
                 columnTitles.add(StringUtils.isNotBlank(columnDef.getName()) ? columnDef.getName() :
                     attributeName);
             }
-
-            environment = createEnvironment(config, requestedAttributes, columnTitles);
+            try {
+                environment = createEnvironment(config, requestedAttributes, columnTitles);
+            } catch (Exception e) {
+                throw new IllegalStateException("Failed to create environment", e);
+            }
         }
 
         @Override
@@ -161,7 +187,7 @@ public abstract class AbstractExportActionFactory<T> implements GroupActionFacto
                 writeToStream(outputStream, environment);
                 List<ActionResult<RecordRef>> actionResultList = createContentNode(outputStream, ROOT_NODE_REF);
                 onProcessed(actionResultList);
-            } catch (IOException e) {
+            } catch (Exception e) {
                 log.error("Failed to write file. {}", config, e);
                 ActionResult<RecordRef> result = new ActionResult<>(RecordRef.valueOf(REPORT), ActionStatus.error(e));
                 onProcessed(Collections.singletonList(result));
