@@ -53,21 +53,6 @@ public abstract class AbstractExportActionFactory<T> implements GroupActionFacto
     protected static final String REPORT = "Report";
     protected static final NodeRef ROOT_NODE_REF = new NodeRef("workspace://SpacesStore/attachments-root");
 
-    @Autowired
-    public void setRecordsService(RecordsService recordsService) {
-        this.recordsService = recordsService;
-    }
-
-    @Autowired
-    public void setContentService(ContentService contentService) {
-        this.contentService = contentService;
-    }
-
-    @Autowired
-    public void setNodeService(NodeService nodeService) {
-        this.nodeService = nodeService;
-    }
-
     @PostConstruct
     protected void register() {
         if (groupActionService != null) {
@@ -116,6 +101,21 @@ public abstract class AbstractExportActionFactory<T> implements GroupActionFacto
         return source != null
             ? source.replaceAll("[\\\\/:*?\"<>|]", "_")
             : null;
+    }
+
+    @Autowired
+    public void setRecordsService(RecordsService recordsService) {
+        this.recordsService = recordsService;
+    }
+
+    @Autowired
+    public void setContentService(ContentService contentService) {
+        this.contentService = contentService;
+    }
+
+    @Autowired
+    public void setNodeService(NodeService nodeService) {
+        this.nodeService = nodeService;
     }
 
     class ExportAction extends BaseGroupAction<RecordRef> {

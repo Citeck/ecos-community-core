@@ -11,7 +11,6 @@ import ru.citeck.ecos.processor.report.ReportProducer;
 import ru.citeck.ecos.records3.record.atts.dto.RecordAtts;
 
 import java.io.ByteArrayOutputStream;
-import java.io.IOException;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -49,10 +48,10 @@ public class ExportCsvActionFactory extends AbstractExportActionFactory<ExportCs
 
     @Override
     protected int writeData(List<RecordAtts> nodesAttributes, int nextRowIndex, List<String> requestedAttributes, CsvEnvironment csvEnvironment) {
-        for (RecordAtts attribute : nodesAttributes) {
+        for (RecordAtts attributes : nodesAttributes) {
             csvEnvironment.getReportBuilder().append(requestedAttributes.stream()
                     .map(attributeName -> {
-                        DataValue attributeValue = attribute.getAtt(attributeName);
+                        DataValue attributeValue = attributes.getAtt(attributeName);
                         String url = attributeValue.get(ReportProducer.DATA_TYPE_HYPERLINK) != null ?
                             attributeValue.get(ReportProducer.DATA_TYPE_HYPERLINK).asText() :
                             null;
@@ -67,7 +66,7 @@ public class ExportCsvActionFactory extends AbstractExportActionFactory<ExportCs
     }
 
     @Override
-    protected void writeToStream(ByteArrayOutputStream outputStream, CsvEnvironment csvEnvironment) throws IOException {
+    protected void writeToStream(ByteArrayOutputStream outputStream, CsvEnvironment csvEnvironment) throws Exception {
         outputStream.write(csvEnvironment.getReportBuilder().toString().getBytes(encoding));
     }
 

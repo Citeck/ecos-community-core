@@ -7,6 +7,7 @@ import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.validator.routines.UrlValidator;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Component;
 import ru.citeck.ecos.commons.data.DataValue;
 import ru.citeck.ecos.records3.record.atts.dto.RecordAtts;
@@ -46,24 +47,24 @@ public class ExportHtmlActionFactory extends AbstractExportActionFactory<ExportH
     @Override
     protected HtmlEnvironment createEnvironment(GroupActionConfig config, List<String> requestedAttributes, List<String> columnTitles) throws Exception {
         mimeType = MIMETYPE;
-        URL templateUrl = Thread.currentThread().getContextClassLoader().getResource(FTL_TEMPLATE_PATH);
-        if (templateUrl == null) {
+        ClassPathResource classPathResource = new ClassPathResource(FTL_TEMPLATE_PATH);
+        if (classPathResource == null) {
             log.error("Failed to find export action template {}", config);
             return null;
         }
 
         HtmlEnvironment htmlEnvironment = new HtmlEnvironment(config);
         Configuration templateConfiguration = new Configuration();
-        String path = templateUrl.getPath();
         htmlEnvironment.setInnerStream(new ByteArrayOutputStream());
         try {
-            templateConfiguration.setDirectoryForTemplateLoading(new File(path));
+            templateConfiguration.setDirectoryForTemplateLoading(classPathResource.getFile());
             htmlEnvironment.setWriter(new OutputStreamWriter(htmlEnvironment.getInnerStream(), encoding));
         } catch (UnsupportedEncodingException e) {
             log.error("Failed to create export action {}", config, e);
             throw e;
         } catch (IOException e) {
             log.error("Failed to setup export action template configuration {}", config, e);
+            throw e;
         }
         htmlEnvironment.setTemplateConfiguration(templateConfiguration);
         htmlEnvironment.getTemplateParams().put(PARAM_REPORT_TITLE, config.getStrParam(PARAM_REPORT_TITLE));
@@ -79,15 +80,16 @@ public class ExportHtmlActionFactory extends AbstractExportActionFactory<ExportH
 
     @Override
     protected int writeData(List<RecordAtts> nodesAttributes, int nextRowIndex, List<String> requestedAttributes, HtmlEnvironment environment) {
-        if (environment.getWriter() == null)
+        if (environment.getWriter() == null) {
             return nextRowIndex;
+        }
         environment.getTemplateParams().put(PARAM_ROW_IDX, nextRowIndex);
         List<List<NodeDef>> nodesData = new ArrayList<>();
-        for (RecordAtts attribute : nodesAttributes) {
+        for (RecordAtts attributes : nodesAttributes) {
             List<NodeDef> rowData = new ArrayList<>();
             for (int attIdx = 0; attIdx < requestedAttributes.size(); attIdx++) {
                 String attributeName = requestedAttributes.get(attIdx);
-                DataValue dataValue = attribute.getAtt(attributeName);
+                DataValue dataValue = attributes.getAtt(attributeName);
                 String url = null;
                 if (dataValue.isTextual() && UrlValidator.getInstance().isValid(dataValue.asText())) {
                     try {
@@ -112,7 +114,7 @@ public class ExportHtmlActionFactory extends AbstractExportActionFactory<ExportH
     }
 
     @Override
-    protected void writeToStream(ByteArrayOutputStream outputStream, HtmlEnvironment environment) throws IOException {
+    protected void writeToStream(ByteArrayOutputStream outputStream, HtmlEnvironment environment) throws Exception {
         if (environment.getWriter() == null) {
             return;
         }
@@ -121,12 +123,13 @@ public class ExportHtmlActionFactory extends AbstractExportActionFactory<ExportH
             headerTemplate.process(environment.getTemplateParams(), environment.getWriter());
         } catch (TemplateException e) {
             log.error(ERROR_MSG, environment.getConfig(), e);
+            throw e;
         }
         environment.getInnerStream().writeTo(outputStream);
         environment.getInnerStream().close();
     }
 
-    private void createColumnTitlesRow(HtmlEnvironment htmlEnvironment) {
+    private void createColumnTitlesRow(HtmlEnvironment htmlEnvironment) throws Exception {
         if (htmlEnvironment.getWriter() == null) {
             return;
         }
@@ -135,6 +138,7 @@ public class ExportHtmlActionFactory extends AbstractExportActionFactory<ExportH
             headerTemplate.process(htmlEnvironment.getTemplateParams(), htmlEnvironment.getWriter());
         } catch (TemplateException | IOException e) {
             log.error(ERROR_MSG, htmlEnvironment.getConfig(), e);
+            throw e;
         }
     }
 
