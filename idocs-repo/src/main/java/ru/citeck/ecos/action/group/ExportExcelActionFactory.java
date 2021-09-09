@@ -1,11 +1,13 @@
 package ru.citeck.ecos.action.group;
 
+import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.validator.routines.UrlValidator;
 import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
 import org.apache.poi.ss.usermodel.*;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import ru.citeck.ecos.commons.data.DataValue;
@@ -23,15 +25,15 @@ import java.util.List;
  */
 @Slf4j
 @Component
-public class ExportExcelActionFactory extends AbstractExportActionFactory<ExcelEnvironment> {
-    private static final String ACTION_ID = "download-xlsx-report-action";
+public class ExportExcelActionFactory extends AbstractExportActionFactory<ExportExcelActionFactory.ExcelEnvironment> {
+    private static final String ACTION_ID = "download-report-xlsx-action";
     private static final String MIMETYPE = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
 
-    @Autowired
+/*    @Autowired
     public ExportExcelActionFactory(GroupActionService groupActionService) {
         mimeType = MIMETYPE;
         groupActionService.register(this);
-    }
+    }*/
 
     @Override
     public String getActionId() {
@@ -40,6 +42,7 @@ public class ExportExcelActionFactory extends AbstractExportActionFactory<ExcelE
 
     @Override
     protected ExcelEnvironment createEnvironment(GroupActionConfig config, List<String> requestedAttributes, List<String> columnTitles) {
+        mimeType = MIMETYPE;
         Workbook workbook = null;
         String templatePath = config.getStrParam(PARAM_TEMPLATE);
         if (StringUtils.isBlank(templatePath)) {
@@ -58,7 +61,7 @@ public class ExportExcelActionFactory extends AbstractExportActionFactory<ExcelE
             }
         }
         if (workbook == null) {
-            workbook = ExcelEnvironment.createDefaultWorkbook();
+            workbook = createDefaultWorkbook();
         }
         int sheetIdx = 0;
         Sheet sheet = workbook.getSheetAt(sheetIdx);
@@ -74,7 +77,9 @@ public class ExportExcelActionFactory extends AbstractExportActionFactory<ExcelE
         }
         createColumnTitlesRow(columnTitles, workbook, sheet);
 
-        return new ExcelEnvironment(workbook, sheet);
+        ExcelEnvironment excelEnvironment = new ExcelEnvironment(workbook, sheet);
+        createCellStyles(excelEnvironment);
+        return excelEnvironment;
     }
 
     @Override
@@ -136,6 +141,59 @@ public class ExportExcelActionFactory extends AbstractExportActionFactory<ExcelE
             Cell cell = row.createCell(idx);
             cell.setCellStyle(titleCellStyle);
             cell.setCellValue(columnTitles.get(idx) != null ? columnTitles.get(idx) : "");
+        }
+    }
+
+    private void createCellStyles(ExcelEnvironment environment) {
+        CellStyle valueCellStyle = environment.getWorkbook().createCellStyle();
+        CellStyle doubleCellStyle = environment.getWorkbook().createCellStyle();
+        DataFormat dataFormat = environment.getWorkbook().createDataFormat();
+        doubleCellStyle.setDataFormat(dataFormat.getFormat("0.0"));
+
+        Row sourceRow = environment.getSheet().getRow(1);
+        if (sourceRow != null) {
+            Cell formatCell = sourceRow.getCell(0);
+            valueCellStyle.cloneStyleFrom(formatCell.getCellStyle());
+            doubleCellStyle.cloneStyleFrom(formatCell.getCellStyle());
+        }
+        valueCellStyle.setWrapText(true);
+        valueCellStyle.setVerticalAlignment(CellStyle.VERTICAL_CENTER);
+
+        environment.setValueCellStyle(valueCellStyle);
+        environment.setDoubleCellStyle(doubleCellStyle);
+    }
+
+    public static Workbook createDefaultWorkbook() {
+        Workbook defaultWorkbook = new XSSFWorkbook();
+        Sheet sheet = defaultWorkbook.createSheet();
+        Row row = sheet.createRow(0);
+        CellStyle headerStyle = defaultWorkbook.createCellStyle();
+        headerStyle.setFillForegroundColor(IndexedColors.SKY_BLUE.getIndex());
+        headerStyle.setFillPattern(CellStyle.SOLID_FOREGROUND);
+        headerStyle.setAlignment(CellStyle.ALIGN_CENTER);
+        Font font = defaultWorkbook.createFont();
+        font.setFontName("Arial");
+        font.setFontHeightInPoints((short) 14);
+        font.setBoldweight(Font.BOLDWEIGHT_BOLD);
+        headerStyle.setFont(font);
+        Cell headerCell = row.createCell(0);
+        headerCell.setCellStyle(headerStyle);
+        return defaultWorkbook;
+    }
+
+    /**
+     * Objects necessary for export to Excel-file
+     */
+    @Data
+    public class ExcelEnvironment {
+        private Workbook workbook;
+        private Sheet sheet;
+        private CellStyle valueCellStyle;
+        private CellStyle doubleCellStyle;
+
+        public ExcelEnvironment(Workbook workbook, Sheet sheet) {
+            this.workbook = workbook;
+            this.sheet = sheet;
         }
     }
 }
