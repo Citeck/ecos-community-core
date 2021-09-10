@@ -47,7 +47,7 @@ public enum Feature {
     @XmlEnumValue("default")
     DEFAULT("default"),
     @XmlEnumValue("mandatory-on-protected")
-    VALID_ON_PROTECTED("mandatory-on-protected"),
+    MANDATORY_ON_PROTECTED("mandatory-on-protected"),
     @XmlEnumValue("mandatory")
     MANDATORY("mandatory"),
     @XmlEnumValue("protected")
