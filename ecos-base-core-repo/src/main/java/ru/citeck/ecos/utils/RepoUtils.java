@@ -47,8 +47,7 @@ public class RepoUtils {
 
     private static final Log LOGGER = LogFactory.getLog(RepoUtils.class);
 
-    private static final String DOWNLOAD_API_PREFIX = "/api/node/content/workspace/SpacesStore/";
-    private static final String DOWNLOAD_API_SUFFIX = "/content;cm:content";
+    private static final String DOWNLOAD_API_PREFIX = "/citeck/print/content?nodeRef=workspace://SpacesStore/";
     private static QName PROP_FILE_NAME = QName.createQName(NamespaceService.CONTENT_MODEL_1_0_URI, "filename");
 
     private static NodeUtils nodeUtils;
@@ -70,7 +69,7 @@ public class RepoUtils {
 
         if (nodeRef == null || name == null || nodeService == null)
             throw new IllegalArgumentException("One of required parameters are not specified. nodeRef=" + nodeRef
-                    + "; name=" + name + "; nodeService=" + nodeService);
+                + "; name=" + name + "; nodeService=" + nodeService);
         if (!nodeService.exists(nodeRef))
             throw new IllegalArgumentException("Specified node reference is not exist. nodeRef=" + nodeRef);
         Serializable object = nodeService.getProperty(nodeRef, name);
@@ -94,7 +93,7 @@ public class RepoUtils {
 
         if (nodeRef == null || name == null || nodeService == null)
             throw new IllegalArgumentException("One of required parameters are not specified. nodeRef=" + nodeRef
-                    + "; name=" + name + "; nodeService=" + nodeService);
+                + "; name=" + name + "; nodeService=" + nodeService);
         if (!nodeService.exists(nodeRef))
             throw new IllegalArgumentException("Specified node reference is not exist. nodeRef=" + nodeRef);
         Serializable object = nodeService.getProperty(nodeRef, name);
@@ -134,7 +133,7 @@ public class RepoUtils {
         QName assocName = QName.createQNameWithValidLocalName(NamespaceService.CONTENT_MODEL_1_0_URI, name);
         Map<QName, Serializable> properties = Collections.singletonMap(ContentModel.PROP_NAME, name);
         ChildAssociationRef folderRef = nodeService.createNode(parentNode, assocType, assocName, ContentModel.TYPE_FOLDER,
-                properties);
+            properties);
         return folderRef.getChildRef();
     }
 
@@ -151,10 +150,10 @@ public class RepoUtils {
     public static NodeRef createChildWithName(NodeRef parentRef, QName assocQName, QName typeQName, String childName,
                                               NodeService nodeService) {
         ChildAssociationRef childAssoc = nodeService.createNode(parentRef,
-                assocQName,
-                QName.createQName(NamespaceService.CONTENT_MODEL_1_0_URI, QName.createValidLocalName(childName)),
-                typeQName,
-                Collections.singletonMap(ContentModel.PROP_NAME, childName));
+            assocQName,
+            QName.createQName(NamespaceService.CONTENT_MODEL_1_0_URI, QName.createValidLocalName(childName)),
+            typeQName,
+            Collections.singletonMap(ContentModel.PROP_NAME, childName));
         return childAssoc.getChildRef();
     }
 
@@ -175,9 +174,9 @@ public class RepoUtils {
     public static NodeRef createChildWithQName(NodeRef parentRef, QName assocQName, QName typeQName, QName childQName,
                                                NodeService nodeService) {
         ChildAssociationRef childAssoc = nodeService.createNode(parentRef,
-                assocQName,
-                childQName,
-                typeQName);
+            assocQName,
+            childQName,
+            typeQName);
         return childAssoc.getChildRef();
     }
 
@@ -236,11 +235,11 @@ public class RepoUtils {
      */
     public static void getPrimaryParents(NodeRef nodeRef, NodeRef parentRef, QName assocType, List<NodeRef> parents,
                                          NodeService nodeService)
-            throws AlfrescoRuntimeException {
+        throws AlfrescoRuntimeException {
 
         if (!hasParent(nodeRef, parentRef, assocType, true, nodeService))
             throw new AlfrescoRuntimeException("Specified nodeRef and parentRef are not in the one primary hierarchy " +
-                    "tree. nodeRef=" + nodeRef + ", parentRef=" + parentRef);
+                "tree. nodeRef=" + nodeRef + ", parentRef=" + parentRef);
 
         ChildAssociationRef parentAssoc = nodeService.getPrimaryParent(nodeRef);
         if (parentAssoc == null)
@@ -328,7 +327,7 @@ public class RepoUtils {
     public static String getUniqueName(NodeRef nodeRef, String nameWithoutExt, String extension, NodeService nodeService) {
         ChildAssociationRef parentAssoc = nodeService.getPrimaryParent(nodeRef);
         return getUniqueName(parentAssoc.getParentRef(), parentAssoc.getTypeQName(), nodeRef, nameWithoutExt, extension,
-                nodeService);
+            nodeService);
     }
 
     public static String getUniqueName(NodeRef parentRef, QName parentAssoc, NodeRef nodeRef, String nameWithoutExt,
@@ -337,7 +336,7 @@ public class RepoUtils {
         String newNameWithIndex = nameWithoutExt + extension;
         NodeRef nr;
         while ((nr = nodeService.getChildByName(parentRef, parentAssoc, newNameWithIndex)) != null
-                && !nodeRef.equals(nr)) {
+            && !nodeRef.equals(nr)) {
             index++;
             newNameWithIndex = nameWithoutExt + " (" + index + ")" + extension;
         }
@@ -386,7 +385,7 @@ public class RepoUtils {
 
         if (nodeRef == null || type == null || nodeService == null) {
             throw new IllegalArgumentException("One of required parameters are not specified. nodeRef=" + nodeRef
-                    + "; type=" + type + "; nodeService=" + nodeService);
+                + "; type=" + type + "; nodeService=" + nodeService);
         }
 
         if (!nodeService.exists(nodeRef)) {
@@ -417,7 +416,7 @@ public class RepoUtils {
 
         if (nodeRef == null || assocTypeQName == null || nodeService == null) {
             throw new IllegalArgumentException("One of required parameters are not specified. nodeRef=" + nodeRef
-                    + "; assocTypeQName=" + assocTypeQName + "; nodeService=" + nodeService);
+                + "; assocTypeQName=" + assocTypeQName + "; nodeService=" + nodeService);
         }
 
         if (!nodeService.exists(nodeRef)) {
@@ -448,7 +447,7 @@ public class RepoUtils {
 
         if (nodeRef == null || assocTypeQName == null || nodeService == null) {
             throw new IllegalArgumentException("One of required parameters are not specified. nodeRef=" + nodeRef
-                    + "; assocTypeQName=" + assocTypeQName + "; nodeService=" + nodeService);
+                + "; assocTypeQName=" + assocTypeQName + "; nodeService=" + nodeService);
         }
 
         if (!nodeService.exists(nodeRef)) {
@@ -479,7 +478,7 @@ public class RepoUtils {
 
         if (nodeRef == null || assocTypeQName == null || nodeService == null) {
             throw new IllegalArgumentException("One of required parameters are not specified. nodeRef=" + nodeRef
-                    + "; assocTypeQName=" + assocTypeQName + "; nodeService=" + nodeService);
+                + "; assocTypeQName=" + assocTypeQName + "; nodeService=" + nodeService);
         }
 
         if (!nodeService.exists(nodeRef)) {
@@ -507,7 +506,7 @@ public class RepoUtils {
 
         if (nodeRef == null || nodeService == null) {
             throw new IllegalArgumentException("One of required parameters are not specified. nodeRef=" + nodeRef
-                    + "; nodeService=" + nodeService);
+                + "; nodeService=" + nodeService);
         }
 
         if (!nodeService.exists(nodeRef)) {
@@ -531,7 +530,7 @@ public class RepoUtils {
 
         if (nodeRef == null || nodeService == null) {
             throw new IllegalArgumentException("One of required parameters are not specified. nodeRef=" + nodeRef
-                    + "; nodeService=" + nodeService);
+                + "; nodeService=" + nodeService);
         }
 
         if (!nodeService.exists(nodeRef)) {
@@ -560,8 +559,8 @@ public class RepoUtils {
 
         if (nodeRef == null || nodeService == null || assocTypeQName == null) {
             throw new IllegalArgumentException("One of required parameters are not specified. nodeRef=" + nodeRef
-                    + "; assocTypeQName="
-                    + assocTypeQName + "; nodeService=" + nodeService);
+                + "; assocTypeQName="
+                + assocTypeQName + "; nodeService=" + nodeService);
         }
 
         if (!nodeService.exists(nodeRef)) {
@@ -592,8 +591,8 @@ public class RepoUtils {
 
         if (nodeRef == null || nodeService == null || assocTypeQName == null) {
             throw new IllegalArgumentException("One of required parameters are not specified. nodeRef=" + nodeRef
-                    + "; assocTypeQName="
-                    + assocTypeQName + "; nodeService=" + nodeService);
+                + "; assocTypeQName="
+                + assocTypeQName + "; nodeService=" + nodeService);
         }
 
         if (!nodeService.exists(nodeRef)) {
@@ -610,9 +609,9 @@ public class RepoUtils {
     }
 
     /**
-     * @param nodeRef        - nodeRef
+     * @param nodeRef             - nodeRef
      * @param childAssocTypeQName - name of child association
-     * @param nodeService    - node service
+     * @param nodeService         - node service
      * @return first nodeRef of child association by assocTypeQName, if passed
      * nodeRef does not have source association returns null;
      * @throws IllegalArgumentException it throws this exception when required parameters are not
@@ -621,8 +620,8 @@ public class RepoUtils {
     public static NodeRef getFirstChildAssoc(NodeRef nodeRef, QName childAssocTypeQName, NodeService nodeService) {
         if (nodeRef == null || nodeService == null || childAssocTypeQName == null) {
             throw new IllegalArgumentException("One of required parameters are not specified. nodeRef=" + nodeRef
-                    + "; childAssocTypeQName="
-                    + childAssocTypeQName + "; nodeService=" + nodeService);
+                + "; childAssocTypeQName="
+                + childAssocTypeQName + "; nodeService=" + nodeService);
         }
 
         if (!nodeService.exists(nodeRef)) {
@@ -630,8 +629,8 @@ public class RepoUtils {
         }
 
         List<ChildAssociationRef> childs = nodeService.getChildAssocs(nodeRef,
-                childAssocTypeQName,
-                RegexQNamePattern.MATCH_ALL);
+            childAssocTypeQName,
+            RegexQNamePattern.MATCH_ALL);
 
         if (childs.isEmpty()) {
             return null;
@@ -655,8 +654,8 @@ public class RepoUtils {
         NodeRef userHome = (NodeRef) nodeService.getProperty(person, ContentModel.PROP_HOMEFOLDER);
         NodeRef rootHome = nodeService.getRootNode(StoreRef.STORE_REF_WORKSPACE_SPACESSTORE);
         List<ChildAssociationRef> childAssocs = nodeService.getChildAssocs(rootHome,
-                ContentModel.ASSOC_CHILDREN,
-                QName.createQName(NamespaceService.APP_MODEL_1_0_URI, "company_home"));
+            ContentModel.ASSOC_CHILDREN,
+            QName.createQName(NamespaceService.APP_MODEL_1_0_URI, "company_home"));
         if (childAssocs.size() != 1) {
             throw new IllegalStateException("Could not find company home: " + childAssocs.size() + " results");
         }
@@ -711,23 +710,23 @@ public class RepoUtils {
     public static void setAssocs(NodeRef nodeRef, Map<QName, List<NodeRef>> assocs, boolean isTarget, boolean full,
                                  NodeService nodeService, AssociationIndexing associationIndexing) {
         Map<QName, List<NodeRef>> existingAssocs = isTarget
-                ? getTargetAssocs(nodeRef, nodeService)
-                : getSourceAssocs(nodeRef, nodeService);
+            ? getTargetAssocs(nodeRef, nodeService)
+            : getSourceAssocs(nodeRef, nodeService);
 
         // walk through assocs, that we should add
         for (Map.Entry<QName, List<NodeRef>> entry : assocs.entrySet()) {
             QName name = entry.getKey();
             Set<NodeRef> nodesToLink = new HashSet<>(entry.getValue());
             List<NodeRef> linkedNodes = existingAssocs.containsKey(name)
-                    ? existingAssocs.get(name)
-                    : Collections.emptyList();
+                ? existingAssocs.get(name)
+                : Collections.emptyList();
 
             // delete existing assocs
             if (linkedNodes != null) {
                 for (NodeRef linkedNode : linkedNodes) {
                     if (!nodesToLink.contains(linkedNode)) {
                         removeAssociation(nodeRef, linkedNode, name, isTarget,
-                                nodeService);
+                            nodeService);
                     }
                 }
             }
@@ -767,9 +766,9 @@ public class RepoUtils {
             }
         } catch (InvalidNodeRefException e) {
             LOGGER.error(
-                    String.format("Error while creating association: nodeRef=%s, nodeToLink=%s, name=%s, isTarget=%b",
-                            nodeRef, nodeToLink, name, isTarget),
-                    e);
+                String.format("Error while creating association: nodeRef=%s, nodeToLink=%s, name=%s, isTarget=%b",
+                    nodeRef, nodeToLink, name, isTarget),
+                e);
             throw e;
         }
     }
@@ -788,15 +787,15 @@ public class RepoUtils {
             }
         } catch (InvalidNodeRefException e) {
             LOGGER.error(
-                    String.format("Error while removing association: nodeRef=%s, nodeToLink=%s, name=%s, isTarget=%b",
-                            nodeRef, linkedNode, name, isTarget),
-                    e);
+                String.format("Error while removing association: nodeRef=%s, nodeToLink=%s, name=%s, isTarget=%b",
+                    nodeRef, linkedNode, name, isTarget),
+                e);
             throw e;
         }
     }
 
     public static Map<QName, Object> convertStringMapToQNameMap(
-            Map<?, ?> stringMap, NamespacePrefixResolver prefixResolver) {
+        Map<?, ?> stringMap, NamespacePrefixResolver prefixResolver) {
         Map<QName, Object> qnameMap = new HashMap<>(stringMap.size());
         for (Map.Entry<?, ?> entry : stringMap.entrySet()) {
             Object key = entry.getKey();
@@ -840,7 +839,7 @@ public class RepoUtils {
             Set<NodeRef> newChildren = new HashSet<>(entry.getValue());
 
             List<ChildAssociationRef> oldChildAssocs = nodeService.getChildAssocs(nodeRef, assocName,
-                    RegexQNamePattern.MATCH_ALL);
+                RegexQNamePattern.MATCH_ALL);
             Set<NodeRef> oldChildren = new HashSet<>(oldChildAssocs.size());
             for (ChildAssociationRef childAssoc : oldChildAssocs) {
                 oldChildren.add(childAssoc.getChildRef());
@@ -902,7 +901,7 @@ public class RepoUtils {
             return false;
         }
         return clazz.isAspect() ? nodeService.hasAspect(nodeRef, className) :
-                dictionaryService.isSubClass(nodeService.getType(nodeRef), className);
+            dictionaryService.isSubClass(nodeService.getType(nodeRef), className);
     }
 
     public static boolean isAssociated(NodeRef sourceRef, NodeRef targetRef, QName assocType, NodeService nodeService) {
@@ -941,9 +940,9 @@ public class RepoUtils {
     }
 
     public static Map<NodeRef, ChildAssociationRef> getChildAssociationMap(
-            NodeRef nodeRef, QName assocName, NodeService nodeService) {
+        NodeRef nodeRef, QName assocName, NodeService nodeService) {
         List<ChildAssociationRef> childAssocs = nodeService.getChildAssocs(nodeRef,
-                assocName, RegexQNamePattern.MATCH_ALL);
+            assocName, RegexQNamePattern.MATCH_ALL);
         Map<NodeRef, ChildAssociationRef> childAssocMap = new HashMap<>(childAssocs.size());
         for (ChildAssociationRef assoc : childAssocs) {
             childAssocMap.put(assoc.getChildRef(), assoc);
@@ -975,7 +974,7 @@ public class RepoUtils {
     public static <T extends Serializable> T getProperty(NodeRef nodeRef, QName qName, Class<T> clazz, NodeService nodeService) {
         if (nodeRef == null || qName == null || nodeService == null || clazz == null)
             throw new IllegalArgumentException("One of required parameters are not specified. nodeRef=" + nodeRef
-                    + "; qName=" + qName + "; nodeService=" + nodeService + "; class=" + clazz);
+                + "; qName=" + qName + "; nodeService=" + nodeService + "; class=" + clazz);
         if (!nodeService.exists(nodeRef))
             throw new IllegalArgumentException("Specified node reference is not exist. nodeRef=" + nodeRef);
 
@@ -989,7 +988,7 @@ public class RepoUtils {
     public static <T extends Serializable> T getProperty(Map<QName, Serializable> properties, QName qName, Class<T> clazz) {
         if (properties == null || qName == null || clazz == null)
             throw new IllegalArgumentException("One of required parameters are not specified. properties=" + properties
-                    + "; qName=" + qName + "; clazz=" + clazz);
+                + "; qName=" + qName + "; clazz=" + clazz);
 
         Serializable serializable = properties.get(qName);
         if (serializable == null) {
@@ -998,13 +997,26 @@ public class RepoUtils {
         return clazz.cast(serializable);
     }
 
+    /**
+     * Compute URL for downloading data from node on client side
+     * @deprecated This method is no longer acceptable to get downloading URL.
+     * <p> Use {@link #getDownloadURL(NodeRef)} instead.
+     * @param nodeRef node contains data for downloading
+     * @param nodeService do not use
+     * @return URL for downloading on client side
+     */
+    @Deprecated
     public static String getDownloadURL(NodeRef nodeRef, NodeService nodeService) {
-        Object fileName = nodeService.getProperty(nodeRef, PROP_FILE_NAME);
-        String downloadURL = DOWNLOAD_API_PREFIX + nodeRef.getId() + DOWNLOAD_API_SUFFIX;
-        if (fileName != null) {
-            downloadURL = DOWNLOAD_API_PREFIX + nodeRef.getId() + "/" + fileName.toString();
-        }
-        return downloadURL;
+        return DOWNLOAD_API_PREFIX + nodeRef.getId();
+    }
+
+    /**
+     * Compute URL for downloading data from node on client side
+     * @param nodeRef node contains data for downloading
+     * @return URL for downloading data on client side
+     */
+    public static String getDownloadURL(NodeRef nodeRef) {
+        return DOWNLOAD_API_PREFIX + nodeRef.getId();
     }
 
     /**
@@ -1056,27 +1068,27 @@ public class RepoUtils {
     }
 
     public static void removeSourceAssocs(NodeRef nodeRef, List<QName> assocQNames, NodeService nodeService) {
-        for (QName assocQName: assocQNames) {
+        for (QName assocQName : assocQNames) {
             removeSourceAssocs(nodeRef, assocQName, nodeService);
         }
     }
 
     public static void removeSourceAssocs(NodeRef nodeRef, QName assocQName, NodeService nodeService) {
         List<NodeRef> sourceNodeRefs = getSourceNodeRefs(nodeRef, assocQName, nodeService);
-        for (NodeRef sourceNodeRef: sourceNodeRefs) {
+        for (NodeRef sourceNodeRef : sourceNodeRefs) {
             removeAssociation(nodeRef, sourceNodeRef, assocQName, false, nodeService);
         }
     }
 
     public static void removeTargetAssocs(NodeRef nodeRef, List<QName> assocQNames, NodeService nodeService) {
-        for (QName assocQName: assocQNames) {
+        for (QName assocQName : assocQNames) {
             removeTargetAssocs(nodeRef, assocQName, nodeService);
         }
     }
 
     public static void removeTargetAssocs(NodeRef nodeRef, QName assocQName, NodeService nodeService) {
         List<NodeRef> targetNodeRefs = getTargetNodeRefs(nodeRef, assocQName, nodeService);
-        for (NodeRef targetNodeRef: targetNodeRefs) {
+        for (NodeRef targetNodeRef : targetNodeRefs) {
             removeAssociation(nodeRef, targetNodeRef, assocQName, true, nodeService);
         }
     }
