@@ -2,7 +2,7 @@
   "id": "371ed260-be3f-4dbb-8d54-3f86f5bca8de",
   "title": "Perform task form",
   "description": "",
-  "formKey": "alf_wfperf:performTask",
+  "formKey": "wfperf:performTask",
   "formMode": null,
   "customModule": null,
   "definition": {
