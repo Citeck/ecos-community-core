@@ -34,6 +34,7 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static ru.citeck.ecos.utils.WorkflowConstants.VAR_TASK_ORIGINAL_OWNER;
 
@@ -199,10 +200,7 @@ public class WorkflowUtils {
         return getDocumentTasks(RecordRef.create("", nodeRef.toString()), active, engine);
     }
 
-    /**
-     * @return list of document task. Filtered from prefix {@link WorkflowUtils#TASK_START_PREFIX}
-     */
-    public List<WorkflowTask> getDocumentTasks(RecordRef recordRef, boolean active, String engine) {
+    public List<WorkflowInstance> getDocumentWorkflows(RecordRef recordRef, Boolean active, String engine) {
 
         List<WorkflowInstance> workflows = Collections.emptyList();
 
@@ -214,11 +212,11 @@ public class WorkflowUtils {
         } else {
 
             NodeRef packageRef = FTSQuery.create()
-                .type(WorkflowModel.TYPE_PACKAGE).and()
-                .exact(CiteckWorkflowModel.PROP_DOCUMENT_PROP, recordRef.toString())
-                .transactional()
-                .queryOne(searchService)
-                .orElse(null);
+                    .type(WorkflowModel.TYPE_PACKAGE).and()
+                    .exact(CiteckWorkflowModel.PROP_DOCUMENT_PROP, recordRef.toString())
+                    .transactional()
+                    .queryOne(searchService)
+                    .orElse(null);
 
             if (packageRef == null) {
                 return Collections.emptyList();
@@ -235,11 +233,26 @@ public class WorkflowUtils {
         }
 
         if (StringUtils.isNotBlank(engine)) {
-            String enginePrefix = engine + "$";
-            workflows = workflows.stream()
-                .filter(workflow -> workflow.getId().startsWith(enginePrefix))
-                .collect(Collectors.toList());
+            Stream<WorkflowInstance> workflowsStream = workflows.stream();
+            if (!engine.isEmpty()) {
+                String enginePrefix = engine + "$";
+                workflowsStream = workflowsStream.filter(workflow -> workflow.getId().startsWith(enginePrefix));
+            }
+            if (active != null) {
+                workflowsStream = workflowsStream.filter(workflow -> workflow.isActive() == active);
+            }
+            workflows = workflowsStream.collect(Collectors.toList());
         }
+
+        return workflows;
+    }
+
+    /**
+     * @return list of document task. Filtered from prefix {@link WorkflowUtils#TASK_START_PREFIX}
+     */
+    public List<WorkflowTask> getDocumentTasks(RecordRef recordRef, boolean active, String engine) {
+
+        List<WorkflowInstance> workflows = getDocumentWorkflows(recordRef, active, engine);
 
         List<WorkflowTask> tasks = new LinkedList<>();
 
@@ -263,7 +276,7 @@ public class WorkflowUtils {
             return results;
         }
 
-        @SuppressWarnings({"unchecked", "rawtypes"})
+        @SuppressWarnings({"unchecked"})
         List<NodeRef> pooledActors = (List<NodeRef>) task.getProperties().get(WorkflowModel.ASSOC_POOLED_ACTORS);
         if (CollectionUtils.isEmpty(pooledActors)) {
             return results;
