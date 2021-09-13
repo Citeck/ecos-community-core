@@ -53,6 +53,9 @@ public abstract class AbstractExportActionFactory<T> implements GroupActionFacto
     protected static final String REPORT = "Report";
     protected static final NodeRef ROOT_NODE_REF = new NodeRef("workspace://SpacesStore/attachments-root");
 
+    public AbstractExportActionFactory() {
+    }
+
     @PostConstruct
     protected void register() {
         if (groupActionService != null) {
@@ -62,7 +65,9 @@ public abstract class AbstractExportActionFactory<T> implements GroupActionFacto
 
     @Override
     public ExportAction createAction(GroupActionConfig config) {
-        return new ExportAction(config);
+        GroupActionConfig localConfig = new GroupActionConfig(config);
+        localConfig.setAsync(false);
+        return new ExportAction(localConfig);
     }
 
     /**
@@ -72,7 +77,7 @@ public abstract class AbstractExportActionFactory<T> implements GroupActionFacto
      * @param requestedAttributes attributes requested by action settings for export @see ReportColumnDef
      * @param columnTitles        Column titles which export file must provide @see ReportColumnDef
      * @return environment object with default settings
-     * @throws Exception
+     * @throws Exception which can occur during the environment initialization
      */
     protected abstract T createEnvironment(GroupActionConfig config, List<String> requestedAttributes, List<String> columnTitles) throws Exception;
 
@@ -90,10 +95,6 @@ public abstract class AbstractExportActionFactory<T> implements GroupActionFacto
 
     /**
      * Writes collected data to output stream at the end of the export
-     *
-     * @param outputStream
-     * @param environment
-     * @throws Exception
      */
     protected abstract void writeToStream(ByteArrayOutputStream outputStream, T environment) throws Exception;
 
@@ -118,6 +119,10 @@ public abstract class AbstractExportActionFactory<T> implements GroupActionFacto
         this.nodeService = nodeService;
     }
 
+    public void setGroupActionService(GroupActionService groupActionService) {
+        this.groupActionService = groupActionService;
+    }
+
     class ExportAction extends BaseGroupAction<RecordRef> {
         /**
          * Attributes requested by action settings for export
@@ -132,7 +137,7 @@ public abstract class AbstractExportActionFactory<T> implements GroupActionFacto
          */
         protected List<String> columnTitles = new ArrayList<>();
 
-        private T environment;
+        private final T environment;
         private int nodesRowIdx = 1;
 
         public ExportAction(GroupActionConfig config) {
@@ -172,6 +177,7 @@ public abstract class AbstractExportActionFactory<T> implements GroupActionFacto
                 log.warn("Requested attribute list is empty");
                 return;
             }
+
             List<RecordAtts> nodesAttributes = recordsService.getAtts(nodes, requestedAttributes);
             nodesRowIdx = writeData(nodesAttributes, nodesRowIdx, requestedAttributes, environment);
         }
@@ -185,7 +191,7 @@ public abstract class AbstractExportActionFactory<T> implements GroupActionFacto
             }
             try (ByteArrayOutputStream outputStream = new ByteArrayOutputStream()) {
                 writeToStream(outputStream, environment);
-                List<ActionResult<RecordRef>> actionResultList = createContentNode(outputStream, ROOT_NODE_REF);
+                List<ActionResult<RecordRef>> actionResultList = createContentNode(outputStream);
                 onProcessed(actionResultList);
             } catch (Exception e) {
                 log.error("Failed to write file. {}", config, e);
@@ -194,13 +200,12 @@ public abstract class AbstractExportActionFactory<T> implements GroupActionFacto
             }
         }
 
-        protected List<ActionResult<RecordRef>> createContentNode(ByteArrayOutputStream byteArrayOutputStream,
-                                                                  NodeRef parentRef) {
-            Map<QName, Serializable> props = new HashMap(1);
+        protected List<ActionResult<RecordRef>> createContentNode(ByteArrayOutputStream byteArrayOutputStream) {
+            Map<QName, Serializable> props = new HashMap<>(1);
             String name = GUID.generate();
             props.put(ContentModel.PROP_NAME, name);
 
-            NodeRef contentNode = nodeService.createNode(parentRef, ContentModel.ASSOC_CHILDREN,
+            NodeRef contentNode = nodeService.createNode(ROOT_NODE_REF, ContentModel.ASSOC_CHILDREN,
                 QName.createQName(NamespaceService.CONTENT_MODEL_1_0_URI, name),
                 ContentModel.TYPE_CONTENT, props).getChildRef();
             ActionStatus groupActionStatus;
@@ -211,12 +216,12 @@ public abstract class AbstractExportActionFactory<T> implements GroupActionFacto
                 writer.putContent(byteArrayInputStream);
                 groupActionStatus = ActionStatus.ok();
             } catch (Exception e) {
-                log.error("Failed to write node content. {} " + config, e);
+                log.error("Failed to write node content. {} ", config, e);
                 groupActionStatus = ActionStatus.error(e);
             }
             String statusUrl = RepoUtils.getDownloadURL(contentNode).substring(1);
             groupActionStatus.setUrl(statusUrl);
-            ActionResult<RecordRef> groupActionResult = new ActionResult(
+            ActionResult<RecordRef> groupActionResult = new ActionResult<>(
                 RecordRef.valueOf("Document"),
                 groupActionStatus);
             return Collections.singletonList(groupActionResult);
