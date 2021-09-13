@@ -232,17 +232,15 @@ public class WorkflowUtils {
             return Collections.emptyList();
         }
 
+        Stream<WorkflowInstance> workflowsStream = workflows.stream();
         if (StringUtils.isNotBlank(engine)) {
-            Stream<WorkflowInstance> workflowsStream = workflows.stream();
-            if (!engine.isEmpty()) {
-                String enginePrefix = engine + "$";
-                workflowsStream = workflowsStream.filter(workflow -> workflow.getId().startsWith(enginePrefix));
-            }
-            if (active != null) {
-                workflowsStream = workflowsStream.filter(workflow -> workflow.isActive() == active);
-            }
-            workflows = workflowsStream.collect(Collectors.toList());
+            String enginePrefix = engine + "$";
+            workflowsStream = workflowsStream.filter(workflow -> workflow.getId().startsWith(enginePrefix));
         }
+        if (active != null) {
+            workflowsStream = workflowsStream.filter(workflow -> workflow.isActive() == active);
+        }
+        workflows = workflowsStream.collect(Collectors.toList());
 
         return workflows;
     }
