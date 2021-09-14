@@ -1,7 +1,11 @@
 package ru.citeck.ecos.flowable.email;
 
+import lombok.extern.slf4j.Slf4j;
 import org.alfresco.repo.security.authentication.AuthenticationUtil;
 import org.apache.commons.lang3.StringUtils;
+import org.flowable.bpmn.model.FieldExtension;
+import org.flowable.bpmn.model.FlowElement;
+import org.flowable.bpmn.model.TaskWithFieldExtensions;
 import org.flowable.engine.delegate.DelegateExecution;
 import org.flowable.engine.impl.bpmn.behavior.email.FlowableEmailSender;
 import org.flowable.engine.impl.bpmn.behavior.email.SendEmailDto;
@@ -17,6 +21,7 @@ import ru.citeck.ecos.records2.RecordRef;
 
 import java.util.*;
 
+@Slf4j
 @Component
 public class FlowableEmailSenderImpl implements FlowableEmailSender {
 
@@ -35,6 +40,52 @@ public class FlowableEmailSenderImpl implements FlowableEmailSender {
 
     @Override
     public void sendEmail(SendEmailDto emailDto, DelegateExecution execution) {
+
+        if (StringUtils.isBlank(emailDto.getTo())
+                && StringUtils.isBlank(emailDto.getCc())
+                && StringUtils.isBlank(emailDto.getBcc())) {
+
+            throw new RuntimeException("Email recipients is missing. " + getMailExecutionInfo(execution));
+        }
+        try {
+            sendEmailImpl(emailDto, execution);
+        } catch (Exception e) {
+            log.error("Exception while email sending. " + getMailExecutionInfo(execution));
+            throw e;
+        }
+    }
+
+    private String getMailExecutionInfo(DelegateExecution execution) {
+        if (execution == null) {
+            return "null";
+        }
+        StringBuilder sb = new StringBuilder();
+        FlowElement flowElement = execution.getCurrentFlowElement();
+        if (flowElement != null) {
+            sb.append("Name: ").append(flowElement.getName()).append(" ");
+            if (flowElement instanceof TaskWithFieldExtensions) {
+                TaskWithFieldExtensions taskWithFieldExtensions = (TaskWithFieldExtensions) flowElement;
+                List<FieldExtension> fields = taskWithFieldExtensions.getFieldExtensions();
+                if (fields != null) {
+                    for (FieldExtension field : fields) {
+                        if ("to".equals(field.getFieldName())) {
+                            if (StringUtils.isNotBlank(field.getStringValue())) {
+                                sb.append("to: ").append(field.getStringValue()).append(" ");
+                            }
+                            if (StringUtils.isNotBlank(field.getExpression())) {
+                                sb.append("to: ").append(field.getExpression()).append(" ");
+                            }
+                            break;
+                        }
+                    }
+                }
+            }
+            sb.append("id: ").append(flowElement.getId());
+        }
+        return sb.toString();
+    }
+
+    private void sendEmailImpl(SendEmailDto emailDto, DelegateExecution execution) {
 
         if (StringUtils.isBlank(emailDto.getTemplate())) {
             flowableStdEmailSender.sendEmail(emailDto, execution);
