@@ -210,13 +210,7 @@
         </dependency>
 
         <dependency>
-            <groupId>ru.citeck.ecos.events2</groupId>
-            <artifactId>ecos-events2</artifactId>
-            <version>${ecos.events2.version}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>ru.citeck.ecos.events2</groupId>
+            <groupId>ru.citeck.ecos.events</groupId>
             <artifactId>ecos-events2-rabbitmq</artifactId>
             <version>${ecos.events2.version}</version>
         </dependency>
