@@ -3,7 +3,6 @@ package ru.citeck.ecos.domain.cmmn;
 import ecos.com.google.common.cache.CacheBuilder;
 import ecos.com.google.common.cache.CacheLoader;
 import ecos.com.google.common.cache.LoadingCache;
-import kotlin.Unit;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -53,19 +52,21 @@ public class RemoteRecordsListener {
             .maximumSize(100)
             .build(CacheLoader.from(this::isTypeCase));
 
-        /*eventsService.addListener(ListenerConfig.<EventData>create()
+        eventsService.addListener(ListenerConfig.<EventData>create()
             .withEventType(EVENT_REC_SRC_MUTATION_TYPE)
             .withDataClass(EventData.class)
             .withActionJ(this::onEvent)
             .build()
-        );*/
+        );
     }
 
     private void onEvent(EventData event) {
-        transactionService.getRetryingTransactionHelper().doInTransaction(() -> {
-            RequestContext.doWithTxnJ(() -> onEventImpl(event));
-            return null;
-        }, false);
+        RequestContext.doWithTxnJ(() ->
+            transactionService.getRetryingTransactionHelper().doInTransaction(() -> {
+                onEventImpl(event);
+                return null;
+            }, false)
+        );
     }
 
     private void onEventImpl(EventData event) {

@@ -65,10 +65,10 @@
         <default.locale>en</default.locale>
         <yuicompressor.compress.skip>false</yuicompressor.compress.skip>
 
-        <ecos.context-lib.version>1.1.3</ecos.context-lib.version>
+        <ecos.context-lib.version>1.1.4</ecos.context-lib.version>
 
         <ecos.flowable.version>3.0.5.4</ecos.flowable.version>
-        <ecos.records.version>3.36.4</ecos.records.version>
+        <ecos.records.version>3.36.5</ecos.records.version>
         <ecos.apps.lib.version>3.11.1</ecos.apps.lib.version>
         <ecos.jackson.version>2.10.4.3</ecos.jackson.version>
         <ecos.snakeyaml.version>2.2.0</ecos.snakeyaml.version>
@@ -79,7 +79,7 @@
         <ecos.notifications.lib.version>2.3.0</ecos.notifications.lib.version>
         <ecos.model-lib.version>2.7.4</ecos.model-lib.version>
 
-        <ecos.events2.version>2.5.4</ecos.events2.version>
+        <ecos.events2.version>2.5.5</ecos.events2.version>
         <ecos.zookeeper.version>1.2.2</ecos.zookeeper.version>
         <ecos.curator.version>5.2.0</ecos.curator.version>
 
