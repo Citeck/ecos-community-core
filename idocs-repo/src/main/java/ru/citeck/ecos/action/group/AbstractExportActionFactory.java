@@ -39,7 +39,6 @@ public abstract class AbstractExportActionFactory<T> implements GroupActionFacto
     protected RecordsService recordsService;
     protected ContentService contentService;
     protected NodeService nodeService;
-    @Autowired
     protected GroupActionService groupActionService;
 
     protected String mimeType = "text/plain";
@@ -119,6 +118,7 @@ public abstract class AbstractExportActionFactory<T> implements GroupActionFacto
         this.nodeService = nodeService;
     }
 
+    @Autowired
     public void setGroupActionService(GroupActionService groupActionService) {
         this.groupActionService = groupActionService;
     }

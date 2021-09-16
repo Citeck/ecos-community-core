@@ -1,6 +1,8 @@
 package ru.citeck.ecos.action.group;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import lombok.Data;
+import lombok.RequiredArgsConstructor;
 import org.alfresco.model.ContentModel;
 import org.alfresco.repo.content.filestore.FileContentWriter;
 import org.alfresco.service.cmr.repository.*;
@@ -9,19 +11,20 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.mockito.Mockito;
 import ru.citeck.ecos.commons.data.DataValue;
-import ru.citeck.ecos.commons.data.ObjectData;
 import ru.citeck.ecos.records2.RecordRef;
+import ru.citeck.ecos.records2.source.dao.local.RecordsDaoBuilder;
 import ru.citeck.ecos.records3.RecordsService;
-import ru.citeck.ecos.records3.record.atts.dto.RecordAtts;
+import ru.citeck.ecos.records3.RecordsServiceFactory;
+import ru.citeck.ecos.records3.record.atts.value.AttValue;
 
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 
-public abstract class  ExportActionFactoryBaseTest {
+public abstract class ExportActionFactoryBaseTest {
 
-    public static String PARAM_COLUMNS = "columns";
+    public static final String PARAM_COLUMNS = "columns";
+    protected static final String TEST = "test";
     protected String fileName = "testfile";
     protected List<ReportColumnDef> columnDefs;
 
@@ -43,10 +46,9 @@ public abstract class  ExportActionFactoryBaseTest {
     }
 
     protected List<RecordRef> getList() {
-        String test = "test";
         ArrayList<RecordRef> refs = new ArrayList<>();
         for (int idx = 0; idx < 4; idx++) {
-            refs.add(RecordRef.create(test, test + String.valueOf(idx)));
+            refs.add(RecordRef.create(TEST, TEST + String.valueOf(idx)));
         }
         return refs;
     }
@@ -93,24 +95,14 @@ public abstract class  ExportActionFactoryBaseTest {
         params.set(PARAM_COLUMNS, getColumns());
         actionConfig.setParams(params.getAs(ObjectNode.class));
 
-        RecordsService recordsService = Mockito.mock(RecordsService.class);
-        Mockito.when(recordsService.getAtts(Mockito.any(), (List<String>) Mockito.any())).thenAnswer(
-            invocationOnMock -> {
-                List<String> props = (List<String>) invocationOnMock.getArguments()[1];
-                List<RecordAtts> attsList =
-                    ((List<RecordRef>) invocationOnMock.getArguments()[0]).stream()
-                        .map(recordRef -> {
-                            ObjectData data = ObjectData.create();
-                            for (String prop : props) {
-                                data.set(prop, "record " + recordRef.getId() + " " + prop + " value");
-                            }
-                            RecordAtts result = new RecordAtts();
-                            result.setAttributes(data);
-                            return result;
-                        }).collect(Collectors.toList());
-                return attsList;
-            }
-        );
+        RecordsServiceFactory recordsServices = new RecordsServiceFactory();
+        RecordsService recordsService = recordsServices.getRecordsServiceV1();
+        RecordsDaoBuilder daoBuilder = RecordsDaoBuilder.create("test");
+        for (int recIdx = 0; recIdx < 110; recIdx++) {
+            RecordValue value = new RecordValue(recIdx);
+            daoBuilder.addRecord(value.getId(), value);
+        }
+        recordsService.register(daoBuilder.build());
 
         factory.setGroupActionService(actionService);
         factory.setContentService(contentService);
@@ -118,5 +110,17 @@ public abstract class  ExportActionFactoryBaseTest {
         factory.setNodeService(nodeService);
 
         return actionConfig;
+    }
+
+    @Data
+    @RequiredArgsConstructor
+    static class RecordValue implements AttValue {
+        private final int idx;
+        public String getId() {
+            return TEST + idx;
+        }
+        public Object getAtt(String name) throws Exception {
+            return "record " + getId() + " " + name + " value";
+        }
     }
 }
