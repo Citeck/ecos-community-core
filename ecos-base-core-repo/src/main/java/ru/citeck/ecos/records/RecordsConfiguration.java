@@ -39,6 +39,7 @@ import ru.citeck.ecos.records3.RecordsServiceFactory;
 import ru.citeck.ecos.records2.graphql.meta.value.MetaValuesConverter;
 import ru.citeck.ecos.records2.request.rest.RestHandler;
 import ru.citeck.ecos.records3.record.request.ContextAttsProvider;
+import ru.citeck.ecos.records3.record.request.RequestContext;
 import ru.citeck.ecos.records3.record.resolver.LocalRecordsResolver;
 import ru.citeck.ecos.records3.record.resolver.RemoteRecordsResolver;
 import ru.citeck.ecos.records2.rest.*;
@@ -47,6 +48,7 @@ import ru.citeck.ecos.records3.rest.RestHandlerAdapter;
 import ru.citeck.ecos.records3.txn.RecordsTxnService;
 import ru.citeck.ecos.utils.UrlUtils;
 
+import javax.annotation.PostConstruct;
 import java.util.*;
 import java.util.function.Supplier;
 
@@ -82,6 +84,11 @@ public class RecordsConfiguration extends RecordsServiceFactory {
 
     @Autowired
     private UrlUtils urlUtils;
+
+    @PostConstruct
+    public void init() {
+        RequestContext.Companion.setDefaultServices(this);
+    }
 
     @NotNull
     @Override
