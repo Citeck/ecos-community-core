@@ -57,6 +57,8 @@ import ru.citeck.ecos.records2.RecordRef;
 import ru.citeck.ecos.utils.NodeUtils;
 import ru.citeck.ecos.utils.TransactionUtils;
 import ru.citeck.ecos.utils.WorkflowUtils;
+import ru.citeck.ecos.workflow.tasks.EcosTaskService;
+import ru.citeck.ecos.workflow.tasks.TaskInfo;
 
 import java.io.Serializable;
 import java.util.*;
@@ -84,6 +86,7 @@ public class WorkflowMirrorServiceImpl extends BaseProcessorExtension implements
     private WorkflowUtils workflowUtils;
     private CounterpartyResolver counterpartyResolver;
     private EcosTypeService ecosTypeService;
+    private EcosTaskService ecosTaskService;
 
     private NodeUtils nodeUtils;
 
@@ -298,6 +301,15 @@ public class WorkflowMirrorServiceImpl extends BaseProcessorExtension implements
                     mlAwareNodeService.getProperty(documentKind, ContentModel.PROP_TITLE));
             }
             nodeInfo.createSourceAssociation(document, WorkflowMirrorModel.ASSOC_MIRROR_TASK);
+        } else {
+
+            RecordRef documentRef = ecosTaskService.getTaskInfo(task.getId())
+                .map(TaskInfo::getDocument)
+                .orElse(RecordRef.EMPTY);
+
+            if (RecordRef.isNotEmpty(documentRef)) {
+                nodeInfo.setProperty(WorkflowMirrorModel.PROP_DOCUMENT_PROP, documentRef.toString());
+            }
         }
 
         additionalPropertiesFillers.forEach(mirrorAdditionalPropertiesFiller -> mirrorAdditionalPropertiesFiller
@@ -537,5 +549,10 @@ public class WorkflowMirrorServiceImpl extends BaseProcessorExtension implements
     @Autowired
     public void setEcosTypeService(EcosTypeService ecosTypeService) {
         this.ecosTypeService = ecosTypeService;
+    }
+
+    @Autowired
+    public void setEcosTaskService(EcosTaskService ecosTaskService) {
+        this.ecosTaskService = ecosTaskService;
     }
 }

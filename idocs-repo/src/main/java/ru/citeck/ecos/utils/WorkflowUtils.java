@@ -21,6 +21,8 @@ import org.alfresco.service.namespace.QName;
 import org.alfresco.service.namespace.RegexQNamePattern;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.extensions.surf.util.I18NUtil;
@@ -58,6 +60,7 @@ public class WorkflowUtils {
     private final NamespaceService namespaceService;
     private final DictionaryService dictionaryService;
     private final SearchService searchService;
+    private final NodeUtils nodeUtils;
 
     @Autowired
     public WorkflowUtils(
@@ -69,8 +72,10 @@ public class WorkflowUtils {
         WorkflowAdminService workflowAdminService,
         NamespaceService namespaceService,
         DictionaryService dictionaryService,
-        SearchService searchService
+        SearchService searchService,
+        NodeUtils nodeUtils
     ) {
+        this.nodeUtils = nodeUtils;
         this.searchService = searchService;
         this.workflowService = workflowService;
         this.authorityUtils = authorityUtils;
@@ -418,36 +423,48 @@ public class WorkflowUtils {
         return result;
     }
 
+    @NotNull
+    public RecordRef getTaskDocumentRefFromPackage(@Nullable Object bpmPackage) {
+
+        NodeRef packageRef = nodeUtils.getNodeRefOrNull(bpmPackage);
+        if (packageRef == null) {
+            return RecordRef.EMPTY;
+        }
+
+        String documentProp = (String) nodeService.getProperty(packageRef, CiteckWorkflowModel.PROP_DOCUMENT_PROP);
+        if (StringUtils.isNotBlank(documentProp)) {
+            return RecordRef.valueOf(documentProp);
+        }
+
+        NodeRef documentNodeRef = getTaskDocumentFromPackage(packageRef);
+        if (documentNodeRef != null) {
+            return RecordRef.create("", documentNodeRef.toString());
+        }
+
+        return RecordRef.EMPTY;
+    }
+
     public NodeRef getTaskDocumentFromPackage(Object bpmPackage) {
 
         if (bpmPackage == null) {
             return null;
         }
-
-        NodeRef packageRef = null;
-
-        if (bpmPackage instanceof NodeRef) {
-            packageRef = (NodeRef) bpmPackage;
-        } else if (bpmPackage instanceof String) {
-            String packageStr = (String) bpmPackage;
-            if (NodeRef.isNodeRef(packageStr)) {
-                packageRef = new NodeRef(packageStr);
-            }
+        NodeRef packageRef = nodeUtils.getNodeRefOrNull(bpmPackage);
+        if (packageRef == null) {
+            return null;
         }
 
         NodeRef documentRef = null;
-        if (packageRef != null) {
 
-            List<ChildAssociationRef> packageContent = nodeService.getChildAssocs(packageRef,
-                WorkflowModel.ASSOC_PACKAGE_CONTAINS, RegexQNamePattern.MATCH_ALL);
+        List<ChildAssociationRef> packageContent = nodeService.getChildAssocs(packageRef,
+            WorkflowModel.ASSOC_PACKAGE_CONTAINS, RegexQNamePattern.MATCH_ALL);
 
-            if (packageContent.isEmpty()) {
-                packageContent = nodeService.getChildAssocs(packageRef, ContentModel.ASSOC_CONTAINS,
-                    RegexQNamePattern.MATCH_ALL);
-            }
-            if (packageContent != null && !packageContent.isEmpty()) {
-                documentRef = packageContent.get(0).getChildRef();
-            }
+        if (packageContent.isEmpty()) {
+            packageContent = nodeService.getChildAssocs(packageRef, ContentModel.ASSOC_CONTAINS,
+                RegexQNamePattern.MATCH_ALL);
+        }
+        if (packageContent != null && !packageContent.isEmpty()) {
+            documentRef = packageContent.get(0).getChildRef();
         }
 
         return documentRef;

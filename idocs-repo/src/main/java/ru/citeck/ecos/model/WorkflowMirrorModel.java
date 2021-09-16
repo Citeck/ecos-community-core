@@ -30,6 +30,7 @@ public interface WorkflowMirrorModel {
     QName PROP_ACTORS = QName.createQName(NAMESPACE, "actors");
     QName PROP_ASSIGNEE = QName.createQName(NAMESPACE, "assignee");
     QName PROP_DOCUMENT = QName.createQName(NAMESPACE, "document");
+    QName PROP_DOCUMENT_PROP = QName.createQName(NAMESPACE, "document-prop");
     QName PROP_DOCUMENT_TYPE = QName.createQName(NAMESPACE, "documentType");
     QName PROP_DOCUMENT_TYPE_TITLE = QName.createQName(NAMESPACE, "documentTypeTitle");
     QName PROP_DOCUMENT_KIND = QName.createQName(NAMESPACE, "documentKind");
