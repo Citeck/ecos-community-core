@@ -2,7 +2,7 @@ id: active-tasks
 name: { ru: Активные задачи,en: Active tasks }
 
 typeRef: emodel/type@workflow-task
-sourceId: alfresco/workflow-tasks
+sourceId: alfresco/
 metaRecord: alfresco/@
 
 predicate:
