@@ -1,5 +1,6 @@
 package ru.citeck.ecos.records.source.common;
 
+import org.apache.commons.lang.StringUtils;
 import ru.citeck.ecos.records2.RecordRef;
 import ru.citeck.ecos.records2.request.query.RecordsQuery;
 import ru.citeck.ecos.records2.request.query.RecordsQueryResult;
@@ -9,6 +10,7 @@ import ru.citeck.ecos.records2.source.dao.RecordsQueryDao;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 public abstract class FilteredRecordsDao extends AbstractRecordsDao implements RecordsQueryDao {
 
@@ -22,6 +24,13 @@ public abstract class FilteredRecordsDao extends AbstractRecordsDao implements R
         localQuery.setMaxItems((int) (1.5f * maxItems));
 
         RecordsQueryResult<RecordRef> records = targetDAO.queryRecords(localQuery);
+        records.setRecords(records.getRecords().stream().map(ref -> {
+            if (StringUtils.isBlank(ref.getSourceId())) {
+                return RecordRef.create(ref.getAppName(), targetDAO.getId(), ref.getId());
+            }
+            return ref;
+        }).collect(Collectors.toList()));
+
         Function<List<RecordRef>, List<RecordRef>> filter = getFilter(query);
 
         List<RecordRef> filtered = filter.apply(records.getRecords());
