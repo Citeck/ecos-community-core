@@ -31,9 +31,9 @@ public class WfmDocumentMixin implements AttMixin {
     @Override
     public Object getAtt(@NotNull String name, @NotNull AttValueCtx value) throws Exception {
         if (WFM_DOCUMENT.equals(name)) {
-            DataValue attValue = value.getAtt(WFM_DOCUMENT);
+            DataValue attValue = value.getAtt(WFM_DOCUMENT + "?id");
             if (attValue.isNull() || StringUtils.isBlank(attValue.asText())) {
-                attValue = value.getAtt(WFM_DOCUMENT_PROP);
+                attValue = value.getAtt(WFM_DOCUMENT_PROP + "?id");
             }
             return RecordRef.valueOf(attValue.asText());
         }
