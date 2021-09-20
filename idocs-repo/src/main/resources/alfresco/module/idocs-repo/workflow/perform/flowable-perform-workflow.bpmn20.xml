@@ -13,7 +13,7 @@
         <endEvent id="endevent1" name="End"/>
         <subProcess id="subprocess1" name="Sub Process">
             <multiInstanceLoopCharacteristics isSequential="false" flowable:collection="wfperf_performers" flowable:elementVariable="wfperf_performer"/>
-            <userTask id="usertask1" name="Perform Task" flowable:dueDate="${bpm_workflowDueDate}" flowable:formKey="alf_wfperf:performTask">
+            <userTask id="usertask1" name="wfperf_performworkflow.type.wfperf_performTask.title" flowable:dueDate="${bpm_workflowDueDate}" flowable:formKey="wfperf:performTask">
                 <extensionElements>
                     <flowable:taskListener event="create" class="ru.citeck.ecos.flowable.example.FlowableAssignTaskToAuthority">
                         <flowable:field name="authority">
@@ -41,7 +41,7 @@
             <startEvent id="startevent2" name="Start"/>
             <exclusiveGateway id="exclusivegateway1" name="Exclusive Gateway"/>
             <endEvent id="endevent2" name="End"/>
-            <userTask id="usertask2" name="Control Task" flowable:dueDate="${bpm_workflowDueDate}" flowable:formKey="alf_wfperf:controlTask">
+            <userTask id="usertask2" name="wfperf_performworkflow.type.wfperf_controlTask.title" flowable:dueDate="${bpm_workflowDueDate}" flowable:formKey="wfperf:controlTask">
                 <extensionElements>
                     <flowable:taskListener event="create" class="ru.citeck.ecos.flowable.example.FlowableAssignTaskToAuthority">
                         <flowable:field name="authority">
@@ -76,30 +76,6 @@
                         </flowable:field>
                     </flowable:taskListener>
                     <flowable:taskListener event="create" class="ru.citeck.ecos.flowable.example.FlowableVariablePull">
-                        <flowable:field name="taskVariableExpr">
-                            <flowable:string><![CDATA[wfperf_taskPriority]]></flowable:string>
-                        </flowable:field>
-                        <flowable:field name="executionVariableExpr">
-                            <flowable:string><![CDATA[bpm_workflowPriority]]></flowable:string>
-                        </flowable:field>
-                    </flowable:taskListener>
-                    <flowable:taskListener event="complete" class="ru.citeck.ecos.flowable.example.FlowableVariablePush">
-                        <flowable:field name="taskVariableExpr">
-                            <flowable:string><![CDATA[wfperf_taskDescription]]></flowable:string>
-                        </flowable:field>
-                        <flowable:field name="executionVariableExpr">
-                            <flowable:string><![CDATA[bpm_workflowDescription]]></flowable:string>
-                        </flowable:field>
-                    </flowable:taskListener>
-                    <flowable:taskListener event="complete" class="ru.citeck.ecos.flowable.example.FlowableVariablePush">
-                        <flowable:field name="taskVariableExpr">
-                            <flowable:string><![CDATA[wfperf_taskDueDate]]></flowable:string>
-                        </flowable:field>
-                        <flowable:field name="executionVariableExpr">
-                            <flowable:string><![CDATA[bpm_workflowDueDate]]></flowable:string>
-                        </flowable:field>
-                    </flowable:taskListener>
-                    <flowable:taskListener event="complete" class="ru.citeck.ecos.flowable.example.FlowableVariablePush">
                         <flowable:field name="taskVariableExpr">
                             <flowable:string><![CDATA[wfperf_taskPriority]]></flowable:string>
                         </flowable:field>
@@ -180,54 +156,54 @@
                 <omgdc:Bounds height="30.0" width="30.0" x="135.2366671661336" y="277.58527848535596"/>
             </bpmndi:BPMNShape>
             <bpmndi:BPMNShape bpmnElement="exclusivegateway1" id="BPMNShape_exclusivegateway1">
-                <omgdc:Bounds height="40.00000000000003" width="40.0" x="349.36139017917844" y="270.4733343322672"/>
+                <omgdc:Bounds height="40.0" width="40.0" x="349.36139017917844" y="270.4733343322672"/>
             </bpmndi:BPMNShape>
             <bpmndi:BPMNShape bpmnElement="endevent2" id="BPMNShape_endevent2">
-                <omgdc:Bounds height="28.00000000000003" width="28.0" x="552.2163909283788" y="282.7430565961116"/>
+                <omgdc:Bounds height="28.0" width="28.0" x="552.2163909283788" y="282.7430565961116"/>
             </bpmndi:BPMNShape>
             <bpmndi:BPMNShape bpmnElement="usertask2" id="BPMNShape_usertask2">
                 <omgdc:Bounds height="55.00000000000003" width="105.0" x="416.97972376224527" y="259.2036120684227"/>
             </bpmndi:BPMNShape>
             <bpmndi:BPMNEdge bpmnElement="flow1" id="BPMNEdge_flow1">
-                <omgdi:waypoint x="41.0" y="296.0"/>
+                <omgdi:waypoint x="41.2184208187776" y="296.54307771366587"/>
                 <omgdi:waypoint x="82.0" y="296.0"/>
                 <omgdi:waypoint x="82.0" y="294.0"/>
-                <omgdi:waypoint x="123.0" y="294.0"/>
+                <omgdi:waypoint x="123.96694490218105" y="294.01271508985724"/>
             </bpmndi:BPMNEdge>
             <bpmndi:BPMNEdge bpmnElement="flow2" id="BPMNEdge_flow2">
-                <omgdi:waypoint x="602.0" y="294.0"/>
+                <omgdi:waypoint x="602.916944902151" y="294.0144921512362"/>
                 <omgdi:waypoint x="652.0" y="294.0"/>
                 <omgdi:waypoint x="652.0" y="295.0"/>
-                <omgdi:waypoint x="687.0" y="295.0"/>
+                <omgdi:waypoint x="687.4541302527338" y="295.53272294815525"/>
             </bpmndi:BPMNEdge>
             <bpmndi:BPMNEdge bpmnElement="flow3" id="BPMNEdge_flow3">
-                <omgdi:waypoint x="165.0" y="293.0"/>
-                <omgdi:waypoint x="202.0" y="294.0"/>
+                <omgdi:waypoint x="165.1798518121025" y="293.03418127907213"/>
+                <omgdi:waypoint x="202.85500074919867" y="294.1659449243054"/>
             </bpmndi:BPMNEdge>
             <bpmndi:BPMNEdge bpmnElement="flow4" id="BPMNEdge_flow4">
-                <omgdi:waypoint x="307.0" y="291.0"/>
+                <omgdi:waypoint x="307.8050007492" y="291.53466139129915"/>
                 <omgdi:waypoint x="327.0" y="290.0"/>
-                <omgdi:waypoint x="349.0" y="290.0"/>
+                <omgdi:waypoint x="349.55639047202453" y="290.25232937067784"/>
             </bpmndi:BPMNEdge>
             <bpmndi:BPMNEdge bpmnElement="flow5" id="BPMNEdge_flow5">
-                <omgdi:waypoint x="374.0" y="275.0"/>
+                <omgdi:waypoint x="374.7710570916045" y="275.8965593071305"/>
                 <omgdi:waypoint x="390.0" y="235.0"/>
                 <omgdi:waypoint x="587.0" y="235.0"/>
-                <omgdi:waypoint x="570.0" y="283.0"/>
+                <omgdi:waypoint x="570.6680004542463" y="283.4710052839656"/>
             </bpmndi:BPMNEdge>
             <bpmndi:BPMNEdge bpmnElement="flow6" id="BPMNEdge_flow6">
-                <omgdi:waypoint x="388.0" y="289.0"/>
-                <omgdi:waypoint x="416.0" y="288.0"/>
+                <omgdi:waypoint x="388.5874767461027" y="289.7476065798103"/>
+                <omgdi:waypoint x="416.97972376224527" y="288.6784944467295"/>
             </bpmndi:BPMNEdge>
             <bpmndi:BPMNEdge bpmnElement="flow7" id="BPMNEdge_flow7">
-                <omgdi:waypoint x="521.0" y="292.0"/>
-                <omgdi:waypoint x="552.0" y="295.0"/>
+                <omgdi:waypoint x="521.9297237622453" y="292.14693444971755"/>
+                <omgdi:waypoint x="552.2862477940791" y="295.2977684640097"/>
             </bpmndi:BPMNEdge>
             <bpmndi:BPMNEdge bpmnElement="flow8" id="BPMNEdge_flow8">
-                <omgdi:waypoint x="476.0" y="314.0"/>
+                <omgdi:waypoint x="476.64319372365907" y="314.1536120684227"/>
                 <omgdi:waypoint x="492.0" y="373.0"/>
                 <omgdi:waypoint x="282.0" y="373.0"/>
-                <omgdi:waypoint x="264.0" y="323.0"/>
+                <omgdi:waypoint x="264.8221786779306" y="323.19305659611166"/>
             </bpmndi:BPMNEdge>
         </bpmndi:BPMNPlane>
     </bpmndi:BPMNDiagram>
