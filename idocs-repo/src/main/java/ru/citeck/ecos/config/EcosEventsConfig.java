@@ -8,8 +8,8 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import ru.citeck.ecos.events2.EventsService;
 import ru.citeck.ecos.events2.EventsServiceFactory;
-import ru.citeck.ecos.events2.rabbitmq.RabbitMqEvents;
-import ru.citeck.ecos.events2.remote.RemoteEvents;
+import ru.citeck.ecos.events2.rabbitmq.RabbitMqEventsService;
+import ru.citeck.ecos.events2.remote.RemoteEventsService;
 import ru.citeck.ecos.rabbitmq.RabbitMqConn;
 import ru.citeck.ecos.rabbitmq.RabbitMqConnProvider;
 import ru.citeck.ecos.records3.RecordsServiceFactory;
@@ -42,12 +42,12 @@ public class EcosEventsConfig extends EventsServiceFactory {
 
     @Nullable
     @Override
-    public RemoteEvents createRemoteEvents() {
+    public RemoteEventsService createRemoteEvents() {
         RabbitMqConn connection = rabbitMqConnProvider.getConnection();
         if (connection == null) {
             throw new IllegalStateException("RabbitMQ connection is null");
         }
-        return new RabbitMqEvents(connection, this, ecosZooKeeper);
+        return new RabbitMqEventsService(connection, this, ecosZooKeeper);
     }
 
     @Autowired

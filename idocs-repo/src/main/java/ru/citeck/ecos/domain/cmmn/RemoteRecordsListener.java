@@ -13,6 +13,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import ru.citeck.ecos.events2.EventsService;
 import ru.citeck.ecos.events2.listener.ListenerConfig;
+import ru.citeck.ecos.events2.type.RecordMutatedEvent;
 import ru.citeck.ecos.icase.activity.dto.ActivityRef;
 import ru.citeck.ecos.icase.activity.dto.CaseServiceType;
 import ru.citeck.ecos.icase.activity.service.CaseActivityEventService;
@@ -33,7 +34,6 @@ import java.util.concurrent.TimeUnit;
 @RequiredArgsConstructor(onConstructor_ = {@Autowired})
 public class RemoteRecordsListener {
 
-    private static final String EVENT_REC_SRC_MUTATION_TYPE = "recsrc-db-record-mutated";
     private static final String EVENT_RECORDS_TO_PROC_TXN_KEY = RemoteRecordsListener.class.getSimpleName() + "-recs";
     private static final String EVENT_NEW_RECORDS_TXN_KEY = RemoteRecordsListener.class.getSimpleName() + "-new-recs";
 
@@ -53,7 +53,7 @@ public class RemoteRecordsListener {
             .build(CacheLoader.from(this::isTypeCase));
 
         eventsService.addListener(ListenerConfig.<EventData>create()
-            .withEventType(EVENT_REC_SRC_MUTATION_TYPE)
+            .withEventType(RecordMutatedEvent.TYPE)
             .withDataClass(EventData.class)
             .withActionJ(this::onEvent)
             .build()
