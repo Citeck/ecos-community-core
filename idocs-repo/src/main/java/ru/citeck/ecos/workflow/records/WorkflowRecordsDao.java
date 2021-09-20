@@ -213,8 +213,14 @@ public class WorkflowRecordsDao extends LocalRecordsDao
                 if (dictionaryService.getAssociation(name) != null) {
                     List<NodeRef> nodeRefs = new ArrayList<>();
                     for (Object jsonNode : (List) value) {
-                        if (jsonNode instanceof String && NodeRef.isNodeRef((String) jsonNode)) {
-                            nodeRefs.add(new NodeRef((String) jsonNode));
+                        if (jsonNode instanceof String) {
+                            String strValue = (String) jsonNode;
+                            if (strValue.contains("workspace://")) {
+                                strValue = strValue.replaceFirst("alfresco/@", "");
+                            }
+                            if (NodeRef.isNodeRef(strValue)) {
+                                nodeRefs.add(new NodeRef(strValue));
+                            }
                         }
                     }
                     resultProps.put(n, nodeRefs);
