@@ -27,4 +27,11 @@ import lombok.Data;
 public class ReportColumnDef {
     private String name;
     private String attribute;
+
+    public ReportColumnDef(){}
+
+    public ReportColumnDef(String name, String attribute) {
+        this.name = name;
+        this.attribute = attribute;
+    }
 }
