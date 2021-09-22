@@ -28,7 +28,8 @@ import ru.citeck.ecos.content.metadata.MetadataExtractor;
 import ru.citeck.ecos.model.EcosContentModel;
 
 import javax.annotation.PostConstruct;
-import java.io.*;
+import java.io.ByteArrayInputStream;
+import java.io.Serializable;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -53,6 +54,8 @@ public class ContentDeployer<T> extends AbstractLifecycleBean implements BeanNam
     private List<String> locations;
 
     private boolean enabled = true;
+
+    private boolean deployIfNotExistsOnly = false;
 
     public ContentDeployer() {
     }
@@ -186,8 +189,13 @@ public class ContentDeployer<T> extends AbstractLifecycleBean implements BeanNam
         ByteArrayInputStream inputBytesStream = new ByteArrayInputStream(info.data);
 
         Optional<? extends ContentData<?>> data = repoContentDAO.getFirstContentData(info.keys, false);
-        NodeRef contentNode = data.map(ContentData::getNodeRef)
-                                  .orElseGet(() -> repoContentDAO.createNode(info.metadata));
+        NodeRef contentNode = data.map(ContentData::getNodeRef).orElse(null);
+
+        if (contentNode == null) {
+            contentNode = repoContentDAO.createNode(info.metadata);
+        } else if (deployIfNotExistsOnly) {
+            return;
+        }
 
         String deployedChecksum = (String) nodeService.getProperty(contentNode,
                                                                    EcosContentModel.PROP_DEPLOYED_CHECKSUM);
@@ -195,7 +203,6 @@ public class ContentDeployer<T> extends AbstractLifecycleBean implements BeanNam
         String checksum = DigestUtils.md5Hex(info.data);
 
         if (deployedChecksum == null || !deployedChecksum.equals(checksum)) {
-
             logger.info(beanName + ": deploy " + artifactType + ": " + info.location);
 
             Map<String, Serializable> versProps = Collections.singletonMap(VersionModel.PROP_VERSION_TYPE,
@@ -256,6 +263,10 @@ public class ContentDeployer<T> extends AbstractLifecycleBean implements BeanNam
 
     public void setLocations(List<String> locations) {
         this.locations = new ArrayList<>(locations);
+    }
+
+    public void setDeployIfNotExistsOnly(boolean deployIfNotExistsOnly) {
+        this.deployIfNotExistsOnly = deployIfNotExistsOnly;
     }
 
     public String getBeanName() {

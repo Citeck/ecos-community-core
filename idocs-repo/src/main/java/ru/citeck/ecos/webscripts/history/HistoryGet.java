@@ -23,17 +23,17 @@ import org.alfresco.service.cmr.repository.NodeRef;
 import org.alfresco.service.cmr.repository.NodeService;
 import org.alfresco.service.namespace.NamespacePrefixResolver;
 import org.alfresco.service.namespace.QName;
+import org.apache.commons.lang3.time.FastDateFormat;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.springframework.extensions.webscripts.WebScriptException;
 import org.springframework.extensions.webscripts.WebScriptRequest;
 import org.springframework.extensions.webscripts.WebScriptResponse;
-import ru.citeck.ecos.webscripts.common.BaseAbstractWebscript;
 import ru.citeck.ecos.history.HistoryService;
+import ru.citeck.ecos.webscripts.common.BaseAbstractWebscript;
 
 import java.io.Serializable;
 import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -57,9 +57,9 @@ public class HistoryGet extends BaseAbstractWebscript {
     // TODO refactor with AssociationIndexPropertyRegistry
     private static final String LINKED_POSTFIX = "_added";
 
-    private HistoryService historyService;
+    private static final FastDateFormat DATE_FORMAT = FastDateFormat.getInstance("yyyy-MM-dd'T'HH:mm:ss");
 
-    private SimpleDateFormat dateFormat;
+    private HistoryService historyService;
 
     private NodeService nodeService;
 
@@ -67,7 +67,6 @@ public class HistoryGet extends BaseAbstractWebscript {
 
     public void setHistoryService(HistoryService historyService) {
         this.historyService = historyService;
-        this.dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss");
     }
 
     public void setNodeService(NodeService nodeService) {
@@ -102,7 +101,7 @@ public class HistoryGet extends BaseAbstractWebscript {
                 return historyService.getEventsByInitiator(new NodeRef(user));
             } else {
                 try {
-                    return historyService.getEventsByInitiator(new NodeRef(user), dateFormat.parse(limitDate));
+                    return historyService.getEventsByInitiator(new NodeRef(user), DATE_FORMAT.parse(limitDate));
                 } catch (ParseException ex) {
                     throw new WebScriptException("Unable to parse date: " + ex.getMessage(), ex);
                 }

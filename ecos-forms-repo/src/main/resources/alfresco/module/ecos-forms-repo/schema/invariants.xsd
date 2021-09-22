@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <xs:schema elementFormDefault="qualified" version="1.0" targetNamespace="http://www.citeck.ru/ecos/invariants/1.0" xmlns:inv="http://www.citeck.ru/ecos/invariants/1.0" xmlns:xs="http://www.w3.org/2001/XMLSchema">
 
-  <!-- 
-  Generate classes with: 
+  <!--
+  Generate classes with:
     xjc -no-header -p ru.citeck.ecos.invariants.xml alfresco/module/ecos-forms-repo/schema/invariants.xsd alfresco/module/ecos-forms-repo/schema/views.xsd
    -->
 
@@ -25,13 +25,13 @@
       </xs:sequence>
     </xs:complexType>
   </xs:element>
-  
+
   <xs:complexType name="scope">
     <xs:sequence>
       <xs:group ref="inv:scoped" minOccurs="0" maxOccurs="unbounded"/>
     </xs:sequence>
   </xs:complexType>
-  
+
   <xs:group name="scopes">
     <xs:choice>
       <xs:element name="type" type="inv:type"/>
@@ -44,7 +44,7 @@
       <xs:element name="child-associations" type="inv:child-associations"/>
     </xs:choice>
   </xs:group>
-  
+
   <xs:group name="scoped">
     <xs:choice>
       <xs:element name="invariant" type="inv:invariant"/>
@@ -58,7 +58,7 @@
       <xs:element name="child-associations" type="inv:child-associations"/>
     </xs:choice>
   </xs:group>
-  
+
   <xs:complexType name="classScope">
     <xs:complexContent>
       <xs:extension base="inv:scope">
@@ -82,55 +82,55 @@
       </xs:extension>
     </xs:complexContent>
   </xs:complexType>
-  
+
   <xs:complexType name="type">
     <xs:complexContent>
       <xs:extension base="inv:classScope"/>
     </xs:complexContent>
   </xs:complexType>
-  
+
   <xs:complexType name="aspect">
     <xs:complexContent>
       <xs:extension base="inv:classScope"/>
     </xs:complexContent>
   </xs:complexType>
-  
+
   <xs:complexType name="property">
     <xs:complexContent>
       <xs:extension base="inv:attributeScope"/>
     </xs:complexContent>
   </xs:complexType>
-  
+
   <xs:complexType name="association">
     <xs:complexContent>
       <xs:extension base="inv:attributeScope"/>
     </xs:complexContent>
   </xs:complexType>
-  
+
   <xs:complexType name="child-association">
     <xs:complexContent>
       <xs:extension base="inv:attributeScope"/>
     </xs:complexContent>
   </xs:complexType>
-  
+
   <xs:complexType name="properties">
     <xs:complexContent>
       <xs:extension base="inv:attributesScope"/>
     </xs:complexContent>
   </xs:complexType>
-  
+
   <xs:complexType name="associations">
     <xs:complexContent>
       <xs:extension base="inv:attributesScope"/>
     </xs:complexContent>
   </xs:complexType>
-  
+
   <xs:complexType name="child-associations">
     <xs:complexContent>
       <xs:extension base="inv:attributesScope"/>
     </xs:complexContent>
   </xs:complexType>
-  
+
   <xs:complexType name="invariant" mixed="true">
     <xs:choice minOccurs="0">
       <xs:element name="criterion" type="inv:criterion" nillable="true" minOccurs="0" maxOccurs="unbounded"/>
@@ -154,6 +154,7 @@
       <xs:enumeration value="options"/>
       <xs:enumeration value="default"/>
       <xs:enumeration value="mandatory"/>
+      <xs:enumeration value="mandatory-on-protected"/>
       <xs:enumeration value="protected"/>
       <xs:enumeration value="multiple"/>
       <xs:enumeration value="relevant"/>
@@ -178,6 +179,6 @@
       <xs:enumeration value="explicit"/>
     </xs:restriction>
   </xs:simpleType>
-  
+
 </xs:schema>
 
