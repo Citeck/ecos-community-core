@@ -14,7 +14,7 @@
         </prop>
         <prop name="columns">[{key: 'attributes["wfm:taskType"].shortQName', label: Alfresco.util.message("cardlet.current-tasks.task.title"), formatter: Citeck.format.taskTitle()},
             {key: 'attributes["wfm:actors"][0].nodeRef', label: Alfresco.util.message("cardlet.current-tasks.assignee.title"), formatter: Citeck.format.userOrGroup("true")},
-            {key: 'attributes["bpm:dueDate"]', label: Alfresco.util.message("cardlet.current-tasks.due-date.title"), formatter: Citeck.format.dateOrDateTime()}]
+            {key: 'dueDateTime', label: Alfresco.util.message("cardlet.current-tasks.due-date.title"), formatter: Citeck.format.dueDateTime()}]
         </prop>
         <prop name="responseSchema">{resultsList: 'documentTasks',
             fields: [
@@ -22,6 +22,7 @@
             {key: 'attributes["bpm:description"]'},
             {key: 'attributes["wfm:actors"][0].nodeRef'},
             {key: 'attributes["bpm:dueDate"]'},
+            {key: 'attributes["cwf:dueDateTime"]'},
             {key: 'attributes["cwf:taskTitle"]'},
             {key: 'taskTitle'}
             ]}

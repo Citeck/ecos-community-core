@@ -16,7 +16,8 @@
 						<@search.associationsJSON task.task.associations/>
 				</#if>
 			},
-            "taskTitle": "${task.title!""}"
+            "taskTitle": "${task.title!""}",
+            "dueDateTime": "${task.dueDateTime!""}"
         }<#if task_has_next>,</#if>
     </#list>
     ]

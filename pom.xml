@@ -4,7 +4,7 @@
 
     <groupId>ru.citeck.ecos.community</groupId>
     <artifactId>ecos-community-core</artifactId>
-    <version>3.35.1</version>
+    <version>${revision}</version>
     <packaging>pom</packaging>
 
     <name>ecos-community</name>
@@ -13,6 +13,8 @@
     <modelVersion>4.0.0</modelVersion>
 
     <properties>
+
+        <revision>3.36.0</revision>
 
         <alfresco.sdk.version>3.0.1</alfresco.sdk.version>
 
@@ -73,7 +75,7 @@
         <ecos.commons.version>1.14.0</ecos.commons.version>
         <ecos.commands.version>1.9.0</ecos.commands.version>
         <ecos.meta-repo.version>1.1.0</ecos.meta-repo.version>
-        <ecos.notifications.lib.version>1.0.3</ecos.notifications.lib.version>
+        <ecos.notifications.lib.version>1.6.0</ecos.notifications.lib.version>
 
         <spring.retry.version>1.2.4.RELEASE</spring.retry.version>
 
@@ -728,6 +730,34 @@
         </resources>
 
         <plugins>
+
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>flatten-maven-plugin</artifactId>
+                <version>1.2.7</version>
+                <configuration>
+                    <updatePomFile>true</updatePomFile>
+                    <flattenMode>resolveCiFriendliesOnly</flattenMode>
+                </configuration>
+                <executions>
+                    <!-- enable flattening -->
+                    <execution>
+                        <id>flatten</id>
+                        <phase>process-resources</phase>
+                        <goals>
+                            <goal>flatten</goal>
+                        </goals>
+                    </execution>
+                    <!-- ensure proper cleanup -->
+                    <execution>
+                        <id>flatten.clean</id>
+                        <phase>clean</phase>
+                        <goals>
+                            <goal>clean</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
 
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
