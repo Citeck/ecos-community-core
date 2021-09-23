@@ -3,8 +3,10 @@ package ru.citeck.ecos.comment;
 import ecos.com.fasterxml.jackson210.core.type.TypeReference;
 import ecos.com.fasterxml.jackson210.databind.JsonNode;
 import ecos.com.fasterxml.jackson210.databind.ObjectMapper;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.alfresco.model.ContentModel;
+import org.alfresco.repo.forum.CommentServiceImpl;
 import org.alfresco.service.ServiceRegistry;
 import org.alfresco.service.cmr.lock.LockService;
 import org.alfresco.service.cmr.lock.LockStatus;
@@ -39,10 +41,12 @@ import java.util.stream.Collectors;
  */
 @Slf4j
 @Component
+@RequiredArgsConstructor(onConstructor_ = {@Autowired})
 public class CommentFactory {
 
     private static final int EDITED_DIFF_RANGE = 100;
     private static final String SITE_MANAGER = "SiteManager";
+    private static final String APP_ALFRESCO = "alfresco";
 
     private static final List<CommentTag> TAGS_DISABLED_EDITING = Arrays.asList(CommentTag.TASK, CommentTag.ACTION,
         CommentTag.INTEGRATION);
@@ -54,25 +58,13 @@ public class CommentFactory {
     private final RecordsService recordsService;
     private final AuthorityService authorityService;
     private final ServiceRegistry serviceRegistry;
+    private final CommentServiceImpl alfCommentService;
 
     private final ObjectMapper mapper = new ObjectMapper();
 
     @Value("${ecos.comments.editing.disabled}")
     private String isCommentsEditingDisabled;
 
-    @Autowired
-    public CommentFactory(LockService lockService, RecordsService recordsService,
-                          PermissionService permissionService, ContentService contentService, NodeService nodeService,
-                          AuthorityService authorityService,
-                          ServiceRegistry serviceRegistry) {
-        this.lockService = lockService;
-        this.permissionService = permissionService;
-        this.contentService = contentService;
-        this.nodeService = nodeService;
-        this.recordsService = recordsService;
-        this.authorityService = authorityService;
-        this.serviceRegistry = serviceRegistry;
-    }
 
     public CommentDto fromNode(NodeRef commentRef) {
         CommentDto dto = new CommentDto();
@@ -84,6 +76,7 @@ public class CommentFactory {
 
         dto.setCreatedAt(createdAt);
         dto.setModifiedAt(modifiedAt);
+        dto.setRecord(getDiscussableRecordRef(commentRef).toString());
         dto.setEdited(isEdited(createdAt, modifiedAt));
         dto.setAuthor(toUserDTO((String) properties.get(ContentModel.PROP_CREATOR)));
         dto.setEditor(toUserDTO((String) properties.get(ContentModel.PROP_MODIFIER)));
@@ -189,6 +182,16 @@ public class CommentFactory {
             .collect(Collectors.toList());
 
         return CollectionUtils.containsAny(commentTags, TAGS_DISABLED_EDITING);
+    }
+
+    private RecordRef getDiscussableRecordRef(NodeRef commentRef) {
+        NodeRef discussableRef = alfCommentService.getDiscussableAncestor(commentRef);
+        if (discussableRef == null) {
+            log.warn("Failed to get discussable Ref from commentRef: " + commentRef);
+            return RecordRef.EMPTY;
+        }
+
+        return RecordRef.create(APP_ALFRESCO, "", discussableRef.toString());
     }
 
 }
