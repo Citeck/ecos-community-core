@@ -10,10 +10,12 @@ import org.alfresco.service.namespace.QName;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
+import ru.citeck.ecos.icase.status.event.StatusEventEmitter;
 import ru.citeck.ecos.model.ICaseModel;
 import ru.citeck.ecos.model.lib.status.dto.StatusDef;
 import ru.citeck.ecos.model.lib.status.service.StatusService;
 import ru.citeck.ecos.node.EcosTypeService;
+import ru.citeck.ecos.records.status.StatusRecords;
 import ru.citeck.ecos.records2.RecordRef;
 import ru.citeck.ecos.utils.DictionaryUtils;
 import ru.citeck.ecos.utils.LazyNodeRef;
@@ -37,6 +39,8 @@ public class CaseStatusServiceImpl implements CaseStatusService {
     private EcosTypeService ecosTypeService;
     @Autowired @Setter
     private StatusService statusService;
+    @Autowired @Setter
+    private StatusEventEmitter caseStatusEventEmitter;
 
     private ClassPolicyDelegate<CaseStatusPolicies.OnCaseStatusChangedPolicy> onCaseStatusChangedPolicyDelegate;
 
@@ -105,6 +109,21 @@ public class CaseStatusServiceImpl implements CaseStatusService {
         CaseStatusPolicies.OnCaseStatusChangedPolicy changedPolicy;
         changedPolicy = onCaseStatusChangedPolicyDelegate.get(caseStatusRef, classes);
         changedPolicy.onCaseStatusChanged(caseRef, beforeCaseStatus, caseStatusRef);
+
+        caseStatusEventEmitter.send(RecordRef.valueOf(caseRef.toString()), buildStatusRef(beforeCaseStatus),
+            buildStatusRef(caseStatusRef));
+    }
+
+    private RecordRef buildStatusRef(NodeRef caseStatusRef) {
+        String statusId;
+
+        if (isAlfRef(caseStatusRef)) {
+            statusId = (String) nodeService.getProperty(caseStatusRef, ContentModel.PROP_NAME);
+        } else {
+            statusId = caseStatusRef.getId();
+        }
+
+        return RecordRef.create("alfresco", StatusRecords.ID, statusId);
     }
 
     @Override

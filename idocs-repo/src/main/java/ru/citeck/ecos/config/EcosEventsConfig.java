@@ -32,7 +32,7 @@ public class EcosEventsConfig extends EventsServiceFactory {
         super.init();
     }
 
-    @Bean
+    @Bean(name = "eventsService")
     @NotNull
     @Override
     public EventsService createEventsService() {
