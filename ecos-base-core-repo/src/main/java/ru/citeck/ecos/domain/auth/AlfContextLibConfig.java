@@ -14,6 +14,7 @@ import ru.citeck.ecos.context.lib.auth.data.AuthData;
 import ru.citeck.ecos.context.lib.auth.data.EmptyAuth;
 import ru.citeck.ecos.context.lib.auth.data.SimpleAuthData;
 
+import javax.annotation.PostConstruct;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -32,6 +33,12 @@ public class AlfContextLibConfig extends ContextServiceFactory {
         OUTER_TO_INNER_USER_MAPPING.put(AuthConstants.SYSTEM_USER, AuthenticationUtil.SYSTEM_USER_NAME);
 
         OUTER_TO_INNER_USER_MAPPING.forEach((k, v) -> INNER_TO_OUTER_USER_MAPPING.put(v, k));
+    }
+
+    @Override
+    @PostConstruct
+    public void init() {
+        super.init();
     }
 
     @Nullable
