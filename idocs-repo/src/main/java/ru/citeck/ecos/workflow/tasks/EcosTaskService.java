@@ -171,7 +171,8 @@ public class EcosTaskService {
             exception.setStackTrace(stackTrace);
         } else if (ex instanceof AlfrescoRuntimeException) {
             String msg = ((AlfrescoRuntimeException) ex).getMsgId();
-            exception = new RuntimeException(msg, exception);
+            exception = new RuntimeException(msg);
+            exception.addSuppressed(exception);
         }
         throw exception;
     }
