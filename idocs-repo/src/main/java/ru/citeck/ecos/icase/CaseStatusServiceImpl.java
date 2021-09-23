@@ -115,6 +115,10 @@ public class CaseStatusServiceImpl implements CaseStatusService {
     }
 
     private RecordRef buildStatusRef(NodeRef caseStatusRef) {
+        if (caseStatusRef == null) {
+            return RecordRef.EMPTY;
+        }
+
         String statusId;
 
         if (isAlfRef(caseStatusRef)) {
