@@ -14,7 +14,6 @@ import ru.citeck.ecos.apps.app.domain.artifact.source.ArtifactSourceType;
 import ru.citeck.ecos.apps.app.domain.artifact.source.SourceKey;
 import ru.citeck.ecos.apps.app.util.AppDirWatchUtils;
 import ru.citeck.ecos.apps.artifact.type.TypeContext;
-import ru.citeck.ecos.commons.io.file.EcosFile;
 import ru.citeck.ecos.commons.io.file.std.EcosStdFile;
 
 import java.nio.file.Path;
@@ -58,21 +57,15 @@ public class EcosArtifactSourceProviderImpl implements ArtifactSourceProvider {
     }
 
     private void initSources() {
-
-        eappsUtils.getModuleIds().forEach(moduleId -> {
-
-            try {
-                EcosFile moduleDir = eappsUtils.getClasspathDir("module/" + moduleId);
-                if (moduleDir instanceof EcosStdFile) {
-                    sources.put(ALF_MODULE_SOURCE_PREFIX + moduleId, new ModuleArtifactsSource(
-                        moduleId,
-                        (EcosStdFile) moduleDir
-                    ));
-                }
-            } catch (Exception e) {
-                log.warn("Module artifacts dir initialization failed. Module ID: " + moduleId, e);
-            }
-        });
+        eappsUtils.getModulePaths().forEach((moduleId, path) ->
+            sources.put(
+                ALF_MODULE_SOURCE_PREFIX + moduleId,
+                new ModuleArtifactsSource(
+                    moduleId,
+                    new EcosStdFile(path.toFile())
+                )
+            )
+        );
     }
 
     private void initWatcher() {

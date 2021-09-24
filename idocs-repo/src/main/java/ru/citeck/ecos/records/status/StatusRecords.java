@@ -17,7 +17,7 @@ import ru.citeck.ecos.records3.record.dao.query.dto.res.RecsQueryRes;
 @Component
 public class StatusRecords extends AbstractRecordsDao implements RecordAttsDao, RecordsQueryDao {
 
-    private static final String ID = "status";
+    public static final String ID = "status";
 
     private final StatusRecordsUtils statusRecordsUtils;
 

@@ -58,9 +58,9 @@ public class EcosArtifactTypeProviderImpl implements ArtifactTypeProvider {
 
         List<Path> possibleLocationsToWatch = new ArrayList<>();
 
-        eappsUtils.getModuleIds().forEach(moduleId -> {
-            String path = "./" + moduleId + "/src/main/resources/alfresco/extension/eapps/types";
-            possibleLocationsToWatch.add(Paths.get(path));
+        eappsUtils.getModulePaths().forEach((moduleId, path) -> {
+            String srcPath = "./" + moduleId + "/src/main/resources/alfresco/extension/eapps/types";
+            possibleLocationsToWatch.add(Paths.get(srcPath));
         });
         possibleLocationsToWatch.addAll(eappsUtils.getLocationsFromProp(PROP_WATCHER_LOCATIONS));
 

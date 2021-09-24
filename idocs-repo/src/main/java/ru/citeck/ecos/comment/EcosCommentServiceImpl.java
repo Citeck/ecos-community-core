@@ -2,6 +2,7 @@ package ru.citeck.ecos.comment;
 
 import ecos.com.fasterxml.jackson210.core.JsonProcessingException;
 import ecos.com.fasterxml.jackson210.databind.ObjectMapper;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.alfresco.query.PagingRequest;
 import org.alfresco.query.PagingResults;
@@ -15,9 +16,12 @@ import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import ru.citeck.ecos.comment.event.EcosCommentEventDto;
+import ru.citeck.ecos.comment.event.EcosCommentEventService;
 import ru.citeck.ecos.comment.model.CommentDto;
 import ru.citeck.ecos.comment.model.CommentTagDto;
 import ru.citeck.ecos.model.EcosCommonModel;
+import ru.citeck.ecos.records2.RecordRef;
 
 import java.util.List;
 
@@ -28,6 +32,7 @@ import java.util.List;
  */
 @Slf4j
 @Service
+@RequiredArgsConstructor(onConstructor_ = {@Autowired})
 public class EcosCommentServiceImpl implements EcosCommentService {
 
     private static final String WORKSPACE_PREFIX = "workspace://SpacesStore/";
@@ -37,19 +42,9 @@ public class EcosCommentServiceImpl implements EcosCommentService {
     private final CommentFactory commentFactory;
     private final NodeService nodeService;
     private final PermissionService permissionService;
+    private final EcosCommentEventService ecosCommentEventService;
 
     private final ObjectMapper mapper = new ObjectMapper();
-
-    @Autowired
-    public EcosCommentServiceImpl(CommentServiceImpl commentService,
-                                  CommentFactory commentFactory,
-                                  NodeService nodeService,
-                                  PermissionService permissionService) {
-        this.commentService = commentService;
-        this.commentFactory = commentFactory;
-        this.nodeService = nodeService;
-        this.permissionService = permissionService;
-    }
 
     @Override
     public CommentDto create(CommentDto commentDTO) {
@@ -68,7 +63,17 @@ public class EcosCommentServiceImpl implements EcosCommentService {
             commentService.createComment(discussableRef, "", commentDTO.getText(), OFF_SUPPRESS_ROLL_UPS)
         );
         fillTags(createdComment, commentDTO.getTags());
-        return commentFactory.fromNode(createdComment);
+
+        CommentDto created = commentFactory.fromNode(createdComment);
+
+        ecosCommentEventService.sendCreateEvent(EcosCommentEventDto.builder()
+            .rec(RecordRef.valueOf(created.getRecord()))
+            .commentRec(EcosCommentUtils.commentIdToRecordRef(created.getId()))
+            .textAfter(created.getText())
+            .build()
+        );
+
+        return created;
     }
 
     private boolean hasReadPermission(NodeRef nodeRef) {
@@ -97,10 +102,22 @@ public class EcosCommentServiceImpl implements EcosCommentService {
             throw new IllegalArgumentException("Comment id is mandatory parameter for updating comment");
         }
 
+        CommentDto commentBefore = getById(commentId);
+
         NodeRef commentRef = toNodeRef(commentId);
         commentService.updateComment(commentRef, "", commentDTO.getText());
 
-        return commentFactory.fromNode(commentRef);
+        CommentDto commentAfter = commentFactory.fromNode(commentRef);
+
+        ecosCommentEventService.sendUpdateEvent(EcosCommentEventDto.builder()
+            .rec(RecordRef.valueOf(commentAfter.getRecord()))
+            .commentRec(EcosCommentUtils.commentIdToRecordRef(commentAfter.getId()))
+            .textBefore(commentBefore.getText())
+            .textAfter(commentAfter.getText())
+            .build()
+        );
+
+        return commentAfter;
     }
 
     @Override
@@ -116,7 +133,17 @@ public class EcosCommentServiceImpl implements EcosCommentService {
     @Override
     public void delete(String id) {
         NodeRef commentRef = toNodeRef(id);
+
+        CommentDto comment = getById(id);
+
         commentService.deleteComment(commentRef);
+
+        ecosCommentEventService.sendDeleteEvent(EcosCommentEventDto.builder()
+            .rec(RecordRef.valueOf(comment.getRecord()))
+            .commentRec(EcosCommentUtils.commentIdToRecordRef(comment.getId()))
+            .textBefore(comment.getText())
+            .build()
+        );
     }
 
     @Override
