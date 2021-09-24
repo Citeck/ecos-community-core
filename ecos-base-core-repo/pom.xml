@@ -139,6 +139,12 @@
             </exclusions>
         </dependency>
 
+        <dependency>
+            <groupId>ru.citeck.ecos.config</groupId>
+            <artifactId>ecos-config</artifactId>
+            <version>${ecos.config.version}</version>
+        </dependency>
+
     </dependencies>
 
     <build>

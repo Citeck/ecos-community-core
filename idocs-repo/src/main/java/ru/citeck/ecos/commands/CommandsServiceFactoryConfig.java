@@ -1,6 +1,5 @@
 package ru.citeck.ecos.commands;
 
-import com.rabbitmq.client.ConnectionFactory;
 import lombok.extern.slf4j.Slf4j;
 import org.alfresco.repo.security.authentication.AuthenticationUtil;
 import org.alfresco.repo.transaction.RetryingTransactionHelper;
@@ -11,7 +10,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.DependsOn;
 import ru.citeck.ecos.commands.context.CommandCtxController;
 import ru.citeck.ecos.commands.context.CommandCtxManager;
 import ru.citeck.ecos.commands.rabbit.RabbitCommandsService;
@@ -26,7 +24,6 @@ import java.util.concurrent.Callable;
 
 @Slf4j
 @Configuration
-@DependsOn({"moduleStarter"})
 public class CommandsServiceFactoryConfig extends CommandsServiceFactory {
 
     private static final String CONCURRENT_COMMAND_CONSUMERS = "commands.concurrentCommandConsumers";

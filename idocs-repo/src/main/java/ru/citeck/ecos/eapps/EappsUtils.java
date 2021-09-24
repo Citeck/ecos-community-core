@@ -1,54 +1,73 @@
 package ru.citeck.ecos.eapps;
 
+import lombok.Getter;
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
+import org.alfresco.repo.module.ModuleDetailsImpl;
 import org.alfresco.service.cmr.module.ModuleDetails;
-import org.alfresco.service.cmr.module.ModuleService;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.ApplicationContextAware;
 import org.springframework.core.io.Resource;
+import org.springframework.core.io.support.ResourcePatternResolver;
 import org.springframework.stereotype.Component;
 import ru.citeck.ecos.commons.io.file.EcosFile;
 import ru.citeck.ecos.commons.io.file.mem.EcosMemDir;
 import ru.citeck.ecos.commons.io.file.std.EcosStdFile;
-import ru.citeck.ecos.utils.ResourceResolver;
 
-import java.io.File;
-import java.io.FileNotFoundException;
+import java.io.*;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.Properties;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Slf4j
 @Component
-public class EappsUtils {
+public class EappsUtils implements ApplicationContextAware {
 
     private static final String DEV_ENV_PROP = "ecos.environment.dev";
-    private static final String DEV_ARTIFACTS_LOCATIONS_PROP = "eapps.watcher.artifacts.locations";
+    private static final String MODULE_CONFIG_SEARCH_ALL = "classpath*:alfresco/module/*/module.properties";
 
-    private final ResourceResolver resolver;
-    private final ModuleService moduleService;
+    private ResourcePatternResolver resolver;
 
     @Autowired
     @Qualifier("global-properties")
     private Properties globalProps;
 
-    @Autowired
-    public EappsUtils(@Qualifier("resourceResolver") ResourceResolver resolver,
-                      ModuleService moduleService) {
-        this.resolver = resolver;
-        this.moduleService = moduleService;
-    }
+    @Getter(lazy = true)
+    private final Map<String, Path> modulePaths = getModulePathsImpl();
 
-    public List<String> getModuleIds() {
-        return moduleService.getAllModules()
-            .stream()
-            .map(ModuleDetails::getId)
-            .collect(Collectors.toList());
+    @SneakyThrows
+    private Map<String, Path> getModulePathsImpl() {
+
+        Map<String, Path> result = new HashMap<>();
+        Resource[] modulesProps = resolver.getResources(MODULE_CONFIG_SEARCH_ALL);
+
+        for (Resource moduleProps : modulesProps) {
+            try {
+                InputStream is = new BufferedInputStream(moduleProps.getInputStream());
+                Properties properties = new Properties();
+                properties.load(is);
+                ModuleDetails details = new ModuleDetailsImpl(properties);
+                if (StringUtils.isNotBlank(details.getId())) {
+                    File file;
+                    try {
+                        file = moduleProps.getFile();
+                    } catch (IOException ex) {
+                        log.debug("Props of module '" + details.getId() + "' " +
+                            "is not available in file system. Skip it");
+                        continue;
+                    }
+                    result.put(details.getId(), file.toPath().getParent());
+                }
+            } catch (Throwable e) {
+                log.error("Unable to use module information for resource: " + moduleProps, e);
+            }
+        }
+        return result;
     }
 
     public boolean isDevEnv() {
@@ -71,7 +90,7 @@ public class EappsUtils {
         }
 
         return Arrays.stream(value.split(","))
-            .map(v -> Paths.get(v))
+            .map(Paths::get)
             .collect(Collectors.toList());
     }
 
@@ -93,5 +112,10 @@ public class EappsUtils {
             log.error("Directory resolving error. Path: " + path, e);
         }
         return new EcosMemDir();
+    }
+
+    @Override
+    public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
+        this.resolver = applicationContext;
     }
 }
