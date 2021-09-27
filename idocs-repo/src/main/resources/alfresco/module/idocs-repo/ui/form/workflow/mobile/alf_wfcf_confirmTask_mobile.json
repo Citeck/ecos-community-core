@@ -60,7 +60,7 @@
         "input": false,
         "components": [
           {
-            "label": "Срок исполнения",
+            "label": "dueDate",
             "format": "dd-MM-yyyy hh:mm",
             "mask": false,
             "disabled": true,
@@ -167,7 +167,7 @@
             "id": "e4annuj"
           },
           {
-            "label": "Отправитель",
+            "label": "sender",
             "showWordCount": false,
             "showCharCount": false,
             "tableView": true,
@@ -244,7 +244,7 @@
             "id": "en7blusd"
           },
           {
-            "label": "Исполнитель",
+            "label": "actors",
             "showWordCount": false,
             "showCharCount": false,
             "tableView": true,
@@ -321,7 +321,7 @@
             "id": "sn9blusd"
           },
           {
-            "label": "Comment",
+            "label": "comment",
             "autoExpand": false,
             "isUploadEnabled": false,
             "showWordCount": false,
@@ -476,7 +476,7 @@
               {
                 "components": [
                   {
-                    "label": "Reject",
+                    "label": "outcome_Reject",
                     "removeIndents": true,
                     "state": "",
                     "theme": "primary",
@@ -609,7 +609,7 @@
               {
                 "components": [
                   {
-                    "label": "Confirmed",
+                    "label": "outcome_Confirmed",
                     "removeIndents": true,
                     "state": "",
                     "theme": "primary",
