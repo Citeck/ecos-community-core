@@ -1,0 +1,17 @@
+id: add-alf-config-to-admin-page
+
+name:
+  ru: Добавить журнал "Конфигурация Alfresco" на страницу администратора
+  en: Add journal "Alfresco Config" to admin page
+
+target: ui/admin-sections-group$application
+
+type: json
+config:
+  operations:
+    - op: add
+      path: '$.sections'
+      value:
+        type: JOURNAL
+        config:
+          journalId: ecosConfig
