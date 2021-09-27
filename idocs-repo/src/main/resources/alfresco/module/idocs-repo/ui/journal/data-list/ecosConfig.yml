@@ -1,7 +1,7 @@
 ---
 id: ecosConfig
 
-name: { ru: Конфигурация, en: Config }
+name: { ru: Конфигурация Alfresco, en: Alfresco Config }
 
 actions:
   - uiserv/action@edit
