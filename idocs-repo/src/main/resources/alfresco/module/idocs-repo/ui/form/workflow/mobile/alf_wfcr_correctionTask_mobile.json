@@ -13,14 +13,14 @@
       "ForAll": "ForAll",
       "Comment": "Comment",
       "sender": "Sender",
-      "executor": "Executor",
+      "actors[].?disp": "Executor",
       "dueDate": "Due date"
     },
     "ru": {
       "ForAll": "Отправить на согласование",
       "Comment": "Комментарий",
       "dueDate": "Срок выполнения",
-      "executor": "Исполнитель",
+      "actors[].?disp": "Исполнитель",
       "sender": "Отправитель"
     }
   },

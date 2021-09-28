@@ -16,7 +16,7 @@
       "comment": "Comment",
       "The decision of approver": "The decision of approver",
       "sender": "Sender",
-      "executor": "Executor",
+      "actors[].?disp": "Executor",
       "dueDate": "Due date"
     },
     "ru": {
@@ -26,7 +26,7 @@
       "comment": "Комментарий",
       "The decision of approver": "Решение согласующего",
       "dueDate": "Срок выполнения",
-      "executor": "Исполнитель",
+      "actors[].?disp": "Исполнитель",
       "sender": "Отправитель"
     }
   },
