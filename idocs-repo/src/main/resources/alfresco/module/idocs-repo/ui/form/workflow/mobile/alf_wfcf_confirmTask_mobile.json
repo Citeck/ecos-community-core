@@ -10,16 +10,16 @@
   "width": "default",
   "i18n": {
     "en": {
-      "outcome_Confirmed": "Confirmed",
-      "outcome_Reject": "Reject",
+      "Confirmed": "Confirmed",
+      "Reject": "Reject",
       "comment": "Comment",
       "sender": "Sender",
       "actors[].?disp": "Executor",
       "dueDate": "Due date"
     },
     "ru": {
-      "outcome_Confirmed": "Согласовать",
-      "outcome_Reject": "Отклонить",
+      "Confirmed": "Согласовать",
+      "Reject": "Отклонить",
       "comment": "Комментарий",
       "dueDate": "Срок выполнения",
       "actors[].?disp": "Исполнитель",
@@ -60,7 +60,7 @@
         "input": false,
         "components": [
           {
-            "label": "dueDate",
+            "label": "Срок исполнения",
             "format": "dd-MM-yyyy hh:mm",
             "mask": false,
             "disabled": true,
@@ -167,7 +167,7 @@
             "id": "e4annuj"
           },
           {
-            "label": "sender",
+            "label": "Отправитель",
             "showWordCount": false,
             "showCharCount": false,
             "tableView": true,
@@ -244,7 +244,7 @@
             "id": "en7blusd"
           },
           {
-            "label": "actors",
+            "label": "Исполнитель",
             "showWordCount": false,
             "showCharCount": false,
             "tableView": true,
@@ -321,7 +321,7 @@
             "id": "sn9blusd"
           },
           {
-            "label": "comment",
+            "label": "Comment",
             "autoExpand": false,
             "isUploadEnabled": false,
             "showWordCount": false,
@@ -476,7 +476,7 @@
               {
                 "components": [
                   {
-                    "label": "outcome_Reject",
+                    "label": "Reject",
                     "removeIndents": true,
                     "state": "",
                     "theme": "primary",
@@ -609,7 +609,7 @@
               {
                 "components": [
                   {
-                    "label": "outcome_Confirmed",
+                    "label": "Confirmed",
                     "removeIndents": true,
                     "state": "",
                     "theme": "primary",
