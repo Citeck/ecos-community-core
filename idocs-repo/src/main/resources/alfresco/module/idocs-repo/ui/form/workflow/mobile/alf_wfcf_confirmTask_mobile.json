@@ -10,16 +10,16 @@
   "width": "default",
   "i18n": {
     "en": {
-      "outcome_Confirmed": "Confirmed",
-      "outcome_Reject": "Reject",
+      "Confirmed": "Confirmed",
+      "Reject": "Reject",
       "comment": "Comment",
       "sender": "Sender",
       "actors[].?disp": "Executor",
       "dueDate": "Due date"
     },
     "ru": {
-      "outcome_Confirmed": "Согласовать",
-      "outcome_Reject": "Отклонить",
+      "Confirmed": "Согласовать",
+      "Reject": "Отклонить",
       "comment": "Комментарий",
       "dueDate": "Срок выполнения",
       "actors[].?disp": "Исполнитель",

@@ -170,7 +170,7 @@
                     "components": [
                       {
                         "label": "wfperf:enableGroupSplit",
-                        "labelPosition": "left-left",
+                        "labelPosition": "",
                         "key": "wfperf_enableGroupSplit",
                         "type": "checkbox",
                         "input": true
