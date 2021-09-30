@@ -107,6 +107,12 @@
         </dependency>
 
         <dependency>
+            <groupId>ru.citeck.ecos.model</groupId>
+            <artifactId>ecos-model-lib-commands</artifactId>
+            <version>${ecos.model-lib.version}</version>
+        </dependency>
+
+        <dependency>
             <groupId>ru.citeck.ecos.context</groupId>
             <artifactId>ecos-context-lib</artifactId>
             <version>${ecos.context-lib.version}</version>

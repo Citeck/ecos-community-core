@@ -2,6 +2,7 @@ package ru.citeck.ecos.records.source.alf;
 
 import lombok.extern.slf4j.Slf4j;
 import org.alfresco.model.ContentModel;
+import org.alfresco.repo.node.MLPropertyInterceptor;
 import org.alfresco.repo.security.authentication.AuthenticationUtil;
 import org.alfresco.service.ServiceRegistry;
 import org.alfresco.service.cmr.dictionary.*;
@@ -18,10 +19,17 @@ import ru.citeck.ecos.action.group.GroupActionConfig;
 import ru.citeck.ecos.action.group.GroupActionService;
 import ru.citeck.ecos.commons.data.DataValue;
 import ru.citeck.ecos.commons.data.ObjectData;
+import ru.citeck.ecos.context.lib.auth.AuthContext;
 import ru.citeck.ecos.domain.model.alf.service.AlfAutoModelService;
 import ru.citeck.ecos.model.EcosModel;
 import ru.citeck.ecos.model.EcosTypeModel;
 import ru.citeck.ecos.model.InvariantsModel;
+import ru.citeck.ecos.model.lib.attributes.computed.ComputedAttsService;
+import ru.citeck.ecos.model.lib.attributes.dto.AttributeDef;
+import ru.citeck.ecos.model.lib.attributes.dto.computed.ComputedAttStoringType;
+import ru.citeck.ecos.model.lib.attributes.dto.computed.ComputedAttType;
+import ru.citeck.ecos.model.lib.type.dto.TypeInfo;
+import ru.citeck.ecos.model.lib.type.repo.TypesRepo;
 import ru.citeck.ecos.model.lib.type.service.TypeRefService;
 import ru.citeck.ecos.model.lib.type.service.utils.TypeUtils;
 import ru.citeck.ecos.node.AlfNodeInfo;
@@ -56,11 +64,6 @@ import ru.citeck.ecos.records2.source.dao.RecordsQueryDao;
 import ru.citeck.ecos.records2.source.dao.local.LocalRecordsDao;
 import ru.citeck.ecos.records2.source.dao.local.v2.LocalRecordsMetaDao;
 import ru.citeck.ecos.records2.source.dao.local.v2.LocalRecordsQueryWithMetaDao;
-import ru.citeck.ecos.records3.record.atts.computed.ComputedAtt;
-import ru.citeck.ecos.records3.record.atts.computed.ComputedAttType;
-import ru.citeck.ecos.records3.record.atts.computed.ComputedUtils;
-import ru.citeck.ecos.records3.record.atts.computed.StoringType;
-import ru.citeck.ecos.records3.record.request.context.SystemContextUtil;
 import ru.citeck.ecos.security.EcosPermissionService;
 import ru.citeck.ecos.utils.AuthorityUtils;
 import ru.citeck.ecos.utils.NodeUtils;
@@ -108,7 +111,7 @@ public class AlfNodesRecordsDAO extends LocalRecordsDao
     private AlfNodeContentFileHelper contentFileHelper;
     private EcosPermissionService ecosPermissionService;
     private TypesManager typeInfoProvider;
-    private TypeRefService typeRefService;
+    private ComputedAttsService computedAttsService;
     private ServiceRegistry serviceRegistry;
     private RecordsTemplateService recordsTemplateService;
     private AlfAutoModelService alfAutoModelService;
@@ -424,103 +427,27 @@ public class AlfNodesRecordsDAO extends LocalRecordsDao
             qName, jsonNodes, finalNodeRef, false));
 
         final boolean isNewNodeConst = isNewNode;
-        SystemContextUtil.doAsSystemJ(() -> {
-            if (isNewNodeConst) {
-                ComputedUtils.doWithNewRecordJ(() -> {
-                    storeComputedAttsForNewNode(finalNodeRef, initialAtts);
-                    return null;
-                });
-            }
-            updateNodeDispName(resultRecord.getId());
+        AuthContext.runAsSystemJ(() -> {
+            Objects.requireNonNull(finalNodeRef);
+            updateComputedAtts(finalNodeRef, isNewNodeConst);
             return null;
         });
 
         return resultRecord;
     }
 
-    private void storeComputedAttsForNewNode(NodeRef nodeRef, ObjectData initialAtts) {
+    public void updateComputedAtts(NodeRef nodeRef, boolean isNewRecord) {
 
         RecordRef typeRef = ecosTypeService.getEcosType(nodeRef);
-        Map<String, Long> counterProps = getCounterProps(nodeRef, initialAtts, typeRef);
+        RecordRef recordRef = RecordRef.create("", nodeRef.toString());
 
-        if (!counterProps.isEmpty()) {
-            RecordMeta meta = new RecordMeta(
-                RecordRef.valueOf(nodeRef.toString()),
-                ObjectData.create(counterProps)
-            );
-            processSingleRecord(meta);
+        ObjectData attsToStore = computedAttsService.computeAttsToStore(recordRef, isNewRecord, typeRef);
+
+        if (attsToStore.size() > 0) {
+            processSingleRecord(new RecordMeta(recordRef, attsToStore));
         }
 
-        ObjectData storedProps = getStoredPropsForNewNode(nodeRef, initialAtts, typeRef);
-        if (storedProps.size() != 0) {
-            processSingleRecord(new RecordMeta(RecordRef.valueOf(nodeRef.toString()), storedProps));
-        }
-    }
-
-    private ObjectData getStoredPropsForNewNode(NodeRef nodeRef, ObjectData mutateAtts, RecordRef docTypeRef) {
-
-        if (RecordRef.isEmpty(docTypeRef)) {
-            return ObjectData.create();
-        }
-
-        List<ComputedAtt> computedAtts = typeRefService.getComputedAtts(docTypeRef);
-        Set<String> attsToStore = new HashSet<>();
-
-        for (ComputedAtt att : computedAtts) {
-            StoringType storingType = att.getDef().getStoringType();
-            if (StoringType.NONE.equals(storingType)) {
-                continue;
-            }
-            attsToStore.add(att.getId());
-        }
-
-        return recordsService.getAttributes(RecordRef.valueOf(nodeRef.toString()), attsToStore).getAttributes();
-    }
-
-    private Map<String, Long> getCounterProps(NodeRef nodeRef, ObjectData mutateAtts, RecordRef docTypeRef) {
-
-        RecordRef documentRef = RecordRef.valueOf(nodeRef.toString());
-
-        if (RecordRef.isEmpty(docTypeRef)) {
-            return Collections.emptyMap();
-        }
-
-        Map<String, Long> counterProps = new HashMap<>();
-
-        RecordRef docNumTemplateRef = ecosTypeService.getNumTemplateByTypeRef(docTypeRef);
-        Long number = ecosTypeService.getNumberForDocument(
-            RecordRef.valueOf(nodeRef.toString()),
-            docNumTemplateRef
-        );
-        if (number != null) {
-            counterProps.put(EcosModel.PROP_DOC_NUM.toPrefixString(namespaceService), number);
-        }
-
-        List<ComputedAtt> computedAtts = typeRefService.getComputedAtts(docTypeRef);
-
-        for (ComputedAtt att : computedAtts) {
-
-            if (att.getDef().getType() != ComputedAttType.COUNTER) {
-                continue;
-            }
-
-            String numTemplateRefStr = att.getDef().getConfig().get("numTemplateRef").asText();
-            RecordRef numTemplateRef = RecordRef.valueOf(numTemplateRefStr);
-            if (RecordRef.isEmpty(numTemplateRef)) {
-                log.error("Computed attribute with type COUNTER and without numTemplateRef: " + att);
-            } else {
-                String currentValue = mutateAtts.get(att.getId()).asText();
-                if (StringUtils.isBlank(currentValue)) {
-                    Long attNumber = ecosTypeService.getNumberForDocument(
-                        documentRef,
-                        numTemplateRef
-                    );
-                    counterProps.put(att.getId(), attNumber);
-                }
-            }
-        }
-
-        return counterProps;
+        updateNodeDispName(recordRef);
     }
 
     private RecordRef handleETypeAttribute(ObjectData attributes, Map<QName, Serializable> props) {
@@ -640,42 +567,29 @@ public class AlfNodesRecordsDAO extends LocalRecordsDao
         if (RecordRef.isEmpty(ecosType)) {
             return false;
         }
+
         TypeDto typeDto = typeInfoProvider.getType(ecosType);
         if (typeDto == null) {
             return false;
         }
 
+        Map<Locale, String> dispName = typeDto.getInhDispNameTemplate().toMutableMap();
+        if (dispName.isEmpty()) {
+            return false;
+        }
+
+        DataValue resolvedTemplate = recordsTemplateService.resolve(DataValue.create(dispName), recordRef);
+
+        if (resolvedTemplate != null && !resolvedTemplate.isNull()) {
+            dispName = resolvedTemplate.asMap(Locale.class, String.class);
+        }
+
+        MLText mlText = new MLText();
+        mlText.putAll(dispName);
+
+        nodeService.setProperty(nodeRef, ContentModel.PROP_TITLE, mlText);
+
         Map<QName, Serializable> props = nodeService.getProperties(nodeRef);
-
-        Map<Locale, String> dispName;
-
-        if (!ru.citeck.ecos.commons.data.MLText.isEmpty(typeDto.getInhDispNameTemplate())) {
-            dispName = typeDto.getInhDispNameTemplate().getValues();
-        } else {
-            dispName = Collections.emptyMap();
-        }
-
-        Map<Locale, String> notBlankDispNames = new HashMap<>();
-        dispName.forEach((k, v) -> {
-            if (StringUtils.isNotBlank(v)) {
-                notBlankDispNames.put(k, v);
-            }
-        });
-        dispName = notBlankDispNames;
-
-        if (!dispName.isEmpty()) {
-
-            DataValue resolvedTemplate = recordsTemplateService.resolve(DataValue.create(dispName), recordRef);
-
-            if (resolvedTemplate != null && !resolvedTemplate.isNull()) {
-                dispName = resolvedTemplate.asMap(Locale.class, String.class);
-            }
-
-            MLText mlText = new MLText();
-            dispName.forEach(mlText::put);
-
-            nodeService.setProperty(nodeRef, ContentModel.PROP_TITLE, mlText);
-        }
 
         String name = (String) props.get(ContentModel.PROP_NAME);
 
@@ -906,8 +820,8 @@ public class AlfNodesRecordsDAO extends LocalRecordsDao
     }
 
     @Autowired
-    public void setTypeRefService(TypeRefService typeRefService) {
-        this.typeRefService = typeRefService;
+    public void setComputedAttsService(ComputedAttsService computedAttsService) {
+        this.computedAttsService = computedAttsService;
     }
 
     @Autowired

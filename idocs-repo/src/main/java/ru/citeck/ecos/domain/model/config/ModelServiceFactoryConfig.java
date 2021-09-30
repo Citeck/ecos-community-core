@@ -1,22 +1,31 @@
 package ru.citeck.ecos.domain.model.config;
 
+import kotlin.Unit;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import ru.citeck.ecos.commands.CommandsServiceFactory;
 import ru.citeck.ecos.model.lib.ModelServiceFactory;
+import ru.citeck.ecos.model.lib.api.EcosModelAppApi;
+import ru.citeck.ecos.model.lib.api.commands.CommandsModelAppApi;
+import ru.citeck.ecos.model.lib.attributes.computed.ComputedAttsService;
+import ru.citeck.ecos.model.lib.num.dto.NumTemplateDef;
+import ru.citeck.ecos.model.lib.num.repo.NumTemplatesRepo;
 import ru.citeck.ecos.model.lib.permissions.repo.PermissionsRepo;
 import ru.citeck.ecos.model.lib.permissions.service.PermsEvaluator;
 import ru.citeck.ecos.model.lib.permissions.service.RecordPermsService;
 import ru.citeck.ecos.model.lib.role.service.RoleService;
 import ru.citeck.ecos.model.lib.status.service.StatusService;
-import ru.citeck.ecos.model.lib.type.dto.TypeModelDef;
+import ru.citeck.ecos.model.lib.type.dto.TypeInfo;
 import ru.citeck.ecos.model.lib.type.dto.TypePermsDef;
 import ru.citeck.ecos.model.lib.type.repo.TypesRepo;
 import ru.citeck.ecos.model.lib.type.service.TypeRefService;
 import ru.citeck.ecos.node.EcosTypeService;
+import ru.citeck.ecos.records.type.NumTemplateDto;
 import ru.citeck.ecos.records.type.TypeDto;
 import ru.citeck.ecos.records2.RecordRef;
 import ru.citeck.ecos.records2.source.dao.local.RemoteSyncRecordsDao;
@@ -31,8 +40,17 @@ import java.util.function.Supplier;
 public class ModelServiceFactoryConfig extends ModelServiceFactory {
 
     private RemoteSyncRecordsDao<TypePermsDef> typePermsRecords;
+    private RemoteSyncRecordsDao<NumTemplateDto> numTemplateRecords;
     private EcosTypeService typeService;
     private RemoteSyncRecordsDao<TypeDto> typeRecords;
+    private CommandsServiceFactory commandsServiceFactory;
+
+    @Bean
+    @NotNull
+    @Override
+    protected ComputedAttsService createComputedAttsToStoreService() {
+        return super.createComputedAttsToStoreService();
+    }
 
     @NotNull
     @Override
@@ -44,6 +62,20 @@ public class ModelServiceFactoryConfig extends ModelServiceFactory {
             .filter(it -> recordRef.equals(it.getTypeRef()))
             .findFirst()
             .orElse(null);
+    }
+
+    @Bean
+    @NotNull
+    @Override
+    protected NumTemplatesRepo createNumTemplatesRepo() {
+        return recordRef -> numTemplateRecords.getRecord(recordRef.getId())
+            .map(dto -> NumTemplateDef.create(builder -> {
+                builder.withId(dto.getId());
+                builder.withName(dto.getName());
+                builder.withCounterKey(dto.getCounterKey());
+                builder.withModelAttributes(dto.getModelAttributes());
+                return Unit.INSTANCE;
+            })).orElse(null);
     }
 
     @Bean
@@ -74,21 +106,34 @@ public class ModelServiceFactoryConfig extends ModelServiceFactory {
         return super.createStatusService();
     }
 
+    @NotNull
+    @Override
+    protected EcosModelAppApi createEcosModelAppApi() {
+        return new CommandsModelAppApi(commandsServiceFactory);
+    }
+
     @Bean
     @NotNull
     @Override
     protected TypesRepo createTypesRepo() {
         return new TypesRepo() {
-            @NotNull
-            @Override
-            public TypeModelDef getModel(@NotNull RecordRef typeRef) {
-                return getFromDto(typeRef, TypeDto::getResolvedModel, () -> TypeModelDef.EMPTY);
-            }
 
-            @NotNull
+            @Nullable
             @Override
-            public RecordRef getParent(@NotNull RecordRef typeRef) {
-                return getFromDto(typeRef, TypeDto::getParentRef, () -> RecordRef.EMPTY);
+            public TypeInfo getTypeInfo(@NotNull RecordRef typeRef) {
+                return getFromDto(
+                    typeRef,
+                    dto -> TypeInfo.create(builder -> {
+                        builder.withId(dto.getId());
+                        builder.withName(dto.getName());
+                        builder.withModel(dto.getResolvedModel());
+                        builder.withParentRef(dto.getParentRef());
+                        builder.withDispNameTemplate(dto.getInhDispNameTemplate());
+                        builder.withNumTemplateRef(dto.getInhNumTemplateRef());
+                        return Unit.INSTANCE;
+                    }),
+                    () -> null
+                );
             }
 
             @NotNull
@@ -121,6 +166,11 @@ public class ModelServiceFactoryConfig extends ModelServiceFactory {
     }
 
     @Autowired
+    public void setCommandsServiceFactory(CommandsServiceFactory commandsServiceFactory) {
+        this.commandsServiceFactory = commandsServiceFactory;
+    }
+
+    @Autowired
     @Qualifier("remoteTypesSyncRecordsDao")
     public void setTypeRecords(RemoteSyncRecordsDao<TypeDto> typeRecords) {
         this.typeRecords = typeRecords;
@@ -135,6 +185,12 @@ public class ModelServiceFactoryConfig extends ModelServiceFactory {
     @Qualifier("remoteTypePermsSyncRecordsDao")
     public void setTypePermsRecords(RemoteSyncRecordsDao<TypePermsDef> typePermsRecords) {
         this.typePermsRecords = typePermsRecords;
+    }
+
+    @Autowired
+    @Qualifier("remoteNumTemplatesSyncRecordsDao")
+    public void setNumTemplateRecords(RemoteSyncRecordsDao<NumTemplateDto> numTemplateRecords) {
+        this.numTemplateRecords = numTemplateRecords;
     }
 
     @Override
