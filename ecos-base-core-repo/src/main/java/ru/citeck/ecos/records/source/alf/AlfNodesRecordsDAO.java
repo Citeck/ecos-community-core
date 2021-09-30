@@ -628,21 +628,20 @@ public class AlfNodesRecordsDAO extends LocalRecordsDao
 
         String parent = record.getAttribute(RecordConstants.ATT_PARENT, "");
         if (!parent.isEmpty()) {
-            if (parent.startsWith("alfresco/@")) {
-                parent = parent.replaceFirst("alfresco/@", "");
+            NodeRef parentRef = nodeUtils.getNodeRefOrNull(parent);
+            if (parentRef != null) {
+                return parentRef;
             }
-            if (parent.startsWith("workspace")) {
-                return new NodeRef(parent);
-            }
+
             if (parent.startsWith(PeopleRecordsDao.ID + "@")
                     || parent.startsWith("alfresco/" + PeopleRecordsDao.ID + "@")) {
 
                 String personId = RecordRef.valueOf(parent).getId();
-                NodeRef parentRef = authorityUtils.getNodeRef(personId);
-                if (parentRef == null) {
+                NodeRef authorityRef = authorityUtils.getNodeRef(personId);
+                if (authorityRef == null) {
                     throw new RuntimeException("Incorrect authority: " + parent);
                 }
-                return parentRef;
+                return authorityRef;
             }
             return getByPath(parent);
         }
