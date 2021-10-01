@@ -25,6 +25,7 @@ import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import ru.citeck.ecos.node.DisplayNameService;
+import ru.citeck.ecos.records2.RecordRef;
 
 import java.io.Serializable;
 import java.util.*;
@@ -116,6 +117,9 @@ public class NodeUtils {
         if (node instanceof NodeRef) {
             return (NodeRef) node;
         }
+        if (node instanceof RecordRef) {
+            return getNodeRefOrNull(((RecordRef) node).getId());
+        }
 
         if (!(node instanceof String)) {
             return null;
@@ -140,11 +144,15 @@ public class NodeUtils {
             return new NodeRef(nodeStr.substring(workspaceIdx));
         }
 
-        NodeRef root = nodeService.getRootNode(StoreRef.STORE_REF_WORKSPACE_SPACESSTORE);
-        List<NodeRef> results = searchService.selectNodes(root, nodeStr, null,
-                                                          namespaceService, false);
+        if (nodeStr.startsWith("/") || nodeStr.contains("app:company_home")) {
 
-        return results.isEmpty() ? null : results.get(0);
+            NodeRef root = nodeService.getRootNode(StoreRef.STORE_REF_WORKSPACE_SPACESSTORE);
+            List<NodeRef> results = searchService.selectNodes(root, nodeStr, null,
+                namespaceService, false);
+            return results.isEmpty() ? null : results.get(0);
+        }
+
+        return null;
     }
 
     /**

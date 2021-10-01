@@ -6,7 +6,6 @@ import org.alfresco.repo.workflow.WorkflowModel;
 import org.alfresco.repo.workflow.WorkflowQNameConverter;
 import org.alfresco.repo.workflow.activiti.ActivitiConstants;
 import org.alfresco.service.cmr.repository.AssociationRef;
-import org.alfresco.service.cmr.repository.ChildAssociationRef;
 import org.alfresco.service.cmr.repository.NodeRef;
 import org.alfresco.service.cmr.repository.NodeService;
 import org.alfresco.service.cmr.security.AuthorityService;
@@ -14,7 +13,6 @@ import org.alfresco.service.cmr.workflow.WorkflowService;
 import org.alfresco.service.cmr.workflow.WorkflowTask;
 import org.alfresco.service.namespace.NamespaceService;
 import org.alfresco.service.namespace.QName;
-import org.alfresco.service.namespace.RegexQNamePattern;
 import org.apache.commons.lang.StringUtils;
 import org.flowable.engine.TaskService;
 import org.flowable.task.service.delegate.DelegateTask;
@@ -30,8 +28,10 @@ import ru.citeck.ecos.flowable.utils.FlowableUtils;
 import ru.citeck.ecos.history.HistoryEventType;
 import ru.citeck.ecos.history.HistoryService;
 import ru.citeck.ecos.model.*;
+import ru.citeck.ecos.records2.RecordRef;
 import ru.citeck.ecos.role.CaseRoleAssocsDao;
 import ru.citeck.ecos.role.CaseRoleService;
+import ru.citeck.ecos.utils.NodeUtils;
 import ru.citeck.ecos.workflow.listeners.TaskDataListenerUtils;
 
 import java.io.Serializable;
@@ -74,6 +74,7 @@ public class TaskHistoryListener implements GlobalCreateTaskListener, GlobalAssi
     private TaskService taskService;
     private TaskDataListenerUtils taskDataListenerUtils;
     private CaseRoleAssocsDao caseRoleAssocsDao;
+    private NodeUtils nodeUtils;
 
     /**
      * Property names
@@ -107,7 +108,8 @@ public class TaskHistoryListener implements GlobalCreateTaskListener, GlobalAssi
             return;
         }
 
-        NodeRef document = FlowableListenerUtils.getDocument(delegateTask, nodeService);
+        RecordRef documentRecordRef = FlowableListenerUtils.getDocumentRecordRef(delegateTask, nodeService);
+        NodeRef documentNodeRef = nodeUtils.getNodeRefOrNull(documentRecordRef);
 
         /*
          * Collect properties
@@ -150,8 +152,8 @@ public class TaskHistoryListener implements GlobalCreateTaskListener, GlobalAssi
         List<AssociationRef> packageAssocs = nodeService.getSourceAssocs(bpmPackage, ICaseTaskModel.ASSOC_WORKFLOW_PACKAGE);
 
         String roleName;
-        if (panelOfAuthorized != null && assignee != null && !panelOfAuthorized.isEmpty()) {
-            List<NodeRef> listRoles = caseRoleService.getRoles(document);
+        if (panelOfAuthorized != null && assignee != null && !panelOfAuthorized.isEmpty() && documentNodeRef != null) {
+            List<NodeRef> listRoles = caseRoleService.getRoles(documentNodeRef);
             roleName = getAuthorizedName(panelOfAuthorized, listRoles, assignee) != null ?
                 getAuthorizedName(panelOfAuthorized, listRoles, assignee) :
                 getRoleName(packageAssocs, assignee, delegateTask.getId());
@@ -185,9 +187,11 @@ public class TaskHistoryListener implements GlobalCreateTaskListener, GlobalAssi
         eventProperties.put(HistoryModel.PROP_WORKFLOW_INSTANCE_ID, ENGINE_PREFIX + delegateTask.getProcessInstanceId());
         eventProperties.put(HistoryModel.PROP_WORKFLOW_DESCRIPTION, (Serializable) delegateTask.getVariable(VAR_DESCRIPTION));
         eventProperties.put(HistoryModel.ASSOC_INITIATOR, assignee != null ? assignee : HistoryService.SYSTEM_USER);
-        eventProperties.put(HistoryModel.ASSOC_DOCUMENT, document);
+        eventProperties.put(HistoryModel.ASSOC_DOCUMENT, documentRecordRef.toString());
 
-        taskDataListenerUtils.fillDocumentData(document, eventProperties);
+        if (documentNodeRef != null) {
+            taskDataListenerUtils.fillDocumentData(documentNodeRef, eventProperties);
+        }
 
         historyService.persistEvent(HistoryModel.TYPE_BASIC_EVENT, eventProperties);
     }
@@ -376,6 +380,11 @@ public class TaskHistoryListener implements GlobalCreateTaskListener, GlobalAssi
 
     public void setTaskService(TaskService taskService) {
         this.taskService = taskService;
+    }
+
+    @Autowired
+    public void setNodeUtils(NodeUtils nodeUtils) {
+        this.nodeUtils = nodeUtils;
     }
 
     @Autowired

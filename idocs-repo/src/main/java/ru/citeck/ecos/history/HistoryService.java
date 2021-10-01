@@ -42,8 +42,10 @@ import ru.citeck.ecos.model.HistoryModel;
 import ru.citeck.ecos.model.ICaseModel;
 import ru.citeck.ecos.model.IdocsModel;
 import ru.citeck.ecos.records.models.AuthorityDTO;
+import ru.citeck.ecos.records2.RecordConstants;
 import ru.citeck.ecos.records2.RecordRef;
-import ru.citeck.ecos.records2.RecordsService;
+import ru.citeck.ecos.records3.RecordsService;
+import ru.citeck.ecos.utils.NodeUtils;
 import ru.citeck.ecos.utils.RepoUtils;
 import ru.citeck.ecos.utils.TransactionUtils;
 
@@ -130,6 +132,7 @@ public class HistoryService {
     private HistoryRemoteService historyRemoteService;
     private TransactionService transactionService;
     private RecordsService recordsService;
+    private NodeUtils nodeUtils;
 
     private StoreRef storeRef;
     private NodeRef historyRoot;
@@ -159,7 +162,7 @@ public class HistoryService {
             }
             properties.remove(HistoryModel.ASSOC_INITIATOR);
 
-            NodeRef document = getDocument(properties);
+            NodeRef document = getDocumentNodeRef(properties);
             properties.remove(HistoryModel.ASSOC_DOCUMENT);
 
             //sorting in history for assocs
@@ -225,21 +228,36 @@ public class HistoryService {
         Serializable eventType = properties.get(HistoryModel.PROP_NAME);
         Map<String, Object> requestParams = new HashMap<>();
         /* Document */
-        NodeRef document = getDocument(properties);
-        if (document == null || isDocumentForDelete(document)) {
+        RecordRef documentRecordRef = getDocument(properties);
+        if (RecordRef.isEmpty(documentRecordRef)) {
             return;
         }
-        requestParams.put(DOCUMENT_ID, document.getId());
-        requestParams.put(VERSION, getDocumentProperty(document, VERSION_LABEL_PROPERTY));
+        NodeRef documentNodeRef = nodeUtils.getNodeRefOrNull(documentRecordRef);
+        if (documentNodeRef != null) {
+            requestParams.put(DOCUMENT_ID, documentNodeRef.getId());
+        } else {
+            requestParams.put(DOCUMENT_ID, documentRecordRef.toString());
+        }
+        if (documentNodeRef != null) {
+            requestParams.put(VERSION, getDocumentProperty(documentNodeRef, VERSION_LABEL_PROPERTY));
+        }
         /* User */
         String username;
         if (HistoryEventType.EMAIL_SENT.equals(eventType)) {
             username = AuthenticationUtil.getSystemUserName();
         } else {
-            username = (String) getDocumentProperty(document, MODIFIER_PROPERTY);
             String currentUsername = authenticationService.getCurrentUserName();
             if (currentUsername != null) {
                 username = currentUsername;
+            } else {
+                if (documentNodeRef != null) {
+                    username = (String) getDocumentProperty(documentNodeRef, MODIFIER_PROPERTY);
+                } else {
+                    username = recordsService.getAtt(
+                        documentRecordRef,
+                        RecordConstants.ATT_MODIFIER + "?localId"
+                    ).asText();
+                }
             }
         }
         NodeRef userRef = personService.getPerson(username);
@@ -310,7 +328,7 @@ public class HistoryService {
             .map(NodeRef::toString)
             .map(actor -> {
                 RecordRef rr = RecordRef.create("", actor);
-                return recordsService.getMeta(rr, AuthorityDTO.class);
+                return recordsService.getAtts(rr, AuthorityDTO.class);
             })
             .collect(Collectors.toList());
 
@@ -602,13 +620,18 @@ public class HistoryService {
         return person;
     }
 
-    private NodeRef getDocument(Map<QName, Serializable> properties) {
+    private NodeRef getDocumentNodeRef(Map<QName, Serializable> properties) {
+        return nodeUtils.getNodeRefOrNull(getDocument(properties));
+    }
+
+    private RecordRef getDocument(Map<QName, Serializable> properties) {
         Serializable document = properties.get(HistoryModel.ASSOC_DOCUMENT);
-        NodeRef documentNodeRef = null;
+        RecordRef documentNodeRef = null;
         if (document != null) {
-            documentNodeRef = new NodeRef(document.toString());
-            if (!nodeService.exists(documentNodeRef)) {
-                documentNodeRef = null;
+            documentNodeRef = RecordRef.valueOf(document.toString());
+            NodeRef nodeRef = nodeUtils.getNodeRefOrNull(document.toString());
+            if (nodeRef != null && !nodeService.exists(nodeRef)) {
+                documentNodeRef = RecordRef.EMPTY;
             }
         }
         return documentNodeRef;
@@ -657,6 +680,11 @@ public class HistoryService {
 
     public void setHistoryRoot(NodeRef historyRoot) {
         this.historyRoot = historyRoot;
+    }
+
+    @Autowired
+    public void setNodeUtils(NodeUtils nodeUtils) {
+        this.nodeUtils = nodeUtils;
     }
 
     @Autowired
