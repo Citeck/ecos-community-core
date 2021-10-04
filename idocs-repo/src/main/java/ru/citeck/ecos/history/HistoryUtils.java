@@ -8,6 +8,7 @@ import org.alfresco.service.cmr.repository.*;
 import org.alfresco.service.namespace.QName;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.time.FastDateFormat;
 import org.springframework.extensions.surf.util.I18NUtil;
 import ru.citeck.ecos.model.ClassificationModel;
 import ru.citeck.ecos.model.HistoryModel;
@@ -24,7 +25,7 @@ import java.util.*;
  */
 public class HistoryUtils {
 
-    private static final SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("dd.MM.yyyy");
+    private static final FastDateFormat DATE_FORMAT = FastDateFormat.getInstance("dd.MM.yyyy");
 
     public static final Serializable NODE_CREATED = HistoryEventType.NODE_CREATED;
     public static final Serializable NODE_UPDATED = HistoryEventType.NODE_UPDATED;

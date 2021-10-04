@@ -52,6 +52,10 @@ public class ValuePredicateToFtsAlfrescoConstants {
     public static final String QUOTES_STRING_TEMPLATE = "\"%s\"";
     public static final String CONTAINS_STRING_TEMPLATE = "*%s*";
 
+    //Time constants
+    public static final String TODAY = "$TODAY";
+    public static final String NOW = "$NOW";
+
     // System constants
     public static final String COMMA_DELIMITER = ",";
     public static final String SLASH_DELIMITER = "/";

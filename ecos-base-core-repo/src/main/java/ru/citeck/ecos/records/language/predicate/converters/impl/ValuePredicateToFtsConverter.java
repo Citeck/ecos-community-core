@@ -682,12 +682,13 @@ public class ValuePredicateToFtsConverter implements PredicateToFtsConverter {
             return predicateValue;
         }
 
+        predicateValue = evalConstants(predicateValue);
+
         DataTypeDefinition dataTypeDefinition = ((PropertyDefinition) attDef).getDataType();
         boolean isDateTime = DataTypeDefinition.DATETIME.equals(dataTypeDefinition.getName());
         boolean isDate = DataTypeDefinition.DATE.equals(dataTypeDefinition.getName());
 
         if (isDateTime || isDate) {
-            predicateValue = evalConstants(predicateValue);
             predicateValue = evalDuration(predicateValue);
         }
 
@@ -696,6 +697,9 @@ public class ValuePredicateToFtsConverter implements PredicateToFtsConverter {
 
     private String evalConstants(String predicateValue) {
         switch (predicateValue) {
+            case CURRENT_USER: {
+                return AuthenticationUtil.getFullyAuthenticatedUser();
+            }
             case TODAY:
                 int utcOffset = (int)(EcosReqContext.getUtcOffset() * 60);
                 return TimeUtils.formatIsoDate(Date.from(Instant.now().plus(utcOffset, ChronoUnit.MINUTES)));

@@ -180,8 +180,8 @@ public class CaseTemplateBehavior implements NodeServicePolicies.OnCreateNodePol
 
                 log.info(stopWatch.prettyPrint());
 
-            }, getExceptionConsumer(caseNode));
-        }, getExceptionConsumer(caseNode));
+            }, getExceptionConsumer(caseNode, "fireCreatedEvent"));
+        }, getExceptionConsumer(caseNode, "caseImport"));
     }
 
     private void eprocCopyFromTemplateImpl(NodeRef caseNode) {
@@ -205,8 +205,8 @@ public class CaseTemplateBehavior implements NodeServicePolicies.OnCreateNodePol
                 itemsUpdateState.endUpdate(CaseTemplateBehavior.class, caseNode, true, false);
 
                 log.info(stopWatch.prettyPrint());
-            }, getExceptionConsumer(caseNode));
-        }, getExceptionConsumer(caseNode));
+            }, getExceptionConsumer(caseNode, "fireCreatedEvent"));
+        }, getExceptionConsumer(caseNode, "caseImport"));
     }
 
     private void startWatch(StopWatch stopWatch, String taskName) {
@@ -215,10 +215,11 @@ public class CaseTemplateBehavior implements NodeServicePolicies.OnCreateNodePol
         }
     }
 
-    private Consumer<Exception> getExceptionConsumer(NodeRef caseNode) {
+    private Consumer<Exception> getExceptionConsumer(NodeRef caseNode, String action) {
         return e -> {
             itemsUpdateState.endUpdate(CaseTemplateBehavior.class, caseNode, true, true);
             caseStatusService.setStatus(caseNode, STATUS_PROCESS_START_ERROR);
+            log.debug(String.format("Error copyFromTemplate, action: %s, nodeRef: %s", action, caseNode), e);
         };
     }
 

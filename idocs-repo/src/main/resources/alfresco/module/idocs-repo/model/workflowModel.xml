@@ -281,6 +281,14 @@
             </properties>
         </aspect>
 
+        <aspect name="cwf:dueDateTime">
+            <properties>
+                <property name="cwf:dueDateTime">
+                    <type>d:datetime</type>
+                </property>
+            </properties>
+        </aspect>
+
     </aspects>
 
 </model>

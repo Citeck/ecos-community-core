@@ -48,6 +48,7 @@ public interface CiteckWorkflowModel {
     QName PROP_LAST_COMPLETED_TASK_DATE = QName.createQName(NAMESPACE, "lastCompletedTaskDate");
     QName PROP_TIMER_ERROR_STATUS = QName.createQName(NAMESPACE, "timerErrorStatus");
     QName PROP_DOCUMENT_PROP = QName.createQName(NAMESPACE, "document-prop");
+    QName PROP_DUE_DATE_TIME = QName.createQName(NAMESPACE, "dueDateTime");
 
     QName ASSOC_TARGET_ITEMS = QName.createQName(NAMESPACE, "targetItems");
 

@@ -1084,6 +1084,7 @@ define([
 
         .computed('paramRelevant', featureParameter("relevant"))
         .computed('paramProtected', featureParameter("protected"))
+        .computed('paramMandatoryOnProtected', featureParameter("mandatory-on-protected"))
 
         .computed('irrelevant', function() {
             if (this.paramRelevant() != null) return !this.paramRelevant();
@@ -1096,6 +1097,10 @@ define([
         .computed('relevant', function() { return !this.irrelevant(); })
         .computed('protected', function() {
             if (this.paramProtected() != null && this.paramProtected()) return true;
+            return false;
+        })
+        .computed('mandatory-on-protected', function() {
+            if (this.paramMandatoryOnProtected() != null && this.paramMandatoryOnProtected()) return true;
             return false;
         })
         .computed('invalid', function() {
@@ -1243,6 +1248,7 @@ define([
         .computed('description', featuredProperty('description'))
         .computed('multiple', featuredProperty('multiple'))
         .computed('mandatory', featuredProperty('mandatory'))
+        .computed('mandatory-on-protected', featuredProperty('mandatoryOnProtected'))
         .computed('invariantRelevant', featuredProperty('relevant'))
         .computed('relevant', function() {
             var allAttributeNames = this.node().impl().allAttributeNames();
@@ -1278,7 +1284,7 @@ define([
         })
         .computed('valid', function() {
             if(this.irrelevant()) return true;
-            if(this.empty()) return this.optional() || this['protected']();
+            if(this.empty()) return this.optional() || (!this['mandatory-on-protected']() && this['protected']());
             return this.invariantValid();
         })
         .computed('validDraft', function() {
@@ -1289,7 +1295,7 @@ define([
             if(this.irrelevant()) return "";
 
             if(this.empty())
-                return this.optional() || this['protected']() ? "" : Alfresco.util.message("validation-hint.mandatory");
+                return this.optional() || (!this['mandatory-on-protected']() && this['protected']()) ? "" : Alfresco.util.message("validation-hint.mandatory");
 
             var invariant = this.evaluatedValid().invariant;
             return invariant != null ? Alfresco.util.message(invariant.description()) : "";
@@ -1568,6 +1574,7 @@ define([
         .method('multipleEvaluator', featureEvaluator('multiple', b, false, notNull))
         .method('mandatoryEvaluator', featureEvaluator('mandatory', b, false, notNull))
         .method('protectedEvaluator', featureEvaluator('protected', b, false, notNull))
+        .method('mandatoryOnProtectedEvaluator', featureEvaluator('mandatory-on-protected', b, false, notNull))
         .method('validEvaluator', featureEvaluator('valid', b, true, isFalse))
 
         // value properties:

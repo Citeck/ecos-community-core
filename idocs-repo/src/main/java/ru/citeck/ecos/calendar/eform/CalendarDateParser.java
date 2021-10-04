@@ -1,19 +1,18 @@
 package ru.citeck.ecos.calendar.eform;
 
 import org.alfresco.util.ISO8601DateFormat;
+import org.apache.commons.lang3.time.FastDateFormat;
 
 import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
 
 class CalendarDateParser {
 
-    private static final SimpleDateFormat SLASH_TIME = new SimpleDateFormat("yyyy/MM/dd HH:mm");
-    private static final SimpleDateFormat SLASH_DATE = new SimpleDateFormat("yyyy/MM/dd");
-
-    private static final SimpleDateFormat DASH_TIME = new SimpleDateFormat("yyyy-MM-dd HH:mm");
-    private static final SimpleDateFormat DASH_DATE = new SimpleDateFormat("yyyy-MM-dd");
+    private static final FastDateFormat SLASH_TIME = FastDateFormat.getInstance("yyyy/MM/dd HH:mm");
+    private static final FastDateFormat SLASH_DATE = FastDateFormat.getInstance("yyyy/MM/dd");
+    private static final FastDateFormat DASH_TIME = FastDateFormat.getInstance("yyyy-MM-dd HH:mm");
+    private static final FastDateFormat DASH_DATE = FastDateFormat.getInstance("yyyy-MM-dd");
 
     /**
      * Gets the date from the String, trying the various formats
