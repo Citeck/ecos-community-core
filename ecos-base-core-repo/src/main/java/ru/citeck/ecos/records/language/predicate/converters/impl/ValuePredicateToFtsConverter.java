@@ -697,13 +697,12 @@ public class ValuePredicateToFtsConverter implements PredicateToFtsConverter {
 
     private String evalConstants(String predicateValue) {
         switch (predicateValue) {
-            case CURRENT_USER: {
+            case CURRENT_USER:
                 return AuthenticationUtil.getFullyAuthenticatedUser();
-            }
             case TODAY:
                 int utcOffset = (int)(EcosReqContext.getUtcOffset() * 60);
                 return TimeUtils.formatIsoDate(Date.from(Instant.now().plus(utcOffset, ChronoUnit.MINUTES)));
-            case "$NOW":
+            case NOW:
                 return TimeUtils.formatIsoDateTime(new Date());
             default:
                 return predicateValue;
