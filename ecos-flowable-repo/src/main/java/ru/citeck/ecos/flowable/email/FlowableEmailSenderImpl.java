@@ -41,7 +41,7 @@ public class FlowableEmailSenderImpl implements FlowableEmailSender {
     @Override
     public void sendEmail(SendEmailDto emailDto, DelegateExecution execution) {
 
-        if (StringUtils.isBlank(emailDto.getTo())
+        if (isStdEmailSenderRequired(emailDto) && StringUtils.isBlank(emailDto.getTo())
                 && StringUtils.isBlank(emailDto.getCc())
                 && StringUtils.isBlank(emailDto.getBcc())) {
 
@@ -53,6 +53,10 @@ public class FlowableEmailSenderImpl implements FlowableEmailSender {
             log.error("Exception while email sending. " + getMailExecutionInfo(execution));
             throw e;
         }
+    }
+
+    private boolean isStdEmailSenderRequired(SendEmailDto emailDto) {
+        return StringUtils.isBlank(emailDto.getTemplate());
     }
 
     private String getMailExecutionInfo(DelegateExecution execution) {
@@ -87,7 +91,7 @@ public class FlowableEmailSenderImpl implements FlowableEmailSender {
 
     private void sendEmailImpl(SendEmailDto emailDto, DelegateExecution execution) {
 
-        if (StringUtils.isBlank(emailDto.getTemplate())) {
+        if (isStdEmailSenderRequired(emailDto)) {
             flowableStdEmailSender.sendEmail(emailDto, execution);
             return;
         }
