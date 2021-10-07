@@ -22,6 +22,7 @@ import java.util.stream.Collectors;
 @Slf4j
 @Component
 public class ExportCsvActionFactory extends AbstractExportActionFactory<ExportCsvActionFactory.CsvEnvironment> {
+
     private static final String ACTION_ID = "download-report-csv-action";
     private static final String MIMETYPE = "text/csv";
 

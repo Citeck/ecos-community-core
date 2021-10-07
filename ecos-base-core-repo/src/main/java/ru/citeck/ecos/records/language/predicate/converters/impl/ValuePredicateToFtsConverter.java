@@ -27,6 +27,7 @@ import ru.citeck.ecos.records.language.predicate.converters.PredToFtsContext;
 import ru.citeck.ecos.records.language.predicate.converters.PredicateToFtsConverter;
 import ru.citeck.ecos.records.language.predicate.converters.delegators.ConvertersDelegator;
 import ru.citeck.ecos.records.language.predicate.converters.impl.utils.TimeUtils;
+import ru.citeck.ecos.records2.RecordConstants;
 import ru.citeck.ecos.records2.RecordRef;
 import ru.citeck.ecos.records2.predicate.model.*;
 import ru.citeck.ecos.search.AssociationIndexPropertyRegistry;
@@ -133,19 +134,22 @@ public class ValuePredicateToFtsConverter implements PredicateToFtsConverter {
                 consumeQueryField(predicateValue, query::isUnset);
                 break;
             }
-            case MODIFIER: {
+            case RecordConstants.ATT_MODIFIER:
+            case RecordConstants.ATT_MODIFIED:
+            case RecordConstants.ATT_CREATOR:
+            case RecordConstants.ATT_CREATED:
+            {
+                QName attQName;
+                switch (attribute) {
+                    case RecordConstants.ATT_MODIFIER: attQName = ContentModel.PROP_MODIFIER; break;
+                    case RecordConstants.ATT_MODIFIED: attQName = ContentModel.PROP_MODIFIED; break;
+                    case RecordConstants.ATT_CREATOR: attQName = ContentModel.PROP_CREATOR; break;
+                    case RecordConstants.ATT_CREATED: attQName = ContentModel.PROP_CREATED; break;
+                    default: throw new IllegalStateException("Incorrect audit attribute: " + attribute);
+                }
                 convertValuePredicateCopyForAttr(
                     valuePredicate,
-                    ContentModel.PROP_MODIFIER.getPrefixString(),
-                    query,
-                    context
-                );
-                break;
-            }
-            case MODIFIED: {
-                convertValuePredicateCopyForAttr(
-                    valuePredicate,
-                    ContentModel.PROP_MODIFIED.getPrefixString(),
+                    attQName.toPrefixString(namespaceService),
                     query,
                     context
                 );

@@ -75,6 +75,7 @@ public class AlfNodeRecord implements MetaValue {
     private static final String ATTR_VERSION = "version";
     private static final String ATTR_CASE_STATUS = "caseStatus";
     private static final String ATTR_CM_MODIFIED = "cm:modified";
+    private static final String ATTR_CM_CREATED = "cm:created";
     private static final String ASSOC_SRC_ATTR_PREFIX = "assoc_src_";
     private static final String CONTENT_ATTRIBUTE_NAME = "_content";
     private static final String CM_CONTENT_ATTRIBUTE_NAME = "cm:content";
@@ -235,6 +236,10 @@ public class AlfNodeRecord implements MetaValue {
         } else if (StringUtils.equals(RecordConstants.ATT_MODIFIED, name)) {
 
             name = ATTR_CM_MODIFIED;
+
+        } else if (StringUtils.equals(RecordConstants.ATT_CREATED, name)) {
+
+            name = ATTR_CM_CREATED;
 
         } else if (RecordConstants.ATT_DOC_NUM.equals(name)) {
 
