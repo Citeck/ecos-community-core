@@ -68,7 +68,7 @@
         <yuicompressor.compress.skip>false</yuicompressor.compress.skip>
 
         <ecos.flowable.version>3.0.5.2</ecos.flowable.version>
-        <ecos.records.version>3.30.1</ecos.records.version>
+        <ecos.records.version>3.30.3</ecos.records.version>
         <ecos.apps.lib.version>3.9.1</ecos.apps.lib.version>
         <ecos.jackson.version>2.10.4.3</ecos.jackson.version>
         <ecos.snakeyaml.version>2.2.0</ecos.snakeyaml.version>
@@ -329,6 +329,20 @@
             <groupId>org.apache.httpcomponents</groupId>
             <artifactId>httpclient</artifactId>
             <version>4.5.2</version>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.jsoup</groupId>
+            <artifactId>jsoup</artifactId>
+            <version>1.14.2</version>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter-params</artifactId>
+            <version>5.7.0</version>
             <scope>test</scope>
         </dependency>
 
