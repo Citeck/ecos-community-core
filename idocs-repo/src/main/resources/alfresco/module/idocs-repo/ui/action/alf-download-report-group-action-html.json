@@ -1,0 +1,24 @@
+{
+  "id": "alf-download-report-group-action-html",
+  "type": "server-group-action",
+  "name": {
+    "ru": "Скачать Html-файл",
+    "en": "Download Html-file"
+  },
+  "config": {
+    "id": "download-report-html-action",
+    "params": {
+      "reportTitle": "REPORT",
+      "actionId": "download-report-html-action",
+      "evaluateBatch": "true",
+      "columns": "${reportColumns}",
+      "pageSize": 100,
+      "elementsLimit": 1000
+    }
+  },
+  "features": {
+    "execForQuery": true,
+    "execForRecord": false,
+    "execForRecords": true
+  }
+}

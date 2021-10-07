@@ -13,13 +13,13 @@ import org.alfresco.service.namespace.NamespaceService;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.apache.commons.validator.Msg;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import ru.citeck.ecos.commons.data.DataValue;
 import ru.citeck.ecos.domain.model.alf.service.AlfAutoModelService;
 import ru.citeck.ecos.records.source.alf.AlfNodesRecordsDAO;
 import ru.citeck.ecos.records.source.alf.search.AlfNodesSearch.AfterIdType;
+import ru.citeck.ecos.records2.RecordConstants;
 import ru.citeck.ecos.records2.RecordRef;
 import ru.citeck.ecos.records2.request.query.RecordsQuery;
 import ru.citeck.ecos.records2.request.query.RecordsQueryResult;
@@ -29,6 +29,7 @@ import ru.citeck.ecos.records3.record.request.msg.MsgLevel;
 
 import java.util.Collections;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Supplier;
 import java.util.regex.Pattern;
@@ -44,6 +45,17 @@ public class SearchServiceAlfNodesSearch {
     private static final Log logger = LogFactory.getLog(SearchServiceAlfNodesSearch.class);
 
     private static final String FROM_DB_ID_FTS_QUERY = "(%s) AND @sys\\:node\\-dbid:<%d TO MAX]";
+
+    private static final Map<String, String> DEFAULT_PROPS_MAPPING;
+
+    static {
+        Map<String, String> defaultPropsMapping = new HashMap<>();
+        defaultPropsMapping.put(RecordConstants.ATT_CREATED, "cm:created");
+        defaultPropsMapping.put(RecordConstants.ATT_CREATOR, "cm:creator");
+        defaultPropsMapping.put(RecordConstants.ATT_MODIFIED, "cm:modified");
+        defaultPropsMapping.put(RecordConstants.ATT_MODIFIER, "cm:modifier");
+        DEFAULT_PROPS_MAPPING = Collections.unmodifiableMap(defaultPropsMapping);
+    }
 
     private SearchService searchService;
     private NamespaceService namespaceService;
@@ -127,11 +139,13 @@ public class SearchServiceAlfNodesSearch {
 
         if (!ignoreQuerySort) {
 
-            Map<String, String> propsMapping;
+            Map<String, String> propsMapping = DEFAULT_PROPS_MAPPING;
             if (alfAutoModelService != null) {
-                propsMapping = alfAutoModelService.getPropsMapping(ecosTypeRef);
-            } else {
-                propsMapping = Collections.emptyMap();
+                Map<String, String> autoModelPropsMapping = alfAutoModelService.getPropsMapping(ecosTypeRef);
+                if (autoModelPropsMapping != null && !autoModelPropsMapping.isEmpty()) {
+                    propsMapping = new HashMap<>(propsMapping);
+                    propsMapping.putAll(autoModelPropsMapping);
+                }
             }
             for (SortBy sortBy : recordsQuery.getSortBy()) {
                 String att = sortBy.getAttribute();

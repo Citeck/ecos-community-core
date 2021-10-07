@@ -9,12 +9,14 @@ import org.alfresco.service.cmr.repository.NodeRef;
 import org.alfresco.service.cmr.repository.NodeService;
 import org.alfresco.service.namespace.NamespaceService;
 import org.alfresco.service.namespace.QName;
-import org.alfresco.util.GUID;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.time.FastDateFormat;
 import org.springframework.beans.factory.annotation.Autowired;
 import ru.citeck.ecos.action.group.impl.BaseGroupAction;
 import ru.citeck.ecos.commons.data.DataValue;
+import ru.citeck.ecos.commons.json.Json;
+import ru.citeck.ecos.model.lib.attributes.dto.AttributeType;
 import ru.citeck.ecos.records2.RecordRef;
 import ru.citeck.ecos.records3.RecordsService;
 import ru.citeck.ecos.records3.record.atts.dto.RecordAtts;
@@ -23,6 +25,7 @@ import ru.citeck.ecos.utils.RepoUtils;
 import javax.annotation.PostConstruct;
 import java.io.*;
 import java.nio.charset.StandardCharsets;
+import java.time.Instant;
 import java.util.*;
 
 /**
@@ -35,6 +38,9 @@ import java.util.*;
  */
 @Slf4j
 public abstract class AbstractExportActionFactory<T> implements GroupActionFactory<RecordRef> {
+
+    private static final FastDateFormat DATE_FORMAT = FastDateFormat.getInstance("dd.MM.yyyy");
+    private static final FastDateFormat DATE_TIME_FORMAT = FastDateFormat.getInstance("dd.MM.yyyy HH:mm:ss");
 
     protected RecordsService recordsService;
     protected ContentService contentService;
@@ -64,8 +70,24 @@ public abstract class AbstractExportActionFactory<T> implements GroupActionFacto
 
     @Override
     public ExportAction createAction(GroupActionConfig config) {
+
         GroupActionConfig localConfig = new GroupActionConfig(config);
+
         localConfig.setAsync(false);
+
+        String errorsLimitStr = config.getStrParam("errorsLimit");
+        if (StringUtils.isNotBlank(errorsLimitStr)) {
+            localConfig.setErrorsLimit(Integer.parseInt(errorsLimitStr));
+        }
+        String elementsLimitStr = config.getStrParam("elementsLimit");
+        if (StringUtils.isNotBlank(elementsLimitStr)) {
+            localConfig.setElementsLimit(Integer.parseInt(elementsLimitStr));
+        }
+        String maxResultsStr = config.getStrParam("maxResults");
+        if (StringUtils.isNotBlank(maxResultsStr)) {
+            localConfig.setMaxResults(Integer.parseInt(maxResultsStr));
+        }
+
         return new ExportAction(localConfig);
     }
 
@@ -130,6 +152,8 @@ public abstract class AbstractExportActionFactory<T> implements GroupActionFacto
          * @see ReportColumnDef
          */
         protected List<String> requestedAttributes = new ArrayList<>();
+
+        private Map<String, AttributeType> typeByAttribute = new HashMap<>();
         /**
          * Column titles which export file must provide
          *
@@ -149,6 +173,7 @@ public abstract class AbstractExportActionFactory<T> implements GroupActionFacto
                 String attributeName = columnDef.getAttribute();
                 if (StringUtils.isNotBlank(attributeName)) {
                     requestedAttributes.add(attributeName);
+                    typeByAttribute.put(attributeName, columnDef.getType());
                 } else {
                     log.warn("Attribute name was not defined {} \n{}", columnDef.getName(), config);
                     continue;
@@ -179,6 +204,31 @@ public abstract class AbstractExportActionFactory<T> implements GroupActionFacto
             }
 
             List<RecordAtts> nodesAttributes = recordsService.getAtts(nodes, requestedAttributes);
+
+            // date format. todo: refactor
+            typeByAttribute.forEach((att, type) -> {
+                FastDateFormat format = null;
+                if (AttributeType.DATE.equals(type)) {
+                    format = DATE_FORMAT;
+                } else if (AttributeType.DATETIME.equals(type)) {
+                    format = DATE_TIME_FORMAT;
+                }
+                if (format != null) {
+                    for (RecordAtts atts : nodesAttributes) {
+                        DataValue value = atts.getAtt(att);
+                        if (value.isTextual()) {
+                            String valueStr = value.asText();
+                            if (StringUtils.isNotBlank(valueStr)) {
+                                Instant instant = Json.getMapper().convert(valueStr, Instant.class);
+                                if (instant != null) {
+                                    atts.setAtt(att, format.format(Date.from(instant)));
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+
             nodesRowIdx = writeData(nodesAttributes, nodesRowIdx, requestedAttributes, environment);
         }
 
@@ -201,8 +251,9 @@ public abstract class AbstractExportActionFactory<T> implements GroupActionFacto
         }
 
         protected List<ActionResult<RecordRef>> createContentNode(ByteArrayOutputStream byteArrayOutputStream) {
+
             Map<QName, Serializable> props = new HashMap<>(1);
-            String name = GUID.generate();
+            String name = "records_export_" + Instant.now().toEpochMilli();
             props.put(ContentModel.PROP_NAME, name);
 
             NodeRef contentNode = nodeService.createNode(ROOT_NODE_REF, ContentModel.ASSOC_CHILDREN,
