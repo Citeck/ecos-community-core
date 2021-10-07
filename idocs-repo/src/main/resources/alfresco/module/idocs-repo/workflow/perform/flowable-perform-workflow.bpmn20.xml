@@ -13,7 +13,7 @@
         <endEvent id="endevent1" name="End"/>
         <subProcess id="subprocess1" name="Sub Process">
             <multiInstanceLoopCharacteristics isSequential="false" flowable:collection="wfperf_performers" flowable:elementVariable="wfperf_performer"/>
-            <userTask id="usertask1" name="wfperf_performworkflow.type.wfperf_performTask.title" flowable:dueDate="${bpm_workflowDueDate}" flowable:formKey="wfperf:performTask">
+            <userTask id="usertask1" name="Исполнить" flowable:dueDate="${bpm_workflowDueDate}" flowable:formKey="wfperf:performTask">
                 <extensionElements>
                     <flowable:taskListener event="create" class="ru.citeck.ecos.flowable.example.FlowableAssignTaskToAuthority">
                         <flowable:field name="authority">
@@ -41,7 +41,7 @@
             <startEvent id="startevent2" name="Start"/>
             <exclusiveGateway id="exclusivegateway1" name="Exclusive Gateway"/>
             <endEvent id="endevent2" name="End"/>
-            <userTask id="usertask2" name="wfperf_performworkflow.type.wfperf_controlTask.title" flowable:dueDate="${bpm_workflowDueDate}" flowable:formKey="wfperf:controlTask">
+            <userTask id="usertask2" name="Проверить" flowable:dueDate="${bpm_workflowDueDate}" flowable:formKey="wfperf:controlTask">
                 <extensionElements>
                     <flowable:taskListener event="create" class="ru.citeck.ecos.flowable.example.FlowableAssignTaskToAuthority">
                         <flowable:field name="authority">

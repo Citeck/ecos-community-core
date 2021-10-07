@@ -22,11 +22,12 @@ import java.util.stream.Collectors;
 @Slf4j
 @Component
 public class ExportCsvActionFactory extends AbstractExportActionFactory<ExportCsvActionFactory.CsvEnvironment> {
+
     private static final String ACTION_ID = "download-report-csv-action";
     private static final String MIMETYPE = "text/csv";
 
     private static final String CONFIG_DELIMITER = "delimiter";
-    private static final String DEFAULT_DELIMITER = "\t";
+    public static final String DEFAULT_DELIMITER = "\t";
     private static final String DEFAULT_SEPARATOR = "\r\n";
 
     @Override
