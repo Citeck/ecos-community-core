@@ -1,6 +1,8 @@
 package ru.citeck.ecos.records.source;
 
 import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
+import org.alfresco.model.ContentModel;
 import org.alfresco.repo.security.authentication.AuthenticationUtil;
 import org.alfresco.service.cmr.repository.NodeRef;
 import org.alfresco.service.cmr.search.SearchService;
@@ -33,6 +35,7 @@ import ru.citeck.ecos.records2.source.dao.local.v2.LocalRecordsMetaDao;
 import ru.citeck.ecos.records2.source.dao.local.v2.LocalRecordsQueryWithMetaDao;
 import ru.citeck.ecos.utils.AuthorityUtils;
 
+import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -281,10 +284,14 @@ public class PeopleRecordsDao extends LocalRecordsDao
                     return getUserAuthorities();
                 case "nodeRef":
                     return alfNode != null ? alfNode.getId() : null;
+                case "jobTitle":
+                    String jobTitleProp = ContentModel.PROP_JOBTITLE.toPrefixString(namespaceService);
+                    return alfNode.getAttribute(jobTitleProp, field);
+                case "avatar":
+                    return new AvatarValue(alfNode.getId());
                 case GROUPS:
                     return getUserGroups(userName, queryContext, field);
             }
-
             return alfNode.getAttribute(name, field);
         }
 
@@ -307,6 +314,22 @@ public class PeopleRecordsDao extends LocalRecordsDao
             record.init(context, metaField);
             return record;
         }).collect(Collectors.toList());
+    }
+
+    @RequiredArgsConstructor
+    private static class AvatarValue implements MetaValue {
+
+        private final String nodeRef;
+
+        @Override
+        public Object getAttribute(@NotNull String name, @NotNull MetaField field) throws Exception {
+            if ("url".equals(name)) {
+                String nodeRefParam = URLEncoder.encode(nodeRef, "UTF-8");
+                return "/gateway/alfresco/alfresco/s/citeck/ecos/image/thumbnail" +
+                    "?nodeRef=" + nodeRefParam + "&property=ecos%3Aphoto";
+            }
+            return null;
+        }
     }
 
     private class UserAuthorities implements MetaValue {
