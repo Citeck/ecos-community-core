@@ -52,8 +52,11 @@ public abstract class BaseGroupAction<T> implements GroupAction<T> {
         results.setResults(output);
         results.setErrorsCount(errorsCount);
         results.setProcessedCount(processedCount);
-        if (receivedElements >= config.getElementsLimit()) {
-            results.setCancelCause(new ElementsLimitException("Items limit: " + config.getElementsLimit()));
+        if (receivedElements > config.getElementsLimit()) {
+            results.setCancelCause(new ElementsLimitException(
+                "Received size: " + receivedElements +
+                    " Items limit: " + config.getElementsLimit())
+            );
         }
 
         return results;

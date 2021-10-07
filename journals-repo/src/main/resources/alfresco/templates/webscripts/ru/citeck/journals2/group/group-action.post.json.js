@@ -7,7 +7,9 @@
         groupType = jsonData.groupType || "selected",
         query = jsonData.query,
         language = jsonData.language || null,
-        journalId = jsonData.journalId,
+        sourceId = jsonData.sourceId || '',
+        sortBy = jsonData.sortBy || [],
+        consistency = jsonData.consistency || 'DEFAULT',
         actionResults,
         actionResultsData,
         records;
@@ -44,17 +46,21 @@
         }
     } else {
 
-        records = recordsService.getIterableRecords({
-            sourceId: getRecordsSource(journalId),
-            query: query,
-            language: language || "criteria"
-        });
-
-        actionResultsData = groupActions.execute(records, {
+        var groupActionConfig = {
             params: params,
             async: true,
             actionId: actionId
-        });
+        };
+
+        records = recordsService.getIterableRecordsForGroupAction({
+            sourceId: sourceId,
+            query: query,
+            sortBy: sortBy,
+            language: language || 'predicate',
+            consistency: consistency
+        }, groupActionConfig);
+
+        actionResultsData = groupActions.execute(records, groupActionConfig);
 
         var actionResults = actionResultsData.getResults();
 
@@ -89,15 +95,6 @@
     };
 
 })();
-
-function getRecordsSource(journalId) {
-    var journalType = journals.getJournalType(journalId);
-    if (journalType) {
-        var datasourceId = journalType.getDataSource();
-        return datasourceId || "";
-    }
-    return "";
-}
 
 function exists(name, obj) {
     if(!obj) {

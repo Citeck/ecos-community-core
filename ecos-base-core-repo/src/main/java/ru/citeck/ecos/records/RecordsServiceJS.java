@@ -1,15 +1,18 @@
 package ru.citeck.ecos.records;
 
+import kotlin.Unit;
 import org.alfresco.util.ParameterCheck;
+import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import ru.citeck.ecos.action.group.ActionResult;
 import ru.citeck.ecos.action.group.ActionResults;
 import ru.citeck.ecos.action.group.GroupActionConfig;
-import ru.citeck.ecos.records2.IterableRecords;
 import ru.citeck.ecos.records2.RecordRef;
 import ru.citeck.ecos.records2.request.rest.QueryBody;
 import ru.citeck.ecos.records2.request.rest.RestHandler;
 import ru.citeck.ecos.records3.RecordsService;
+import ru.citeck.ecos.records3.iter.IterableRecordRefs;
+import ru.citeck.ecos.records3.iter.IterableRecordsConfig;
 import ru.citeck.ecos.records3.record.atts.dto.RecordAtts;
 import ru.citeck.ecos.records3.record.dao.query.dto.query.RecordsQuery;
 import ru.citeck.ecos.records3.record.dao.query.dto.res.RecsQueryRes;
@@ -104,9 +107,24 @@ public class RecordsServiceJS extends AlfrescoScopableProcessorExtension {
     }
 
     public Iterable<RecordRef> getIterableRecords(Object recordsQuery) {
-        ru.citeck.ecos.records2.request.query.RecordsQuery convertedQuery
-            = jsUtils.toJava(recordsQuery, ru.citeck.ecos.records2.request.query.RecordsQuery.class);
-        return new IterableRecords(recordsServiceV0, convertedQuery);
+        RecordsQuery query = jsUtils.toJava(recordsQuery, RecordsQuery.class);
+        return new IterableRecordRefs(query, IterableRecordsConfig.create(b -> Unit.INSTANCE), recordsServiceV1);
+    }
+
+    public Iterable<RecordRef> getIterableRecordsForGroupAction(Object recordsQuery, Object groupActionConfig) {
+        
+        GroupActionConfig config = jsUtils.toJava(groupActionConfig, GroupActionConfig.class);
+
+        IterableRecordsConfig iterRecsConfig = IterableRecordsConfig.create(b -> {
+            String pageSizeParamStr = config.getStrParam("pageSize");
+            if (StringUtils.isNotBlank(pageSizeParamStr)) {
+                b.withPageSize(Integer.parseInt(pageSizeParamStr));
+            }
+            return Unit.INSTANCE;
+        });
+
+        RecordsQuery query = jsUtils.toJava(recordsQuery, RecordsQuery.class);
+        return new IterableRecordRefs(query, iterRecsConfig, recordsServiceV1);
     }
 
     private static <T> ActionResult<T>[] toArray(ActionResults<T> results) {
