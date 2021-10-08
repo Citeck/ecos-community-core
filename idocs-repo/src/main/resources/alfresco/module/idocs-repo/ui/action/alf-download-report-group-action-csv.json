@@ -13,6 +13,7 @@
       "evaluateBatch": "true",
       "delimiter": ";",
       "columns": "${reportColumns}",
+      "batchSize": 100,
       "pageSize": 100,
       "elementsLimit": 1000
     }

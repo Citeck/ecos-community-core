@@ -13,6 +13,7 @@
       "actionId": "download-report-xlsx-action",
       "evaluateBatch": "true",
       "columns": "${reportColumns}",
+      "batchSize": 100,
       "pageSize": 100,
       "elementsLimit": 1000
     }
