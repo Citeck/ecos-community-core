@@ -87,6 +87,10 @@ public abstract class AbstractExportActionFactory<T> implements GroupActionFacto
         if (StringUtils.isNotBlank(maxResultsStr)) {
             localConfig.setMaxResults(Integer.parseInt(maxResultsStr));
         }
+        String batchSizeStr = config.getStrParam("batchSize");
+        if (StringUtils.isNotBlank(batchSizeStr)) {
+            localConfig.setBatchSize(Integer.parseInt(batchSizeStr));
+        }
 
         return new ExportAction(localConfig);
     }

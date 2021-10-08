@@ -12,6 +12,7 @@
       "actionId": "download-report-html-action",
       "evaluateBatch": "true",
       "columns": "${reportColumns}",
+      "batchSize": 1,
       "pageSize": 100,
       "elementsLimit": 1000
     }
