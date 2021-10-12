@@ -36,10 +36,25 @@ timestamps {
 
       def project_version = readMavenPom().getProperties().getProperty("revision")
 
-      if ((env.BRANCH_NAME != "master") && (env.BRANCH_NAME != "master-3") && (!project_version.contains('SNAPSHOT'))) {
-        echo "Assembly of release artifacts is allowed only from the master branch!"
-        currentBuild.result = 'SUCCESS'
-        return
+      if (!(env.BRANCH_NAME ==~ /master(-\d)?/) && (!project_version.contains('SNAPSHOT'))) {
+        def tag = ""
+        try {
+          tag = sh(script: "git describe --exact-match --tags", returnStdout: true).trim()
+        } catch (Exception e) {
+          // no tag
+        }
+        def buildStopMsg = ""
+        if (tag == "") {
+          buildStopMsg = "You should add tag with version to build release from non-master branch. Version: " + project_version
+        } else if (tag != project_version) {
+          buildStopMsg = "Release tag doesn't match version. Tag: " + tag + " Version: " + project_version
+        }
+        if (buildStopMsg != "") {
+          echo buildStopMsg
+          buildTools.notifyBuildWarning(repoUrl, buildStopMsg, env)
+          currentBuild.result = 'NOT_BUILT'
+          return
+        }
       }
 
       buildTools.notifyBuildStarted(repoUrl, project_version, env)
@@ -53,6 +68,7 @@ timestamps {
       stage('Assembling and publishing project artifacts') {
         withMaven(mavenLocalRepo: '/opt/jenkins/.m2/repository', tempBinDir: '') {
           sh "mvn clean deploy"
+          sh "mvn clean"
         }
       }
     }
