@@ -222,7 +222,9 @@ public abstract class AbstractExportActionFactory<T> implements GroupActionFacto
                         DataValue value = atts.getAtt(att);
                         if (value.isTextual()) {
                             String valueStr = value.asText();
-                            if (StringUtils.isNotBlank(valueStr)) {
+                            if (StringUtils.isNotBlank(valueStr)
+                                    && valueStr.endsWith("Z")
+                                    && valueStr.contains("T")) {
                                 Instant instant = Json.getMapper().convert(valueStr, Instant.class);
                                 if (instant != null) {
                                     atts.setAtt(att, format.format(Date.from(instant)));
