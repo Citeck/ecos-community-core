@@ -8,7 +8,6 @@
   "config": {
     "id": "download-report-html-action",
     "params": {
-      "journalId": "general-case",
       "reportTitle": "REPORT",
       "actionId": "download-report-html-action",
       "evaluateBatch": "true",

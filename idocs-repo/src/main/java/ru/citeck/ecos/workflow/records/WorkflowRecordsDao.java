@@ -127,6 +127,21 @@ public class WorkflowRecordsDao extends LocalRecordsDao
 
         WorkflowRecordsDao.WorkflowQuery queryData = recordsQuery.getQuery(WorkflowRecordsDao.WorkflowQuery.class);
 
+        if (queryData != null && RecordRef.isNotEmpty(queryData.document)) {
+            List<WorkflowInstance> workflows = workflowUtils.getDocumentWorkflows(
+                queryData.document,
+                queryData.active,
+                queryData.engine
+            );
+            List<WorkflowRecord> records = workflows.stream()
+                .map(WorkflowRecord::new)
+                .collect(Collectors.toList());
+            result.setRecords(records);
+            result.setHasMore(false);
+            result.setTotalCount(records.size());
+            return result;
+        }
+
         WorkflowInstanceQuery query = new WorkflowInstanceQuery();
         if (queryData != null && queryData.active != null) {
             query.setActive(queryData.active);
@@ -368,5 +383,7 @@ public class WorkflowRecordsDao extends LocalRecordsDao
     @Data
     public static class WorkflowQuery {
         private Boolean active;
+        private RecordRef document;
+        private String engine;
     }
 }

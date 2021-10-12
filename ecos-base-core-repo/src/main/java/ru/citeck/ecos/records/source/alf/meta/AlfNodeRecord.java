@@ -413,8 +413,9 @@ public class AlfNodeRecord implements MetaValue {
                             attribute = Collections.singletonList(statusMetaValue);
                         }
                     } else {
+                        AttributeType finalAttType = attType;
                         attribute = values.stream()
-                            .map(v -> toMetaValue(nodeAtt, v, field))
+                            .map(v -> toMetaValue(nodeAtt, v, field, finalAttType))
                             .collect(Collectors.toList());
                     }
                 }
@@ -584,12 +585,18 @@ public class AlfNodeRecord implements MetaValue {
     }
 
     private MetaValue toMetaValue(Attribute att, Object value, MetaField field) {
+        return toMetaValue(att, value, field, null);
+    }
+
+    private MetaValue toMetaValue(Attribute att, Object value, MetaField field, @Nullable AttributeType attType) {
         MetaValue metaValue;
         if (context.getNodeUtils().isNodeRef(value)) {
             metaValue = new AlfNodeRecord(RecordRef.valueOf(value.toString()));
         } else if (value instanceof MLText) {
             metaValue = new MLTextValue((MLText) value);
-        } else if (att != null && value instanceof String && attributesAsRecord.contains(att.name())) {
+        } else if (att != null && value instanceof String
+                && (attributesAsRecord.contains(att.name()) || AttributeType.ASSOC.equals(attType))) {
+
             RecordRef recordRef = RecordRef.valueOf((String) value);
             metaValue = context.getServiceFactory().getMetaValuesConverter().toMetaValue(recordRef);
         } else {

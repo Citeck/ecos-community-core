@@ -3,10 +3,15 @@ package ru.citeck.ecos.icase;
 import org.alfresco.repo.jscript.ScriptNode;
 import org.alfresco.service.cmr.repository.NodeRef;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.extensions.surf.util.I18NUtil;
+import ru.citeck.ecos.model.lib.status.constants.StatusConstants;
 import ru.citeck.ecos.model.lib.status.dto.StatusDef;
+import ru.citeck.ecos.records2.RecordRef;
+import ru.citeck.ecos.records3.RecordsService;
 import ru.citeck.ecos.utils.AlfrescoScopableProcessorExtension;
 import ru.citeck.ecos.utils.JavaScriptImplUtils;
+import ru.citeck.ecos.utils.NodeUtils;
 
 /**
  * @author Roman Makarskiy
@@ -14,8 +19,18 @@ import ru.citeck.ecos.utils.JavaScriptImplUtils;
 public class CaseStatusServiceJS extends AlfrescoScopableProcessorExtension {
 
     private CaseStatusService caseStatusService;
+    private RecordsService recordsService;
 
     public void setStatus(Object caseRef, Object caseStatus) {
+
+        if (caseRef instanceof String && caseStatus instanceof String) {
+            String caseRefStr = (String) caseRef;
+            if (!caseRefStr.contains(NodeUtils.WORKSPACE_PREFIX)) {
+                recordsService.mutateAtt(RecordRef.valueOf(caseRefStr), StatusConstants.ATT_STATUS, caseStatus);
+                return;
+            }
+        }
+
         NodeRef caseStatusRef;
         NodeRef docRef = JavaScriptImplUtils.getNodeRef(caseRef);
 
@@ -97,5 +112,10 @@ public class CaseStatusServiceJS extends AlfrescoScopableProcessorExtension {
 
     public void setCaseStatusService(CaseStatusService caseStatusService) {
         this.caseStatusService = caseStatusService;
+    }
+
+    @Autowired
+    public void setRecordsService(RecordsService recordsService) {
+        this.recordsService = recordsService;
     }
 }

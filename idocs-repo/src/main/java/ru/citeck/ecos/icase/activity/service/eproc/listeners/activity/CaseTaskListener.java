@@ -40,6 +40,7 @@ import ru.citeck.ecos.model.CiteckWorkflowModel;
 import ru.citeck.ecos.model.EcosProcessModel;
 import ru.citeck.ecos.model.ICaseRoleModel;
 import ru.citeck.ecos.records.RecordsUtils;
+import ru.citeck.ecos.records2.RecordRef;
 import ru.citeck.ecos.role.CaseRoleService;
 import ru.citeck.ecos.workflow.variable.type.NodeRefsList;
 import ru.citeck.ecos.workflow.variable.type.StringsList;
@@ -57,20 +58,20 @@ public class CaseTaskListener implements BeforeStartedActivityListener, OnResetA
 
     private final ValueConverter valueConverter = new ValueConverter();
 
-    private EProcCaseActivityListenerManager manager;
-    private EProcActivityService eprocActivityService;
-    private DictionaryService dictionaryService;
-    private NamespaceService namespaceService;
-    private WorkflowService workflowService;
-    private CaseRoleService caseRoleService;
-    private NodeService nodeService;
-    private WorkflowQNameConverter qnameConverter;
-    private EcosConfigService ecosConfigService;
+    private final EProcCaseActivityListenerManager manager;
+    private final EProcActivityService eprocActivityService;
+    private final DictionaryService dictionaryService;
+    private final NamespaceService namespaceService;
+    private final WorkflowService workflowService;
+    private final CaseRoleService caseRoleService;
+    private final NodeService nodeService;
+    private final WorkflowQNameConverter qnameConverter;
+    private final EcosConfigService ecosConfigService;
 
     //inject as map beans
-    private Map<String, Map<String, String>> attributesMappingByWorkflow;
-    private Map<String, List<String>> workflowTransmittedVariables;
-    private Map<String, CaseTaskAttributesConverter> attributesConverters = new HashMap<>();
+    private final Map<String, Map<String, String>> attributesMappingByWorkflow;
+    private final Map<String, List<String>> workflowTransmittedVariables;
+    private final Map<String, CaseTaskAttributesConverter> attributesConverters = new HashMap<>();
 
     @Autowired
     public CaseTaskListener(EProcCaseActivityListenerManager manager,
@@ -122,7 +123,6 @@ public class CaseTaskListener implements BeforeStartedActivityListener, OnResetA
 
         ActivityInstance instance = eprocActivityService.getStateInstance(activityRef);
 
-        NodeRef caseRef = RecordsUtils.toNodeRef(activityRef.getProcessId());
 
         String workflowDefinitionName = EProcUtils.getAnyAttribute(instance,
                 CmmnDefinitionConstants.WORKFLOW_DEFINITION_NAME);
@@ -130,14 +130,23 @@ public class CaseTaskListener implements BeforeStartedActivityListener, OnResetA
         NodeRef wfPackage = workflowService.createPackage(null);
         nodeService.setProperty(wfPackage, EcosProcessModel.PROP_ACTIVITY_REF, activityRef.toString());
 
-        Map<QName, Serializable> workflowProperties = getWorkflowProperties(caseRef, instance, workflowDefinitionName);
+        Map<QName, Serializable> workflowProperties = new HashMap<>();
         workflowProperties.put(WorkflowModel.ASSOC_PACKAGE, wfPackage);
 
-        String caseName = (String) this.nodeService.getProperty(caseRef, ContentModel.PROP_NAME);
-        QName childQName = QName.createQName(
-                NamespaceService.CONTENT_MODEL_1_0_URI,
-                QName.createValidLocalName(caseName));
-        this.nodeService.addChild(wfPackage, caseRef, WorkflowModel.ASSOC_PACKAGE_CONTAINS, childQName);
+        RecordRef caseRecRef = activityRef.getProcessId();
+        NodeRef caseNodeRef = RecordsUtils.toNodeRef(caseRecRef);
+        if (caseNodeRef != null) {
+            workflowProperties.putAll(getWorkflowProperties(caseNodeRef, instance, workflowDefinitionName));
+
+            String caseName = (String) this.nodeService.getProperty(caseNodeRef, ContentModel.PROP_NAME);
+            QName childQName = QName.createQName(
+                    NamespaceService.CONTENT_MODEL_1_0_URI,
+                    QName.createValidLocalName(caseName));
+
+            nodeService.addChild(wfPackage, caseNodeRef, WorkflowModel.ASSOC_PACKAGE_CONTAINS, childQName);
+        } else {
+            nodeService.setProperty(wfPackage, CiteckWorkflowModel.PROP_DOCUMENT_PROP, caseRecRef.toString());
+        }
 
         WorkflowDefinition wfDefinition = workflowService.getDefinitionByName(workflowDefinitionName);
         WorkflowPath wfPath = workflowService.startWorkflow(wfDefinition.getId(), workflowProperties);

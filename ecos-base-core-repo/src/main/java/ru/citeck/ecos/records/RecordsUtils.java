@@ -7,6 +7,7 @@ import org.apache.commons.beanutils.PropertyUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.jetbrains.annotations.Nullable;
 import org.springframework.stereotype.Component;
 import ru.citeck.ecos.action.group.ActionResult;
 import ru.citeck.ecos.action.group.ActionStatus;
@@ -62,6 +63,7 @@ public class RecordsUtils {
         return RecordRef.valueOf(id);
     }
 
+    @Nullable
     public static NodeRef toNodeRef(RecordRef recordRef) {
         String nodeRefStr = recordRef.getId();
         int sourceDelimIdx = nodeRefStr.lastIndexOf(RecordRef.SOURCE_DELIMITER);

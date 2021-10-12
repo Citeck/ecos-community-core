@@ -1,6 +1,7 @@
 package ru.citeck.ecos.flowable.scripts;
 
 import org.alfresco.repo.security.authentication.AuthenticationUtil;
+import org.alfresco.repo.transaction.TransactionalResourceHelper;
 import org.alfresco.service.ServiceRegistry;
 import org.alfresco.service.cmr.repository.NodeRef;
 import org.alfresco.service.cmr.repository.ScriptService;
@@ -12,8 +13,10 @@ import org.flowable.engine.impl.cfg.ProcessEngineConfigurationImpl;
 import org.flowable.engine.impl.context.Context;
 import org.flowable.variable.api.delegate.VariableScope;
 import ru.citeck.ecos.flowable.constants.FlowableConstants;
+import ru.citeck.ecos.records.script.RepoScriptRecordsService;
 import ru.citeck.ecos.service.AlfrescoServices;
 
+import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -27,6 +30,10 @@ public class FlowableScriptBase extends ScriptExecutionListener {
     protected static final String PERSON_BINDING_NAME = "person";
     protected static final String USERHOME_BINDING_NAME = "userhome";
     protected static final String EXECUTION_BINDING_NAME = "execution";
+    protected static final String DOCUMENT = "document";
+    protected static final String RECORD = "record";
+
+    private static RepoScriptRecordsService repoScriptRecordsService;
 
     /**
      * Run as expression
@@ -106,6 +113,7 @@ public class FlowableScriptBase extends ScriptExecutionListener {
      */
     protected Object executeScript(String theScript, Map<String, Object> model, String scriptProcessorName) {
         Object scriptResult;
+        model = prepareModelBeforeExecution(model);
         if (scriptProcessorName != null) {
             scriptResult = getScriptService().executeScriptString(scriptProcessorName, theScript, model);
         } else {
@@ -144,6 +152,15 @@ public class FlowableScriptBase extends ScriptExecutionListener {
         if (!runAsExists) {
             throw new WorkflowException("Run as user '" + runAsUser + "' does not exist.");
         }
+    }
+
+    protected Map<String, Object> prepareModelBeforeExecution(Map<String, Object> model) {
+        Map<String, Object> newModel = new HashMap<>(model);
+        Object document = model.get("document");
+        if (document != null) {
+            newModel.put(RECORD, getRepoScriptRecordsService().get(document));
+        }
+        return newModel;
     }
 
     /**
@@ -188,6 +205,17 @@ public class FlowableScriptBase extends ScriptExecutionListener {
             return registry;
         }
         throw new IllegalStateException("No ProcessEngineConfiguration found in active context");
+    }
+
+    protected RepoScriptRecordsService getRepoScriptRecordsService() {
+        if (repoScriptRecordsService == null) {
+            repoScriptRecordsService =
+                (RepoScriptRecordsService) getServiceRegistry().getService(RepoScriptRecordsService.QNAME);
+        }
+        if (repoScriptRecordsService == null) {
+            throw new RuntimeException("RepoScriptRecordsService bean not found!");
+        }
+        return repoScriptRecordsService;
     }
 
     public void setRunAs(Expression runAs) {

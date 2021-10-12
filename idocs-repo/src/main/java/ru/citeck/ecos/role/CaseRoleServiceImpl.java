@@ -65,7 +65,6 @@ public class CaseRoleServiceImpl implements CaseRoleService {
 
     private NodeService nodeService;
 
-    private TypesManager typesManager;
     private EcosTypeService ecosTypeService;
 
     private PolicyComponent policyComponent;
@@ -74,7 +73,6 @@ public class CaseRoleServiceImpl implements CaseRoleService {
     private RoleService roleService;
     private AuthorityUtils authorityUtils;
     private RecordsServiceFactory recordsServiceFactory;
-
 
     private final Map<QName, RoleDAO> rolesDaoByType = new HashMap<>();
 
@@ -854,11 +852,6 @@ public class CaseRoleServiceImpl implements CaseRoleService {
     @Autowired
     public void setRecordsServiceFactory(RecordsServiceFactory recordsServiceFactory) {
         this.recordsServiceFactory = recordsServiceFactory;
-    }
-
-    @Autowired
-    public void setTypesManager(TypesManager typesManager) {
-        this.typesManager = typesManager;
     }
 
     @Autowired

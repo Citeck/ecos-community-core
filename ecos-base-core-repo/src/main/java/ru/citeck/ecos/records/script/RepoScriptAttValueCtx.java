@@ -15,4 +15,6 @@ public interface RepoScriptAttValueCtx {
     void att(String att, Object value);
 
     RepoScriptAttValueCtx save();
+
+    void reset();
 }

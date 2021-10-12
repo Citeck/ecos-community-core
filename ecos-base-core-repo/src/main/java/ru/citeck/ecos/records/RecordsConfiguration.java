@@ -8,7 +8,6 @@ import org.apache.commons.lang.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationEvent;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -39,6 +38,7 @@ import ru.citeck.ecos.records3.RecordsServiceFactory;
 import ru.citeck.ecos.records2.graphql.meta.value.MetaValuesConverter;
 import ru.citeck.ecos.records2.request.rest.RestHandler;
 import ru.citeck.ecos.records3.record.request.ContextAttsProvider;
+import ru.citeck.ecos.records3.record.request.RequestContext;
 import ru.citeck.ecos.records3.record.resolver.LocalRecordsResolver;
 import ru.citeck.ecos.records3.record.resolver.RemoteRecordsResolver;
 import ru.citeck.ecos.records2.rest.*;
@@ -47,6 +47,7 @@ import ru.citeck.ecos.records3.rest.RestHandlerAdapter;
 import ru.citeck.ecos.records3.txn.RecordsTxnService;
 import ru.citeck.ecos.utils.UrlUtils;
 
+import javax.annotation.PostConstruct;
 import java.util.*;
 import java.util.function.Supplier;
 
@@ -57,20 +58,12 @@ public class RecordsConfiguration extends RecordsServiceFactory {
     private static final String HEADER_ECOS_USER = "X-ECOS-User";
     private static final String HEADER_ALFRESCO_REMOTE_USER = "X-Alfresco-Remote-User";
 
-    @Value("${records.configuration.app.name}")
-    private String appName;
-
-    @Value("${records.configuration.admin.actions.log.enabled}")
-    private String isAdminActionsLogEnabled;
-
     @Autowired
     private ServiceRegistry serviceRegistry;
     @Autowired
     private EcosServiceDiscovery ecosServiceDiscovery;
     @Autowired
     private RecordsProperties properties;
-    @Autowired(required = false)
-    private RecordsResolverWrapper resolverWrapper;
     @Autowired(required = false)
     private TypesManager typeInfoProvider;
     @Autowired
@@ -82,6 +75,11 @@ public class RecordsConfiguration extends RecordsServiceFactory {
 
     @Autowired
     private UrlUtils urlUtils;
+
+    @PostConstruct
+    public void init() {
+        RequestContext.Companion.setDefaultServices(this);
+    }
 
     @NotNull
     @Override
@@ -130,12 +128,7 @@ public class RecordsConfiguration extends RecordsServiceFactory {
     @Bean
     @Override
     protected LocalRecordsResolver createLocalRecordsResolver() {
-        if (Boolean.parseBoolean(isAdminActionsLogEnabled) && resolverWrapper != null) {
-            resolverWrapper.setRecordsResolver(super.createLocalRecordsResolver());
-            return resolverWrapper;
-        } else {
-            return super.createLocalRecordsResolver();
-        }
+        return super.createLocalRecordsResolver();
     }
 
     @Bean

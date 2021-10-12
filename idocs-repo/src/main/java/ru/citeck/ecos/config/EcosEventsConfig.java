@@ -6,12 +6,10 @@ import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import ru.citeck.ecos.eureka.EurekaAlfInstanceConfig;
-import ru.citeck.ecos.events2.EventProperties;
-import ru.citeck.ecos.events2.EventService;
-import ru.citeck.ecos.events2.EventServiceFactory;
-import ru.citeck.ecos.events2.rabbitmq.RabbitMqEvents;
-import ru.citeck.ecos.events2.remote.RemoteEvents;
+import ru.citeck.ecos.events2.EventsService;
+import ru.citeck.ecos.events2.EventsServiceFactory;
+import ru.citeck.ecos.events2.rabbitmq.RabbitMqEventsService;
+import ru.citeck.ecos.events2.remote.RemoteEventsService;
 import ru.citeck.ecos.rabbitmq.RabbitMqConn;
 import ru.citeck.ecos.rabbitmq.RabbitMqConnProvider;
 import ru.citeck.ecos.records3.RecordsServiceFactory;
@@ -21,7 +19,7 @@ import javax.annotation.PostConstruct;
 
 @Slf4j
 @Configuration
-public class EcosEventsConfig extends EventServiceFactory {
+public class EcosEventsConfig extends EventsServiceFactory {
 
     @Autowired
     private EcosZooKeeper ecosZooKeeper;
@@ -29,44 +27,31 @@ public class EcosEventsConfig extends EventServiceFactory {
     @Autowired
     private RabbitMqConnProvider rabbitMqConnProvider;
 
-    @Autowired
-    private EurekaAlfInstanceConfig instanceConfig;
-
-    @Autowired
-    private RecordsServiceFactory recordsServiceFactory;
-
     @PostConstruct
     public void init() {
-        setRecordsServiceFactory(recordsServiceFactory);
+        super.init();
     }
 
-    @Bean
+    @Bean(name = "eventsService")
     @NotNull
     @Override
-    public EventService createEventService() {
+    public EventsService createEventsService() {
         log.info("EventService init");
-        return super.createEventService();
-    }
-
-    @NotNull
-    @Override
-    public EventProperties createProperties() {
-
-        EventProperties props = new EventProperties();
-
-        props.setAppInstanceId(instanceConfig.getInstanceId());
-        props.setAppName(instanceConfig.getAppname());
-
-        return props;
+        return super.createEventsService();
     }
 
     @Nullable
     @Override
-    public RemoteEvents createRemoteEvents() {
+    public RemoteEventsService createRemoteEvents() {
         RabbitMqConn connection = rabbitMqConnProvider.getConnection();
         if (connection == null) {
             throw new IllegalStateException("RabbitMQ connection is null");
         }
-        return new RabbitMqEvents(connection, this, ecosZooKeeper);
+        return new RabbitMqEventsService(connection, this, ecosZooKeeper);
+    }
+
+    @Autowired
+    public void setRecordsServiceFactory(RecordsServiceFactory recordsServiceFactory) {
+        super.recordsServices = recordsServiceFactory;
     }
 }

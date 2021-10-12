@@ -1,6 +1,6 @@
 package ru.citeck.ecos.flowable.services.impl;
 
-import lombok.extern.log4j.Log4j;
+import lombok.extern.slf4j.Slf4j;
 import org.alfresco.model.ContentModel;
 import org.alfresco.repo.workflow.WorkflowModel;
 import org.alfresco.service.cmr.repository.MLText;
@@ -39,7 +39,7 @@ import java.util.stream.Collectors;
 /**
  * Flowable task service
  */
-@Log4j
+@Slf4j
 public class FlowableTaskServiceImpl implements FlowableTaskService, EngineTaskService {
 
     private static final String VAR_PACKAGE = "bpm_package";
@@ -259,11 +259,8 @@ public class FlowableTaskServiceImpl implements FlowableTaskService, EngineTaskS
     }
 
     public RecordRef getDocument(String taskId) {
-
         Object bpmPackage = getVariable(taskId, VAR_PACKAGE);
-        NodeRef documentRef = workflowUtils.getTaskDocumentFromPackage(bpmPackage);
-
-        return documentRef != null ? RecordRef.valueOf(documentRef.toString()) : RecordRef.EMPTY;
+        return workflowUtils.getTaskDocumentRefFromPackage(bpmPackage);
     }
 
     private boolean taskExists(String taskId) {

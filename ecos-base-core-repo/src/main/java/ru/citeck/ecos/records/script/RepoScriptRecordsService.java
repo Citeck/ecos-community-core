@@ -3,7 +3,10 @@ package ru.citeck.ecos.records.script;
 import lombok.extern.slf4j.Slf4j;
 import org.alfresco.repo.jscript.ScriptNode;
 import org.alfresco.repo.template.TemplateNode;
+import org.alfresco.repo.transaction.TransactionalResourceHelper;
 import org.alfresco.service.cmr.repository.NodeRef;
+import org.alfresco.service.namespace.QName;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import ru.citeck.ecos.commons.data.DataValue;
 import ru.citeck.ecos.commons.data.ObjectData;
@@ -20,6 +23,11 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 public class RepoScriptRecordsService extends AlfrescoScopableProcessorExtension {
+
+    private static final String TXN_RECORDS_KEY = RepoScriptRecordsService.class.getSimpleName() + "-txn-recs-key";
+
+    public static final String BEAN_ID = "ecos-base-core.repoScriptRecordsService";
+    public static final QName QNAME = QName.createQName("", BEAN_ID);
 
     @Autowired
     private RecordsService recordsService;
@@ -52,7 +60,11 @@ public class RepoScriptRecordsService extends AlfrescoScopableProcessorExtension
         } else if (javaRecord instanceof RecordRef) {
             recordRef = (RecordRef) javaRecord;
         } else if (javaRecord instanceof String) {
-            recordRef = RecordRef.valueOf((String) javaRecord);
+            if (StringUtils.isBlank((String) javaRecord)) {
+                recordRef = RecordRef.EMPTY;
+            } else {
+                recordRef = RecordRef.valueOf((String) javaRecord);
+            }
         } else if (javaRecord instanceof ScriptNode) {
             recordRef = RecordRef.valueOf(((ScriptNode) javaRecord).getNodeRef().toString());
         } else if (javaRecord instanceof TemplateNode) {
@@ -60,7 +72,11 @@ public class RepoScriptRecordsService extends AlfrescoScopableProcessorExtension
         } else {
             throw new RuntimeException("Incorrect record: " + javaRecord);
         }
-        return new Record(recordRef);
+        if (RecordRef.isEmpty(recordRef)) {
+            return EmptyRecord.INSTANCE;
+        }
+        Map<RecordRef, Record> txnRecsMap = TransactionalResourceHelper.getMap(TXN_RECORDS_KEY);
+        return txnRecsMap.computeIfAbsent(recordRef, Record::new);
     }
 
     private Map<String, Object> getEmptyRes() {
@@ -201,12 +217,17 @@ public class RepoScriptRecordsService extends AlfrescoScopableProcessorExtension
             log.warn("Save is not allowed for EmptyRecord");
             return this;
         }
+
+        @Override
+        public void reset() {
+        }
     }
 
     private class Record implements RepoScriptAttValueCtx {
 
         private final RecordRef recordRef;
         private ObjectData mutateAtts;
+        private final Map<String, DataValue> loadedAttsCache = new HashMap<>();
 
         public Record(RecordRef recordRef) {
             this.recordRef = recordRef;
@@ -214,7 +235,7 @@ public class RepoScriptRecordsService extends AlfrescoScopableProcessorExtension
 
         @Override
         public String getId() {
-            return "";
+            return recordRef.toString();
         }
 
         public RecordRef getRef() {
@@ -233,7 +254,30 @@ public class RepoScriptRecordsService extends AlfrescoScopableProcessorExtension
             }
 
             Map<String, Object> attributesMap = toRecordAttsMap(jsUtils.toJava(attributes));
-            RecordAtts result = recordsService.getAtts(recordRef, attributesMap);
+
+            Map<String, DataValue> attsFromCache = new HashMap<>();
+            Map<String, Object> attsToLoad = new HashMap<>();
+
+            attributesMap.forEach((alias, attribute) -> {
+                if (attribute instanceof String && loadedAttsCache.containsKey(attribute)) {
+                    attsFromCache.put(alias, loadedAttsCache.get(attribute));
+                } else {
+                    attsToLoad.put(alias, attribute);
+                }
+            });
+
+            RecordAtts result;
+            if (!attsToLoad.isEmpty()) {
+                result = recordsService.getAtts(recordRef, attsToLoad);
+                attsToLoad.forEach((alias, attribute) -> {
+                    if (attribute instanceof String) {
+                        loadedAttsCache.put((String) attribute, result.getAtt(alias));
+                    }
+                });
+            } else {
+                result = new RecordAtts(recordRef);
+            }
+            attsFromCache.forEach(result::setAtt);
 
             if (attributes instanceof String) {
                 return jsUtils.toScript(result.getAtt((String) attributes).asJavaObj());
@@ -259,8 +303,14 @@ public class RepoScriptRecordsService extends AlfrescoScopableProcessorExtension
             } else {
                 result = new Record(recordsService.mutate(recordRef, mutateAtts));
             }
-            mutateAtts = null;
+            reset();
             return result;
+        }
+
+        @Override
+        public void reset() {
+            mutateAtts = null;
+            loadedAttsCache.clear();
         }
     }
 }

@@ -21,7 +21,7 @@ public abstract class BaseGroupAction<T> implements GroupAction<T> {
     private int processedCount = 0;
     private int receivedElements = 0;
 
-    private List<ResultsListener<T>> listeners = new ArrayList<>();
+    private final List<ResultsListener<T>> listeners = new ArrayList<>();
 
     public BaseGroupAction(GroupActionConfig config) {
         this.config = config != null ? config : new GroupActionConfig();

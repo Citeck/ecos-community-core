@@ -7,6 +7,8 @@ import org.alfresco.util.UrlUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import ru.citeck.ecos.flowable.variable.FlowableScriptNode;
+import ru.citeck.ecos.records2.RecordRef;
+import ru.citeck.ecos.utils.NodeUtils;
 import ru.citeck.ecos.utils.UrlUtils;
 
 /**
@@ -16,7 +18,7 @@ import ru.citeck.ecos.utils.UrlUtils;
  */
 @Slf4j
 @Component
-public class FlowableBaseVariablesSetListener extends AbstractFlowableSaveToExecutionListener {
+public class FlowableBaseVariablesSetListener extends AbstractFlowableSaveToExecutionRecordRefListener {
 
     private static final String VAR_DOCUMENT = "document";
     private static final String VAR_SHARE_URL = "shareUrl";
@@ -32,21 +34,26 @@ public class FlowableBaseVariablesSetListener extends AbstractFlowableSaveToExec
     }
 
     @Override
-    public boolean saveIsRequired(NodeRef document) {
+    public boolean saveIsRequired(RecordRef document) {
         return true;
     }
 
     @Override
-    public void saveToExecution(String executionId, NodeRef document) {
+    public void saveToExecution(String executionId, RecordRef document) {
         setDocumentVariable(executionId, document);
         setShareUrlVariable(executionId);
         setWebUrlVariable(executionId);
     }
 
-    private void setDocumentVariable(String executionId, NodeRef document) {
-        if (document != null) {
-            FlowableScriptNode node = new FlowableScriptNode(document, serviceRegistry);
-            setVariable(executionId, VAR_DOCUMENT, node);
+    private void setDocumentVariable(String executionId, RecordRef document) {
+        if (RecordRef.isNotEmpty(document)) {
+            if (document.getId().startsWith(NodeUtils.WORKSPACE_PREFIX)) {
+                NodeRef nodeRef = new NodeRef(document.getId());
+                FlowableScriptNode node = new FlowableScriptNode(nodeRef, serviceRegistry);
+                setVariable(executionId, VAR_DOCUMENT, node);
+            } else {
+                setVariable(executionId, VAR_DOCUMENT, document.toString());
+            }
         } else {
             setVariable(executionId, VAR_DOCUMENT, null);
         }

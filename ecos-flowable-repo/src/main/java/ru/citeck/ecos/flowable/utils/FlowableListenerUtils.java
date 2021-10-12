@@ -17,6 +17,9 @@ import org.flowable.identitylink.api.IdentityLink;
 import org.flowable.identitylink.service.IdentityLinkType;
 import org.flowable.task.service.delegate.DelegateTask;
 import org.flowable.variable.api.delegate.VariableScope;
+import org.jetbrains.annotations.NotNull;
+import ru.citeck.ecos.model.CiteckWorkflowModel;
+import ru.citeck.ecos.records2.RecordRef;
 import ru.citeck.ecos.utils.ReflectionUtils;
 
 import java.util.*;
@@ -75,6 +78,28 @@ public class FlowableListenerUtils {
             return childAssocs.get(0).getChildRef();
         }
         return null;
+    }
+
+    @NotNull
+    public static RecordRef getDocumentRecordRef(VariableScope execution, NodeService nodeService) {
+
+        NodeRef wfPackage = getWorkflowPackage(execution);
+        if (wfPackage == null || !nodeService.exists(wfPackage)) {
+            return RecordRef.EMPTY;
+        }
+
+        String documentProp = (String) nodeService.getProperty(wfPackage, CiteckWorkflowModel.PROP_DOCUMENT_PROP);
+
+        if (StringUtils.isNotBlank(documentProp)) {
+            return RecordRef.valueOf(documentProp);
+        }
+
+        NodeRef docNodeRef = getDocument(execution, nodeService);
+
+        if (docNodeRef != null) {
+            return RecordRef.create("", docNodeRef.toString());
+        }
+        return RecordRef.EMPTY;
     }
 
     /**

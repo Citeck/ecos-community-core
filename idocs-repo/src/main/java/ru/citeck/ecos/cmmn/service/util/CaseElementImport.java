@@ -12,7 +12,7 @@ import java.util.Optional;
 
 public class CaseElementImport {
 
-    private CaseElementService caseElementService;
+    private final CaseElementService caseElementService;
 
     public CaseElementImport(CaseElementService caseElementService) {
         this.caseElementService = caseElementService;
@@ -34,5 +34,4 @@ public class CaseElementImport {
             }
         }
     }
-
 }

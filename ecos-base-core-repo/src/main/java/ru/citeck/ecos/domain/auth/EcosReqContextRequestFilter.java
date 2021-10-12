@@ -7,6 +7,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.springframework.web.context.support.WebApplicationContextUtils;
+import ru.citeck.ecos.context.lib.auth.AuthConstants;
 
 import javax.crypto.SecretKey;
 import javax.servlet.*;
@@ -102,9 +103,8 @@ public class EcosReqContextRequestFilter implements Filter {
                     .parseClaimsJwt(token)
                     .getBody();
             }
-
-            String[] jwtAuthorities = claims.get(JWT_AUTHORITIES_KEY).toString().split(",");
-            if (ArrayUtils.contains(jwtAuthorities, AUTH_ROLE_SYSTEM)) {
+            //String[] jwtAuthorities = claims.get(JWT_AUTHORITIES_KEY).toString().split(",");
+            if (AuthConstants.SYSTEM_USER.equals(claims.getSubject())) {
                 isSystemRequest = true;
             }
         }

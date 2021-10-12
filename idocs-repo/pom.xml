@@ -210,13 +210,7 @@
         </dependency>
 
         <dependency>
-            <groupId>ru.citeck.ecos.events2</groupId>
-            <artifactId>ecos-events2</artifactId>
-            <version>${ecos.events2.version}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>ru.citeck.ecos.events2</groupId>
+            <groupId>ru.citeck.ecos.events</groupId>
             <artifactId>ecos-events2-rabbitmq</artifactId>
             <version>${ecos.events2.version}</version>
         </dependency>
@@ -231,6 +225,20 @@
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-collections4</artifactId>
             <version>4.1</version>
+            <scope>compile</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>ru.citeck.ecos.config</groupId>
+            <artifactId>ecos-config-artifact</artifactId>
+            <version>${ecos.config.version}</version>
+            <scope>compile</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>ru.citeck.ecos.config</groupId>
+            <artifactId>ecos-config-zoookeeper</artifactId>
+            <version>${ecos.config.version}</version>
             <scope>compile</scope>
         </dependency>
 

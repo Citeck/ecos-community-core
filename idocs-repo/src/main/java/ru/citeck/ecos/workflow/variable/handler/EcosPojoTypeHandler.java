@@ -1,6 +1,7 @@
 package ru.citeck.ecos.workflow.variable.handler;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import lombok.extern.slf4j.Slf4j;
 import org.activiti.engine.ActivitiException;
 import org.activiti.engine.impl.variable.ValueFields;
 import org.activiti.engine.impl.variable.VariableType;
@@ -19,9 +20,8 @@ import java.io.IOException;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 
+@Slf4j
 public class EcosPojoTypeHandler<T> implements VariableType {
-
-    private static final Logger logger = LoggerFactory.getLogger(EcosPojoTypeHandler.class);
 
     private static final int MAX_TEXT_LENGTH = 4000;
     private static final String TYPE_NAME = "ecos-pojo";
@@ -94,7 +94,7 @@ public class EcosPojoTypeHandler<T> implements VariableType {
                 String textValue = new String(bytes, offset, length, STRING_CHARSET);
                 return toObject(textValue);
             } catch (Exception e) {
-                logger.debug("Error while parsing string bytes value. Let's try to deserialize", e);
+                log.debug("Error while parsing string bytes value. Let's try to deserialize", e);
             }
         }
 
