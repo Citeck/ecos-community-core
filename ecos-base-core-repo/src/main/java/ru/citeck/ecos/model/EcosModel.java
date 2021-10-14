@@ -23,6 +23,7 @@ public interface EcosModel {
     QName ASPECT_HAS_VAT = QName.createQName(ECOS_NAMESPACE, "hasVAT");
     QName ASPECT_HAS_ADDITIONAL_PERSON_PROPERTIES = QName.createQName(ECOS_NAMESPACE, "hasAdditionalPersonProperties");
     QName ASPECT_HAS_HR_PROPERTIES = QName.createQName(ECOS_NAMESPACE, "hasHrProperties");
+    QName ASPECT_HAS_REMOTE_PARENT_REF = QName.createQName(ECOS_NAMESPACE, "hasRemoteParentRef");
 
     //Properties
     QName PROP_DOCUMENT_NUMBER = QName.createQName(ECOS_NAMESPACE, "documentNumber");
