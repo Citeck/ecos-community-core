@@ -305,6 +305,15 @@
             </properties>
         </aspect>
 
+        <aspect name="ecos:hasRemoteParentRef">
+            <properties>
+                <!-- Used to link record in alfresco with external record -->
+                <property name="ecos:remoteParentRef">
+                    <type>d:text</type>
+                </property>
+            </properties>
+        </aspect>
+
     </aspects>
 
 </model>

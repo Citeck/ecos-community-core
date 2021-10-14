@@ -18,6 +18,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 import ru.citeck.ecos.icase.completeness.CaseCompletenessService;
+import ru.citeck.ecos.model.EcosModel;
 import ru.citeck.ecos.node.EcosTypeService;
 import ru.citeck.ecos.records.source.PeopleRecordsDao;
 import ru.citeck.ecos.records2.RecordRef;
@@ -29,6 +30,7 @@ import ru.citeck.ecos.records2.request.query.RecordsQueryResult;
 import ru.citeck.ecos.records2.request.result.RecordsResult;
 import ru.citeck.ecos.records2.source.dao.local.LocalRecordsDao;
 import ru.citeck.ecos.records2.source.dao.local.v2.LocalRecordsQueryWithMetaDao;
+import ru.citeck.ecos.records3.RecordsProperties;
 import ru.citeck.ecos.search.ftsquery.FTSQuery;
 import ru.citeck.ecos.utils.AuthorityUtils;
 import ru.citeck.ecos.utils.DictUtils;
@@ -56,6 +58,7 @@ public class CaseDocumentRecordsDao extends LocalRecordsDao implements LocalReco
     private final SearchService searchService;
     private final EcosTypeService ecosTypeService;
     private final AuthorityUtils authorityUtils;
+    private final RecordsProperties recordsProperties;
 
     private final Map<QName, Map<RecordRef, QName>> assocTypesRegistry = new ConcurrentHashMap<>();
     private final LoadingCache<QName, Map<RecordRef, QName>> assocTypesByCaseAlfTypeCache;
@@ -68,7 +71,8 @@ public class CaseDocumentRecordsDao extends LocalRecordsDao implements LocalReco
                                   SearchService searchService,
                                   NodeService nodeService,
                                   NodeUtils nodeUtils,
-                                  DictUtils dictUtils) {
+                                  DictUtils dictUtils,
+                                  RecordsProperties recordsProperties) {
         setId(ID);
         this.caseCompletenessService = caseCompletenessService;
         this.ecosTypeService = ecosTypeService;
@@ -77,6 +81,7 @@ public class CaseDocumentRecordsDao extends LocalRecordsDao implements LocalReco
         this.nodeService = nodeService;
         this.nodeUtils = nodeUtils;
         this.dictUtils = dictUtils;
+        this.recordsProperties = recordsProperties;
 
         assocTypesByCaseAlfTypeCache = CacheBuilder.newBuilder()
             .expireAfterAccess(30, TimeUnit.SECONDS)
@@ -106,12 +111,11 @@ public class CaseDocumentRecordsDao extends LocalRecordsDao implements LocalReco
         TypesDocumentsQuery query = recordsQuery.getQuery(TypesDocumentsQuery.class);
         List<RecordRef> typesRefs = query.getTypes();
 
-        NodeRef nodeRef = convertRecordRefToNodeRef(query.getRecordRef());
-        if (nodeRef == null || typesRefs == null || typesRefs.isEmpty()) {
+        if (typesRefs == null || typesRefs.isEmpty()) {
             return new RecordsQueryResult<>();
         }
 
-        Map<RecordRef, List<DocInfo>> docsByType = getAllDocsForCase(nodeRef);
+        Map<RecordRef, List<DocInfo>> docsByType = getAllDocsForCase(query.getRecordRef());
 
         List<TypeDocumentsRecord> typeDocumentsList = typesRefs.stream()
             .map(typeRef -> new TypeDocumentsRecord(typeRef, docsByType.getOrDefault(typeRef, Collections.emptyList())
@@ -129,12 +133,7 @@ public class CaseDocumentRecordsDao extends LocalRecordsDao implements LocalReco
 
         TypesDocumentsQuery query = recordsQuery.getQuery(TypesDocumentsQuery.class);
 
-        NodeRef nodeRef = convertRecordRefToNodeRef(query.getRecordRef());
-        if (nodeRef == null) {
-            return new RecordsQueryResult<>();
-        }
-
-        Map<RecordRef, List<DocInfo>> docsByType = getAllDocsForCase(nodeRef);
+        Map<RecordRef, List<DocInfo>> docsByType = getAllDocsForCase(query.getRecordRef());
 
         List<TypeDocumentsRecord> documentsByTypes = docsByType.entrySet().stream()
             .map(e -> new TypeDocumentsRecord(e.getKey(), e.getValue().stream()
@@ -147,12 +146,19 @@ public class CaseDocumentRecordsDao extends LocalRecordsDao implements LocalReco
         return documentsByTypesRecords;
     }
 
-    private Map<RecordRef, List<DocInfo>> getAllDocsForCase(NodeRef caseRef) {
+    private Map<RecordRef, List<DocInfo>> getAllDocsForCase(RecordRef caseRef) {
+
+        NodeRef nodeRef = convertRecordRefToNodeRef(caseRef);
 
         FTSQuery ftsQuery = FTSQuery.createRaw()
-            .parent(caseRef)
             .transactional()
             .maxItems(1000);
+
+        if (nodeRef != null) {
+            ftsQuery = ftsQuery.parent(nodeRef);
+        } else {
+            ftsQuery = ftsQuery.exact(EcosModel.PROP_REMOTE_PARENT_REF, caseRef.toString());
+        }
 
         List<RecordRef> documentRefs = ftsQuery.query(searchService)
             .stream()
@@ -181,10 +187,12 @@ public class CaseDocumentRecordsDao extends LocalRecordsDao implements LocalReco
             }
         }
 
-        getAllDocsByAssocsRegistry(caseRef).forEach((type, docs) -> {
-            Set<DocInfo> docsSet = docsByType.computeIfAbsent(type, t -> new HashSet<>());
-            docs.stream().filter(d -> !allDocuments.contains(d)).forEach(docsSet::add);
-        });
+        if (nodeRef != null) {
+            getAllDocsByAssocsRegistry(nodeRef).forEach((type, docs) -> {
+                Set<DocInfo> docsSet = docsByType.computeIfAbsent(type, t -> new HashSet<>());
+                docs.stream().filter(d -> !allDocuments.contains(d)).forEach(docsSet::add);
+            });
+        }
 
         Set<RecordRef> typeRefs = new HashSet<>(docsByType.keySet());
         for (RecordRef typeRef : typeRefs) {
@@ -309,7 +317,7 @@ public class CaseDocumentRecordsDao extends LocalRecordsDao implements LocalReco
 
     @Data
     @RequiredArgsConstructor
-    static class TypeDocumentsRecord implements MetaValue {
+    class TypeDocumentsRecord implements MetaValue {
 
         private final String id = UUID.randomUUID().toString();
 
@@ -328,7 +336,10 @@ public class CaseDocumentRecordsDao extends LocalRecordsDao implements LocalReco
                 case "type":
                     return typeRef.toString();
                 case "documents":
-                    return documents;
+                    String appName = recordsProperties.getAppName();
+                    return documents.stream()
+                        .map(doc -> RecordRef.create(appName, "", doc.getId()))
+                        .collect(Collectors.toList());
                 case "docsCount":
                     return documents.size();
             }

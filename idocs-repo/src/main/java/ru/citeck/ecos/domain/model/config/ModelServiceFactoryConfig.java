@@ -126,6 +126,7 @@ public class ModelServiceFactoryConfig extends ModelServiceFactory {
                     dto -> TypeInfo.create(builder -> {
                         builder.withId(dto.getId());
                         builder.withName(dto.getName());
+                        builder.withSourceId(dto.getSourceId());
                         builder.withModel(dto.getResolvedModel());
                         builder.withParentRef(dto.getParentRef());
                         builder.withDispNameTemplate(dto.getInhDispNameTemplate());
