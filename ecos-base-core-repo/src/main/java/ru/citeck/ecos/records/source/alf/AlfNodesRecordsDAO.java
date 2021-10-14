@@ -64,6 +64,7 @@ import ru.citeck.ecos.records2.source.dao.RecordsQueryDao;
 import ru.citeck.ecos.records2.source.dao.local.LocalRecordsDao;
 import ru.citeck.ecos.records2.source.dao.local.v2.LocalRecordsMetaDao;
 import ru.citeck.ecos.records2.source.dao.local.v2.LocalRecordsQueryWithMetaDao;
+import ru.citeck.ecos.records3.RecordsProperties;
 import ru.citeck.ecos.security.EcosPermissionService;
 import ru.citeck.ecos.utils.AuthorityUtils;
 import ru.citeck.ecos.utils.NodeUtils;
@@ -97,9 +98,12 @@ public class AlfNodesRecordsDAO extends LocalRecordsDao
     private static final String CONTENT_ATTRIBUTE_NAME = "_content";
     private static final String CM_CONTENT_ATTRIBUTE_NAME = "cm:content";
 
+    private static final String[] CONTENT_PROPS_WITH_NAME = { "originalName", "name", "filename" };
+
     private final Map<String, AlfNodesSearch> searchByLanguage = new ConcurrentHashMap<>();
 
     private AuthorityUtils authorityUtils;
+    private RecordsProperties recordsProperties;
     private NodeUtils nodeUtils;
     private NodeService nodeService;
     private SearchService searchService;
@@ -155,7 +159,7 @@ public class AlfNodesRecordsDAO extends LocalRecordsDao
 
         ObjectData initialAtts = record.getAtts().deepCopy();
         for (String field : initialAtts.fieldNamesList()) {
-            if (RecordConstants.ATT_DISP.equals(field)) {
+            if (RecordConstants.ATT_DISP.equals(field) || "_name".equals(field)) {
                 initialAtts.set("cm:title", initialAtts.get(field));
                 initialAtts.remove(field);
             }
@@ -217,6 +221,17 @@ public class AlfNodesRecordsDAO extends LocalRecordsDao
                 attributes.fieldNamesList(),
                 true
             );
+        }
+
+        DataValue parentValue = attributes.get(RecordConstants.ATT_PARENT);
+        if (parentValue.isTextual()) {
+            RecordRef parentRef = RecordRef.valueOf(parentValue.asText());
+            if (StringUtils.isNotBlank(parentRef.getAppName())
+                    && !recordsProperties.getAppName().equals(parentRef.getAppName())) {
+
+                attributes.set(EcosModel.PROP_REMOTE_PARENT_REF.toPrefixString(namespaceService), parentValue);
+                attributes.remove(RecordConstants.ATT_PARENT);
+            }
         }
 
         AlfNodeInfo nodeInfo = nodeRef != null ? new AlfNodeInfoImpl(nodeRef, serviceRegistry) : null;
@@ -375,14 +390,17 @@ public class AlfNodesRecordsDAO extends LocalRecordsDao
             if (StringUtils.isBlank(name)) {
 
                 DataValue content = contentProps.get(ContentModel.PROP_CONTENT);
+                if (content != null && content.isArray() && content.size() > 0) {
+                    content = content.get(0);
+                }
 
                 if (content != null && content.isObject()) {
-                    DataValue contentName = content.get("name");
-                    if (!contentName.isTextual()) {
-                        contentName = content.get("filename");
-                    }
-                    if (contentName.isTextual()) {
-                        name = contentName.asText();
+                    for (String attWithName : CONTENT_PROPS_WITH_NAME) {
+                        DataValue contentName = content.get(attWithName);
+                        if (contentName.isTextual() && StringUtils.isNotBlank(contentName.asText())) {
+                            name = contentName.asText();
+                            break;
+                        }
                     }
                 }
                 if (StringUtils.isBlank(name) && typeDto != null && typeDto.getName() != null) {
@@ -627,7 +645,16 @@ public class AlfNodesRecordsDAO extends LocalRecordsDao
     private NodeRef getParent(RecordMeta record, QName type, RecordRef ecosType) {
 
         String parent = record.getAttribute(RecordConstants.ATT_PARENT, "");
+        if (parent.contains("@")) {
+            RecordRef parentRef = RecordRef.valueOf(parent);
+            if (!parentRef.getAppName().isEmpty() &&
+                !parentRef.getAppName().equals(recordsProperties.getAppName())) {
+
+                parent = "";
+            }
+        }
         if (!parent.isEmpty()) {
+
             NodeRef parentRef = nodeUtils.getNodeRefOrNull(parent);
             if (parentRef != null) {
                 return parentRef;
@@ -884,5 +911,10 @@ public class AlfNodesRecordsDAO extends LocalRecordsDao
     @Autowired
     public void setAuthorityUtils(AuthorityUtils authorityUtils) {
         this.authorityUtils = authorityUtils;
+    }
+
+    @Autowired
+    public void setRecordsProperties(RecordsProperties recordsProperties) {
+        this.recordsProperties = recordsProperties;
     }
 }
