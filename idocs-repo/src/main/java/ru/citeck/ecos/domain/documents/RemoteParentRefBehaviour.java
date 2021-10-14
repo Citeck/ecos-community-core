@@ -14,6 +14,7 @@ import ru.citeck.ecos.model.EcosModel;
 import ru.citeck.ecos.records2.RecordRef;
 import ru.citeck.ecos.records3.RecordsProperties;
 import ru.citeck.ecos.records3.RecordsService;
+import ru.citeck.ecos.records3.record.request.RequestContext;
 import ru.citeck.ecos.utils.TransactionUtils;
 
 import java.util.HashSet;
@@ -38,6 +39,11 @@ public class RemoteParentRefBehaviour extends AbstractBehaviour implements NodeS
     @PolicyMethod(policy = NodeServicePolicies.OnCreateNodePolicy.class,
         frequency = Behaviour.NotificationFrequency.EVERY_EVENT, runAsSystem = true)
     public void onCreateNode(ChildAssociationRef childAssocRef) {
+
+        RequestContext ctx = RequestContext.getCurrent();
+        if (ctx == null || !ctx.ctxData.getTxnOwner()) {
+            return;
+        }
 
         NodeRef nodeRef = childAssocRef.getChildRef();
         String remoteParentRefStr = (String) nodeService.getProperty(nodeRef, EcosModel.PROP_REMOTE_PARENT_REF);
