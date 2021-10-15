@@ -14,10 +14,16 @@ import org.alfresco.service.cmr.workflow.WorkflowTask;
 import org.alfresco.service.namespace.NamespaceService;
 import org.alfresco.service.namespace.QName;
 import org.apache.commons.lang.StringUtils;
+import org.flowable.bpmn.model.FlowElement;
+import org.flowable.bpmn.model.Process;
+import org.flowable.bpmn.model.UserTask;
 import org.flowable.engine.TaskService;
+import org.flowable.engine.impl.util.ProcessDefinitionUtil;
 import org.flowable.task.service.delegate.DelegateTask;
 import org.flowable.variable.api.delegate.VariableScope;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.extensions.surf.util.I18NUtil;
 import ru.citeck.ecos.deputy.DeputyService;
 import ru.citeck.ecos.flowable.listeners.global.GlobalAssignmentTaskListener;
 import ru.citeck.ecos.flowable.listeners.global.GlobalCompleteTaskListener;
@@ -28,7 +34,10 @@ import ru.citeck.ecos.flowable.utils.FlowableUtils;
 import ru.citeck.ecos.history.HistoryEventType;
 import ru.citeck.ecos.history.HistoryService;
 import ru.citeck.ecos.model.*;
+import ru.citeck.ecos.model.lib.role.dto.RoleDef;
+import ru.citeck.ecos.model.lib.role.service.RoleService;
 import ru.citeck.ecos.records2.RecordRef;
+import ru.citeck.ecos.records3.RecordsService;
 import ru.citeck.ecos.role.CaseRoleAssocsDao;
 import ru.citeck.ecos.role.CaseRoleService;
 import ru.citeck.ecos.utils.NodeUtils;
@@ -36,6 +45,8 @@ import ru.citeck.ecos.workflow.listeners.TaskDataListenerUtils;
 
 import java.io.Serializable;
 import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import static ru.citeck.ecos.flowable.constants.FlowableConstants.ENGINE_PREFIX;
 import static ru.citeck.ecos.utils.WorkflowConstants.VAR_TASK_ORIGINAL_OWNER;
@@ -48,6 +59,8 @@ public class TaskHistoryListener implements GlobalCreateTaskListener, GlobalAssi
     GlobalCompleteTaskListener {
 
     private static final String VAR_ADDITIONAL_EVENT_PROPERTIES = "event_additionalProperties";
+    private static final Pattern FLW_RECIPIENTS_ROLE_ID_PATTERN =
+        Pattern.compile("\\$\\{flwRecipients\\.getRoleUsers\\(document\\s*,\\s*['\"](.+)['\"]\\)}");
 
     private static final Map<String, String> eventNames;
 
@@ -75,6 +88,8 @@ public class TaskHistoryListener implements GlobalCreateTaskListener, GlobalAssi
     private TaskDataListenerUtils taskDataListenerUtils;
     private CaseRoleAssocsDao caseRoleAssocsDao;
     private NodeUtils nodeUtils;
+    private RoleService roleService;
+    private RecordsService recordsService;
 
     /**
      * Property names
@@ -156,9 +171,9 @@ public class TaskHistoryListener implements GlobalCreateTaskListener, GlobalAssi
             List<NodeRef> listRoles = caseRoleService.getRoles(documentNodeRef);
             roleName = getAuthorizedName(panelOfAuthorized, listRoles, assignee) != null ?
                 getAuthorizedName(panelOfAuthorized, listRoles, assignee) :
-                getRoleName(packageAssocs, assignee, delegateTask.getId());
+                getRoleName(documentRecordRef, packageAssocs, assignee, delegateTask);
         } else {
-            roleName = getRoleName(packageAssocs, assignee, delegateTask.getId());
+            roleName = getRoleName(documentRecordRef, packageAssocs, assignee, delegateTask);
             if (!packageAssocs.isEmpty()) {
                 eventProperties.put(HistoryModel.PROP_CASE_TASK, packageAssocs.get(0).getSourceRef());
             }
@@ -288,12 +303,16 @@ public class TaskHistoryListener implements GlobalCreateTaskListener, GlobalAssi
      *
      * @param packageAssocs Package assocs
      * @param assignee      Assigne
-     * @param taskId        Task id
+     * @param delegateTask  Task
      * @return Role name
      */
-    private String getRoleName(List<AssociationRef> packageAssocs, String assignee, String taskId) {
+    private String getRoleName(RecordRef documentRef,
+                               List<AssociationRef> packageAssocs,
+                               String assignee,
+                               DelegateTask delegateTask) {
 
         String roleName = "";
+        String taskId = delegateTask.getId();
 
         if (taskId != null) {
             WorkflowTask task = workflowService.getTaskById(ENGINE_PREFIX + taskId);
@@ -306,23 +325,69 @@ public class TaskHistoryListener implements GlobalCreateTaskListener, GlobalAssi
             }
         }
 
-        if (StringUtils.isBlank(roleName)) {
-            if (!packageAssocs.isEmpty()) {
+        if (StringUtils.isBlank(roleName) && !packageAssocs.isEmpty()) {
 
-                NodeRef currentTask = packageAssocs.get(0).getSourceRef();
-                List<NodeRef> performerRoles = caseRoleAssocsDao.getRolesByAssoc(currentTask,
-                    CasePerformModel.ASSOC_PERFORMERS_ROLES);
+            NodeRef currentTask = packageAssocs.get(0).getSourceRef();
+            List<NodeRef> performerRoles = caseRoleAssocsDao.getRolesByAssoc(currentTask,
+                CasePerformModel.ASSOC_PERFORMERS_ROLES);
 
-                if (!performerRoles.isEmpty()) {
-                    NodeRef firstRole = performerRoles.get(0);
-                    roleName = caseRoleService.getRoleDispName(firstRole);
-                }
-            }
-            if (StringUtils.isBlank(roleName)) {
-                roleName = assignee;
+            if (!performerRoles.isEmpty()) {
+                NodeRef firstRole = performerRoles.get(0);
+                roleName = caseRoleService.getRoleDispName(firstRole);
             }
         }
+
+        if (StringUtils.isBlank(roleName)) {
+            roleName = getRoleFromCandidates(documentRef, delegateTask);
+        }
+
+        if (roleName.isEmpty()) {
+            roleName = assignee;
+        }
+
         return roleName;
+    }
+
+    @NotNull
+    private String getRoleFromCandidates(RecordRef documentRef, DelegateTask delegateTask) {
+
+        String procDefId = delegateTask.getProcessDefinitionId();
+        String taskDefKey = delegateTask.getTaskDefinitionKey();
+
+        if (StringUtils.isBlank(procDefId) || StringUtils.isBlank(taskDefKey)) {
+            return "";
+        }
+        Process process = ProcessDefinitionUtil.getProcess(procDefId);
+        if (process == null) {
+            return "";
+        }
+        FlowElement flowElement = process.getFlowElement(taskDefKey, true);
+        if (!(flowElement instanceof UserTask)) {
+            return "";
+        }
+        List<String> candidates = ((UserTask) flowElement).getCandidateUsers();
+        if (candidates == null || candidates.isEmpty()) {
+            return "";
+        }
+        for (String user : candidates) {
+            if (StringUtils.isNotBlank(user)) {
+                Matcher matcher = FLW_RECIPIENTS_ROLE_ID_PATTERN.matcher(user);
+                if (matcher.matches()) {
+                    String roleName = matcher.group(1);
+                    if (!roleName.isEmpty() && RecordRef.isNotEmpty(documentRef)) {
+                        String ecosType = recordsService.getAtt(documentRef, "_type?id").asText();
+                        if (!ecosType.isEmpty()) {
+                            RoleDef roleDef = roleService.getRoleDef(RecordRef.valueOf(ecosType), roleName);
+                            if (!roleDef.getId().isEmpty()) {
+                                roleName = roleDef.getName().getClosest(I18NUtil.getLocale());
+                            }
+                        }
+                    }
+                    return roleName;
+                }
+            }
+        }
+        return "";
     }
 
     private String getFormCustomComment(DelegateTask delegateTask) {
@@ -395,5 +460,15 @@ public class TaskHistoryListener implements GlobalCreateTaskListener, GlobalAssi
     @Autowired
     public void setTaskDataListenerUtils(TaskDataListenerUtils taskDataListenerUtils) {
         this.taskDataListenerUtils = taskDataListenerUtils;
+    }
+
+    @Autowired
+    public void setRoleService(RoleService roleService) {
+        this.roleService = roleService;
+    }
+
+    @Autowired
+    public void setRecordsService(RecordsService recordsService) {
+        this.recordsService = recordsService;
     }
 }
