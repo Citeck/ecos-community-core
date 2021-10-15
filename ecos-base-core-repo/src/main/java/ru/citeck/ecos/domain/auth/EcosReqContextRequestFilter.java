@@ -5,7 +5,6 @@ import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang3.ArrayUtils;
 import org.springframework.web.context.support.WebApplicationContextUtils;
 import ru.citeck.ecos.context.lib.auth.AuthConstants;
 
@@ -22,10 +21,8 @@ import java.util.Properties;
 @WebFilter(urlPatterns = "/*")
 public class EcosReqContextRequestFilter implements Filter {
 
-    private static final String JWT_AUTHORITIES_KEY = "auth";
     private static final String JWT_TOKEN_PREFIX = "Bearer ";
     private static final String JWT_SECRET_PROP_KEY = "ecos.security.authentication.jwt.secret";
-    private static final String AUTH_ROLE_SYSTEM = "ROLE_SYSTEM";
 
     private SecretKey jwtSecretKey;
 
@@ -64,12 +61,18 @@ public class EcosReqContextRequestFilter implements Filter {
         String authorization = null;
         String ecosUser = null;
         String timezoneHeader = null;
+        String acceptLangHeader = null;
         float utcOffset = 0;
 
         if (request instanceof HttpServletRequest) {
-            authorization = ((HttpServletRequest) request).getHeader("Authorization");
-            ecosUser = ((HttpServletRequest) request).getHeader("X-ECOS-User");
-            timezoneHeader = ((HttpServletRequest) request).getHeader("X-ECOS-Timezone");
+
+            HttpServletRequest httpReq = (HttpServletRequest) request;
+
+            authorization = httpReq.getHeader("Authorization");
+            ecosUser = httpReq.getHeader("X-ECOS-User");
+            timezoneHeader = httpReq.getHeader("X-ECOS-Timezone");
+            acceptLangHeader = httpReq.getHeader("Accept-Language");
+
             if (StringUtils.isNotBlank(timezoneHeader)) {
                 String utcOffsetPart = timezoneHeader.split(";")[0];
                 if (StringUtils.isNotBlank(utcOffsetPart)) {
@@ -103,7 +106,6 @@ public class EcosReqContextRequestFilter implements Filter {
                     .parseClaimsJwt(token)
                     .getBody();
             }
-            //String[] jwtAuthorities = claims.get(JWT_AUTHORITIES_KEY).toString().split(",");
             if (AuthConstants.SYSTEM_USER.equals(claims.getSubject())) {
                 isSystemRequest = true;
             }
@@ -111,12 +113,14 @@ public class EcosReqContextRequestFilter implements Filter {
 
         if (StringUtils.isNotBlank(authorization)
                 || StringUtils.isNotBlank(ecosUser)
-                || StringUtils.isNotBlank(timezoneHeader)) {
+                || StringUtils.isNotBlank(timezoneHeader)
+                || StringUtils.isNotBlank(acceptLangHeader)) {
 
             EcosReqContext.doWith(new EcosReqContextData(
                 ecosUser,
                 authorization,
                 timezoneHeader,
+                acceptLangHeader,
                 isSystemRequest,
                 utcOffset
             ), () -> {
