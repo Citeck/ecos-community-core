@@ -54,6 +54,7 @@ import java.util.function.Supplier;
 @Configuration
 public class RecordsConfiguration extends RecordsServiceFactory {
 
+    private static final String HEADER_ACCEPT_LANG = "Accept-Language";
     private static final String HEADER_AUTH = "Authorization";
     private static final String HEADER_ECOS_USER = "X-ECOS-User";
     private static final String HEADER_ALFRESCO_REMOTE_USER = "X-Alfresco-Remote-User";
@@ -64,8 +65,6 @@ public class RecordsConfiguration extends RecordsServiceFactory {
     private EcosServiceDiscovery ecosServiceDiscovery;
     @Autowired
     private RecordsProperties properties;
-    @Autowired(required = false)
-    private TypesManager typeInfoProvider;
     @Autowired
     private TransactionService transactionService;
 
@@ -160,6 +159,9 @@ public class RecordsConfiguration extends RecordsServiceFactory {
             if (StringUtils.isNotBlank(authContextData.getEcosUserHeader())) {
                 headers.set(HEADER_ECOS_USER, authContextData.getEcosUserHeader());
                 headers.set(HEADER_ALFRESCO_REMOTE_USER, authContextData.getEcosUserHeader());
+            }
+            if (StringUtils.isNotBlank(authContextData.getAcceptLangHeader())) {
+                headers.set(HEADER_ACCEPT_LANG, authContextData.getAcceptLangHeader());
             }
         }
 
