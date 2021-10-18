@@ -19,6 +19,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.extensions.surf.util.I18NUtil;
 import org.springframework.extensions.webscripts.*;
+import ru.citeck.ecos.commons.data.MLText;
+import ru.citeck.ecos.commons.json.Json;
 import ru.citeck.ecos.constants.DocumentHistoryConstants;
 import ru.citeck.ecos.history.HistoryRemoteService;
 import ru.citeck.ecos.history.filter.Criteria;
@@ -229,6 +231,8 @@ public class DocumentHistoryGet extends AbstractWebScript {
                 (String) historyRecordMap.get(DocumentHistoryConstants.TASK_ROLE.getValue()));
             attributesNode.put(DocumentHistoryConstants.TASK_OUTCOME.getKey(),
                 (String) historyRecordMap.get(DocumentHistoryConstants.TASK_OUTCOME.getValue()));
+            attributesNode.put(DocumentHistoryConstants.TASK_OUTCOME_NAME.getKey(),
+                (String) historyRecordMap.get(DocumentHistoryConstants.TASK_OUTCOME_NAME.getValue()));
             attributesNode.put(
                 DocumentHistoryConstants.TASK_OUTCOME_TITLE.getKey(),
                 getTaskOutcomeTitle(taskTypeShort, historyRecordMap, outcomeTitles)
@@ -301,6 +305,17 @@ public class DocumentHistoryGet extends AbstractWebScript {
     private String getTaskOutcomeTitle(String taskTypeShort,
                                        Map<String, Object> historyRecordMap,
                                        Map<List<String>, String> titles) {
+
+        Object outcomeName = historyRecordMap.get(DocumentHistoryConstants.TASK_OUTCOME_NAME.getValue());
+        if (outcomeName instanceof String) {
+            MLText mlText = Json.getMapper().read((String) outcomeName, MLText.class);
+            if (mlText != null) {
+                String result = mlText.getClosest(I18NUtil.getLocale());
+                if (!result.isEmpty()) {
+                    return result;
+                }
+            }
+        }
 
         String outcome = (String) historyRecordMap.get(DocumentHistoryConstants.TASK_OUTCOME.getValue());
         if (outcome == null) {

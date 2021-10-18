@@ -18,7 +18,9 @@
  */
 package ru.citeck.ecos.workflow.listeners;
 
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import lombok.extern.slf4j.Slf4j;
+import org.activiti.engine.TaskService;
 import org.activiti.engine.delegate.DelegateExecution;
 import org.activiti.engine.delegate.DelegateTask;
 import org.activiti.engine.delegate.TaskListener;
@@ -34,6 +36,7 @@ import org.alfresco.service.namespace.QName;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import ru.citeck.ecos.commons.data.DataValue;
 import ru.citeck.ecos.deputy.DeputyService;
 import ru.citeck.ecos.history.HistoryEventType;
 import ru.citeck.ecos.history.HistoryService;
@@ -45,10 +48,7 @@ import ru.citeck.ecos.role.CaseRoleService;
 import ru.citeck.ecos.service.CiteckServices;
 
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import static ru.citeck.ecos.utils.WorkflowConstants.VAR_TASK_ORIGINAL_OWNER;
 
@@ -78,6 +78,7 @@ public class TaskHistoryListener extends AbstractTaskListener {
     private TaskDataListenerUtils taskDataListenerUtils;
     private List<String> panelOfAuthorized; //группа уполномоченных
     private CaseRoleService caseRoleService;
+    private TaskService taskService;
 
     private WorkflowQNameConverter qNameConverter;
     private String VAR_OUTCOME_PROPERTY_NAME;
@@ -150,6 +151,15 @@ public class TaskHistoryListener extends AbstractTaskListener {
             roleName = taskHistoryUtils.getRoleName(packageAssocs, assignee, task.getId(), ActivitiConstants.ENGINE_ID);
             if (!packageAssocs.isEmpty()) {
                 eventProperties.put(HistoryModel.PROP_CASE_TASK, packageAssocs.get(0).getSourceRef());
+            }
+        }
+
+        Object formInfo = taskService.getVariable(task.getId(), "_formInfo");
+        if (formInfo instanceof ObjectNode) {
+            Object outcomeName = ((ObjectNode) formInfo).get("submitName");
+            if (outcomeName instanceof ObjectNode) {
+                Map<Locale, String> name = DataValue.create(outcomeName).asMap(Locale.class, String.class);
+                eventProperties.put(HistoryModel.PROP_TASK_OUTCOME_NAME, new HashMap<>(name));
             }
         }
 
@@ -269,5 +279,10 @@ public class TaskHistoryListener extends AbstractTaskListener {
     @Autowired
     public void setTaskDataListenerUtils(TaskDataListenerUtils taskDataListenerUtils) {
         this.taskDataListenerUtils = taskDataListenerUtils;
+    }
+
+    @Autowired
+    public void setTaskService(TaskService taskService) {
+        this.taskService = taskService;
     }
 }
