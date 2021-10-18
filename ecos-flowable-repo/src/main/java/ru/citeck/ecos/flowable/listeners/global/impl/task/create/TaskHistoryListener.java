@@ -1,5 +1,6 @@
 package ru.citeck.ecos.flowable.listeners.global.impl.task.create;
 
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import lombok.extern.slf4j.Slf4j;
 import org.alfresco.model.ContentModel;
 import org.alfresco.repo.workflow.WorkflowModel;
@@ -24,6 +25,7 @@ import org.flowable.variable.api.delegate.VariableScope;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.extensions.surf.util.I18NUtil;
+import ru.citeck.ecos.commons.data.DataValue;
 import ru.citeck.ecos.deputy.DeputyService;
 import ru.citeck.ecos.flowable.listeners.global.GlobalAssignmentTaskListener;
 import ru.citeck.ecos.flowable.listeners.global.GlobalCompleteTaskListener;
@@ -176,6 +178,15 @@ public class TaskHistoryListener implements GlobalCreateTaskListener, GlobalAssi
             roleName = getRoleName(documentRecordRef, packageAssocs, assignee, delegateTask);
             if (!packageAssocs.isEmpty()) {
                 eventProperties.put(HistoryModel.PROP_CASE_TASK, packageAssocs.get(0).getSourceRef());
+            }
+        }
+
+        Object formInfo = taskService.getVariable(delegateTask.getId(), "_formInfo");
+        if (formInfo instanceof ObjectNode) {
+            Object outcomeName = ((ObjectNode) formInfo).get("submitName");
+            if (outcomeName instanceof ObjectNode) {
+                Map<Locale, String> name = DataValue.create(outcomeName).asMap(Locale.class, String.class);
+                eventProperties.put(HistoryModel.PROP_TASK_OUTCOME_NAME, new HashMap<>(name));
             }
         }
 

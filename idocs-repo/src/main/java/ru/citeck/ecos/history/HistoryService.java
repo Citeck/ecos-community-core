@@ -36,6 +36,7 @@ import org.alfresco.service.transaction.TransactionService;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import ru.citeck.ecos.commons.json.Json;
 import ru.citeck.ecos.config.EcosConfigService;
 import ru.citeck.ecos.model.ActivityModel;
 import ru.citeck.ecos.model.HistoryModel;
@@ -86,6 +87,7 @@ public class HistoryService {
     private static final String USER_ID = "userId";
     private static final String TASK_ROLE = "taskRole";
     private static final String TASK_OUTCOME = "taskOutcome";
+    private static final String TASK_OUTCOME_NAME = "taskOutcomeName";
     private static final String TASK_TYPE = "taskType";
     private static final String TASK_TITLE = "taskTitle";
     private static final String FULL_TASK_TYPE = "fullTaskType";
@@ -290,6 +292,12 @@ public class HistoryService {
         requestParams.put(LAST_TASK_COMMENT, properties.get(HistoryModel.PROP_LAST_TASK_COMMENT));
         requestParams.put(TASK_ROLE, properties.get(HistoryModel.PROP_TASK_ROLE));
         requestParams.put(TASK_OUTCOME, properties.get(HistoryModel.PROP_TASK_OUTCOME));
+        if (properties.containsKey(HistoryModel.PROP_TASK_OUTCOME_NAME)) {
+            requestParams.put(
+                TASK_OUTCOME_NAME,
+                Json.getMapper().toString(properties.get(HistoryModel.PROP_TASK_OUTCOME_NAME))
+            );
+        }
         QName taskType = (QName) properties.get(HistoryModel.PROP_TASK_TYPE);
         requestParams.put(TASK_TYPE, taskType != null ? taskType.getLocalName() : "");
         requestParams.put(FULL_TASK_TYPE, taskType != null ? taskType.toString() : "");

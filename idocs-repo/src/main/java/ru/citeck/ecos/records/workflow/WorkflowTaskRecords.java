@@ -1,5 +1,6 @@
 package ru.citeck.ecos.records.workflow;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.NullNode;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
@@ -140,49 +141,7 @@ public class WorkflowTaskRecords extends LocalRecordsDao
 
         String[] outcome = new String[1];
 
-        meta.forEachJ((n, v) -> {
-            if (n.startsWith(DOCUMENT_FIELD_PREFIX)) {
-                documentProps.set(getEcmFieldName(n), v);
-            }
-            if (n.startsWith(OUTCOME_PREFIX)) {
-                if (v.isBoolean() && v.asBoolean()) {
-                    outcome[0] = n.substring(OUTCOME_PREFIX.length());
-                }
-            } else {
-
-                String name = n;
-                if (name.contains(":")) {
-                    name = name.replaceFirst(":", "_");
-                }
-
-                if (v.isTextual()) {
-                    String value = v.asText();
-                    if (isDate(name) && StringUtils.isEmpty(value)) {
-                        value = null;
-                    }
-                    taskProps.put(name, value);
-                } else if (v.isBoolean()) {
-                    taskProps.put(name, v.asBoolean());
-                } else if (v.isDouble()) {
-                    taskProps.put(name, v.asDouble());
-                } else if (v.isInt()) {
-                    taskProps.put(name, v.asInt());
-                } else if (v.isLong()) {
-                    taskProps.put(name, v.asLong());
-                } else if (v.isNull()) {
-                    taskProps.put(name, null);
-                } else if (v.isArray()) {
-                    Set<NodeRef> nodeRefs = new HashSet<>();
-                    for (DataValue jsonNode : v) {
-                        String stringNode = jsonNode.asText();
-                        if (NodeRef.isNodeRef(stringNode)) {
-                            nodeRefs.add(new NodeRef(stringNode));
-                        }
-                    }
-                    taskProps.put(name, nodeRefs);
-                }
-            }
-        });
+        meta.forEachJ((n, v) -> processMutateProp(n, v, taskProps, documentProps, outcome));
 
         if (outcome[0] == null) {
             throw new IllegalStateException(OUTCOME_PREFIX + "* field is mandatory for task completion");
@@ -201,6 +160,60 @@ public class WorkflowTaskRecords extends LocalRecordsDao
 
         ecosTaskService.endTask(taskId, outcome[0], taskProps);
         return new RecordMeta(taskId);
+    }
+
+    private void processMutateProp(
+        String key,
+        DataValue value,
+        Map<String, Object> taskProps,
+        RecordMeta documentProps,
+        String[] outcome
+    ) {
+        if ("_formInfo".equals(key)) {
+            taskProps.put(key, value.getAs(JsonNode.class));
+            return;
+        }
+        if (key.startsWith(DOCUMENT_FIELD_PREFIX)) {
+            documentProps.set(getEcmFieldName(key), value);
+            return;
+        }
+        if (key.startsWith(OUTCOME_PREFIX)) {
+            if (value.isBoolean() && value.asBoolean()) {
+                outcome[0] = key.substring(OUTCOME_PREFIX.length());
+            }
+            return;
+        }
+        String name = key;
+        if (name.contains(":")) {
+            name = name.replaceFirst(":", "_");
+        }
+
+        if (value.isTextual()) {
+            String valueStr = value.asText();
+            if (isDate(name) && StringUtils.isEmpty(valueStr)) {
+                valueStr = null;
+            }
+            taskProps.put(name, valueStr);
+        } else if (value.isBoolean()) {
+            taskProps.put(name, value.asBoolean());
+        } else if (value.isDouble()) {
+            taskProps.put(name, value.asDouble());
+        } else if (value.isInt()) {
+            taskProps.put(name, value.asInt());
+        } else if (value.isLong()) {
+            taskProps.put(name, value.asLong());
+        } else if (value.isNull()) {
+            taskProps.put(name, null);
+        } else if (value.isArray()) {
+            Set<NodeRef> nodeRefs = new HashSet<>();
+            for (DataValue jsonNode : value) {
+                String stringNode = jsonNode.asText();
+                if (NodeRef.isNodeRef(stringNode)) {
+                    nodeRefs.add(new NodeRef(stringNode));
+                }
+            }
+            taskProps.put(name, nodeRefs);
+        }
     }
 
     private boolean isChangeOwnerAction(RecordMeta meta) {
@@ -627,7 +640,7 @@ public class WorkflowTaskRecords extends LocalRecordsDao
                                     AuthorityType.USER, dto.getAuthorityName(), false);
                                 List<UserDTO> users = containedUsers.stream()
                                     .map(s -> recordsService.getMeta(RecordRef.create("",
-                                        authorityService.getAuthorityNodeRef(s).toString()),
+                                            authorityService.getAuthorityNodeRef(s).toString()),
                                         UserDTO.class))
                                     .collect(Collectors.toList());
                                 dto.setContainedUsers(users);
@@ -779,7 +792,7 @@ public class WorkflowTaskRecords extends LocalRecordsDao
                 return false;
             }
             if (authorityService.isAdminAuthority(user)
-                    || Objects.equals(user, AuthenticationUtil.getSystemUserName())) {
+                || Objects.equals(user, AuthenticationUtil.getSystemUserName())) {
                 return true;
             }
 
