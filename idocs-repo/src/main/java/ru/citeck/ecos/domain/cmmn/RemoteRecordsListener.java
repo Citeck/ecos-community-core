@@ -15,6 +15,7 @@ import ru.citeck.ecos.events2.EventsService;
 import ru.citeck.ecos.events2.listener.ListenerConfig;
 import ru.citeck.ecos.events2.type.RecordChangedEvent;
 import ru.citeck.ecos.events2.type.RecordCreatedEvent;
+import ru.citeck.ecos.events2.type.RecordDraftStatusChangedEvent;
 import ru.citeck.ecos.icase.activity.dto.ActivityRef;
 import ru.citeck.ecos.icase.activity.dto.CaseServiceType;
 import ru.citeck.ecos.icase.activity.service.CaseActivityEventService;
@@ -22,6 +23,7 @@ import ru.citeck.ecos.icase.activity.service.eproc.importer.EProcCaseImporter;
 import ru.citeck.ecos.model.ICaseEventModel;
 import ru.citeck.ecos.node.EcosTypeService;
 import ru.citeck.ecos.records2.RecordRef;
+import ru.citeck.ecos.records2.predicate.model.Predicates;
 import ru.citeck.ecos.records3.record.atts.schema.annotation.AttName;
 import ru.citeck.ecos.records3.record.request.RequestContext;
 import ru.citeck.ecos.utils.TransactionUtils;
@@ -63,6 +65,13 @@ public class RemoteRecordsListener {
             .withEventType(RecordChangedEvent.TYPE)
             .withDataClass(EventData.class)
             .withActionJ(event -> onEvent(event, false))
+            .build()
+        );
+        eventsService.addListener(ListenerConfig.<EventData>create()
+            .withEventType(RecordDraftStatusChangedEvent.TYPE)
+            .withDataClass(EventData.class)
+            .withActionJ(event -> onEvent(event, false))
+            .withFilter(Predicates.eq("after?bool", false))
             .build()
         );
     }
