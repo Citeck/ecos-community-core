@@ -37,6 +37,7 @@ import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import ru.citeck.ecos.commons.data.DataValue;
+import ru.citeck.ecos.commons.json.Json;
 import ru.citeck.ecos.deputy.DeputyService;
 import ru.citeck.ecos.history.HistoryEventType;
 import ru.citeck.ecos.history.HistoryService;
@@ -155,6 +156,9 @@ public class TaskHistoryListener extends AbstractTaskListener {
         }
 
         Object formInfo = taskService.getVariable(task.getId(), "_formInfo");
+        if (formInfo instanceof String && ((String) formInfo).charAt(0) == '{') {
+            formInfo = Json.getMapper().read((String) formInfo, ObjectNode.class);
+        }
         if (formInfo instanceof ObjectNode) {
             Object outcomeName = ((ObjectNode) formInfo).get("submitName");
             if (outcomeName instanceof ObjectNode) {
