@@ -155,18 +155,6 @@ public class TaskHistoryListener extends AbstractTaskListener {
             }
         }
 
-        Object formInfo = taskService.getVariable(task.getId(), "_formInfo");
-        if (formInfo instanceof String && ((String) formInfo).charAt(0) == '{') {
-            formInfo = Json.getMapper().read((String) formInfo, ObjectNode.class);
-        }
-        if (formInfo instanceof ObjectNode) {
-            Object outcomeName = ((ObjectNode) formInfo).get("submitName");
-            if (outcomeName instanceof ObjectNode) {
-                Map<Locale, String> name = DataValue.create(outcomeName).asMap(Locale.class, String.class);
-                eventProperties.put(HistoryModel.PROP_TASK_OUTCOME_NAME, new HashMap<>(name));
-            }
-        }
-
         eventProperties.put(HistoryModel.PROP_NAME, eventName);
         eventProperties.put(HistoryModel.PROP_TASK_INSTANCE_ID, ACTIVITI_PREFIX + task.getId());
         eventProperties.put(HistoryModel.PROP_TASK_TYPE, taskType);
