@@ -34,13 +34,13 @@ import java.util.Set;
 
 /**
  * Deputy Listener, that processes role membership changes.
- * 
- * If role member (not deputy) becomes unavailable, 
+ *
+ * If role member (not deputy) becomes unavailable,
  *  this listener deputies the role to its deputies (i.e. adds deputies to the role).
- *  
+ *
  * If role member (not deputy) becomes available,
  *  this listener "undeputies" the role from its deputies (i.e. removes deputies from the role).
- * 
+ *
  * @author Sergey Tiunov
  */
 public class RoleMembershipDeputyListener extends AbstractDeputyListener
@@ -99,26 +99,29 @@ public class RoleMembershipDeputyListener extends AbstractDeputyListener
 		if(deputy && isRoleDeputationNecessary(roleFullName, memberUsers, deputyUsers)) {
 			deputy(roleFullName, deputyUsers);
 		}
-		
+
 		if(!deputy && !isRoleDeputationNecessary(roleFullName, memberUsers, deputyUsers)){
 			undeputy(roleFullName, deputyUsers);
 		}
-		
+
 	}
 
 	private void deputy(String roleFullName, Set<String> deputyUsers) {
 		Set<String> members = authorityService.getContainedAuthorities(AuthorityType.USER, roleFullName, false);
-		for(String deputy : deputyUsers) {
-			if(members.contains(deputy)) continue;
+		for (String deputy : deputyUsers) {
+			if (members.contains(deputy)) {
+                continue;
+            }
 			authorityService.addAuthority(roleFullName, deputy);
 		}
-		
 	}
-	
+
 	private void undeputy(String roleFullName, Set<String> deputyUsers) {
 		Set<String> members = authorityService.getContainedAuthorities(AuthorityType.USER, roleFullName, false);
-		for(String deputy : deputyUsers) {
-			if(!members.contains(deputy)) continue;
+		for (String deputy : deputyUsers) {
+			if (!members.contains(deputy)) {
+                continue;
+            }
 			authorityService.removeAuthority(roleFullName, deputy);
 		}
 		updateDeputyEndAbsence();
@@ -127,8 +130,8 @@ public class RoleMembershipDeputyListener extends AbstractDeputyListener
 	// TODO encapsulate this decision into abstract predicate
 	private boolean isRoleDeputationNecessary(String roleFullName, Set<String> memberUsers, Set<String> deputyUsers) {
 		// check availability of full members
-		for(String user : memberUsers) {
-			if(availabilityService.getUserAvailability(user)) {
+		for (String user : memberUsers) {
+			if (availabilityService.getUserAvailability(user)) {
 				return false;
 			}
 		}

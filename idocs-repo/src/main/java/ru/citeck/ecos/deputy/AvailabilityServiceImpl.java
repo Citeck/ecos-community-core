@@ -18,6 +18,7 @@
  */
 package ru.citeck.ecos.deputy;
 
+import lombok.extern.slf4j.Slf4j;
 import org.alfresco.repo.security.authentication.AuthenticationUtil;
 import org.alfresco.service.cmr.repository.NodeRef;
 import org.alfresco.service.cmr.repository.NodeService;
@@ -27,11 +28,14 @@ import org.alfresco.service.cmr.search.SearchParameters;
 import org.alfresco.service.cmr.search.SearchService;
 import org.alfresco.service.cmr.security.AuthenticationService;
 import ru.citeck.ecos.model.DeputyModel;
+import ru.citeck.ecos.utils.TransactionUtils;
 
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Executors;
 
-public class AvailabilityServiceImpl implements AvailabilityService
-{
+@Slf4j
+public class AvailabilityServiceImpl implements AvailabilityService {
 
     private AuthenticationService authenticationService;
     private NodeService nodeService;
@@ -109,8 +113,6 @@ public class AvailabilityServiceImpl implements AvailabilityService
         return AuthenticationUtil.runAsSystem(() -> searchService.query(searchParameters));
     }
 
-
-
     @Override
     public void setUserAvailability(String userName, boolean availability) {
         NodeRef person = authorityHelper.needUser(userName);
@@ -119,8 +121,20 @@ public class AvailabilityServiceImpl implements AvailabilityService
     }
 
     @Override
+    public void setUserAvailabilityAsync(String userName, boolean availability) {
+        NodeRef person = authorityHelper.needUser(userName);
+        setUserAvailabilityAsync(person, availability);
+        // note: deputy listener, related to availability change, should be called via behaviour mechanism
+    }
+
+    @Override
     public void setUserAvailability(NodeRef user, boolean availability) {
         nodeService.setProperty(user, DeputyModel.PROP_AVAILABLE, availability);
+    }
+
+    @Override
+    public void setUserAvailabilityAsync(NodeRef user, boolean availability) {
+        TransactionUtils.doAfterCommit(() -> nodeService.setProperty(user, DeputyModel.PROP_AVAILABLE, availability));
     }
 
     /////////////////////////////////////////////////////////////////
@@ -129,12 +143,17 @@ public class AvailabilityServiceImpl implements AvailabilityService
 
     @Override
     public boolean getCurrentUserAvailability() {
-        return 	getUserAvailability(getCurrentUserName());
+        return getUserAvailability(getCurrentUserName());
     }
 
     @Override
     public void setCurrentUserAvailability(boolean availability) {
         setUserAvailability(getCurrentUserName(), availability);
+    }
+
+    @Override
+    public void setCurrentUserAvailabilityAsync(boolean availability) {
+        setUserAvailabilityAsync(getCurrentUserName(), availability);
     }
 
     /////////////////////////////////////////////////////////////////

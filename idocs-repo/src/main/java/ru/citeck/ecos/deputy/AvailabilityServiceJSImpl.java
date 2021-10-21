@@ -23,17 +23,16 @@ import org.alfresco.service.cmr.repository.NodeRef;
 import ru.citeck.ecos.service.CiteckServices;
 import ru.citeck.ecos.utils.AlfrescoScopableProcessorExtension;
 
-public class AvailabilityServiceJSImpl extends AlfrescoScopableProcessorExtension 
-	implements AvailabilityService
-{
+public class AvailabilityServiceJSImpl extends AlfrescoScopableProcessorExtension implements AvailabilityService {
+
 	private AvailabilityService availabilityService;
-	
+
 	@Override
 	public void setServiceRegistry(ServiceRegistry serviceRegistry) {
 		super.setServiceRegistry(serviceRegistry);
 		this.availabilityService = (AvailabilityService) serviceRegistry.getService(CiteckServices.AVAILABILITY_SERVICE);
 	}
-	
+
 	@Override
 	public boolean getUserAvailability(String userName) {
 		return availabilityService.getUserAvailability(userName);
@@ -54,12 +53,22 @@ public class AvailabilityServiceJSImpl extends AlfrescoScopableProcessorExtensio
 		availabilityService.setUserAvailability(userName, availability);
 	}
 
-	@Override
+    @Override
+    public void setUserAvailabilityAsync(String userName, boolean availability) {
+        availabilityService.setUserAvailabilityAsync(userName, availability);
+    }
+
+    @Override
 	public void setUserAvailability(NodeRef user, boolean availability) {
 		availabilityService.setUserAvailability(user, availability);
 	}
 
-	@Override
+    @Override
+    public void setUserAvailabilityAsync(NodeRef user, boolean availability) {
+        availabilityService.setUserAvailabilityAsync(user, availability);
+    }
+
+    @Override
 	public boolean getCurrentUserAvailability() {
 		return availabilityService.getCurrentUserAvailability();
 	}
@@ -69,4 +78,8 @@ public class AvailabilityServiceJSImpl extends AlfrescoScopableProcessorExtensio
 		availabilityService.setCurrentUserAvailability(availability);
 	}
 
+    @Override
+    public void setCurrentUserAvailabilityAsync(boolean availability) {
+        availabilityService.setCurrentUserAvailabilityAsync(availability);
+    }
 }
