@@ -2,7 +2,6 @@ package ru.citeck.ecos.records.source.alf;
 
 import lombok.extern.slf4j.Slf4j;
 import org.alfresco.model.ContentModel;
-import org.alfresco.repo.node.MLPropertyInterceptor;
 import org.alfresco.repo.security.authentication.AuthenticationUtil;
 import org.alfresco.service.ServiceRegistry;
 import org.alfresco.service.cmr.dictionary.*;
@@ -12,6 +11,7 @@ import org.alfresco.service.namespace.NamespaceService;
 import org.alfresco.service.namespace.QName;
 import org.alfresco.util.GUID;
 import org.apache.commons.lang.StringUtils;
+import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import ru.citeck.ecos.action.group.ActionResults;
@@ -21,16 +21,12 @@ import ru.citeck.ecos.commons.data.DataValue;
 import ru.citeck.ecos.commons.data.ObjectData;
 import ru.citeck.ecos.context.lib.auth.AuthContext;
 import ru.citeck.ecos.domain.model.alf.service.AlfAutoModelService;
+import ru.citeck.ecos.icase.CaseStatusService;
 import ru.citeck.ecos.model.EcosModel;
 import ru.citeck.ecos.model.EcosTypeModel;
 import ru.citeck.ecos.model.InvariantsModel;
 import ru.citeck.ecos.model.lib.attributes.computed.ComputedAttsService;
-import ru.citeck.ecos.model.lib.attributes.dto.AttributeDef;
-import ru.citeck.ecos.model.lib.attributes.dto.computed.ComputedAttStoringType;
-import ru.citeck.ecos.model.lib.attributes.dto.computed.ComputedAttType;
-import ru.citeck.ecos.model.lib.type.dto.TypeInfo;
-import ru.citeck.ecos.model.lib.type.repo.TypesRepo;
-import ru.citeck.ecos.model.lib.type.service.TypeRefService;
+import ru.citeck.ecos.model.lib.status.constants.StatusConstants;
 import ru.citeck.ecos.model.lib.type.service.utils.TypeUtils;
 import ru.citeck.ecos.node.AlfNodeInfo;
 import ru.citeck.ecos.node.AlfNodeInfoImpl;
@@ -121,6 +117,8 @@ public class AlfNodesRecordsDAO extends LocalRecordsDao
     private AlfAutoModelService alfAutoModelService;
     private EcosTypeAlfTypeService ecosTypeAlfTypeService;
     private EcosTypeChildAssocService ecosTypeChildAssocService;
+    @Nullable
+    private CaseStatusService caseStatusService;
 
     private final Map<QName, NodeRef> defaultParentByType = new ConcurrentHashMap<>();
 
@@ -180,6 +178,12 @@ public class AlfNodesRecordsDAO extends LocalRecordsDao
         Map<QName, DataValue> childAssocEformFiles = new HashMap<>();
         Map<QName, DataValue> attachmentAssocEformFiles = new HashMap<>();
         Map<String, String> attsToIgnore = new HashMap<>();
+
+        String newCaseStatus = "";
+        if (attributes.has(StatusConstants.ATT_STATUS)) {
+            newCaseStatus = attributes.get(StatusConstants.ATT_STATUS).asText();
+            attributes.remove(StatusConstants.ATT_STATUS);
+        }
 
         NodeRef nodeRef = null;
         if (record.getId().getId().startsWith("workspace://SpacesStore/")) {
@@ -443,6 +447,10 @@ public class AlfNodesRecordsDAO extends LocalRecordsDao
             qName, jsonNodes, finalNodeRef, true));
         attachmentAssocEformFiles.forEach((qName, jsonNodes) -> contentFileHelper.processAssocFilesContent(
             qName, jsonNodes, finalNodeRef, false));
+
+        if (!newCaseStatus.isEmpty() && caseStatusService != null) {
+            caseStatusService.setStatus(finalNodeRef, newCaseStatus);
+        }
 
         final boolean isNewNodeConst = isNewNode;
         AuthContext.runAsSystemJ(() -> {
@@ -916,5 +924,10 @@ public class AlfNodesRecordsDAO extends LocalRecordsDao
     @Autowired
     public void setRecordsProperties(RecordsProperties recordsProperties) {
         this.recordsProperties = recordsProperties;
+    }
+
+    @Autowired(required = false)
+    public void setCaseStatusService(@Nullable CaseStatusService caseStatusService) {
+        this.caseStatusService = caseStatusService;
     }
 }
