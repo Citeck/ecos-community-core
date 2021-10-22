@@ -356,30 +356,6 @@ public class CasePerformUtils {
         }
     }
 
-   /* void onCreateTask(PerformTask task) {
-
-        final NodeRef currentPerformer = getFirstPerformer(task);
-        final NodeRef caseRoleRef = caseRoleAssocsDao.getRolesByAssoc(task, CasePerformModel.ASSOC_CASE_ROLE)
-            .stream()
-            .findFirst()
-            .orElse(null);
-
-        if (caseRoleRef != null) {
-
-            AuthenticationUtil.runAsSystem(() -> {
-                caseRoleService.setDelegate(caseRoleRef, currentPerformer, performer);
-                caseRoleService.updateRole(caseRoleRef);
-                return null;
-            });
-
-            Set<NodeRef> assignees = caseRoleService.getAssignees(caseRoleRef);
-            if (assignees.contains(performer)) {
-                task.setVariableLocal(toString(CasePerformModel.ASSOC_PERFORMER), performer);
-                persistReassign(caseRoleRef, task.getProcessInstanceId(), currentPerformer, performer);
-            }
-        }
-    }*/
-
     void persistReassign(NodeRef caseRole, String workflowId, NodeRef from, NodeRef to) {
         Map<NodeRef, Map<String, Map<NodeRef, NodeRef>>> reassignmentByRole = TransactionalResourceHelper.getMap(REASSIGNMENT_KEY);
         Map<String, Map<NodeRef, NodeRef>> reassignmentByWorkflow = reassignmentByRole.get(caseRole);
