@@ -31,29 +31,29 @@ import ru.citeck.ecos.workflow.mirror.WorkflowMirrorService;
 
 import java.util.List;
 
-public class AvailabilityChangedActionExecuter extends ActionExecuterAbstractBase  {
+public class AvailabilityChangedActionExecuter extends ActionExecuterAbstractBase {
 
-	public static final String NAME = "availability-changed";
-	public static final String PARAM_USER_NAME = "userName";
-	private DeputyService deputyService;
+    public static final String NAME = "availability-changed";
+    public static final String PARAM_USER_NAME = "userName";
+    private DeputyService deputyService;
 
-	@Override
-	protected void executeImpl(Action action, NodeRef actionedUponNodeRef) {
-		String userName = (String) action.getParameterValue(PARAM_USER_NAME);
-		if (userName != null) {
+    @Override
+    protected void executeImpl(Action action, NodeRef actionedUponNodeRef) {
+        String userName = (String) action.getParameterValue(PARAM_USER_NAME);
+        if (userName != null) {
             deputyService.userAvailabilityChanged(userName);
-		}
-	}
+        }
+    }
 
-	@Override
-	protected void addParameterDefinitions(List<ParameterDefinition> paramList) {
+    @Override
+    protected void addParameterDefinitions(List<ParameterDefinition> paramList) {
         paramList.add(new ParameterDefinitionImpl(PARAM_USER_NAME,
             DataTypeDefinition.TEXT,
             true, getParamDisplayLabel(PARAM_USER_NAME)));
-	}
+    }
 
-	@Required
-	public void setDeputyService(DeputyService deputyService) {
-		this.deputyService = deputyService;
-	}
+    @Required
+    public void setDeputyService(DeputyService deputyService) {
+        this.deputyService = deputyService;
+    }
 }

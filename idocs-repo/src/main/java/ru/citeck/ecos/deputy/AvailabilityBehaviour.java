@@ -47,10 +47,10 @@ public class AvailabilityBehaviour implements NodeServicePolicies.OnUpdateProper
 
     public void init() {
         policyComponent.bindClassBehaviour(NodeServicePolicies.OnUpdatePropertiesPolicy.QNAME, DeputyModel.ASPECT_AVAILABILITY,
-                new JavaBehaviour(this, "onUpdateProperties", NotificationFrequency.EVERY_EVENT));
+            new JavaBehaviour(this, "onUpdateProperties", NotificationFrequency.EVERY_EVENT));
 
         policyComponent.bindClassBehaviour(NodeServicePolicies.OnAddAspectPolicy.QNAME, DeputyModel.ASPECT_AVAILABILITY,
-                new JavaBehaviour(this, "onAddAspect", NotificationFrequency.FIRST_EVENT));
+            new JavaBehaviour(this, "onAddAspect", NotificationFrequency.FIRST_EVENT));
     }
 
     public void setPolicyComponent(PolicyComponent policyComponent) {
@@ -61,7 +61,8 @@ public class AvailabilityBehaviour implements NodeServicePolicies.OnUpdateProper
         this.nodeService = nodeService;
     }
 
-    public void setServiceRegistry(ServiceRegistry serviceRegistry) {}
+    public void setServiceRegistry(ServiceRegistry serviceRegistry) {
+    }
 
     public void setActionService(ActionService actionService) {
         this.actionService = actionService;

@@ -31,11 +31,11 @@ import ru.citeck.ecos.model.DeputyModel;
 import ru.citeck.ecos.utils.TransactionUtils;
 
 import java.util.List;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.Executors;
 
 @Slf4j
 public class AvailabilityServiceImpl implements AvailabilityService {
+
+    private static final String NODES_TO_UPDATE_TXN_KEY = AvailabilityServiceImpl.class.getName() + ".nodesToUpdate";
 
     private AuthenticationService authenticationService;
     private NodeService nodeService;
@@ -97,14 +97,14 @@ public class AvailabilityServiceImpl implements AvailabilityService {
 
     private ResultSet getUserAbsenceEvents(String userName) {
         NodeRef person = authorityHelper.needUser(userName);
-        if(person == null) {
+        if (person == null) {
             throw new IllegalArgumentException("No such user: " + userName);
         }
         String query = "TYPE:\"deputy:selfAbsenceEvent\"" +
-                " AND (@deputy\\:endAbsence:{NOW TO MAX} OR ISNULL:\"deputy:endAbsence\")" +
-                " AND @deputy\\:eventFinished:false" +
-                " AND @deputy\\:user_added:\"" + person.toString() +
-                "\"";
+            " AND (@deputy\\:endAbsence:{NOW TO MAX} OR ISNULL:\"deputy:endAbsence\")" +
+            " AND @deputy\\:eventFinished:false" +
+            " AND @deputy\\:user_added:\"" + person.toString() +
+            "\"";
         final SearchParameters searchParameters = new SearchParameters();
         searchParameters.setLanguage(SearchService.LANGUAGE_LUCENE);
         searchParameters.addStore(StoreRef.STORE_REF_WORKSPACE_SPACESSTORE);
@@ -134,7 +134,13 @@ public class AvailabilityServiceImpl implements AvailabilityService {
 
     @Override
     public void setUserAvailabilityAsync(NodeRef user, boolean availability) {
-        TransactionUtils.doAfterCommit(() -> nodeService.setProperty(user, DeputyModel.PROP_AVAILABLE, availability));
+        TransactionUtils.processBatchAfterCommit(NODES_TO_UPDATE_TXN_KEY, user, (users) -> {
+            for (NodeRef userNodeRef : users) {
+                if (nodeService.exists(userNodeRef)) {
+                    nodeService.setProperty(userNodeRef, DeputyModel.PROP_AVAILABLE, availability);
+                }
+            }
+        }, null);
     }
 
     /////////////////////////////////////////////////////////////////

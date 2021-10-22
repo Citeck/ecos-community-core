@@ -20,20 +20,27 @@ package ru.citeck.ecos.deputy;
 
 public interface DeputyListener {
 
-	int getPriority();
+    int getPriority();
 
-	void onRoleMemberAvailable(String roleFullName, String memberName);
-	void onRoleMemberUnavailable(String roleFullName, String memberName);
-	void onRoleDeputyAvailable(String roleFullName, String deputyName);
-	void onRoleDeputyUnavailable(String roleFullName, String deputyName);
-	void onUserDeputyAvailable(String userName, String deputyName);
-	void onUserDeputyUnavailable(String userName, String deputyName);
-	void onUserAvailable(String userName);
-	void onUserUnavailable(String userName);
+    void onRoleMemberAvailable(String roleFullName, String memberName);
+
+    void onRoleMemberUnavailable(String roleFullName, String memberName);
+
+    void onRoleDeputyAvailable(String roleFullName, String deputyName);
+
+    void onRoleDeputyUnavailable(String roleFullName, String deputyName);
+
+    void onUserDeputyAvailable(String userName, String deputyName);
+
+    void onUserDeputyUnavailable(String userName, String deputyName);
+
+    void onUserAvailable(String userName);
+
+    void onUserUnavailable(String userName);
 
     void onAssistantAdded(String userName);
 
-	void onAssistantRemoved(String userName, String deputyName);
+    void onAssistantRemoved(String userName, String deputyName);
 
     void onRoleAssistantAdded(String roleFullName, String assistantName);
 

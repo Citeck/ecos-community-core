@@ -24,9 +24,9 @@ import java.util.List;
 
 /**
  * Extended interface for Java implementation of DeputyService.
- *
+ * <p>
  * Deputy Service employs Deputy Listeners (@see DeputyListener) to add custom behaviour
- *  whenever events important for deputation occur.
+ * whenever events important for deputation occur.
  * These events can be result of activity of DeputyService or other services.
  * When it is DeputyService, it should call Deputy Listeners immediately.
  * When it is other services, some mechanism (listener) should call DeputyService listener method to activate DeputyListeners.
@@ -34,34 +34,32 @@ import java.util.List;
  * All that is important is that this listeners should call corresponding methods of DeputyService.
  *
  * @author Sergey Tiunov
- *
  */
-public interface DeputyService extends DeputyServiceGeneric<List<String>, List<String>, List<String>>
-{
+public interface DeputyService extends DeputyServiceGeneric<List<String>, List<String>, List<String>> {
 
-	/////////////////////////////////////////////////////////////////
-	//                    LISTENER INTERFACE                       //
-	/////////////////////////////////////////////////////////////////
+    /////////////////////////////////////////////////////////////////
+    //                    LISTENER INTERFACE                       //
+    /////////////////////////////////////////////////////////////////
 
-	/**
-	 * This should be called, whenever user availability is changed.
-	 *
-	 * This is intended to be called by some listener, that listens to corresponding event.
-	 * Deputy Service should transmit this event to registered DeputyListeners.
-	 *
-	 * @param userName
-	 */
+    /**
+     * This should be called, whenever user availability is changed.
+     * <p>
+     * This is intended to be called by some listener, that listens to corresponding event.
+     * Deputy Service should transmit this event to registered DeputyListeners.
+     *
+     * @param userName
+     */
     void userAvailabilityChanged(String userName);
 
-	/**
-	 * This should be called, whenever user is added or removed from/to group.
-	 *
-	 * This is intended to be called by some listener, that listens to corresponding event.
-	 * Deputy Service should transmit this event to registered DeputyListeners.
-	 *
-	 * @param userName
-	 * @param groupFullName
-	 */
+    /**
+     * This should be called, whenever user is added or removed from/to group.
+     * <p>
+     * This is intended to be called by some listener, that listens to corresponding event.
+     * Deputy Service should transmit this event to registered DeputyListeners.
+     *
+     * @param userName
+     * @param groupFullName
+     */
     void userMembershipChanged(String userName, String groupFullName);
 
 }

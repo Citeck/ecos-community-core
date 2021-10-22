@@ -25,33 +25,33 @@ import ru.citeck.ecos.utils.AlfrescoScopableProcessorExtension;
 
 public class AvailabilityServiceJSImpl extends AlfrescoScopableProcessorExtension implements AvailabilityService {
 
-	private AvailabilityService availabilityService;
+    private AvailabilityService availabilityService;
 
-	@Override
-	public void setServiceRegistry(ServiceRegistry serviceRegistry) {
-		super.setServiceRegistry(serviceRegistry);
-		this.availabilityService = (AvailabilityService) serviceRegistry.getService(CiteckServices.AVAILABILITY_SERVICE);
-	}
+    @Override
+    public void setServiceRegistry(ServiceRegistry serviceRegistry) {
+        super.setServiceRegistry(serviceRegistry);
+        this.availabilityService = (AvailabilityService) serviceRegistry.getService(CiteckServices.AVAILABILITY_SERVICE);
+    }
 
-	@Override
-	public boolean getUserAvailability(String userName) {
-		return availabilityService.getUserAvailability(userName);
-	}
+    @Override
+    public boolean getUserAvailability(String userName) {
+        return availabilityService.getUserAvailability(userName);
+    }
 
-	@Override
-	public boolean getUserAvailability(NodeRef userRef) {
-		return availabilityService.getUserAvailability(userRef);
-	}
+    @Override
+    public boolean getUserAvailability(NodeRef userRef) {
+        return availabilityService.getUserAvailability(userRef);
+    }
 
-	@Override
-	public String getUserUnavailableAutoAnswer(String userName) {
-		return availabilityService.getUserUnavailableAutoAnswer(userName);
-	}
+    @Override
+    public String getUserUnavailableAutoAnswer(String userName) {
+        return availabilityService.getUserUnavailableAutoAnswer(userName);
+    }
 
-	@Override
-	public void setUserAvailability(String userName, boolean availability) {
-		availabilityService.setUserAvailability(userName, availability);
-	}
+    @Override
+    public void setUserAvailability(String userName, boolean availability) {
+        availabilityService.setUserAvailability(userName, availability);
+    }
 
     @Override
     public void setUserAvailabilityAsync(String userName, boolean availability) {
@@ -59,9 +59,9 @@ public class AvailabilityServiceJSImpl extends AlfrescoScopableProcessorExtensio
     }
 
     @Override
-	public void setUserAvailability(NodeRef user, boolean availability) {
-		availabilityService.setUserAvailability(user, availability);
-	}
+    public void setUserAvailability(NodeRef user, boolean availability) {
+        availabilityService.setUserAvailability(user, availability);
+    }
 
     @Override
     public void setUserAvailabilityAsync(NodeRef user, boolean availability) {
@@ -69,14 +69,14 @@ public class AvailabilityServiceJSImpl extends AlfrescoScopableProcessorExtensio
     }
 
     @Override
-	public boolean getCurrentUserAvailability() {
-		return availabilityService.getCurrentUserAvailability();
-	}
+    public boolean getCurrentUserAvailability() {
+        return availabilityService.getCurrentUserAvailability();
+    }
 
-	@Override
-	public void setCurrentUserAvailability(boolean availability) {
-		availabilityService.setCurrentUserAvailability(availability);
-	}
+    @Override
+    public void setCurrentUserAvailability(boolean availability) {
+        availabilityService.setCurrentUserAvailability(availability);
+    }
 
     @Override
     public void setCurrentUserAvailabilityAsync(boolean availability) {
