@@ -18,6 +18,7 @@
  */
 package ru.citeck.ecos.deputy;
 
+import lombok.extern.slf4j.Slf4j;
 import org.alfresco.repo.security.authentication.AuthenticationUtil;
 import org.alfresco.service.cmr.repository.NodeRef;
 import org.alfresco.service.cmr.repository.NodeService;
@@ -27,11 +28,14 @@ import org.alfresco.service.cmr.search.SearchParameters;
 import org.alfresco.service.cmr.search.SearchService;
 import org.alfresco.service.cmr.security.AuthenticationService;
 import ru.citeck.ecos.model.DeputyModel;
+import ru.citeck.ecos.utils.TransactionUtils;
 
 import java.util.List;
 
-public class AvailabilityServiceImpl implements AvailabilityService
-{
+@Slf4j
+public class AvailabilityServiceImpl implements AvailabilityService {
+
+    private static final String NODES_TO_UPDATE_TXN_KEY = AvailabilityServiceImpl.class.getName() + ".nodesToUpdate";
 
     private AuthenticationService authenticationService;
     private NodeService nodeService;
@@ -93,14 +97,14 @@ public class AvailabilityServiceImpl implements AvailabilityService
 
     private ResultSet getUserAbsenceEvents(String userName) {
         NodeRef person = authorityHelper.needUser(userName);
-        if(person == null) {
+        if (person == null) {
             throw new IllegalArgumentException("No such user: " + userName);
         }
         String query = "TYPE:\"deputy:selfAbsenceEvent\"" +
-                " AND (@deputy\\:endAbsence:{NOW TO MAX} OR ISNULL:\"deputy:endAbsence\")" +
-                " AND @deputy\\:eventFinished:false" +
-                " AND @deputy\\:user_added:\"" + person.toString() +
-                "\"";
+            " AND (@deputy\\:endAbsence:{NOW TO MAX} OR ISNULL:\"deputy:endAbsence\")" +
+            " AND @deputy\\:eventFinished:false" +
+            " AND @deputy\\:user_added:\"" + person.toString() +
+            "\"";
         final SearchParameters searchParameters = new SearchParameters();
         searchParameters.setLanguage(SearchService.LANGUAGE_LUCENE);
         searchParameters.addStore(StoreRef.STORE_REF_WORKSPACE_SPACESSTORE);
@@ -108,8 +112,6 @@ public class AvailabilityServiceImpl implements AvailabilityService
         searchParameters.setQuery(query);
         return AuthenticationUtil.runAsSystem(() -> searchService.query(searchParameters));
     }
-
-
 
     @Override
     public void setUserAvailability(String userName, boolean availability) {
@@ -119,8 +121,26 @@ public class AvailabilityServiceImpl implements AvailabilityService
     }
 
     @Override
+    public void setUserAvailabilityAsync(String userName, boolean availability) {
+        NodeRef person = authorityHelper.needUser(userName);
+        setUserAvailabilityAsync(person, availability);
+        // note: deputy listener, related to availability change, should be called via behaviour mechanism
+    }
+
+    @Override
     public void setUserAvailability(NodeRef user, boolean availability) {
         nodeService.setProperty(user, DeputyModel.PROP_AVAILABLE, availability);
+    }
+
+    @Override
+    public void setUserAvailabilityAsync(NodeRef user, boolean availability) {
+        TransactionUtils.processBatchAfterCommit(NODES_TO_UPDATE_TXN_KEY, user, (users) -> {
+            for (NodeRef userNodeRef : users) {
+                if (nodeService.exists(userNodeRef)) {
+                    nodeService.setProperty(userNodeRef, DeputyModel.PROP_AVAILABLE, availability);
+                }
+            }
+        }, null);
     }
 
     /////////////////////////////////////////////////////////////////
@@ -129,12 +149,17 @@ public class AvailabilityServiceImpl implements AvailabilityService
 
     @Override
     public boolean getCurrentUserAvailability() {
-        return 	getUserAvailability(getCurrentUserName());
+        return getUserAvailability(getCurrentUserName());
     }
 
     @Override
     public void setCurrentUserAvailability(boolean availability) {
         setUserAvailability(getCurrentUserName(), availability);
+    }
+
+    @Override
+    public void setCurrentUserAvailabilityAsync(boolean availability) {
+        setUserAvailabilityAsync(getCurrentUserName(), availability);
     }
 
     /////////////////////////////////////////////////////////////////

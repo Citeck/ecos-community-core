@@ -19,24 +19,30 @@
 package ru.citeck.ecos.deputy;
 
 public interface DeputyListener {
-	
-	public int getPriority();
-	
-	public void onRoleMemberAvailable(String roleFullName, String memberName);
-	public void onRoleMemberUnavailable(String roleFullName, String memberName);
-	public void onRoleDeputyAvailable(String roleFullName, String deputyName);
-	public void onRoleDeputyUnavailable(String roleFullName, String deputyName);
-	public void onUserDeputyAvailable(String userName, String deputyName);
-	public void onUserDeputyUnavailable(String userName, String deputyName);
-	public void onUserAvailable(String userName);
-	public void onUserUnavailable(String userName);
 
-    public void onAssistantAdded(String userName);
+    int getPriority();
 
-	public void onAssistantRemoved(String userName, String deputyName);
+    void onRoleMemberAvailable(String roleFullName, String memberName);
 
-    public void onRoleAssistantAdded(String roleFullName, String assistantName);
+    void onRoleMemberUnavailable(String roleFullName, String memberName);
 
-    public void onRoleAssistantRemoved(String roleFullName, String assistantName);
+    void onRoleDeputyAvailable(String roleFullName, String deputyName);
 
+    void onRoleDeputyUnavailable(String roleFullName, String deputyName);
+
+    void onUserDeputyAvailable(String userName, String deputyName);
+
+    void onUserDeputyUnavailable(String userName, String deputyName);
+
+    void onUserAvailable(String userName);
+
+    void onUserUnavailable(String userName);
+
+    void onAssistantAdded(String userName);
+
+    void onAssistantRemoved(String userName, String deputyName);
+
+    void onRoleAssistantAdded(String roleFullName, String assistantName);
+
+    void onRoleAssistantRemoved(String roleFullName, String assistantName);
 }

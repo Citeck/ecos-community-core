@@ -1,10 +1,10 @@
-(function(){
+(function() {
     var available = args.available;
-    if(available && available != "") {
+    if (available && available != "") {
         available = (available == "true");
     } else {
         available = !availability.getCurrentUserAvailability();
     }
-    availability.setCurrentUserAvailability(available);
-    model.available = availability.getCurrentUserAvailability();
+    availability.setCurrentUserAvailabilityAsync(available);
+    model.available = available;
 })();

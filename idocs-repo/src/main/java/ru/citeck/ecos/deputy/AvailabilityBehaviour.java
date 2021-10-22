@@ -21,6 +21,8 @@ package ru.citeck.ecos.deputy;
 import org.alfresco.model.ContentModel;
 import org.alfresco.repo.node.NodeServicePolicies;
 import org.alfresco.repo.policy.Behaviour.NotificationFrequency;
+import org.alfresco.service.cmr.action.Action;
+import org.alfresco.service.cmr.action.ActionService;
 import ru.citeck.ecos.behavior.JavaBehaviour;
 import org.alfresco.repo.policy.PolicyComponent;
 import org.alfresco.service.ServiceRegistry;
@@ -32,20 +34,23 @@ import ru.citeck.ecos.service.CiteckServices;
 
 import java.io.Serializable;
 import java.util.Map;
+import java.util.Objects;
+import java.util.concurrent.CompletableFuture;
 
 
-public class AvailabilityBehaviour implements NodeServicePolicies.OnUpdatePropertiesPolicy, NodeServicePolicies.OnAddAspectPolicy
-{
+public class AvailabilityBehaviour implements NodeServicePolicies.OnUpdatePropertiesPolicy,
+    NodeServicePolicies.OnAddAspectPolicy {
+
     private PolicyComponent policyComponent;
     private NodeService nodeService;
-    private DeputyService deputyService;
+    private ActionService actionService;
 
     public void init() {
         policyComponent.bindClassBehaviour(NodeServicePolicies.OnUpdatePropertiesPolicy.QNAME, DeputyModel.ASPECT_AVAILABILITY,
-                new JavaBehaviour(this, "onUpdateProperties", NotificationFrequency.EVERY_EVENT));
+            new JavaBehaviour(this, "onUpdateProperties", NotificationFrequency.EVERY_EVENT));
 
         policyComponent.bindClassBehaviour(NodeServicePolicies.OnAddAspectPolicy.QNAME, DeputyModel.ASPECT_AVAILABILITY,
-                new JavaBehaviour(this, "onAddAspect", NotificationFrequency.FIRST_EVENT));
+            new JavaBehaviour(this, "onAddAspect", NotificationFrequency.FIRST_EVENT));
     }
 
     public void setPolicyComponent(PolicyComponent policyComponent) {
@@ -57,42 +62,50 @@ public class AvailabilityBehaviour implements NodeServicePolicies.OnUpdateProper
     }
 
     public void setServiceRegistry(ServiceRegistry serviceRegistry) {
-        this.deputyService = (DeputyService) serviceRegistry.getService(CiteckServices.DEPUTY_SERVICE);
+    }
+
+    public void setActionService(ActionService actionService) {
+        this.actionService = actionService;
     }
 
     @Override
     public void onUpdateProperties(NodeRef nodeRef,
-            Map<QName, Serializable> before,
-            Map<QName, Serializable> after)
-    {
-        if(!nodeService.exists(nodeRef)) {
+                                   Map<QName, Serializable> before,
+                                   Map<QName, Serializable> after) {
+
+        if (!nodeService.exists(nodeRef)) {
             return;
         }
+
         Boolean availableBefore = (Boolean) before.get(DeputyModel.PROP_AVAILABLE);
         Boolean availableAfter = (Boolean) after.get(DeputyModel.PROP_AVAILABLE);
-        if(availableAfter.equals(availableBefore)) {
+        if (Objects.equals(availableAfter, availableBefore)) {
             return;
         }
 
         String userName = (String) nodeService.getProperty(nodeRef, ContentModel.PROP_USERNAME);
-        if(userName == null) {
+        if (userName == null) {
             return;
         }
 
-        deputyService.userAvailabilityChanged(userName);
+        Action action = actionService.createAction(AvailabilityChangedActionExecuter.NAME);
+        action.setParameterValue(AvailabilityChangedActionExecuter.PARAM_USER_NAME, userName);
+        actionService.executeAction(action, nodeRef);
     }
+
     @Override
     public void onAddAspect(NodeRef nodeRef, QName aspectTypeQName) {
-        if(!nodeService.exists(nodeRef)) {
+        if (!nodeService.exists(nodeRef)) {
             return;
         }
 
         String userName = (String) nodeService.getProperty(nodeRef, ContentModel.PROP_USERNAME);
-        if(userName == null) {
+        if (userName == null) {
             return;
         }
 
-        deputyService.userAvailabilityChanged(userName);
+        Action action = actionService.createAction(AvailabilityChangedActionExecuter.NAME);
+        action.setParameterValue(AvailabilityChangedActionExecuter.PARAM_USER_NAME, userName);
+        actionService.executeAction(action, nodeRef);
     }
-
 }
