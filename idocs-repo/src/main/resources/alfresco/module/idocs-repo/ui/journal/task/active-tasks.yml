@@ -49,6 +49,9 @@ columns:
   - id: bpm:dueDate
 
   - id: cwf:senderName
+    name:
+      en: Sender name
+      ru: Имя отправителя
     searchable: false
     visible: false
 
@@ -80,6 +83,9 @@ columns:
     visible: false
 
   - id: cwf:taskTitle
+    name:
+      en: Task title
+      ru: Заголовок задачи
     visible: false
 
   - id: cm:name
