@@ -24,11 +24,11 @@ public interface AvailabilityService {
 
 	/**
 	 * Get specified user availability.
-	 * 
+	 *
 	 * @param userName - user to query availability
 	 * @return true if user is available, false if user is not available
 	 */
-	public abstract boolean getUserAvailability(String userName);
+    boolean getUserAvailability(String userName);
 
 	/**
 	 * Get specified user availability.
@@ -36,7 +36,7 @@ public interface AvailabilityService {
 	 * @param userRef - user to query availability
 	 * @return true if user is available, false if user is not available
 	 */
-	public abstract boolean getUserAvailability(NodeRef userRef);
+    boolean getUserAvailability(NodeRef userRef);
 
 	/**
 	 * Get specified user autoAnswer.
@@ -44,7 +44,7 @@ public interface AvailabilityService {
 	 * @param userName - user to query autoAnswer
 	 * @return empty string is message is null
 	 */
-	public abstract String getUserUnavailableAutoAnswer(String userName);
+    String getUserUnavailableAutoAnswer(String userName);
 
 	/**
 	 * Set specified user availability.
@@ -52,8 +52,15 @@ public interface AvailabilityService {
 	 * @param userName - user to set availability
 	 * @param availability - true if user is available, false if user is not available
 	 */
-	public abstract void setUserAvailability(String userName,
-											 boolean availability);
+    void setUserAvailability(String userName, boolean availability);
+
+    /**
+     * Set specified user availability.
+     *
+     * @param userName - user to set availability
+     * @param availability - true if user is available, false if user is not available
+     */
+    void setUserAvailabilityAsync(String userName, boolean availability);
 
 	/**
 	 * Set specified user availability.
@@ -61,16 +68,29 @@ public interface AvailabilityService {
 	 * @param user - user to set availability
 	 * @param availability - true if user is available, false if user is not available
 	 */
-	public abstract void setUserAvailability(NodeRef user,
-											 boolean availability);
+    void setUserAvailability(NodeRef user, boolean availability);
+
+    /**
+     * Set specified user availability.
+     *
+     * @param user - user to set availability
+     * @param availability - true if user is available, false if user is not available
+     */
+    void setUserAvailabilityAsync(NodeRef user, boolean availability);
+
 	/**
 	 * @see #getUserAvailability(String)
 	 */
-	public abstract boolean getCurrentUserAvailability();
+    boolean getCurrentUserAvailability();
 
 	/**
 	 * @see #setUserAvailability(String, boolean)
 	 */
-	public abstract void setCurrentUserAvailability(boolean availability);
+    void setCurrentUserAvailability(boolean availability);
+
+    /**
+     * @see #setUserAvailability(String, boolean)
+     */
+    void setCurrentUserAvailabilityAsync(boolean availability);
 
 }

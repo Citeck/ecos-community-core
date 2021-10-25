@@ -19,6 +19,7 @@
 package ru.citeck.ecos.deputy;
 
 public abstract class AbstractDeputyListener implements DeputyListener {
+
     private int priority;
     protected DeputyServiceImpl deputyService;
 

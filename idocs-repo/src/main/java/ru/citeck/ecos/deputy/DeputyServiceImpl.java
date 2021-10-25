@@ -18,6 +18,7 @@
  */
 package ru.citeck.ecos.deputy;
 
+import lombok.extern.slf4j.Slf4j;
 import org.alfresco.model.ContentModel;
 import org.alfresco.repo.security.authentication.AuthenticationUtil;
 import org.alfresco.service.cmr.repository.AssociationRef;
@@ -29,8 +30,6 @@ import org.alfresco.service.cmr.security.AuthorityService;
 import org.alfresco.service.cmr.security.AuthorityType;
 import org.alfresco.service.namespace.QName;
 import org.alfresco.util.GUID;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.ehcache.Cache;
 import org.ehcache.CacheManager;
 import org.ehcache.config.builders.CacheConfigurationBuilder;
@@ -44,9 +43,8 @@ import ru.citeck.ecos.orgstruct.OrgStructService;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 
-public class DeputyServiceImpl implements DeputyService
-{
-    private static final Log logger = LogFactory.getLog(DeputyServiceImpl.class);
+@Slf4j
+public class DeputyServiceImpl implements DeputyService {
 
     private AuthenticationService authenticationService;
     private AuthorityService authorityService;
@@ -62,7 +60,6 @@ public class DeputyServiceImpl implements DeputyService
     private String roleGroupType;
     private String branchGroupType;
     private Cache<String, List<String>> usersWhoHaveThisUserDeputyCache;
-
 
     /////////////////////////////////////////////////////////////////1+++++++++++++++++++++++++0
 
@@ -161,7 +158,7 @@ public class DeputyServiceImpl implements DeputyService
     @Override
     public List<String> getUsersWhoHaveThisUserDeputy(String userName) {
         if (!usersWhoHaveThisUserDeputyCache.containsKey(userName)) {
-            List<String>result = cacheUsersWhoHaveThisUserDeputy(userName);
+            List<String> result = cacheUsersWhoHaveThisUserDeputy(userName);
             usersWhoHaveThisUserDeputyCache.put(userName, result);
             return result;
         } else {
@@ -169,7 +166,7 @@ public class DeputyServiceImpl implements DeputyService
         }
     }
 
-    private List<String>cacheUsersWhoHaveThisUserDeputy(String userName) {
+    private List<String> cacheUsersWhoHaveThisUserDeputy(String userName) {
         NodeRef user = authorityHelper.needUser(userName);
         return getAuthorityNames(getUsersDeputiedToUserImpl(user, false));
     }
@@ -222,24 +219,24 @@ public class DeputyServiceImpl implements DeputyService
         NodeRef user = authorityHelper.needUser(userName);
 
         // zero - all roles are deputied by admins
-        if(authorityService.isAdminAuthority(userName)) {
+        if (authorityService.isAdminAuthority(userName)) {
             return true;
         }
 
         // first - role should be deputied by members
-        if(!isRoleDeputiedByMembers(role)) {
+        if (!isRoleDeputiedByMembers(role)) {
             return false;
         }
 
         // second - user should be the member of this role
         Set<String> userGroups = authorityService.getAuthoritiesForUser(userName);
-        if(!userGroups.contains(roleFullName)) {
+        if (!userGroups.contains(roleFullName)) {
             return false;
         }
 
         // third - user should not be the deputy of this role
         NodeRef deputationRecord = this.getDeputationRecord(role, user, false);
-        if(deputationRecord != null) {
+        if (deputationRecord != null) {
             return false;
         }
 
@@ -274,9 +271,9 @@ public class DeputyServiceImpl implements DeputyService
         deputiedRoleSet.addAll(deputiedRoles);
 
         List<String> nonDeputiedRoles = new ArrayList<>(deputiedRoles.size());
-        for(String roleName : userRoles) {
+        for (String roleName : userRoles) {
             NodeRef role = authorityHelper.getRole(roleName);
-            if(!deputiedRoleSet.contains(role)) {
+            if (!deputiedRoleSet.contains(role)) {
                 nonDeputiedRoles.add(roleName);
             }
         }
@@ -300,8 +297,8 @@ public class DeputyServiceImpl implements DeputyService
         deputiesSet.addAll(deputies);
         deputiesSet.addAll(assistants);
         List<String> fullMembers = new ArrayList<>(members.size());
-        for(String member : members) {
-            if(!deputiesSet.contains(member)) {
+        for (String member : members) {
+            if (!deputiesSet.contains(member)) {
                 fullMembers.add(member);
             }
         }
@@ -323,11 +320,11 @@ public class DeputyServiceImpl implements DeputyService
         deputiedRoleSet.addAll(deputiedRoles);
 
         List<String> managedRoles = new ArrayList<>(userRoles.size());
-        for(String roleName : userRoles) {
+        for (String roleName : userRoles) {
             NodeRef role = authorityHelper.getRole(roleName);
             // role should be not deputied to user
             // and it should be deputied (managed) by members
-            if(!deputiedRoles.contains(role) && isRoleDeputiedByMembers(role)) {
+            if (!deputiedRoles.contains(role) && isRoleDeputiedByMembers(role)) {
                 managedRoles.add(roleName);
             }
         }
@@ -434,34 +431,40 @@ public class DeputyServiceImpl implements DeputyService
     @Override
     public void userAvailabilityChanged(final String userName) {
         AuthenticationUtil.runAsSystem(() -> {
+
+            log.debug("Started handle user availability change event, userName: {}", userName);
+
             authorityHelper.needUser(userName);
             boolean available = availabilityService.getUserAvailability(userName);
             List<String> userRoles = getUserRoles(userName);
             List<String> deputiedRoles = getRolesDeputiedToUser(userName);
-            if(available) {
+            if (available) {
                 deputyListener.onUserAvailable(userName);
-                for(String role : userRoles) {
+                for (String role : userRoles) {
                     deputyListener.onRoleMemberAvailable(role, userName);
                 }
-                for(String role : deputiedRoles) {
+                for (String role : deputiedRoles) {
                     deputyListener.onRoleDeputyAvailable(role, userName);
                 }
             } else {
                 deputyListener.onUserUnavailable(userName);
-                for(String role : userRoles) {
+                for (String role : userRoles) {
                     deputyListener.onRoleMemberUnavailable(role, userName);
                 }
-                for(String role : deputiedRoles) {
+                for (String role : deputiedRoles) {
                     deputyListener.onRoleDeputyUnavailable(role, userName);
                 }
             }
+
+            log.debug("Finished handle user availability change event, userName: {}", userName);
+
             return null;
         });
     }
 
     @Override
     public void userMembershipChanged(String userName, String groupFullName) {
-        if(!authorityHelper.isRole(groupFullName)) {
+        if (!authorityHelper.isRole(groupFullName)) {
             return;
         }
         authorityHelper.needUser(userName);
@@ -469,7 +472,7 @@ public class DeputyServiceImpl implements DeputyService
         // check whether user is in group
         Set<String> userGroups = authorityService.getAuthoritiesForUser(userName);
 
-        if(userGroups.contains(groupFullName)) {
+        if (userGroups.contains(groupFullName)) {
             deputyListener.onRoleMemberAvailable(groupFullName, userName);
         } else {
             deputyListener.onRoleMemberUnavailable(groupFullName, userName);
@@ -486,9 +489,9 @@ public class DeputyServiceImpl implements DeputyService
 
     private List<NodeRef> getAuthorities(Collection<String> authorityNames) {
         List<NodeRef> authorities = new ArrayList<>(authorityNames.size());
-        for(String authorityName : authorityNames) {
+        for (String authorityName : authorityNames) {
             NodeRef authority = authorityHelper.getAuthority(authorityName);
-            if(authority != null) {
+            if (authority != null) {
                 authorities.add(authority);
             }
         }
@@ -497,9 +500,9 @@ public class DeputyServiceImpl implements DeputyService
 
     private List<String> getAuthorityNames(Collection<NodeRef> authorities) {
         List<String> authorityNames = new ArrayList<>(authorities.size());
-        for(NodeRef authority : authorities) {
+        for (NodeRef authority : authorities) {
             String authorityName = authorityHelper.getAuthorityName(authority);
-            if(authorityName != null) {
+            if (authorityName != null) {
                 authorityNames.add(authorityName);
             }
         }
@@ -509,9 +512,9 @@ public class DeputyServiceImpl implements DeputyService
     // get deputies for specified authority
     private List<NodeRef> getAuthorityDeputies(NodeRef authority, boolean isAssistants) {
         List<NodeRef> deputationRecords =
-                searchDeputationRecords(DeputyModel.ASSOC_DEPUTIED_AUTHORITY, authority, isAssistants);
+            searchDeputationRecords(DeputyModel.ASSOC_DEPUTIED_AUTHORITY, authority, isAssistants);
         Map<NodeRef, NodeRef> deputyMap = mapDeputationRecordsAssocs(deputationRecords,
-                DeputyModel.ASSOC_DEPUTY);
+            DeputyModel.ASSOC_DEPUTY);
         List<NodeRef> deputies = new ArrayList<>(deputyMap.size());
         deputies.addAll(deputyMap.values());
         return deputies;
@@ -520,25 +523,25 @@ public class DeputyServiceImpl implements DeputyService
     // get roles deputied to user - without checks
     private List<NodeRef> getRolesDeputiedToUserImpl(NodeRef user) {
         List<NodeRef> deputationRecords =
-                searchDeputationRecords(DeputyModel.ASSOC_DEPUTY, user, false);
+            searchDeputationRecords(DeputyModel.ASSOC_DEPUTY, user, false);
         Map<NodeRef, NodeRef> deputyMap = mapDeputationRecordsAssocs(deputationRecords,
-                DeputyModel.ASSOC_DEPUTIED_AUTHORITY);
+            DeputyModel.ASSOC_DEPUTIED_AUTHORITY);
         return filterAuthoritiesByType(deputyMap.values(), ContentModel.TYPE_AUTHORITY_CONTAINER);
     }
 
     private List<NodeRef> getUsersDeputiedToUserImpl(NodeRef user, boolean isAssistants) {
         List<NodeRef> deputationRecords =
-                searchDeputationRecords(DeputyModel.ASSOC_DEPUTY, user, isAssistants);
+            searchDeputationRecords(DeputyModel.ASSOC_DEPUTY, user, isAssistants);
         Map<NodeRef, NodeRef> deputyMap = mapDeputationRecordsAssocs(deputationRecords,
-                DeputyModel.ASSOC_DEPUTIED_AUTHORITY);
+            DeputyModel.ASSOC_DEPUTIED_AUTHORITY);
         return filterAuthoritiesByType(deputyMap.values(), ContentModel.TYPE_PERSON);
     }
 
     private List<NodeRef> filterAuthoritiesByType(Collection<NodeRef> authorities, QName requiredType) {
         List<NodeRef> filtered = new ArrayList<>(authorities.size());
-        for(NodeRef authority : authorities) {
+        for (NodeRef authority : authorities) {
             QName type = nodeService.getType(authority);
-            if(requiredType.equals(type)) {
+            if (requiredType.equals(type)) {
                 filtered.add(authority);
             }
         }
@@ -547,12 +550,12 @@ public class DeputyServiceImpl implements DeputyService
 
     // search deputation records by association
     private List<NodeRef> searchDeputationRecords(QName searchAssoc, NodeRef assocValue, boolean isAssistants) {
-        if(!nodeService.exists(assocValue)) {
+        if (!nodeService.exists(assocValue)) {
             return Collections.emptyList();
         }
         List<AssociationRef> assocs = nodeService.getSourceAssocs(assocValue, searchAssoc);
         List<NodeRef> deputationRecords = new ArrayList<>(assocs.size());
-        for(AssociationRef assoc : assocs) {
+        for (AssociationRef assoc : assocs) {
             if (isAssistantDeputyRecord(assoc.getSourceRef()).equals(isAssistants)) {
                 deputationRecords.add(assoc.getSourceRef());
             }
@@ -562,17 +565,17 @@ public class DeputyServiceImpl implements DeputyService
 
     // get map of deputationRecords assocs
     private Map<NodeRef, NodeRef> mapDeputationRecordsAssocs(Collection<NodeRef> deputationRecords,
-                                                             QName assocName)
-    {
+                                                             QName assocName) {
+
         Map<NodeRef, NodeRef> results = new HashMap<>(deputationRecords.size());
-        for(NodeRef deputationRecord : deputationRecords) {
+        for (NodeRef deputationRecord : deputationRecords) {
             List<AssociationRef> assocs = nodeService.getTargetAssocs(deputationRecord, assocName);
             if (assocs == null || assocs.isEmpty()) {
                 continue;
             }
 
             NodeRef authorityRef = assocs.get(0).getTargetRef();
-            if(authorityRef != null && nodeService.exists(authorityRef)) {
+            if (authorityRef != null && nodeService.exists(authorityRef)) {
                 results.put(deputationRecord, authorityRef);
             }
         }
@@ -606,19 +609,19 @@ public class DeputyServiceImpl implements DeputyService
 
     // add deputation record and return nodeRef to it
     private NodeRef addDeputationRecord(NodeRef deputiedAuthority,
-                                        NodeRef deputy, boolean deputiedRole, boolean isAssistant)
-    {
+                                        NodeRef deputy, boolean deputiedRole, boolean isAssistant) {
+
         // first search for existing record:
         NodeRef deputationRecord = getDeputationRecord(deputiedAuthority, deputy, isAssistant);
         // if it exists - simply return it
-        if(deputationRecord != null && nodeService.exists(deputationRecord)) {
+        if (deputationRecord != null && nodeService.exists(deputationRecord)) {
             return deputationRecord;
         }
 
         // otherwise create new deputationRecord
         QName assocName = QName.createQName(DeputyModel.NAMESPACE, GUID.generate());
         ChildAssociationRef childAssocRef = nodeService.createNode(deputationRecordsRoot,
-                deputationRecordAssoc, assocName, DeputyModel.TYPE_DEPUTATION_RECORD);
+            deputationRecordAssoc, assocName, DeputyModel.TYPE_DEPUTATION_RECORD);
         deputationRecord = childAssocRef.getChildRef();
 
         nodeService.createAssociation(deputationRecord, deputiedAuthority, DeputyModel.ASSOC_DEPUTIED_AUTHORITY);
@@ -660,12 +663,11 @@ public class DeputyServiceImpl implements DeputyService
 
     // remove specified deputation record, if exists
     private void removeDeputationRecord(NodeRef deputiedAuthority,
-                                        NodeRef deputy, boolean deputiedRole, boolean isAssistant)
-    {
+                                        NodeRef deputy, boolean deputiedRole, boolean isAssistant) {
         // first search for existing record:
         NodeRef deputationRecord = getDeputationRecord(deputiedAuthority, deputy, isAssistant);
         // if it is null or does not exist - there is nothing to do
-        if(deputationRecord == null || !nodeService.exists(deputationRecord)) {
+        if (deputationRecord == null || !nodeService.exists(deputationRecord)) {
             return;
         }
         String authorityName = authorityHelper.getAuthorityName(deputiedAuthority);
@@ -693,10 +695,9 @@ public class DeputyServiceImpl implements DeputyService
 
     // remove specified deputation records, if any
     private void removeDeputationRecords(NodeRef deputiedAuthority,
-                                         Collection<NodeRef> deputies, boolean deputiedRole, boolean isAssistants)
-    {
+                                         Collection<NodeRef> deputies, boolean deputiedRole, boolean isAssistants) {
         // then remove all deputation records
-        for(NodeRef deputy : deputies) {
+        for (NodeRef deputy : deputies) {
             removeDeputationRecord(deputiedAuthority, deputy, deputiedRole, isAssistants);
         }
     }
@@ -722,7 +723,6 @@ public class DeputyServiceImpl implements DeputyService
             return true;
         }
 
-
         // zero - all roles are deputied by admins
         if (authorityService.isAdminAuthority(getCurrentUserName())) {
             return true;
@@ -737,20 +737,19 @@ public class DeputyServiceImpl implements DeputyService
         if (!getRoleMembers(roleFullName).contains(getCurrentUserName())) {
             return false;
         }
-        ;
         return true;
     }
 
     public void setCacheManager(EhcacheConfigurationManager ehcacheConfigurationManager) {
         CacheManager cacheManager = ehcacheConfigurationManager.getCacheManager();
-        if (cacheManager.getCache("usersWhoHaveThisUserDeputyCache", String.class, (Class<List<String>>)(Class<?>)List.class) == null) {
+        if (cacheManager.getCache("usersWhoHaveThisUserDeputyCache", String.class, (Class<List<String>>) (Class<?>) List.class) == null) {
             usersWhoHaveThisUserDeputyCache = cacheManager
-                    .createCache("usersWhoHaveThisUserDeputyCache", CacheConfigurationBuilder
-                            .newCacheConfigurationBuilder(String.class, (Class<List<String>>) (Class<?>) List.class, ResourcePoolsBuilder
-                                    .newResourcePoolsBuilder()
-                                    .heap(EhcacheConfigurationManager.cacheSize))
-                            .withExpiry(Expirations.timeToLiveExpiration(new Duration(EhcacheConfigurationManager.timeToLive, TimeUnit.SECONDS)))
-                            .build());
+                .createCache("usersWhoHaveThisUserDeputyCache", CacheConfigurationBuilder
+                    .newCacheConfigurationBuilder(String.class, (Class<List<String>>) (Class<?>) List.class, ResourcePoolsBuilder
+                        .newResourcePoolsBuilder()
+                        .heap(EhcacheConfigurationManager.cacheSize))
+                    .withExpiry(Expirations.timeToLiveExpiration(new Duration(EhcacheConfigurationManager.timeToLive, TimeUnit.SECONDS)))
+                    .build());
         }
     }
 }
