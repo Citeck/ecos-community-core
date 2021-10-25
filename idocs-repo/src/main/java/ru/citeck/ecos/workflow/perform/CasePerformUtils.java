@@ -317,6 +317,21 @@ public class CasePerformUtils {
                 + rawPerformer.getClass());
     }
 
+    void removeDelegates(PerformTask task) {
+
+        final NodeRef caseRoleRef = caseRoleAssocsDao.getRolesByAssoc(task, CasePerformModel.ASSOC_CASE_ROLE)
+            .stream()
+            .findFirst()
+            .orElse(null);
+
+        if (caseRoleRef != null) {
+            AuthenticationUtil.runAsSystem(() -> {
+                caseRoleService.removeDelegates(caseRoleRef);
+                return null;
+            });
+        }
+    }
+
     void setPerformer(PerformTask task, final NodeRef performer) {
 
         final NodeRef currentPerformer = getFirstPerformer(task);

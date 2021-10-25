@@ -33,7 +33,7 @@
 			</list>
 		</property>
 	</bean>
-	
+
 	<bean id="AvailabilityService_transaction" class="org.springframework.transaction.interceptor.TransactionInterceptor">
 		<property name="transactionManager">
 			<ref bean="transactionManager"/>
@@ -46,14 +46,14 @@
 	</bean>
 
 	<bean id="AvailabilityService_security" class="org.alfresco.repo.security.permissions.impl.AlwaysProceedMethodInterceptor" />
-    
-	<bean id="AvailabilityServiceJS" class="ru.citeck.ecos.deputy.AvailabilityServiceJSImpl" 
+
+	<bean id="AvailabilityServiceJS" class="ru.citeck.ecos.deputy.AvailabilityServiceJSImpl"
 		parent="baseJavaScriptExtension">
 		<property name="extensionName" value="availability" />
 		<property name="serviceRegistry" ref="ServiceRegistry" />
 	</bean>
-	
-	
+
+
 	<bean id="deputyService" class="ru.citeck.ecos.deputy.DeputyServiceImpl" depends-on="cacheManager">
 		<property name="deputyListener" ref="deputyListener.Composite" />
 		<property name="authenticationService" ref="authenticationService" />
@@ -68,12 +68,12 @@
 		<property name="branchGroupType" value="branch" />
 		<property name="cacheManager" ref="cacheManager"/>
 	</bean>
-	
+
 	<bean id="deputyListener" class="ru.citeck.ecos.deputy.AbstractDeputyListener"
 		abstract="true" init-method="init">
 		<property name="deputyService" ref="deputyService" />
 	</bean>
-	
+
 	<bean id="deputyListener.roleMembership" class="ru.citeck.ecos.deputy.RoleMembershipDeputyListener"
 		parent="deputyListener">
 		<property name="priority" value="100" />
@@ -82,7 +82,7 @@
 		<property name="searchService" ref="searchService" />
 		<property name="nodeService" ref="nodeService" />
 	</bean>
-	
+
 	<bean id="deputyListener.taskManagement" class="ru.citeck.ecos.deputy.TaskDeputyListener"
 		parent="deputyListener">
 		<property name="priority" value="200"/>
@@ -125,18 +125,24 @@
 	</bean>
 
 	<bean id="DeputyService_security" class="org.alfresco.repo.security.permissions.impl.AlwaysProceedMethodInterceptor" />
-    
-	<bean id="UserAvailabilityBehaviour" class="ru.citeck.ecos.deputy.AvailabilityBehaviour" 
+
+    <bean id="availability-changed" class="ru.citeck.ecos.deputy.AvailabilityChangedActionExecuter" parent="action-executer">
+        <property name="publicAction" value="false"/>
+        <property name="deputyService" ref="deputyService"/>
+    </bean>
+
+	<bean id="UserAvailabilityBehaviour" class="ru.citeck.ecos.deputy.AvailabilityBehaviour"
 		depends-on="idocs.dictionaryBootstrap" init-method="init">
 		<property name="policyComponent" ref="policyComponent" />
 		<property name="serviceRegistry" ref="ServiceRegistry" />
 		<property name="nodeService" ref="nodeService"/>
+		<property name="actionService" ref="actionService"/>
 	</bean>
-	
-	<bean id="DeputyServiceJS" class="ru.citeck.ecos.deputy.DeputyServiceJSImpl" 
+
+	<bean id="DeputyServiceJS" class="ru.citeck.ecos.deputy.DeputyServiceJSImpl"
 		parent="baseJavaScriptExtension">
 		<property name="extensionName" value="deputies" />
 		<property name="serviceRegistry" ref="ServiceRegistry" />
 	</bean>
-	
+
 </beans>

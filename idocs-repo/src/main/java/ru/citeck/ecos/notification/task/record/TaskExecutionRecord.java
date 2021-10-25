@@ -25,7 +25,7 @@ public class TaskExecutionRecord implements AttValue {
 
     @Nullable
     @Override
-    public Object asJson() throws Exception {
+    public Object asJson() {
         HashMap<String, Object> json = new HashMap<>();
         json.put("taskId", taskId);
         json.put("taskName", taskName);
@@ -52,5 +52,4 @@ public class TaskExecutionRecord implements AttValue {
                 return properties.get(name);
         }
     }
-
 }
