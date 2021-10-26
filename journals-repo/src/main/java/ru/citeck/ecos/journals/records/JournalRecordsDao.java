@@ -28,12 +28,8 @@ public class JournalRecordsDao {
                                                              JGqlPageInfoInput pageInfo,
                                                              boolean debug) {
 
-        log.error("getRecordsWithData is not supported");
-
-        //String gqlQuery = gqlQueryGenerator.generate(journalType);
-        //RecordsQuery recordsQuery = createQuery(journalType.getDataSource(), query, language, pageInfo, debug);
-
-        return new RecordsQueryResult<>();//recordsService.queryRecords(recordsQuery, gqlQuery);
+        RecordsQuery recordsQuery = createQuery(journalType.getDataSource(), query, language, pageInfo, debug);
+        return recordsService.queryRecords(recordsQuery, journalType.getAttributes());
     }
 
     public String getJournalGqlSchema(JournalType type) {
