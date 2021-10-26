@@ -774,10 +774,12 @@ public class ValuePredicateToFtsConverter implements PredicateToFtsConverter {
         NodeRef nodeRef = new NodeRef(predicateValue);
         if (predicateValue.startsWith(WORKSPACE_PREFIX)) {
             String name = (String) nodeService.getProperty(nodeRef, ContentModel.PROP_NAME);
-            query.open().value(field, predicateValue).or()
-                .value(ASSOC_CASE_STATUS_PROP, name).close();
+            query.open()
+                .exact(field, predicateValue).or()
+                .exact(ASSOC_CASE_STATUS_PROP, name)
+                .close();
         } else {
-            query.open().value(ASSOC_CASE_STATUS_PROP, nodeRef.getId());
+            query.open().exact(ASSOC_CASE_STATUS_PROP, nodeRef.getId());
             getStatusByName(nodeRef.getId()).ifPresent(ref -> query.or().exact(field, ref));
             query.close();
         }

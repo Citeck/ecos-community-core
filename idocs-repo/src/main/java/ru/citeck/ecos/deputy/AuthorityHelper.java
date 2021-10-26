@@ -30,127 +30,127 @@ import ru.citeck.ecos.orgstruct.OrgStructService;
 
 public class AuthorityHelper {
 
-	private NodeService nodeService;
-	private AuthorityService authorityService;
-	private PersonService personService;
-	private OrgStructService orgStructService;
-	private String roleGroupType;
+    private NodeService nodeService;
+    private AuthorityService authorityService;
+    private PersonService personService;
+    private OrgStructService orgStructService;
+    private String roleGroupType;
 
-	public void setAuthorityService(AuthorityService authorityService) {
-		this.authorityService = authorityService;
-	}
-	
-	public void setNodeService(NodeService nodeService) {
-		this.nodeService = nodeService;
-	}
+    public void setAuthorityService(AuthorityService authorityService) {
+        this.authorityService = authorityService;
+    }
 
-	public void setPersonService(PersonService personService) {
-		this.personService = personService;
-	}
+    public void setNodeService(NodeService nodeService) {
+        this.nodeService = nodeService;
+    }
 
-	public void setOrgStructService(OrgStructService orgStructService) {
-		this.orgStructService = orgStructService;
-	}
+    public void setPersonService(PersonService personService) {
+        this.personService = personService;
+    }
 
-	public void setRoleGroupType(String roleGroupType) {
-		this.roleGroupType = roleGroupType;
-	}
+    public void setOrgStructService(OrgStructService orgStructService) {
+        this.orgStructService = orgStructService;
+    }
 
-	public NodeRef getUser(String fullAuthorityName) {
-		AuthorityType type = AuthorityType.getAuthorityType(fullAuthorityName);
-		if(type.equals(AuthorityType.USER)) {
-			return personService.getPerson(fullAuthorityName);
-		} else {
-			return null;
-		}
-	}
-	
-	public NodeRef getGroup(String fullAuthorityName) {
-		AuthorityType type = AuthorityType.getAuthorityType(fullAuthorityName);
-		if(type.equals(AuthorityType.GROUP)) {
-			return authorityService.getAuthorityNodeRef(fullAuthorityName);
-		} else {
-			return null;
-		}
-	}
-	
-	public NodeRef getAuthority(String fullAuthorityName) {
-		AuthorityType type = AuthorityType.getAuthorityType(fullAuthorityName);
-		if(type.equals(AuthorityType.USER)) {
-			return personService.getPerson(fullAuthorityName);
-		} else {
-			return authorityService.getAuthorityNodeRef(fullAuthorityName);
-		}
-	}
-	
-	public String getAuthorityName(NodeRef authority) {
-		QName authorityType = nodeService.getType(authority);
-		if(authorityType.equals(ContentModel.TYPE_PERSON)) {
-			return (String) nodeService.getProperty(authority, ContentModel.PROP_USERNAME);
-		} else if(authorityType.equals(ContentModel.TYPE_AUTHORITY_CONTAINER)) {
-			return (String) nodeService.getProperty(authority, ContentModel.PROP_AUTHORITY_NAME);
-		} else {
-			return null;
-		}
-	}
+    public void setRoleGroupType(String roleGroupType) {
+        this.roleGroupType = roleGroupType;
+    }
 
-	public NodeRef getRole(String fullAuthorityName) {
-		NodeRef nodeRef = getGroup(fullAuthorityName);
-		if(nodeRef == null) {
-			return null;
-		}
-		
-		// group type should be role
-		String groupType = orgStructService.getGroupType(fullAuthorityName);
-		if(!roleGroupType.equals(groupType)) {
-			return null;
-		}
-		
-		return nodeRef;
-	}
-	
-	public boolean isUser(String fullAuthorityName) {
-		return getUser(fullAuthorityName) != null;
-	}
-	
-	public boolean isGroup(String fullAuthorityName) {
-		return getGroup(fullAuthorityName) != null;
-	}
-	
-	public boolean isRole(String fullAuthorityName) {
-		return getRole(fullAuthorityName) != null;
-	}
-	
-	public NodeRef needUser(String fullAuthorityName) {
-		NodeRef person = getUser(fullAuthorityName);
-		if(person == null) {
-			throw new IllegalArgumentException("No such user: " + fullAuthorityName);
-		}
-		return person;
-	}
+    public NodeRef getUser(String fullAuthorityName) {
+        AuthorityType type = AuthorityType.getAuthorityType(fullAuthorityName);
+        if (type.equals(AuthorityType.USER)) {
+            return personService.getPerson(fullAuthorityName);
+        } else {
+            return null;
+        }
+    }
 
-	public NodeRef needGroup(String fullAuthorityName) {
-		NodeRef group = getGroup(fullAuthorityName);
-		if(group == null) {
-			throw new IllegalArgumentException("No such group: " + fullAuthorityName);
-		}
-		return group;
-	}
+    public NodeRef getGroup(String fullAuthorityName) {
+        AuthorityType type = AuthorityType.getAuthorityType(fullAuthorityName);
+        if (type.equals(AuthorityType.GROUP)) {
+            return authorityService.getAuthorityNodeRef(fullAuthorityName);
+        } else {
+            return null;
+        }
+    }
 
-	public NodeRef needAuthority(String fullAuthorityName) {
-		NodeRef group = getAuthority(fullAuthorityName);
-		if(group == null) {
-			throw new IllegalArgumentException("No such authority: " + fullAuthorityName);
-		}
-		return group;
-	}
+    public NodeRef getAuthority(String fullAuthorityName) {
+        AuthorityType type = AuthorityType.getAuthorityType(fullAuthorityName);
+        if (type.equals(AuthorityType.USER)) {
+            return personService.getPerson(fullAuthorityName);
+        } else {
+            return authorityService.getAuthorityNodeRef(fullAuthorityName);
+        }
+    }
 
-	public NodeRef needRole(String fullAuthorityName) {
-		NodeRef role = getRole(fullAuthorityName);
-		if(role == null) {
-			throw new IllegalArgumentException("No such role: " + fullAuthorityName);
-		}
-		return role;
-	}
+    public String getAuthorityName(NodeRef authority) {
+        QName authorityType = nodeService.getType(authority);
+        if (authorityType.equals(ContentModel.TYPE_PERSON)) {
+            return (String) nodeService.getProperty(authority, ContentModel.PROP_USERNAME);
+        } else if (authorityType.equals(ContentModel.TYPE_AUTHORITY_CONTAINER)) {
+            return (String) nodeService.getProperty(authority, ContentModel.PROP_AUTHORITY_NAME);
+        } else {
+            return null;
+        }
+    }
+
+    public NodeRef getRole(String fullAuthorityName) {
+        NodeRef nodeRef = getGroup(fullAuthorityName);
+        if (nodeRef == null) {
+            return null;
+        }
+
+        // group type should be role
+        String groupType = orgStructService.getGroupType(fullAuthorityName);
+        if (!roleGroupType.equals(groupType)) {
+            return null;
+        }
+
+        return nodeRef;
+    }
+
+    public boolean isUser(String fullAuthorityName) {
+        return getUser(fullAuthorityName) != null;
+    }
+
+    public boolean isGroup(String fullAuthorityName) {
+        return getGroup(fullAuthorityName) != null;
+    }
+
+    public boolean isRole(String fullAuthorityName) {
+        return getRole(fullAuthorityName) != null;
+    }
+
+    public NodeRef needUser(String fullAuthorityName) {
+        NodeRef person = getUser(fullAuthorityName);
+        if (person == null) {
+            throw new IllegalArgumentException("No such user: " + fullAuthorityName);
+        }
+        return person;
+    }
+
+    public NodeRef needGroup(String fullAuthorityName) {
+        NodeRef group = getGroup(fullAuthorityName);
+        if (group == null) {
+            throw new IllegalArgumentException("No such group: " + fullAuthorityName);
+        }
+        return group;
+    }
+
+    public NodeRef needAuthority(String fullAuthorityName) {
+        NodeRef group = getAuthority(fullAuthorityName);
+        if (group == null) {
+            throw new IllegalArgumentException("No such authority: " + fullAuthorityName);
+        }
+        return group;
+    }
+
+    public NodeRef needRole(String fullAuthorityName) {
+        NodeRef role = getRole(fullAuthorityName);
+        if (role == null) {
+            throw new IllegalArgumentException("No such role: " + fullAuthorityName);
+        }
+        return role;
+    }
 
 }

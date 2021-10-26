@@ -1,5 +1,6 @@
 package ru.citeck.ecos.workflow.perform;
 
+import lombok.extern.slf4j.Slf4j;
 import org.alfresco.error.AlfrescoRuntimeException;
 import org.alfresco.service.cmr.repository.NodeRef;
 import org.alfresco.service.cmr.security.AuthorityService;
@@ -21,12 +22,11 @@ import java.util.*;
 /**
  * @author Pavel Simonov
  */
+@Slf4j
 public class CasePerformWorkflowHandler implements Serializable {
 
     private static final long serialVersionUID = -2309572351324327537L;
     private static final int WORKFLOW_VERSION = 1;
-
-    private static final Logger logger = LoggerFactory.getLogger(CasePerformWorkflowHandler.class);
 
     private CasePerformUtils utils;
     private AuthorityService authorityService;
@@ -245,6 +245,7 @@ public class CasePerformWorkflowHandler implements Serializable {
             execution.setVariable(CasePerformUtils.MANDATORY_TASKS, mandatoryTasks);
         }
 
+        utils.removeDelegates(task);
         task.setVariableLocal(utils.toString(CasePerformModel.ASSOC_CASE_ROLE), utils.getCaseRole(performer, execution));
     }
 

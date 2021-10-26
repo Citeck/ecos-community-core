@@ -528,7 +528,7 @@ public abstract class AbstractNotificationSender<ItemType> implements Notificati
         args.put("subject", subject);
 
         Notification notification = new Notification.Builder()
-                .record((RecordRef) record)
+                .record(record)
                 .templateRef(RecordRef.valueOf(template))
                 .notificationType(NotificationType.EMAIL_NOTIFICATION)
                 .recipients(getEmailFromAuthorityNames(recipients))
@@ -644,6 +644,7 @@ public abstract class AbstractNotificationSender<ItemType> implements Notificati
     protected Set<String> getEmailFromAuthorityNames(Collection<String> authorities) {
         Set<Serializable> serializableSet = authorities.stream().map(item -> (Serializable) item)
             .collect(Collectors.toSet());
+
         List<NodeRef> authorityRefs = FTSQuery.create()
             .open().type(ContentModel.TYPE_AUTHORITY).and()
             .any(ContentModel.PROP_USERNAME, serializableSet)
