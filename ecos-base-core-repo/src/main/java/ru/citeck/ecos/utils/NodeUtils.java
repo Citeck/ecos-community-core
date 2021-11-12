@@ -471,7 +471,7 @@ public class NodeUtils {
 
     @Autowired
     public void setServiceRegistry(ServiceRegistry serviceRegistry) {
-        nodeService = serviceRegistry.getNodeService();
+        nodeService = (NodeService) serviceRegistry.getService(QName.createQName("","nodeService"));
         searchService = serviceRegistry.getSearchService();
         namespaceService = serviceRegistry.getNamespaceService();
         dictionaryService = serviceRegistry.getDictionaryService();
