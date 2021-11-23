@@ -262,5 +262,10 @@ public class RepoScriptRecordsService extends AlfrescoScopableProcessorExtension
             mutateAtts = null;
             return result;
         }
+
+        @Override
+        public String toString() {
+            return "Record("+ recordRef + ')';
+        }
     }
 }
