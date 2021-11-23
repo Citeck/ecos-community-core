@@ -73,7 +73,7 @@ public class RepoScriptRecordsService extends AlfrescoScopableProcessorExtension
             throw new RuntimeException("Incorrect record: " + javaRecord);
         }
         if (RecordRef.isEmpty(recordRef)) {
-            return EmptyRecord.INSTANCE;
+            return new Record(recordRef);
         }
         Map<RecordRef, Record> txnRecsMap = TransactionalResourceHelper.getMap(TXN_RECORDS_KEY);
         return txnRecsMap.computeIfAbsent(recordRef, Record::new);
@@ -255,30 +255,38 @@ public class RepoScriptRecordsService extends AlfrescoScopableProcessorExtension
 
             Map<String, Object> attributesMap = toRecordAttsMap(jsUtils.toJava(attributes));
 
-            Map<String, DataValue> attsFromCache = new HashMap<>();
-            Map<String, Object> attsToLoad = new HashMap<>();
-
-            attributesMap.forEach((alias, attribute) -> {
-                if (attribute instanceof String && loadedAttsCache.containsKey(attribute)) {
-                    attsFromCache.put(alias, loadedAttsCache.get(attribute));
-                } else {
-                    attsToLoad.put(alias, attribute);
-                }
-            });
-
             RecordAtts result;
-            if (!attsToLoad.isEmpty()) {
-                result = recordsService.getAtts(recordRef, attsToLoad);
-                attsToLoad.forEach((alias, attribute) -> {
-                    if (attribute instanceof String) {
-                        loadedAttsCache.put((String) attribute, result.getAtt(alias));
+
+            if (RecordRef.isEmpty(recordRef)) {
+
+                result = new RecordAtts();
+                attributesMap.keySet().forEach(k -> result.setAtt(k, null));
+
+            } else {
+
+                Map<String, DataValue> attsFromCache = new HashMap<>();
+                Map<String, Object> attsToLoad = new HashMap<>();
+
+                attributesMap.forEach((alias, attribute) -> {
+                    if (attribute instanceof String && loadedAttsCache.containsKey(attribute)) {
+                        attsFromCache.put(alias, loadedAttsCache.get(attribute));
+                    } else {
+                        attsToLoad.put(alias, attribute);
                     }
                 });
-            } else {
-                result = new RecordAtts(recordRef);
-            }
-            attsFromCache.forEach(result::setAtt);
 
+                if (!attsToLoad.isEmpty()) {
+                    result = recordsService.getAtts(recordRef, attsToLoad);
+                    attsToLoad.forEach((alias, attribute) -> {
+                        if (attribute instanceof String) {
+                            loadedAttsCache.put((String) attribute, result.getAtt(alias));
+                        }
+                    });
+                } else {
+                    result = new RecordAtts(recordRef);
+                }
+                attsFromCache.forEach(result::setAtt);
+            }
             if (attributes instanceof String) {
                 return jsUtils.toScript(result.getAtt((String) attributes).asJavaObj());
             } else {
