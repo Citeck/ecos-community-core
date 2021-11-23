@@ -312,5 +312,10 @@ public class RepoScriptRecordsService extends AlfrescoScopableProcessorExtension
             mutateAtts = null;
             loadedAttsCache.clear();
         }
+
+        @Override
+        public String toString() {
+            return "Record("+ recordRef + ')';
+        }
     }
 }
