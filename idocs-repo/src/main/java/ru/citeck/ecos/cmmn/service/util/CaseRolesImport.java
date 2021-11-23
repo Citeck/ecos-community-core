@@ -79,7 +79,7 @@ public class CaseRolesImport {
                 roles.put(role.getId(), roleRef);
 
                 String assigneesStr = role.getOtherAttributes().get(CMMNUtils.QNAME_ROLE_ASSIGNEES);
-                if (StringUtils.isNotBlank(assigneesStr)) {
+                if (StringUtils.isNotBlank(assigneesStr) && !roleType.equals(ICaseRoleModel.TYPE_SCRIPT_ROLE)) {
                     String[] assignees = assigneesStr.split(",");
                     for (String assignee : assignees) {
                         NodeRef authorityRef = authorityService.getAuthorityNodeRef(assignee);
