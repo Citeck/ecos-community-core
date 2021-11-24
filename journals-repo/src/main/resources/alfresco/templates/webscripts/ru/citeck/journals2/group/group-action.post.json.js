@@ -8,6 +8,7 @@
         query = jsonData.query,
         language = jsonData.language || null,
         journalId = jsonData.journalId,
+        excludedRecords = jsonData.excludedRecords,
         actionResults,
         actionResultsData,
         records;
@@ -21,7 +22,7 @@
     var results = [];
     if (groupType == "selected") {
 
-        var records = [];
+        records = [];
         for (var idx in nodes) {
             records.push(Packages.ru.citeck.ecos.records2.RecordRef.valueOf(nodes[idx]));
         }
@@ -31,7 +32,7 @@
             actionId: actionId
         });
 
-        var actionResults = actionResultsData.getResults();
+        actionResults = actionResultsData.getResults();
 
         for (var idx in actionResults) {
             var result = actionResults[idx];
@@ -44,11 +45,13 @@
         }
     } else {
 
-        records = recordsService.getIterableRecords({
-            sourceId: getRecordsSource(journalId),
-            query: query,
-            language: language || "criteria"
-        });
+        records = recordsService.getIterableRecords(
+            {
+                sourceId: getRecordsSource(journalId),
+                query: query,
+                language: language || "criteria"
+            },
+            {excludedRecords: excludedRecords});
 
         actionResultsData = groupActions.execute(records, {
             params: params,
@@ -56,7 +59,7 @@
             actionId: actionId
         });
 
-        var actionResults = actionResultsData.getResults();
+        actionResults = actionResultsData.getResults();
 
         if (actionResults && actionResults.length > 0) {
             for (var idx in actionResults) {
