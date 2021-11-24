@@ -1,9 +1,9 @@
 package ru.citeck.ecos.records;
 
-import com.fasterxml.jackson.annotation.JsonSetter;
 import lombok.Data;
 import org.alfresco.util.ParameterCheck;
-import org.apache.commons.collections4.IterableUtils;
+import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.collections.IteratorUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import ru.citeck.ecos.action.group.ActionResult;
 import ru.citeck.ecos.action.group.ActionResults;
@@ -109,18 +109,19 @@ public class RecordsServiceJS extends AlfrescoScopableProcessorExtension {
         return new IterableRecords(recordsService, convertedQuery);
     }
 
+    @SuppressWarnings("unchecked")
     public Iterable<RecordRef> getIterableRecords(Object recordsQuery, Object options) {
         Iterable<RecordRef> queryResult = getIterableRecords(recordsQuery);
         if (options == null) {
             return queryResult;
         }
-        IterableRecordsOptions convertedOptions = Json.getMapper().convert(options, IterableRecordsOptions.class);
-        if (convertedOptions == null || convertedOptions.getExcludedRecords().isEmpty()) {
+        IterableRecordsOptions convertedOptions = Json.getMapper().convert(jsUtils.toJava(options), IterableRecordsOptions.class);
+        if (convertedOptions == null || CollectionUtils.isEmpty(convertedOptions.getExcludedRecords())) {
             return queryResult;
         }
-        return IterableUtils.filteredIterable(
-            queryResult,
-            recordRef -> !convertedOptions.getExcludedRecords().contains(recordRef));
+        return () -> IteratorUtils.filteredIterator(
+            queryResult.iterator(),
+            recordRef -> !convertedOptions.getExcludedRecords().contains((RecordRef) recordRef));
     }
 
     private static <T> ActionResult<T>[] toArray(ActionResults<T> results) {
@@ -146,23 +147,6 @@ public class RecordsServiceJS extends AlfrescoScopableProcessorExtension {
 
     @Data
     public static class IterableRecordsOptions {
-        private List<RecordRef> excludedRecords = Collections.emptyList();
-
-        public List<RecordRef> getExcludedRecords() {
-            return excludedRecords;
-        }
-
-        @JsonSetter
-        public void setExcludedRecords(Object excludedRecords) {
-            List<RecordRef> result = new ArrayList<>();
-            if (excludedRecords instanceof List) {
-                @SuppressWarnings("unchecked")
-                List<String> listExcludedRecords = (List<String>) excludedRecords;
-                for (String ref : listExcludedRecords) {
-                    result.add(RecordRef.valueOf(ref));
-                }
-            }
-            this.excludedRecords = result;
-        }
+        private Set<RecordRef> excludedRecords;
     }
 }
