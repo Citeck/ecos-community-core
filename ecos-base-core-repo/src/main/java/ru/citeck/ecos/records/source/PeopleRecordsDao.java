@@ -288,6 +288,9 @@ public class PeopleRecordsDao extends LocalRecordsDao
                     String jobTitleProp = ContentModel.PROP_JOBTITLE.toPrefixString(namespaceService);
                     return alfNode.getAttribute(jobTitleProp, field);
                 case "avatar":
+                    if (!alfNode.has("ecos:photo")) {
+                        return null;
+                    }
                     return new AvatarValue(alfNode.getId());
                 case GROUPS:
                     return getUserGroups(userName, queryContext, field);
