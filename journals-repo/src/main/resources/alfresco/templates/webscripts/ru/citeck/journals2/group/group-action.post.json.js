@@ -54,12 +54,14 @@
         };
 
         records = recordsService.getIterableRecordsForGroupAction({
-            sourceId: sourceId,
-            query: query,
-            sortBy: sortBy,
-            language: language || 'predicate',
-            consistency: consistency
-        }, groupActionConfig);
+                sourceId: sourceId,
+                query: query,
+                sortBy: sortBy,
+                language: language || 'predicate',
+                consistency: consistency
+            },
+            groupActionConfig,
+            {excludedRecords: excludedRecords});
 
         actionResultsData = groupActions.execute(records, groupActionConfig);
 

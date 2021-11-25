@@ -131,18 +131,29 @@ public class RecordsServiceJS extends AlfrescoScopableProcessorExtension {
         return new IterableRecordRefs(query, iterRecsConfig, recordsServiceV1);
     }
 
-    @SuppressWarnings("unchecked")
+    public Iterable<RecordRef> getIterableRecordsForGroupAction(Object recordsQuery,
+                                                                Object groupActionConfig,
+                                                                Object options) {
+        Iterable<RecordRef> recordRefs = getIterableRecordsForGroupAction(recordsQuery, groupActionConfig);
+        return filteredOptions(recordRefs, options);
+    }
+
     public Iterable<RecordRef> getIterableRecords(Object recordsQuery, Object options) {
-        Iterable<RecordRef> queryResult = getIterableRecords(recordsQuery);
+        Iterable<RecordRef> recordRefs = getIterableRecords(recordsQuery);
+        return filteredOptions(recordRefs, options);
+    }
+
+    @SuppressWarnings("unchecked")
+    private Iterable<RecordRef> filteredOptions(Iterable<RecordRef> recordRefs, Object options) {
         if (options == null) {
-            return queryResult;
+            return recordRefs;
         }
         IterableRecordsOptions convertedOptions = Json.getMapper().convert(jsUtils.toJava(options), IterableRecordsOptions.class);
         if (convertedOptions == null || CollectionUtils.isEmpty(convertedOptions.getExcludedRecords())) {
-            return queryResult;
+            return recordRefs;
         }
         return () -> IteratorUtils.filteredIterator(
-            queryResult.iterator(),
+            recordRefs.iterator(),
             recordRef -> !convertedOptions.getExcludedRecords().contains((RecordRef) recordRef));
     }
 

@@ -29,6 +29,7 @@ public class GroupActionConfig {
     public GroupActionConfig(GroupActionConfig other) {
         this.params = other.getParams().deepCopy();
         this.batchSize = other.batchSize;
+        this.actionId = other.actionId;
     }
 
     public ObjectNode getParams() {
@@ -156,25 +157,28 @@ public class GroupActionConfig {
         GroupActionConfig that = (GroupActionConfig) o;
 
         return Objects.equals(actionId, that.actionId) &&
-               Objects.equals(params, that.params);
+            Objects.equals(params, that.params);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hashCode(params);
+        int result = Objects.hashCode(params);
+        result = 31 * result + Objects.hashCode(actionId);
+        return result;
     }
 
     @Override
     public String toString() {
         return "GroupActionConfig{" +
-                "params=" + params +
-                ", actionId=" + actionId +
-                ", batchSize=" + batchSize +
-                ", async=" + async +
-                ", maxResults=" + maxResults +
-                ", errorsLimit=" + errorsLimit +
-                ", elementsLimit=" + elementsLimit +
-                ", timeout=" + timeout +
-                '}';
+            "params=" + params +
+            ", actionId=" + actionId +
+            ", batchSize=" + batchSize +
+            ", async=" + async +
+            ", maxResults=" + maxResults +
+            ", errorsLimit=" + errorsLimit +
+            ", elementsLimit=" + elementsLimit +
+            ", timeout=" + timeout +
+            ", readOnly=" + readOnly +
+            '}';
     }
 }
