@@ -12,10 +12,20 @@
     "width": "default",
     "i18n": {
         "ru": {
-            "comment": "Комментарий"
+            "comment": "Комментарий",
+            "Reject": "Отклонить",
+            "Done": "Выполнить",
+            "Approve": "Согласовать",
+            "Submit": "Отправить",
+            "Send Back": "Вернуть на доработку"
         },
         "en": {
-            "comment": "Comment"
+            "comment": "Comment",
+            "Reject": "Reject",
+            "Done": "Done",
+            "Approve": "Approve",
+            "Submit": "Submit",
+            "Send Back": "Send Back"
         }
     },
     "definition": {

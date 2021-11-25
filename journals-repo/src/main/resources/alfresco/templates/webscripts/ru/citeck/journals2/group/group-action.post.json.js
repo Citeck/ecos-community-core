@@ -10,6 +10,7 @@
         sourceId = jsonData.sourceId || '',
         sortBy = jsonData.sortBy || [],
         consistency = jsonData.consistency || 'DEFAULT',
+        excludedRecords = jsonData.excludedRecords,
         actionResults,
         actionResultsData,
         records;
@@ -23,7 +24,7 @@
     var results = [];
     if (groupType == "selected") {
 
-        var records = [];
+        records = [];
         for (var idx in nodes) {
             records.push(Packages.ru.citeck.ecos.records2.RecordRef.valueOf(nodes[idx]));
         }
@@ -33,7 +34,7 @@
             actionId: actionId
         });
 
-        var actionResults = actionResultsData.getResults();
+        actionResults = actionResultsData.getResults();
 
         for (var idx in actionResults) {
             var result = actionResults[idx];
@@ -62,7 +63,7 @@
 
         actionResultsData = groupActions.execute(records, groupActionConfig);
 
-        var actionResults = actionResultsData.getResults();
+        actionResults = actionResultsData.getResults();
 
         if (actionResults && actionResults.length > 0) {
             for (var idx in actionResults) {
