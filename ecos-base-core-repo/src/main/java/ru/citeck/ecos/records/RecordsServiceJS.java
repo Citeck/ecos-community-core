@@ -1,10 +1,14 @@
 package ru.citeck.ecos.records;
 
+import lombok.Data;
 import org.alfresco.util.ParameterCheck;
+import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.collections.IteratorUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import ru.citeck.ecos.action.group.ActionResult;
 import ru.citeck.ecos.action.group.ActionResults;
 import ru.citeck.ecos.action.group.GroupActionConfig;
+import ru.citeck.ecos.commons.json.Json;
 import ru.citeck.ecos.records2.IterableRecords;
 import ru.citeck.ecos.records2.RecordMeta;
 import ru.citeck.ecos.records2.RecordRef;
@@ -105,6 +109,21 @@ public class RecordsServiceJS extends AlfrescoScopableProcessorExtension {
         return new IterableRecords(recordsService, convertedQuery);
     }
 
+    @SuppressWarnings("unchecked")
+    public Iterable<RecordRef> getIterableRecords(Object recordsQuery, Object options) {
+        Iterable<RecordRef> queryResult = getIterableRecords(recordsQuery);
+        if (options == null) {
+            return queryResult;
+        }
+        IterableRecordsOptions convertedOptions = Json.getMapper().convert(jsUtils.toJava(options), IterableRecordsOptions.class);
+        if (convertedOptions == null || CollectionUtils.isEmpty(convertedOptions.getExcludedRecords())) {
+            return queryResult;
+        }
+        return () -> IteratorUtils.filteredIterator(
+            queryResult.iterator(),
+            recordRef -> !convertedOptions.getExcludedRecords().contains((RecordRef) recordRef));
+    }
+
     private static <T> ActionResult<T>[] toArray(ActionResults<T> results) {
         @SuppressWarnings("unchecked")
         ActionResult<T>[] result = new ActionResult[results.getResults().size()];
@@ -124,5 +143,10 @@ public class RecordsServiceJS extends AlfrescoScopableProcessorExtension {
     @Autowired
     public void setRecordsService(RecordsServiceImpl recordsService) {
         this.recordsService = recordsService;
+    }
+
+    @Data
+    public static class IterableRecordsOptions {
+        private Set<RecordRef> excludedRecords;
     }
 }
