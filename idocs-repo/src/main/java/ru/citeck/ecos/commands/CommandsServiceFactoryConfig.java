@@ -37,6 +37,8 @@ public class CommandsServiceFactoryConfig extends CommandsServiceFactory {
     private static final String RABBIT_MQ_PORT = "rabbitmq.server.port";
     private static final String RABBIT_MQ_USERNAME = "rabbitmq.server.username";
     private static final String RABBIT_MQ_PASSWORD = "rabbitmq.server.password";
+    private static final String RABBIT_MQ_THREAD_POOL_SIZE = "rabbitmq.threadPoolSize";
+    private static final String CONCURRENT_TIMEOUT_MS = "commands.timeoutMs";
     private static final String CONCURRENT_COMMAND_CONSUMERS = "commands.concurrentCommandConsumers";
 
     @Autowired
@@ -57,12 +59,21 @@ public class CommandsServiceFactoryConfig extends CommandsServiceFactory {
     @Bean
     @Override
     public CommandsProperties createProperties() {
+
         CommandsProperties props = new CommandsProperties();
         props.setAppInstanceId(instanceConfig.getInstanceId());
         props.setAppName(instanceConfig.getAppname());
 
-        int concurrentCommandConsumers = Integer.parseInt(properties.getProperty(CONCURRENT_COMMAND_CONSUMERS, "4"));
-        props.setConcurrentCommandConsumers(concurrentCommandConsumers);
+        String threadPoolSizeStr = properties.getProperty(RABBIT_MQ_THREAD_POOL_SIZE);
+        if (StringUtils.isNotBlank(threadPoolSizeStr)) {
+            props.setThreadPoolSize(Integer.parseInt(threadPoolSizeStr));
+        }
+
+        props.setConcurrentCommandConsumers(Integer.parseInt(properties.getProperty(CONCURRENT_COMMAND_CONSUMERS, "4")));
+        String commandTimeoutMsStr = properties.getProperty(CONCURRENT_TIMEOUT_MS);
+        if (StringUtils.isNotBlank(commandTimeoutMsStr)) {
+            props.setCommandTimeoutMs(Integer.parseInt(commandTimeoutMsStr));
+        }
 
         return props;
     }
