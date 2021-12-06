@@ -73,6 +73,10 @@ public class RecordsConfiguration extends RecordsServiceFactory {
     private RestTemplate eurekaRestTemplate;
 
     @Autowired
+    @Qualifier(EurekaContextConfig.SECURED_REST_TEMPLATE_ID)
+    private RestTemplate eurekaSecuredRestTemplate;
+
+    @Autowired
     private UrlUtils urlUtils;
 
     @PostConstruct
@@ -166,7 +170,13 @@ public class RecordsConfiguration extends RecordsServiceFactory {
         }
 
         HttpEntity<byte[]> httpEntity = new HttpEntity<>(request.getBody(), headers);
-        ResponseEntity<byte[]> result = eurekaRestTemplate.exchange(url, HttpMethod.POST, httpEntity, byte[].class);
+        RestTemplate restTemplate;
+        if (url.startsWith("https")) {
+            restTemplate = this.eurekaSecuredRestTemplate;
+        } else {
+            restTemplate = this.eurekaRestTemplate;
+        }
+        ResponseEntity<byte[]> result = restTemplate.exchange(url, HttpMethod.POST, httpEntity, byte[].class);
 
         RestResponseEntity resultEntity = new RestResponseEntity();
         resultEntity.setBody(result.getBody());
