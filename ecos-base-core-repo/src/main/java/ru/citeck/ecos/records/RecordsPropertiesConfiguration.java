@@ -1,5 +1,6 @@
 package ru.citeck.ecos.records;
 
+import ecos.com.google.common.base.CaseFormat;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -33,7 +34,6 @@ public class RecordsPropertiesConfiguration {
     private static final String RECORDS_APP_USER_BASE_URL_CONFIG_NAME = "rec-user-base-url";
     private static final String RECORDS_APP_AUTH_USERNAME_CONFIG_NAME = "auth.username";
     private static final String RECORDS_APP_AUTH_PASSWORD_CONFIG_NAME = "auth.password";
-    private static final String RECORDS_APP_TLS_ENABLED_CONFIG_NAME = "tls.enabled";
 
     private final Pattern ECOS_RECORDS_APP_CONFIG_PATTERN = Pattern.compile(
         "^ecos\\.records\\.apps\\.(?<appName>[\\w-]*)\\.(?<configName>.*)$");
@@ -75,21 +75,21 @@ public class RecordsPropertiesConfiguration {
 
             switch (configName) {
                 case RECORDS_APP_BASE_URL_CONFIG_NAME:
-                    getRecordAppWithName(result, appName).setRecBaseUrl(globalProps.getProperty(propName, ""));
+                    getRecordAppWithName(result, appName).setRecBaseUrl(getStrProp(propName, ""));
                     break;
 
                 case RECORDS_APP_USER_BASE_URL_CONFIG_NAME:
-                    getRecordAppWithName(result, appName).setRecUserBaseUrl(globalProps.getProperty(propName, ""));
+                    getRecordAppWithName(result, appName).setRecUserBaseUrl(getStrProp(propName, ""));
                     break;
 
                 case RECORDS_APP_AUTH_USERNAME_CONFIG_NAME:
                     RecordsProperties.App appForSetUsername = getRecordAppWithName(result, appName);
                     if (appForSetUsername.getAuth() == null) {
                         RecordsProperties.Authentication authentication = new RecordsProperties.Authentication();
-                        authentication.setUsername(globalProps.getProperty(propName, ""));
+                        authentication.setUsername(getStrProp(propName, ""));
                         appForSetUsername.setAuth(authentication);
                     } else {
-                        appForSetUsername.getAuth().setUsername(globalProps.getProperty(propName, ""));
+                        appForSetUsername.getAuth().setUsername(getStrProp(propName, ""));
                     }
                     break;
 
@@ -97,15 +97,11 @@ public class RecordsPropertiesConfiguration {
                     RecordsProperties.App appForSetPassword = getRecordAppWithName(result, appName);
                     if (appForSetPassword.getAuth() == null) {
                         RecordsProperties.Authentication authentication = new RecordsProperties.Authentication();
-                        authentication.setPassword(globalProps.getProperty(propName, ""));
+                        authentication.setPassword(getStrProp(propName, ""));
                         appForSetPassword.setAuth(authentication);
                     } else {
-                        appForSetPassword.getAuth().setPassword(globalProps.getProperty(propName, ""));
+                        appForSetPassword.getAuth().setPassword(getStrProp(propName, ""));
                     }
-                    break;
-
-                case RECORDS_APP_TLS_ENABLED_CONFIG_NAME:
-                    getRecordAppWithName(result, appName).getTls().setEnabled(getBooleanProp(propName, false));
                     break;
             }
         }
@@ -120,22 +116,32 @@ public class RecordsPropertiesConfiguration {
         RecordsProperties.Tls tls = new RecordsProperties.Tls();
 
         tls.setEnabled(getBooleanProp(TLS_ENABLED_KEY, tls.getEnabled()));
-        tls.setKeyStore(globalProps.getProperty(TLS_KEY_STORE_KEY, tls.getKeyStore()));
-        tls.setKeyStoreType(globalProps.getProperty(TLS_KEY_STORE_TYPE_KEY, tls.getKeyStoreType()));
-        tls.setKeyStorePassword(globalProps.getProperty(TLS_KEY_STORE_PASSWORD_KEY, tls.getKeyStorePassword()));
-        tls.setKeyStoreKeyAlias(globalProps.getProperty(TLS_KEY_STORE_KEY_ALIAS_KEY, tls.getKeyStoreKeyAlias()));
-        tls.setTrustStore(globalProps.getProperty(TLS_TRUST_STORE_KEY, tls.getTrustStore()));
-        tls.setTrustStoreType(globalProps.getProperty(TLS_TRUST_STORE_TYPE_KEY, tls.getTrustStoreType()));
-        tls.setTrustStorePassword(globalProps.getProperty(TLS_TRUST_STORE_PASSWORD_KEY, tls.getTrustStorePassword()));
+        tls.setKeyStore(getStrProp(TLS_KEY_STORE_KEY, tls.getKeyStore()));
+        tls.setKeyStoreType(getStrProp(TLS_KEY_STORE_TYPE_KEY, tls.getKeyStoreType()));
+        tls.setKeyStorePassword(getStrProp(TLS_KEY_STORE_PASSWORD_KEY, tls.getKeyStorePassword()));
+        tls.setKeyStoreKeyAlias(getStrProp(TLS_KEY_STORE_KEY_ALIAS_KEY, tls.getKeyStoreKeyAlias()));
+        tls.setTrustStore(getStrProp(TLS_TRUST_STORE_KEY, tls.getTrustStore()));
+        tls.setTrustStoreType(getStrProp(TLS_TRUST_STORE_TYPE_KEY, tls.getTrustStoreType()));
+        tls.setTrustStorePassword(getStrProp(TLS_TRUST_STORE_PASSWORD_KEY, tls.getTrustStorePassword()));
 
         return tls;
     }
 
-    public boolean getBooleanProp(String prop, boolean orElse) {
-        String value = globalProps.getProperty(prop);
+    private String getStrProp(String key, String orElse) {
+
+        String envKey = CaseFormat.UPPER_CAMEL.to(CaseFormat.LOWER_UNDERSCORE, key);
+        envKey = envKey.replaceAll("[^a-zA-Z0-9_]", "_").toUpperCase();
+        String value = System.getenv(envKey);
+        if (StringUtils.isBlank(value)) {
+            value = globalProps.getProperty(key);
+        }
         if (StringUtils.isBlank(value)) {
             return orElse;
         }
-        return "true".equalsIgnoreCase(value);
+        return value;
+    }
+
+    public boolean getBooleanProp(String key, boolean orElse) {
+        return "true".equalsIgnoreCase(getStrProp(key, Boolean.toString(orElse)));
     }
 }
