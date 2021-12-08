@@ -47,6 +47,7 @@ import ru.citeck.ecos.records2.source.dao.local.LocalRecordsDao;
 import ru.citeck.ecos.records2.source.dao.local.v2.LocalRecordsMetaDao;
 import ru.citeck.ecos.records2.source.dao.local.v2.LocalRecordsQueryDao;
 import ru.citeck.ecos.utils.AuthorityUtils;
+import ru.citeck.ecos.utils.NodeUtils;
 import ru.citeck.ecos.utils.WorkflowUtils;
 import ru.citeck.ecos.workflow.owner.OwnerAction;
 import ru.citeck.ecos.workflow.owner.OwnerService;
@@ -66,6 +67,7 @@ public class WorkflowTaskRecords extends LocalRecordsDao
 
     private static final String DOCUMENT_FIELD_PREFIX = "_ECM_";
     private static final String OUTCOME_PREFIX = "outcome_";
+    private static final String APP_ALFRESCO = "alfresco";
 
     private static final String ID = "wftask";
 
@@ -80,6 +82,7 @@ public class WorkflowTaskRecords extends LocalRecordsDao
     private final NamespaceService namespaceService;
     private final DictionaryService dictionaryService;
     private final EcosTypeService ecosTypeService;
+    private final NodeUtils nodeUtils;
 
     @Autowired
     public WorkflowTaskRecords(EcosTaskService ecosTaskService,
@@ -89,7 +92,8 @@ public class WorkflowTaskRecords extends LocalRecordsDao
                                CounterpartyResolver counterpartyResolver,
                                WorkflowUtils workflowUtils, AuthorityUtils authorityUtils,
                                NamespaceService namespaceService,
-                               DictionaryService dictionaryService, EcosTypeService ecosTypeService) {
+                               DictionaryService dictionaryService, EcosTypeService ecosTypeService,
+                               NodeUtils nodeUtils) {
         setId(ID);
         this.counterpartyResolver = counterpartyResolver;
         this.namespaceService = namespaceService;
@@ -102,6 +106,7 @@ public class WorkflowTaskRecords extends LocalRecordsDao
         this.workflowUtils = workflowUtils;
         this.authorityUtils = authorityUtils;
         this.ecosTypeService = ecosTypeService;
+        this.nodeUtils = nodeUtils;
     }
 
     @Override
@@ -627,7 +632,7 @@ public class WorkflowTaskRecords extends LocalRecordsDao
                                     AuthorityType.USER, dto.getAuthorityName(), false);
                                 List<UserDTO> users = containedUsers.stream()
                                     .map(s -> recordsService.getMeta(RecordRef.create("",
-                                        authorityService.getAuthorityNodeRef(s).toString()),
+                                            authorityService.getAuthorityNodeRef(s).toString()),
                                         UserDTO.class))
                                     .collect(Collectors.toList());
                                 dto.setContainedUsers(users);
@@ -750,14 +755,21 @@ public class WorkflowTaskRecords extends LocalRecordsDao
             if (documentRef == null) {
                 documentRef = taskInfo.getDocument();
             }
+
             if (StringUtils.isEmpty(documentRef.getId())) {
                 Map<String, Object> attributes = taskInfo.getAttributes();
                 Object docObject = attributes.get("document");
                 if (docObject instanceof ScriptNode) {
                     NodeRef docNodeRef = ((ScriptNode) docObject).getNodeRef();
-                    return RecordRef.valueOf(String.valueOf(docNodeRef));
+                    return RecordRef.create(APP_ALFRESCO,  "", String.valueOf(docNodeRef));
                 }
             }
+
+            String id = documentRef.getId();
+            if (nodeUtils.isNodeRef(id) && StringUtils.isBlank(documentRef.getAppName())) {
+                return RecordRef.create(APP_ALFRESCO, "", id);
+            }
+
             return documentRef;
         }
     }
@@ -779,7 +791,7 @@ public class WorkflowTaskRecords extends LocalRecordsDao
                 return false;
             }
             if (authorityService.isAdminAuthority(user)
-                    || Objects.equals(user, AuthenticationUtil.getSystemUserName())) {
+                || Objects.equals(user, AuthenticationUtil.getSystemUserName())) {
                 return true;
             }
 
