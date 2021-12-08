@@ -14,6 +14,7 @@ public class EcosServiceInstanceInfo {
     private final String ip;
     private final Integer port;
     private final Map<String, String> metadata;
+    private final Boolean securePortEnabled;
 
     public EcosServiceInstanceInfo apply(EcosServiceInstanceInfo info) {
 
@@ -21,7 +22,8 @@ public class EcosServiceInstanceInfo {
             StringUtils.isNotBlank(info.host) ? info.host : host,
             StringUtils.isNotBlank(info.ip) ? info.ip : ip,
             info.port != null ? info.port : port,
-            info.metadata != null ? info.metadata : metadata
+            info.metadata != null ? info.metadata : metadata,
+            info.securePortEnabled != null ? info.securePortEnabled : securePortEnabled
         );
     }
 }
