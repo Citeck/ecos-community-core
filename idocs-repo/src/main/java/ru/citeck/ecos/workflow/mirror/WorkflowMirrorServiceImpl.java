@@ -197,7 +197,7 @@ public class WorkflowMirrorServiceImpl extends BaseProcessorExtension implements
             logger.debug("mirrorTaskImpl start");
             logger.debug("WorkflowTask: " + task);
 
-            if (MapUtils.isNotEmpty(task.getProperties())) {
+            if (task != null && MapUtils.isNotEmpty(task.getProperties())) {
                 logger.debug("WorkflowTask props: " + Arrays.toString(task.getProperties().entrySet().toArray()));
             }
 
