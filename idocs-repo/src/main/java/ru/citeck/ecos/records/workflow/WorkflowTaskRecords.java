@@ -3,6 +3,7 @@ package ru.citeck.ecos.records.workflow;
 import com.fasterxml.jackson.databind.node.NullNode;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.alfresco.repo.jscript.ScriptNode;
 import org.alfresco.repo.security.authentication.AuthenticationUtil;
 import org.alfresco.repo.template.TemplateNode;
@@ -59,6 +60,7 @@ import java.util.stream.Collectors;
 
 import static ru.citeck.ecos.records.workflow.WorkflowTaskRecordsConstants.*;
 
+@Slf4j
 @Component
 public class WorkflowTaskRecords extends LocalRecordsDao
     implements LocalRecordsMetaDao<MetaValue>,
@@ -752,16 +754,25 @@ public class WorkflowTaskRecords extends LocalRecordsDao
         }
 
         private RecordRef getDocumentRef() {
+            log.debug("Task getDocumentRef()");
+
             if (documentRef == null) {
                 documentRef = taskInfo.getDocument();
             }
 
+            log.debug("documentRef: " + documentRef);
+
             if (StringUtils.isEmpty(documentRef.getId())) {
                 Map<String, Object> attributes = taskInfo.getAttributes();
                 Object docObject = attributes.get("document");
+                log.debug("docObject: " + docObject);
+
                 if (docObject instanceof ScriptNode) {
                     NodeRef docNodeRef = ((ScriptNode) docObject).getNodeRef();
-                    return RecordRef.create(APP_ALFRESCO,  "", String.valueOf(docNodeRef));
+
+                    log.debug("docNodeRef: " + docNodeRef);
+
+                    return RecordRef.create(APP_ALFRESCO, "", String.valueOf(docNodeRef));
                 }
             }
 
