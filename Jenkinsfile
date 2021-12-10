@@ -36,6 +36,16 @@ timestamps {
 
       def project_version = readMavenPom().getProperties().getProperty("revision")
 
+      //if (!project_version.contains('SNAPSHOT')) {
+        def snapshots = sh(script: "mvn dependency:tree -Dincludes=:::*-SNAPSHOT | grep -i SNAPSHOT", returnStdout: true).trim()
+        if (snapshots != "") {
+            echo "You should remove snapshot dependencies before release build. Dependencies:"
+            echo snapshots
+            currentBuild.result = 'FAILURE'
+            return
+        }
+      //}
+
       if (!(env.BRANCH_NAME ==~ /master(-\d)?/) && (!project_version.contains('SNAPSHOT'))) {
         def tag = ""
         try {
