@@ -56,6 +56,7 @@ timestamps {
           return
         }
       }
+      step([$class: 'MavenSnapshotCheck', check: 'true'])
 
       buildTools.notifyBuildStarted(repoUrl, project_version, env)
       // build-info
