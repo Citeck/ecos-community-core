@@ -43,6 +43,7 @@ import org.alfresco.service.namespace.QName;
 import org.apache.commons.collections.ListUtils;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -204,6 +205,10 @@ public class WorkflowMirrorServiceImpl extends BaseProcessorExtension implements
             logger.debug("taskMirror: " + taskMirror);
             logger.debug("fullPersist: " + fullPersist);
 
+            Exception ex = new Exception();
+            String stackTrace = ExceptionUtils.getStackTrace(ex);
+
+            logger.debug("Trace: \n" + stackTrace);
         }
 
         NodeInfo nodeInfo = null;
