@@ -391,6 +391,21 @@ public class AlfNodesRecordsDAO extends LocalRecordsDao
 
             nodeRef = nodeUtils.createNode(parent, type, parentAssoc, props);
 
+            DataValue aspectsData = ecosTypeService.getResolvedProperties(ecosTypeRef).get("alfAspects");
+            if (StringUtils.isNotBlank(aspectsData.asText())) {
+                String aspects = aspectsData.asText();
+                List<String> aspectsList = Arrays.stream(aspects.split(","))
+                    .filter(StringUtils::isNotBlank)
+                    .map(String::trim)
+                    .collect(Collectors.toList());
+                for (String aspect : aspectsList) {
+                    QName aspectQName = QName.resolveToQName(namespaceService, aspect);
+                    if (aspectQName != null && !nodeService.hasAspect(nodeRef, aspectQName)) {
+                        nodeService.addAspect(nodeRef, aspectQName, new HashMap<>());
+                    }
+                }
+            }
+
             resultRecord = new RecordMeta(RecordRef.valueOf(nodeRef.toString()));
 
         } else {
