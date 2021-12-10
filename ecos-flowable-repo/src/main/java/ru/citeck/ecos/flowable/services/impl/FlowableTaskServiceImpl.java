@@ -31,6 +31,7 @@ import ru.citeck.ecos.workflow.tasks.EngineTaskService;
 import ru.citeck.ecos.workflow.tasks.TaskInfo;
 
 import javax.annotation.PostConstruct;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -138,6 +139,9 @@ public class FlowableTaskServiceImpl implements FlowableTaskService, EngineTaskS
 
         propsFromFlowable.putAll(propsFromWorkflowService);
 
+        log.debug("Task " + taskId + " variables from workflowService: "
+            + Arrays.toString(propsFromFlowable.entrySet().toArray()));
+
         return propsFromFlowable;
     }
 
@@ -153,18 +157,29 @@ public class FlowableTaskServiceImpl implements FlowableTaskService, EngineTaskS
         Object result = getVariables(taskId).get(variableName);
 
         if (result == null && VAR_PACKAGE.equals(variableName)) {
-            return getPackageFromMirrorTask(taskId);
+            result = getPackageFromMirrorTask(taskId);
         }
+
+        log.debug("get task " + taskId + " variable " + variableName + ". Return : " + result);
 
         return result;
     }
 
     private NodeRef getPackageFromMirrorTask(String taskId) {
+        log.debug("getPackageFromMirrorTask: " + taskId);
+
         NodeRef taskMirror = workflowMirrorService.getTaskMirror(FlowableConstants.ENGINE_PREFIX + taskId);
+        log.debug("taskMirror: " + taskMirror);
+
         if (taskMirror == null) {
             return null;
         }
-        return RepoUtils.getFirstTargetAssoc(taskMirror, WorkflowModel.ASSOC_PACKAGE, nodeService);
+
+        NodeRef packageRef = RepoUtils.getFirstTargetAssoc(taskMirror, WorkflowModel.ASSOC_PACKAGE, nodeService);
+
+        log.debug("packageRef: " + packageRef);
+
+        return packageRef;
     }
 
     public String getFormKey(String taskId) {

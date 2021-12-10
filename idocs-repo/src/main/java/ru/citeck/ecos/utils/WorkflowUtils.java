@@ -1,5 +1,6 @@
 package ru.citeck.ecos.utils;
 
+import lombok.extern.slf4j.Slf4j;
 import org.alfresco.model.ContentModel;
 import org.alfresco.repo.security.authentication.AuthenticationUtil;
 import org.alfresco.repo.workflow.WorkflowModel;
@@ -43,6 +44,7 @@ import static ru.citeck.ecos.utils.WorkflowConstants.VAR_TASK_ORIGINAL_OWNER;
 /**
  * Workflow service utils
  */
+@Slf4j
 @Component
 public class WorkflowUtils {
 
@@ -425,18 +427,25 @@ public class WorkflowUtils {
 
     @NotNull
     public RecordRef getTaskDocumentRefFromPackage(@Nullable Object bpmPackage) {
+        log.debug("getTaskDocumentRefFromPackage: " + bpmPackage);
 
         NodeRef packageRef = nodeUtils.getNodeRefOrNull(bpmPackage);
+        log.debug("packageRef: " + packageRef);
+
         if (packageRef == null) {
             return RecordRef.EMPTY;
         }
 
         String documentProp = (String) nodeService.getProperty(packageRef, CiteckWorkflowModel.PROP_DOCUMENT_PROP);
+        log.debug("documentProp: " + documentProp);
+
         if (StringUtils.isNotBlank(documentProp)) {
             return RecordRef.valueOf(documentProp);
         }
 
         NodeRef documentNodeRef = getTaskDocumentFromPackage(packageRef);
+        log.debug("taskDocumentFromPackage: " + documentNodeRef);
+
         if (documentNodeRef != null) {
             return RecordRef.create("", documentNodeRef.toString());
         }
@@ -449,6 +458,7 @@ public class WorkflowUtils {
         if (bpmPackage == null) {
             return null;
         }
+
         NodeRef packageRef = nodeUtils.getNodeRefOrNull(bpmPackage);
         if (packageRef == null) {
             return null;

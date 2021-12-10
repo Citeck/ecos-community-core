@@ -41,6 +41,9 @@ import org.alfresco.service.cmr.workflow.WorkflowTaskQuery;
 import org.alfresco.service.cmr.workflow.WorkflowTaskState;
 import org.alfresco.service.namespace.QName;
 import org.apache.commons.collections.ListUtils;
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.collections4.MapUtils;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -191,6 +194,18 @@ public class WorkflowMirrorServiceImpl extends BaseProcessorExtension implements
 
     private void mirrorTaskImpl(WorkflowTask task, NodeRef taskMirror, boolean fullPersist) {
 
+        if (logger.isDebugEnabled()) {
+            logger.debug("mirrorTaskImpl start");
+            logger.debug("WorkflowTask: " + task);
+
+            if (task != null && MapUtils.isNotEmpty(task.getProperties())) {
+                logger.debug("WorkflowTask props: " + Arrays.toString(task.getProperties().entrySet().toArray()));
+            }
+
+            logger.debug("taskMirror: " + taskMirror);
+            logger.debug("fullPersist: " + fullPersist);
+        }
+
         NodeInfo nodeInfo = null;
         if (task != null) {
             nodeInfo = nodeInfoFactory.createNodeInfo(task);
@@ -237,6 +252,9 @@ public class WorkflowMirrorServiceImpl extends BaseProcessorExtension implements
                 nodeService.deleteNode(taskMirror);
             }
         }
+
+        logger.debug("NodeInfo: " + nodeInfo);
+        logger.debug("mirrorTaskImpl stop");
     }
 
     private NodeRef createTaskMirror(String taskId, QName taskType) {
@@ -275,6 +293,7 @@ public class WorkflowMirrorServiceImpl extends BaseProcessorExtension implements
 
     // add convenient attributes, specific to task-mirrors only
     private void fillProperties(WorkflowTask task, NodeInfo nodeInfo) {
+        logger.debug("Fill properties");
 
         nodeInfo.setProperty(ContentModel.PROP_TITLE, workflowUtils.getTaskMLTitle(task));
         nodeInfo.setProperty(WorkflowMirrorModel.PROP_TASK_TYPE, nodeInfo.getType());
@@ -286,6 +305,8 @@ public class WorkflowMirrorServiceImpl extends BaseProcessorExtension implements
         nodeInfo.setProperty(WorkflowMirrorModel.PROP_WORKFLOW_INITIATOR, getWorkflowInitiator(task, nodeInfo));
 
         NodeRef document = getDocument(task, nodeInfo);
+        logger.debug("document: " + document);
+
         if (document != null) {
             nodeInfo.setProperty(WorkflowMirrorModel.PROP_DOCUMENT, document);
             nodeInfo.setProperty(WorkflowMirrorModel.PROP_DOCUMENT_TYPE, nodeService.getType(document));
@@ -306,6 +327,8 @@ public class WorkflowMirrorServiceImpl extends BaseProcessorExtension implements
             RecordRef documentRef = ecosTaskService.getTaskInfo(task.getId())
                 .map(TaskInfo::getDocument)
                 .orElse(RecordRef.EMPTY);
+
+            logger.debug("documentRef: " + documentRef);
 
             if (RecordRef.isNotEmpty(documentRef)) {
                 nodeInfo.setProperty(WorkflowMirrorModel.PROP_DOCUMENT_PROP, documentRef.toString());
