@@ -204,11 +204,6 @@ public class WorkflowMirrorServiceImpl extends BaseProcessorExtension implements
 
             logger.debug("taskMirror: " + taskMirror);
             logger.debug("fullPersist: " + fullPersist);
-
-            Exception ex = new Exception();
-            String stackTrace = ExceptionUtils.getStackTrace(ex);
-
-            logger.debug("Trace: \n" + stackTrace);
         }
 
         NodeInfo nodeInfo = null;
