@@ -39,9 +39,10 @@ timestamps {
       if (!project_version.contains('SNAPSHOT')) {
         def snapshots = sh(script: "mvn dependency:tree -Dincludes=:::*-SNAPSHOT | grep -i SNAPSHOT", returnStdout: true).trim()
         if (snapshots != "") {
-            echo "You should remove snapshot dependencies before release build. Dependencies:"
-            echo snapshots
+            def msg = "You should remove snapshot dependencies before release build"
+            echo(msg + " Dependencies:\n" + snapshots)
             currentBuild.result = 'FAILURE'
+            buildTools.notifyBuildFailed(repoUrl, msg, env)
             return
         }
       }
