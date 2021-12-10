@@ -282,11 +282,15 @@
     </bean>-->
 
     <!-- Mirror listeners -->
-    <bean id="flowableMirrorListener" class="ru.citeck.ecos.flowable.listeners.global.impl.task.create.MirrorListener">
+    <bean id="flowableCreateTaskMirrorListener" class="ru.citeck.ecos.flowable.listeners.global.impl.task.create.CreateTaskMirrorListener">
         <property name="workflowMirrorService" ref="workflowMirrorService"/>
     </bean>
 
     <bean id="flowableCompleteTaskMirrorListener" class="ru.citeck.ecos.flowable.listeners.global.impl.task.complete.CompleteTaskMirrorListener">
+        <property name="workflowMirrorService" ref="workflowMirrorService"/>
+    </bean>
+
+    <bean id="flowableAssignmentTaskMirrorListener" class="ru.citeck.ecos.flowable.listeners.global.impl.task.assignment.AssignmentTaskMirrorListener">
         <property name="workflowMirrorService" ref="workflowMirrorService"/>
     </bean>
 

@@ -34,7 +34,9 @@ public class MirrorEndProcessListener implements GlobalEndExecutionListener {
         ExecutionEntity entity = (ExecutionEntity) delegateExecution;
         String deleteReason = entity.getDeleteReason();
 
-        if (!entity.isEnded() && deleteReason != null && (deleteReason.equals("cancelled") || deleteReason.equals("deleted"))) {
+        if (!entity.isEnded() && deleteReason != null
+            && (deleteReason.equals("cancelled") || deleteReason.equals("deleted"))) {
+
             String workflowId = FlowableConstants.ENGINE_PREFIX + entity.getProcessInstanceId();
             List<NodeRef> mirrors = workflowMirrorService.getTaskMirrorsByWorkflowId(workflowId);
             for (NodeRef mirror : mirrors) {
