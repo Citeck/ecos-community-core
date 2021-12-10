@@ -36,17 +36,6 @@ timestamps {
 
       def project_version = readMavenPom().getProperties().getProperty("revision")
 
-      if (!project_version.contains('SNAPSHOT')) {
-        def snapshots = sh(script: "mvn dependency:tree -Dincludes=:::*-SNAPSHOT | grep -i SNAPSHOT", returnStdout: true).trim()
-        if (snapshots != "") {
-            def msg = "You should remove snapshot dependencies before release build"
-            echo(msg + " Dependencies:\n" + snapshots)
-            currentBuild.result = 'FAILURE'
-            buildTools.notifyBuildFailed(repoUrl, msg, env)
-            return
-        }
-      }
-
       if (!(env.BRANCH_NAME ==~ /master(-\d)?/) && (!project_version.contains('SNAPSHOT'))) {
         def tag = ""
         try {
@@ -78,6 +67,7 @@ timestamps {
 
       stage('Assembling and publishing project artifacts') {
         withMaven(mavenLocalRepo: '/opt/jenkins/.m2/repository', tempBinDir: '') {
+          sh "mvn enforcer:enforce"
           sh "mvn clean deploy"
           sh "mvn clean"
         }
