@@ -347,6 +347,7 @@
           class="ru.citeck.ecos.flowable.services.FlowableRecipientsServiceJS"
           parent="baseJavaScriptExtension">
         <property name="extensionName" value="flwRecipients"/>
+        <property name="serviceRegistry" ref="ServiceRegistry"/>
         <property name="flowableRecipientsService" ref="flowableRecipientsService"/>
     </bean>
 
