@@ -56,7 +56,7 @@ public class AlfAutoModelsDao {
     private final JobLockService jobLockService;
 
     private final LoadingCache<RecordRef, Optional<QName>> modelQNameByTypeRefCache;
-    private final Map<RecordRef, NodeRef> modelNodeRefByType = new ConcurrentHashMap<>();
+    private final Map<RecordRef, TypeModelInfo> typeModelInfoByType = new ConcurrentHashMap<>();
 
     @Autowired
     public AlfAutoModelsDao(
@@ -144,31 +144,19 @@ public class AlfAutoModelsDao {
 
     @NotNull
     public synchronized TypeModelInfo getOrCreateModelByTypeRef(@NotNull RecordRef typeRef) {
-
-        NodeRef modelRef = modelNodeRefByType.computeIfAbsent(typeRef, this::getOrCreateModelByTypeRefImpl);
-        if (!nodeService.exists(modelRef)) {
-            modelNodeRefByType.remove(typeRef);
-            modelRef = modelNodeRefByType.computeIfAbsent(typeRef, this::getOrCreateModelByTypeRefImpl);
-            if (!nodeService.exists(modelRef)) {
-                throw new RuntimeException("Model nodeRef doesn't exists " +
-                    "for type: " + typeRef + ". NodeRef: " + modelRef);
-            }
-        }
-
-        NodeRef finalModelRef = modelRef;
-
-        return readModel(modelRef)
-            .orElseThrow(() -> new IllegalStateException(
-                "Model read failed for type " + typeRef + " ModelRef: " + finalModelRef));
+        return typeModelInfoByType.computeIfAbsent(typeRef, this::getOrCreateModelByTypeRefImpl);
     }
 
     @NotNull
-    private NodeRef getOrCreateModelByTypeRefImpl(@NotNull RecordRef typeRef) {
+    private TypeModelInfo getOrCreateModelByTypeRefImpl(@NotNull RecordRef typeRef) {
 
         NodeRef modelRef = getModelRefByTypeRef(typeRef);
 
         if (modelRef != null) {
-            return modelRef;
+            Optional<TypeModelInfo> modelInfo = readModel(modelRef);
+            if (modelInfo.isPresent()) {
+                return modelInfo.get();
+            }
         }
 
         String lock = jobLockService.getLock(MODELS_LOCK_KEY, 5_000, 500, 6);
@@ -179,7 +167,10 @@ public class AlfAutoModelsDao {
 
                 NodeRef newModelRef = getModelRefByTypeRef(typeRef);
                 if (newModelRef != null) {
-                    return newModelRef;
+                    Optional<TypeModelInfo> modelInfo = readModel(newModelRef);
+                    if (modelInfo.isPresent()) {
+                        return modelInfo.get();
+                    }
                 }
 
                 newModelRef = createNewModel(typeRef);
@@ -193,7 +184,12 @@ public class AlfAutoModelsDao {
 
                 modelQNameByTypeRefCache.invalidate(typeRef);
 
-                return newModelRef;
+                Optional<TypeModelInfo> modelInfo = readModel(newModelRef);
+                if (modelInfo.isPresent()) {
+                    return modelInfo.get();
+                } else {
+                    throw new RuntimeException("New model was created, but can't be read");
+                }
 
             }, false, true);
         } finally {
@@ -206,6 +202,8 @@ public class AlfAutoModelsDao {
     }
 
     private NodeRef createNewModel(RecordRef typeRef) {
+
+        log.info("Create new model for typeRef: " + typeRef);
 
         String typeRefStr = typeRef.toString();
         Digest digest = DigestUtils.getDigest(
@@ -265,10 +263,17 @@ public class AlfAutoModelsDao {
     }
 
     public void save(TypeModelInfo model) {
-        AuthenticationUtil.runAsSystem(() -> {
-            saveModelInfo(model.getNodeRef(), model.getModel());
+
+        transactionService.getRetryingTransactionHelper().doInTransaction(() -> {
+            AuthenticationUtil.runAsSystem(() -> {
+                log.info("Update model info for typeRef: " + model.getTypeRef() + " nodeRef: " + model.getNodeRef());
+                saveModelInfo(model.getNodeRef(), model.getModel());
+                return null;
+            });
             return null;
-        });
+        }, false, true);
+
+        typeModelInfoByType.remove(model.getTypeRef());
     }
 
     private void saveModelInfo(NodeRef nodeRef, M2Model model) {
