@@ -17,6 +17,11 @@
     <!-- transfer bean factory -->
     <bean class="ru.citeck.ecos.utils.ConvertUtils" />
 
+    <bean id="ecos.baseJavaScriptExtension" class="ru.citeck.ecos.utils.AlfrescoScopableProcessorExtension"
+          parent="baseJavaScriptExtension" abstract="true">
+        <property name="serviceRegistry" ref="ServiceRegistry" />
+    </bean>
+
     <!-- big number encoder exposed to JavaScript - encodes big numbers for indexing -->
     <bean id="bigNumberEncoder" class="ru.citeck.ecos.utils.BigNumberEncoderJS" parent="baseJavaScriptExtension">
         <property name="extensionName">
@@ -30,9 +35,8 @@
         <property name="extensionName" value="amountInWordConverter"/>
     </bean>
 
-    <bean id="CiteckUtilsJS" class="ru.citeck.ecos.utils.CiteckUtilsJS" parent="baseJavaScriptExtension">
+    <bean id="CiteckUtilsJS" class="ru.citeck.ecos.utils.CiteckUtilsJS" parent="ecos.baseJavaScriptExtension">
         <property name="extensionName" value="citeckUtils" />
-        <property name="serviceRegistry" ref="ServiceRegistry" />
         <property name="prefixResolver" ref="ecosNsPrefixResolver" />
     </bean>
 
@@ -120,7 +124,7 @@
         <property name="evalExactTotalCount" value="${ru.citeck.ecos.criteria-search.eval-exact-total-count}" />
     </bean>
 
-    <bean id="criteriaSearchServiceJS" class="ru.citeck.ecos.search.CriteriaSearchServiceJS" parent="baseJavaScriptExtension">
+    <bean id="criteriaSearchServiceJS" class="ru.citeck.ecos.search.CriteriaSearchServiceJS" parent="ecos.baseJavaScriptExtension">
         <property name="extensionName" value="criteriaSearch" />
         <property name="searchService" ref="criteriaSearchService" />
         <property name="parser" ref="criteriaParser" />
@@ -347,9 +351,8 @@
         <property name="configValueQName" value="{http://www.citeck.ru/model/config/1.0}value"/>
     </bean>
 
-    <bean id="ecosConfigServiceJS" class="ru.citeck.ecos.config.EcosConfigServiceJs" parent="baseJavaScriptExtension">
+    <bean id="ecosConfigServiceJS" class="ru.citeck.ecos.config.EcosConfigServiceJs" parent="ecos.baseJavaScriptExtension">
         <property name="extensionName" value="ecosConfigService"/>
-        <property name="serviceRegistry" ref="ServiceRegistry"/>
         <property name="ecosConfigService" ref="ecosConfigService"/>
     </bean>
 
@@ -426,16 +429,14 @@
 
     <bean id="ecos-base-core.groupActionServiceJS"
           class="ru.citeck.ecos.action.group.GroupActionServiceJS"
-          parent="baseJavaScriptExtension">
+          parent="ecos.baseJavaScriptExtension">
         <property name="extensionName" value="groupActions" />
-        <property name="serviceRegistry" ref="ServiceRegistry" />
     </bean>
 
     <bean id="ecos-base-core.recordsServiceJS"
           class="ru.citeck.ecos.records.RecordsServiceJS"
-          parent="baseJavaScriptExtension">
+          parent="ecos.baseJavaScriptExtension">
         <property name="extensionName" value="recordsService" />
-        <property name="serviceRegistry" ref="ServiceRegistry" />
     </bean>
 
     <bean id="RecordsServiceTemplate"
