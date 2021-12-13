@@ -22,7 +22,7 @@ import ru.citeck.ecos.config.EcosConfigService;
 import ru.citeck.ecos.domain.auth.EcosReqContext;
 import ru.citeck.ecos.model.EcosTypeModel;
 import ru.citeck.ecos.node.EcosTypeService;
-import ru.citeck.ecos.records.language.predicate.converters.AssocToCustomSearchFieldsRegistrar;
+import ru.citeck.ecos.records.language.predicate.converters.AssocToCustomSearchFieldsConfig;
 import ru.citeck.ecos.records.language.predicate.converters.PredToFtsContext;
 import ru.citeck.ecos.records.language.predicate.converters.PredicateToFtsConverter;
 import ru.citeck.ecos.records.language.predicate.converters.delegators.ConvertersDelegator;
@@ -919,13 +919,13 @@ public class ValuePredicateToFtsConverter implements PredicateToFtsConverter {
     }
 
     @Autowired(required = false)
-    public void setAssocToCustomSearchFieldsRegistrars(List<AssocToCustomSearchFieldsRegistrar> registrars) {
-        if (registrars == null) {
+    public void setAssocToCustomSearchFieldsConfigs(List<AssocToCustomSearchFieldsConfig> configs) {
+        if (configs == null) {
             return;
         }
 
-        for (AssocToCustomSearchFieldsRegistrar registrar : registrars) {
-            registerAssocToCustomSearchFields(registrar.getAssocQName(), registrar.getCustomSearchFields());
+        for (AssocToCustomSearchFieldsConfig config : configs) {
+            registerAssocToCustomSearchFields(config.getAssocQName(), config.getCustomSearchFields());
         }
     }
 }

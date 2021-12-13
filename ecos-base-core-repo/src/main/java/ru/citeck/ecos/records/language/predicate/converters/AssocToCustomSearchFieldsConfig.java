@@ -6,7 +6,7 @@ import org.alfresco.service.namespace.QName;
 import java.util.List;
 
 @Data
-public class AssocToCustomSearchFieldsRegistrar {
+public class AssocToCustomSearchFieldsConfig {
     private QName assocQName;
     private List<QName> customSearchFields;
 }
