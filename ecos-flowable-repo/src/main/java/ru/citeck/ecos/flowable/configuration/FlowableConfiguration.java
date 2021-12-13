@@ -267,8 +267,8 @@ public class FlowableConfiguration {
         Map<String, FlowableEngineProcessService> engineProcessServices = applicationContext.getBeansOfType(
                 FlowableEngineProcessService.class);
         engineProcessServices.forEach((k, v) -> {
-            logger.info("Added flowable process engine service: " + v.getFlowableExtensionName());
-            beans.put(v.getFlowableExtensionName(), v);
+            logger.info("Added flowable process engine service: " + v.getKey());
+            beans.put(v.getKey(), v);
         });
 
         return beans;

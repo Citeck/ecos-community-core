@@ -12,8 +12,6 @@ import java.util.Set;
 public class FlowableRecipientsServiceJS extends AlfrescoScopableProcessorExtension
     implements FlowableEngineProcessService {
 
-    private static final String EXTENSION_NAME = "flwRecipients";
-
     private FlowableRecipientsService flowableRecipientsService;
 
     public String getRoleEmails(Object document, String caseRoleName) {
@@ -44,7 +42,7 @@ public class FlowableRecipientsServiceJS extends AlfrescoScopableProcessorExtens
     }
 
     @Override
-    public String getFlowableExtensionName() {
-        return EXTENSION_NAME;
+    public String getKey() {
+        return getExtensionName();
     }
 }
