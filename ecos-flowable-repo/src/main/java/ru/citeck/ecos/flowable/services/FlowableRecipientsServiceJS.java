@@ -12,7 +12,7 @@ import java.util.Set;
 public class FlowableRecipientsServiceJS extends AlfrescoScopableProcessorExtension
     implements FlowableEngineProcessService {
 
-    private static final String KEY = "flwRecipients";
+    private static final String EXTENSION_NAME = "flwRecipients";
 
     private FlowableRecipientsService flowableRecipientsService;
 
@@ -44,7 +44,7 @@ public class FlowableRecipientsServiceJS extends AlfrescoScopableProcessorExtens
     }
 
     @Override
-    public String getKey() {
-        return KEY;
+    public String getFlowableExtensionName() {
+        return EXTENSION_NAME;
     }
 }

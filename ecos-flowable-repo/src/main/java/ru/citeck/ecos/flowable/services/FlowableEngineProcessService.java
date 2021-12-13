@@ -8,7 +8,12 @@ package ru.citeck.ecos.flowable.services;
 public interface FlowableEngineProcessService {
 
     /**
-     * @return The service key by which the service will be available from the flowable engine
+     * @return The service extensionName by which the service will be available from the flowable engine
      */
-    String getKey();
+    String getFlowableExtensionName();
+
+    @Deprecated
+    default String getKey() {
+        return getFlowableExtensionName();
+    }
 }
