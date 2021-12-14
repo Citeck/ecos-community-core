@@ -19,6 +19,7 @@ import org.alfresco.service.cmr.repository.NodeRef;
 import org.alfresco.service.cmr.repository.NodeService;
 import org.alfresco.service.namespace.NamespaceService;
 import org.alfresco.service.namespace.QName;
+import org.alfresco.util.FileNameValidator;
 import org.alfresco.util.GUID;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -93,7 +94,11 @@ public class TempContentRecordsDao implements RecordsDao, MutableRecordsDao {
         Map<QName, Serializable> props = new HashMap<>();
         props.put(EcosEformFileModel.PROP_TEMP_FILE_ID, name);
         if (StringUtils.isNotBlank(fileName)) {
-            props.put(ContentModel.PROP_NAME, fileName);
+            if (FileNameValidator.isValid(fileName)) {
+                props.put(ContentModel.PROP_NAME, fileName);
+            } else {
+                props.put(ContentModel.PROP_NAME, FileNameValidator.getValidFileName(fileName));
+            }
         }
 
         NodeRef createdTempFile = nodeService.createNode(
