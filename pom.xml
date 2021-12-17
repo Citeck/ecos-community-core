@@ -14,7 +14,7 @@
 
     <properties>
 
-        <revision>4.7.5</revision>
+        <revision>4.7.5-log4j-fix</revision>
 
         <alfresco.sdk.version>3.0.1</alfresco.sdk.version>
 
@@ -1061,8 +1061,8 @@
             </plugin>
 
             <plugin>
-                <groupId>org.codehaus.gmaven</groupId>
-                <artifactId>gmaven-plugin</artifactId>
+                <groupId>org.codehaus.gmavenplus</groupId>
+                <artifactId>gmavenplus-plugin</artifactId>
                 <version>1.5</version>
                 <executions>
                     <execution>
@@ -1072,9 +1072,12 @@
                             <goal>execute</goal>
                         </goals>
                         <configuration>
-                            <source>
-                                project.properties.versionWithOutPrefix = project.version.replace('-SNAPSHOT', '')
-                            </source>
+                            <scripts>
+                                <script>
+                                    // Get first part version without postfix (ex. 4.4.12, 5.1)
+                                    project.properties.versionWithOutPrefix = (project.version =~ /^\d+(?:\.\d+)*/)[0]
+                                </script>
+                            </scripts>
                         </configuration>
                     </execution>
                 </executions>
