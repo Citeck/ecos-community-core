@@ -1,6 +1,7 @@
 package ru.citeck.ecos.config;
 
 import org.apache.activemq.ActiveMQConnectionFactory;
+import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.amqp.rabbit.connection.CachingConnectionFactory;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
@@ -29,6 +30,7 @@ public class MessagingConfiguration {
     private static final String RABBIT_MQ_PORT= "rabbitmq.server.port";
     private static final String RABBIT_MQ_USERNAME= "rabbitmq.server.username";
     private static final String RABBIT_MQ_PASSWORD = "rabbitmq.server.password";
+    private static final String RABBIT_MQ_THREAD_POOL_SIZE = "rabbitmq.threadPoolSize";
     private static final String BROKER_URL = "messaging.broker.url";
 
     /**
@@ -113,6 +115,11 @@ public class MessagingConfiguration {
         props.setPort(Integer.parseInt(properties.getProperty(RABBIT_MQ_PORT)));
         props.setUsername(properties.getProperty(RABBIT_MQ_USERNAME));
         props.setPassword(properties.getProperty(RABBIT_MQ_PASSWORD));
+
+        String threadPoolSizeStr = properties.getProperty(RABBIT_MQ_THREAD_POOL_SIZE);
+        if (StringUtils.isNotBlank(threadPoolSizeStr)) {
+            props.setThreadPoolSize(Integer.parseInt(threadPoolSizeStr));
+        }
 
         return props;
     }
