@@ -26,6 +26,13 @@ import java.util.concurrent.Callable;
 @Configuration
 public class CommandsServiceFactoryConfig extends CommandsServiceFactory {
 
+    private static final String RABBIT_MQ_HOST = "rabbitmq.server.host";
+    private static final String RABBIT_MQ_PORT = "rabbitmq.server.port";
+    private static final String RABBIT_MQ_USERNAME = "rabbitmq.server.username";
+    private static final String RABBIT_MQ_PASSWORD = "rabbitmq.server.password";
+    private static final String RABBIT_MQ_THREAD_POOL_SIZE = "rabbitmq.threadPoolSize";
+    private static final String CONCURRENT_TIMEOUT_MS = "commands.timeoutMs";
+    private static final String CONCURRENT_CHANNEL_QOS = "commands.channelQos";
     private static final String CONCURRENT_COMMAND_CONSUMERS = "commands.concurrentCommandConsumers";
 
     @Autowired
@@ -56,6 +63,16 @@ public class CommandsServiceFactoryConfig extends CommandsServiceFactory {
 
         int concurrentCommandConsumers = Integer.parseInt(properties.getProperty(CONCURRENT_COMMAND_CONSUMERS, "4"));
         props.setConcurrentCommandConsumers(concurrentCommandConsumers);
+        String commandTimeoutMsStr = properties.getProperty(CONCURRENT_TIMEOUT_MS);
+
+        if (StringUtils.isNotBlank(commandTimeoutMsStr)) {
+            props.setCommandTimeoutMs(Integer.parseInt(commandTimeoutMsStr));
+        }
+
+        String commandChannelQos = properties.getProperty(CONCURRENT_CHANNEL_QOS);
+        if (StringUtils.isNotBlank(commandChannelQos)) {
+            props.setChannelQos(Integer.parseInt(commandChannelQos));
+        }
 
         return props;
     }
