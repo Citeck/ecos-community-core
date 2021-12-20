@@ -79,6 +79,8 @@ public class AlfNodesRecordsDAO extends LocalRecordsDao
     private static final String CONTENT_ATTRIBUTE_NAME = "_content";
     private static final String CM_CONTENT_ATTRIBUTE_NAME = "cm:content";
 
+    private static final String[] CONTENT_PROPS_WITH_NAME = { "originalName", "name", "filename" };
+
     private final Map<String, AlfNodesSearch> searchByLanguage = new ConcurrentHashMap<>();
 
     private NodeUtils nodeUtils;
@@ -308,12 +310,12 @@ public class AlfNodesRecordsDAO extends LocalRecordsDao
                 }
 
                 if (content != null && content.isObject()) {
-                    DataValue contentName = content.get("name");
-                    if (!contentName.isTextual()) {
-                        contentName = content.get("filename");
-                    }
-                    if (contentName.isTextual()) {
-                        name = contentName.asText();
+                    for (String attWithName : CONTENT_PROPS_WITH_NAME) {
+                        DataValue contentName = content.get(attWithName);
+                        if (contentName.isTextual() && StringUtils.isNotBlank(contentName.asText())) {
+                            name = contentName.asText();
+                            break;
+                        }
                     }
                 }
                 if (StringUtils.isBlank(name) && typeDto != null && typeDto.getName() != null) {
