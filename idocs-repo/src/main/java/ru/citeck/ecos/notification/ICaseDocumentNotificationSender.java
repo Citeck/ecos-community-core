@@ -4,6 +4,7 @@ package ru.citeck.ecos.notification;
 import org.alfresco.service.cmr.repository.*;
 import org.alfresco.service.namespace.NamespaceService;
 import org.alfresco.service.namespace.QName;
+import org.alfresco.util.collections.CollectionUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.extensions.surf.util.I18NUtil;
@@ -31,6 +32,7 @@ public class ICaseDocumentNotificationSender extends DocumentNotificationSender 
     private Map<String, List<String>> recipients;
     private Map<String, List<String>> iCaseAspectConditions;
     private List<String> excludeStatuses;
+    private List<String> allowedStatuses;
     private Locale priorityLocale;
 
     private static final String ARG_TARGET_REF = "targetRef";
@@ -91,7 +93,7 @@ public class ICaseDocumentNotificationSender extends DocumentNotificationSender 
 
     public void sendNotification(NodeRef sourceRef, NodeRef targetRef, Map<String, List<String>> recipients,
                                  String notificationType, String subjectTemplate, boolean afterCommit) {
-        if (!aspectConditionIsFulfilled(sourceRef) || existExcludeStatus(sourceRef)) {
+        if (!aspectConditionIsFulfilled(sourceRef) || !isStatusAllowed(sourceRef)) {
             return;
         }
 
@@ -179,13 +181,17 @@ public class ICaseDocumentNotificationSender extends DocumentNotificationSender 
         return true;
     }
 
-    private boolean existExcludeStatus(NodeRef iCase) {
+    private boolean isStatusAllowed(NodeRef iCase) {
         if (!nodeService.exists(iCase)) {
-            logger.error("Cannot check exclude statuses, because node: " + iCase + " doesn't exists");
+            logger.error("Cannot check status, because node: " + iCase + " doesn't exists");
             return false;
         }
+
         String status = caseStatusService.getStatus(iCase);
-        return !(excludeStatuses == null || !excludeStatuses.contains(status));
+        boolean allowed = allowedStatuses == null || allowedStatuses.contains(status);
+        boolean excluded = excludeStatuses != null && excludeStatuses.contains(status);
+
+        return allowed && !excluded;
     }
 
     public void setNodeVariable(String nodeVariable) {
@@ -218,6 +224,10 @@ public class ICaseDocumentNotificationSender extends DocumentNotificationSender 
 
     public void setExcludeStatuses(List<String> excludeStatuses) {
         this.excludeStatuses = excludeStatuses;
+    }
+
+    public void setAllowedStatuses(List<String> allowedStatuses) {
+        this.allowedStatuses = allowedStatuses;
     }
 
     public void setCaseStatusService(CaseStatusService caseStatusService) {
