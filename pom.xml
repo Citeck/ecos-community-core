@@ -67,7 +67,7 @@
         <default.locale>en</default.locale>
         <yuicompressor.compress.skip>false</yuicompressor.compress.skip>
 
-        <ecos.flowable.version>2.0.5</ecos.flowable.version>
+        <ecos.flowable.version>2.0.8</ecos.flowable.version>
         <ecos.records.version>1.36.0</ecos.records.version>
         <ecos.apps.lib.version>2.9.0</ecos.apps.lib.version>
         <ecos.jackson.version>2.10.4.3</ecos.jackson.version>
@@ -730,6 +730,26 @@
         </resources>
 
         <plugins>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-enforcer-plugin</artifactId>
+                <version>3.0.0</version>
+                <configuration>
+                    <rules>
+                        <requireReleaseDeps>
+                            <message>You should remove snapshot dependencies before release build</message>
+                            <onlyWhenRelease>true</onlyWhenRelease>
+                        </requireReleaseDeps>
+                        <bannedDependencies>
+                            <excludes>
+                                <exclude>org.apache.logging.log4j:log4j-core:(,2.17.0)</exclude>
+                            </excludes>
+                        </bannedDependencies>
+                    </rules>
+                    <fail>true</fail>
+                </configuration>
+            </plugin>
 
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
