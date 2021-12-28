@@ -24,7 +24,6 @@ import org.alfresco.service.cmr.repository.NodeRef;
 import org.apache.commons.lang.StringUtils;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
-
 import ru.citeck.ecos.workflow.listeners.AbstractExecutionListener;
 
 import java.util.*;
@@ -36,6 +35,7 @@ public class PrecedenceToJsonListener extends AbstractExecutionListener {
     public static final String FIELD_NODEREF = "nodeRef";
     public static final String FIELD_DUEDATE = "dueDate";
     public static final String FIELD_AMOUNT_HOURS = "amountHours";
+    public static final String SPLITTER = "_";
 
     private Expression var;
     private Expression precedence;
@@ -65,14 +65,23 @@ public class PrecedenceToJsonListener extends AbstractExecutionListener {
                 for (String confirmer : confirmLines) {
                     if (!confirmer.isEmpty()) {
                         JSONObject conf = new JSONObject();
-                        String[] splittedStrings = confirmer.split("_");
-                        conf.put(FIELD_NODEREF, splittedStrings[0]);
+                        String[] splittedStrings = confirmer.split(SPLITTER);
+                        String ref = splittedStrings[0];
+                        String timePeriod = "";
+                        if (splittedStrings.length > 2) {
+                            ref = composeRef(splittedStrings);
+                            timePeriod = splittedStrings[splittedStrings.length - 1];
+                        }
+                        conf.put(FIELD_NODEREF, ref);
                         // full name is not supported in old format
-                        conf.put("fullName", splittedStrings[0]);
+                        conf.put("fullName", ref);
                         // 'can cancel' is not supported in old format
                         conf.put("canCancel", false);
                         if (splittedStrings.length > 1) {
-                            conf.put(FIELD_AMOUNT_HOURS, getNumberOfHoursForStage(splittedStrings[1]));
+                            if (StringUtils.isBlank(timePeriod)) {
+                                timePeriod = splittedStrings[1];
+                            }
+                            conf.put(FIELD_AMOUNT_HOURS, getNumberOfHoursForStage(timePeriod));
                         }
                         confirmers.add(conf);
                     }
@@ -144,12 +153,21 @@ public class PrecedenceToJsonListener extends AbstractExecutionListener {
         String time = timeStage.split("/")[0];
         String timeType = timeStage.split("/")[1];
         if ("m".equals(timeType)) {
-            return (double)Math.round(Double.parseDouble(time) * 30 * 24 * 1000)/1000;
+            return (double) Math.round(Double.parseDouble(time) * 30 * 24 * 1000) / 1000;
         } else if ("d".equals(timeType)) {
-            return (double)Math.round(Double.parseDouble(time) * 24 * 1000)/1000;
+            return (double) Math.round(Double.parseDouble(time) * 24 * 1000) / 1000;
         } else {
             return Double.parseDouble(time);
         }
+    }
+
+    private static String composeRef(String[] splittedStrings) {
+        StringBuilder stringBuilder = new StringBuilder(splittedStrings[0]);
+        for (int i = 1; i < splittedStrings.length - 1; i++) {
+            stringBuilder.append(SPLITTER);
+            stringBuilder.append(splittedStrings[i]);
+        }
+        return stringBuilder.toString();
     }
 
     public static class Stage {
