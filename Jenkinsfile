@@ -52,8 +52,8 @@ timestamps {
         if (buildStopMsg != "") {
           echo buildStopMsg
           buildTools.notifyBuildWarning(repoUrl, buildStopMsg, env)
-          currentBuild.result = 'NOT_BUILT'
-          return
+          // currentBuild.result = 'NOT_BUILT'
+          // return
         }
       }
 
