@@ -52,8 +52,8 @@ timestamps {
         if (buildStopMsg != "") {
           echo buildStopMsg
           buildTools.notifyBuildWarning(repoUrl, buildStopMsg, env)
-          currentBuild.result = 'NOT_BUILT'
-          return
+          // currentBuild.result = 'NOT_BUILT'
+          // return
         }
       }
 
@@ -67,6 +67,7 @@ timestamps {
 
       stage('Assembling and publishing project artifacts') {
         withMaven(mavenLocalRepo: '/opt/jenkins/.m2/repository', tempBinDir: '') {
+          sh "mvn enforcer:enforce"
           sh "mvn clean deploy"
           sh "mvn clean"
         }

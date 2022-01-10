@@ -1,5 +1,6 @@
 package ru.citeck.ecos.records;
 
+import kotlin.Unit;
 import kotlin.jvm.functions.Function0;
 import org.alfresco.repo.security.authentication.AuthenticationUtil;
 import org.alfresco.service.ServiceRegistry;
@@ -25,7 +26,6 @@ import ru.citeck.ecos.eureka.EcosServiceDiscovery;
 import ru.citeck.ecos.eureka.EcosServiceInstanceInfo;
 import ru.citeck.ecos.eureka.EurekaContextConfig;
 import ru.citeck.ecos.graphql.AlfGqlContext;
-import ru.citeck.ecos.records.type.TypesManager;
 import ru.citeck.ecos.records2.RecordRef;
 import ru.citeck.ecos.records3.RecordsProperties;
 import ru.citeck.ecos.records2.evaluator.RecordEvaluatorService;
@@ -71,6 +71,10 @@ public class RecordsConfiguration extends RecordsServiceFactory {
     @Autowired
     @Qualifier(EurekaContextConfig.REST_TEMPLATE_ID)
     private RestTemplate eurekaRestTemplate;
+
+    @Autowired
+    @Qualifier(EurekaContextConfig.SECURED_REST_TEMPLATE_ID)
+    private RestTemplate eurekaSecuredRestTemplate;
 
     @Autowired
     private UrlUtils urlUtils;
@@ -166,7 +170,13 @@ public class RecordsConfiguration extends RecordsServiceFactory {
         }
 
         HttpEntity<byte[]> httpEntity = new HttpEntity<>(request.getBody(), headers);
-        ResponseEntity<byte[]> result = eurekaRestTemplate.exchange(url, HttpMethod.POST, httpEntity, byte[].class);
+        RestTemplate restTemplate;
+        if (url.startsWith("https")) {
+            restTemplate = this.eurekaSecuredRestTemplate;
+        } else {
+            restTemplate = this.eurekaRestTemplate;
+        }
+        ResponseEntity<byte[]> result = restTemplate.exchange(url, HttpMethod.POST, httpEntity, byte[].class);
 
         RestResponseEntity resultEntity = new RestResponseEntity();
         resultEntity.setBody(result.getBody());
@@ -185,15 +195,15 @@ public class RecordsConfiguration extends RecordsServiceFactory {
                 return null;
             }
 
-            RemoteAppInfo info = new RemoteAppInfo();
-            info.setIp(instanceInfo.getIp());
-            info.setHost(instanceInfo.getHost());
-            info.setPort(instanceInfo.getPort());
-
-            info.setRecordsBaseUrl(instanceInfo.getMetadata().get(RestConstants.RECS_BASE_URL_META_KEY));
-            info.setRecordsUserBaseUrl(instanceInfo.getMetadata().get(RestConstants.RECS_USER_BASE_URL_META_KEY));
-
-            return info;
+            return RemoteAppInfo.create(b -> {
+                b.withIp(instanceInfo.getIp());
+                b.withHost(instanceInfo.getHost());
+                b.withPort(instanceInfo.getPort());
+                b.withRecordsBaseUrl(instanceInfo.getMetadata().get(RestConstants.RECS_BASE_URL_META_KEY));
+                b.withRecordsUserBaseUrl(instanceInfo.getMetadata().get(RestConstants.RECS_USER_BASE_URL_META_KEY));
+                b.withSecurePortEnabled(instanceInfo.getSecurePortEnabled());
+                return Unit.INSTANCE;
+            });
         };
     }
 
