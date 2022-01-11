@@ -125,15 +125,14 @@ public class FlowableEventFactory {
             List<AssociationRef> packageAssocs = nodeService.getSourceAssocs(bpmPackage,
                 ICaseTaskModel.ASSOC_WORKFLOW_PACKAGE);
 
-            if (CollectionUtils.isEmpty(packageAssocs)) {
+            if (CollectionUtils.isNotEmpty(packageAssocs)) {
                 NodeRef caseTask = packageAssocs.get(0).getSourceRef();
                 dto.setCaseTask(caseTask.toString());
+
+                String roleName = taskHistoryUtils.getRoleName(packageAssocs, assignee, task.getId(),
+                    FlowableConstants.ENGINE_ID);
+                dto.setTaskRole(roleName);
             }
-
-            String roleName = taskHistoryUtils.getRoleName(packageAssocs, assignee, task.getId(),
-                FlowableConstants.ENGINE_ID);
-
-            dto.setTaskRole(roleName);
         }
 
         ArrayList<NodeRef> pooledActors = FlowableListenerUtils.getPooledActors(task, authorityService);
