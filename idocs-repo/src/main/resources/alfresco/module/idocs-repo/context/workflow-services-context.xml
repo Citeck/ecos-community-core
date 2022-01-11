@@ -14,33 +14,34 @@
     <!-- ========================= -->
 
     <util:list id="WorkflowService.Interceptors">
-        <idref bean="WorkflowLoggingInterceptor" />
-        <idref bean="WorkflowService_transaction" />
-        <idref bean="AuditMethodInterceptor" />
-        <idref bean="exceptionTranslator" />
-        <idref bean="WorkflowService_security" />
-        <idref bean="WorkflowSecurityInterceptor" />
+        <idref bean="WorkflowLoggingInterceptor"/>
+        <idref bean="WorkflowService_transaction"/>
+        <idref bean="AuditMethodInterceptor"/>
+        <idref bean="exceptionTranslator"/>
+        <idref bean="WorkflowService_security"/>
+        <idref bean="WorkflowSecurityInterceptor"/>
     </util:list>
 
     <bean id="WorkflowLoggingInterceptor" class="ru.citeck.ecos.spring.aop.LoggingInterceptor">
-        <property name="loggerName" value="org.alfresco.repo.workflow" />
-        <property name="exceptionLevel" value="INFO" />
+        <property name="loggerName" value="org.alfresco.repo.workflow"/>
+        <property name="exceptionLevel" value="INFO"/>
     </bean>
 
     <bean id="WorkflowService" class="org.springframework.aop.framework.ProxyFactoryBean">
         <property name="proxyInterfaces">
             <value>org.alfresco.service.cmr.workflow.WorkflowService</value>
         </property>
-        <property name="target" ref="workflowServiceImpl" />
-        <property name="interceptorNames" ref="WorkflowService.Interceptors" />
+        <property name="target" ref="workflowServiceImpl"/>
+        <property name="interceptorNames" ref="WorkflowService.Interceptors"/>
     </bean>
 
-    <bean id="WorkflowSecurityInterceptor" class="ru.citeck.ecos.workflow.security.WorkflowSecurityInterceptor" init-method="init">
-        <property name="personService" ref="personService" />
-        <property name="authorityService" ref="authorityService" />
-        <property name="nodeService" ref="nodeService" />
-        <property name="globalProperties" ref="global-properties" />
-        <property name="propertyFormat" value="workflow-security.%s.allowed" />
+    <bean id="WorkflowSecurityInterceptor" class="ru.citeck.ecos.workflow.security.WorkflowSecurityInterceptor"
+          init-method="init">
+        <property name="personService" ref="personService"/>
+        <property name="authorityService" ref="authorityService"/>
+        <property name="nodeService" ref="nodeService"/>
+        <property name="globalProperties" ref="global-properties"/>
+        <property name="propertyFormat" value="workflow-security.%s.allowed"/>
     </bean>
 
 
@@ -78,29 +79,31 @@
     <!-- ========================= -->
 
     <bean name="ConfirmHelper" class="ru.citeck.ecos.workflow.confirm.ConfirmHelper">
-        <property name="serviceRegistry" ref="ServiceRegistry" />
+        <property name="serviceRegistry" ref="ServiceRegistry"/>
     </bean>
 
-    <bean name="ConfirmableVersionJS" class="ru.citeck.ecos.workflow.confirm.ConfirmableVersionJS" parent="baseJavaScriptExtension">
-        <property name="extensionName" value="versions" />
-        <property name="impl" ref="ConfirmHelper" />
+    <bean name="ConfirmableVersionJS" class="ru.citeck.ecos.workflow.confirm.ConfirmableVersionJS"
+          parent="baseJavaScriptExtension">
+        <property name="extensionName" value="versions"/>
+        <property name="impl" ref="ConfirmHelper"/>
     </bean>
 
-    <bean name="ConfirmDecisionsJS" class="ru.citeck.ecos.workflow.confirm.ConfirmDecisionsJS" parent="baseJavaScriptExtension">
-        <property name="extensionName" value="confirmDecisions" />
-        <property name="serviceRegistry" ref="ServiceRegistry" />
-        <property name="impl" ref="ConfirmHelper" />
+    <bean name="ConfirmDecisionsJS" class="ru.citeck.ecos.workflow.confirm.ConfirmDecisionsJS"
+          parent="baseJavaScriptExtension">
+        <property name="extensionName" value="confirmDecisions"/>
+        <property name="serviceRegistry" ref="ServiceRegistry"/>
+        <property name="impl" ref="ConfirmHelper"/>
     </bean>
 
     <!-- deprecated -->
     <bean id="confirm-list"
           class="ru.citeck.ecos.confirm.ConfirmListService" depends-on="idocs.workflowBootstrap">
-        <property name="nodeService" ref="NodeService" />
-        <property name="workflowService" ref="WorkflowService" />
-        <property name="personService" ref="PersonService" />
-        <property name="dictionaryService" ref="DictionaryService" />
-        <property name="authorityService" ref="AuthorityService" />
-        <property name="messageService" ref="messageService" />
+        <property name="nodeService" ref="NodeService"/>
+        <property name="workflowService" ref="WorkflowService"/>
+        <property name="personService" ref="PersonService"/>
+        <property name="dictionaryService" ref="DictionaryService"/>
+        <property name="authorityService" ref="AuthorityService"/>
+        <property name="messageService" ref="messageService"/>
         <property name="workflowNames">
             <set>
                 <value>activiti$confirm</value>
@@ -114,52 +117,54 @@
     </bean>
 
     <!-- activiti script utils -->
-    <bean id="ActivitiScriptUtils" class="ru.citeck.ecos.workflow.activiti.ActivitiScriptUtils" parent="baseJavaScriptExtension">
-        <property name="extensionName" value="activitiUtils" />
-        <property name="serviceRegistry" ref="ServiceRegistry" />
+    <bean id="ActivitiScriptUtils" class="ru.citeck.ecos.workflow.activiti.ActivitiScriptUtils"
+          parent="baseJavaScriptExtension">
+        <property name="extensionName" value="activitiUtils"/>
+        <property name="serviceRegistry" ref="ServiceRegistry"/>
     </bean>
 
     <!-- activiti business-calendars -->
 
     <bean id="activitiBusinessCalendar" class="ru.citeck.ecos.workflow.calendar.AbstractActivitiCalendar"
-        abstract="true" init-method="init">
+          abstract="true" init-method="init">
         <!-- 'name' property is specified by subclasses -->
         <!-- <property name="name" value="" /> -->
-        <property name="processEngineConfiguration" ref="activitiProcessEngineConfiguration" />
+        <property name="processEngineConfiguration" ref="activitiProcessEngineConfiguration"/>
     </bean>
 
     <bean id="activitiBusinessCalendarAlias" class="ru.citeck.ecos.workflow.calendar.ActivitiCalendarAlias"
-        parent="activitiBusinessCalendar" abstract="true">
+          parent="activitiBusinessCalendar" abstract="true">
         <!-- subclass should specify 'name' and 'calendar' properties -->
     </bean>
 
     <!-- Activiti Global Listeners -->
-    <bean id="idocs.workflows.ActivitiListenerLoaderProcessor" class="ru.citeck.ecos.workflow.activiti.ActivitiListenerLoaderProcessor">
+    <bean id="idocs.workflows.ActivitiListenerLoaderProcessor"
+          class="ru.citeck.ecos.workflow.activiti.ActivitiListenerLoaderProcessor">
         <property name="beanName">
-            <idref bean="activitiProcessEngineConfiguration" />
+            <idref bean="activitiProcessEngineConfiguration"/>
         </property>
-        <property name="beanClass" value="org.activiti.engine.ProcessEngineConfiguration" />
+        <property name="beanClass" value="org.activiti.engine.ProcessEngineConfiguration"/>
         <property name="loaders">
             <list>
-                <bean class="ru.citeck.ecos.workflow.activiti.ActivitiListenerLoaderListenerImpl" />
-                <bean class="ru.citeck.ecos.workflow.activiti.ActivitiListenerLoaderHandlerImpl" />
+                <bean class="ru.citeck.ecos.workflow.activiti.ActivitiListenerLoaderListenerImpl"/>
+                <bean class="ru.citeck.ecos.workflow.activiti.ActivitiListenerLoaderHandlerImpl"/>
             </list>
         </property>
         <property name="taskListeners">
             <map>
                 <entry key="assignment">
                     <bean class="ru.citeck.ecos.workflow.listeners.CompositeTaskListener">
-                        <property name="listeners" ref="activiti-listeners.task.assignment" />
+                        <property name="listeners" ref="activiti-listeners.task.assignment"/>
                     </bean>
                 </entry>
                 <entry key="create">
                     <bean class="ru.citeck.ecos.workflow.listeners.CompositeTaskListener">
-                        <property name="listeners" ref="activiti-listeners.task.create" />
+                        <property name="listeners" ref="activiti-listeners.task.create"/>
                     </bean>
                 </entry>
                 <entry key="complete">
                     <bean class="ru.citeck.ecos.workflow.listeners.CompositeTaskListener">
-                        <property name="listeners" ref="activiti-listeners.task.complete" />
+                        <property name="listeners" ref="activiti-listeners.task.complete"/>
                     </bean>
                 </entry>
             </map>
@@ -168,64 +173,67 @@
             <map>
                 <entry key="start">
                     <bean class="ru.citeck.ecos.workflow.listeners.CompositeExecutionListener">
-                        <property name="listeners" ref="activiti-listeners.process.start" />
+                        <property name="listeners" ref="activiti-listeners.process.start"/>
                     </bean>
                 </entry>
                 <entry key="end">
                     <bean class="ru.citeck.ecos.workflow.listeners.CompositeExecutionListener">
-                        <property name="listeners" ref="activiti-listeners.process.end" />
+                        <property name="listeners" ref="activiti-listeners.process.end"/>
                     </bean>
                 </entry>
             </map>
         </property>
     </bean>
 
-    <bean id="idocs.workflow.jsonObjectMapper" class="ru.citeck.ecos.workflow.variable.json.JsonObjectMapper" init-method="init">
+    <bean id="idocs.workflow.jsonObjectMapper" class="ru.citeck.ecos.workflow.variable.json.JsonObjectMapper"
+          init-method="init">
         <property name="mixIns">
             <map>
-                <entry key="org.alfresco.service.cmr.repository.NodeRef" value="ru.citeck.ecos.utils.json.mixin.NodeRefMixIn" />
-                <entry key="org.alfresco.service.namespace.QName" value="ru.citeck.ecos.utils.json.mixin.QNameMixIn" />
+                <entry key="org.alfresco.service.cmr.repository.NodeRef"
+                       value="ru.citeck.ecos.utils.json.mixin.NodeRefMixIn"/>
+                <entry key="org.alfresco.service.namespace.QName" value="ru.citeck.ecos.utils.json.mixin.QNameMixIn"/>
             </map>
         </property>
     </bean>
 
     <bean id="workflow.variable.EcosPojoTypeHandler"
           class="ru.citeck.ecos.workflow.variable.handler.EcosPojoTypeHandler">
-        <property name="objectMapper" ref="idocs.workflow.jsonObjectMapper" />
+        <property name="objectMapper" ref="idocs.workflow.jsonObjectMapper"/>
     </bean>
 
-    <bean id="idocs.workflows.ActivitiCustomTypes" class="ru.citeck.ecos.workflow.activiti.ActivitiCustomTypesProcessor">
+    <bean id="idocs.workflows.ActivitiCustomTypes"
+          class="ru.citeck.ecos.workflow.activiti.ActivitiCustomTypesProcessor">
         <property name="customPreVariableTypes">
             <list>
-                <ref bean="workflow.variable.EcosPojoTypeHandler" />
+                <ref bean="workflow.variable.EcosPojoTypeHandler"/>
             </list>
         </property>
     </bean>
 
     <!-- listener lists -->
-    <bean id="activiti-listeners" class="java.util.LinkedList" abstract="true" />
-    <bean parent="activiti-listeners" id="activiti-listeners.task.assignment" />
-    <bean parent="activiti-listeners" id="activiti-listeners.task.create" />
-    <bean parent="activiti-listeners" id="activiti-listeners.task.complete" />
-    <bean parent="activiti-listeners" id="activiti-listeners.process.start" />
-    <bean parent="activiti-listeners" id="activiti-listeners.process.end" />
+    <bean id="activiti-listeners" class="java.util.LinkedList" abstract="true"/>
+    <bean parent="activiti-listeners" id="activiti-listeners.task.assignment"/>
+    <bean parent="activiti-listeners" id="activiti-listeners.task.create"/>
+    <bean parent="activiti-listeners" id="activiti-listeners.task.complete"/>
+    <bean parent="activiti-listeners" id="activiti-listeners.process.start"/>
+    <bean parent="activiti-listeners" id="activiti-listeners.process.end"/>
 
     <!-- listener registrars -->
-    <bean id="activiti-listener-registrar" class="ru.citeck.ecos.spring.AddToList" abstract="true" />
+    <bean id="activiti-listener-registrar" class="ru.citeck.ecos.spring.AddToList" abstract="true"/>
     <bean id="activiti-listener.task.assignment" parent="activiti-listener-registrar" abstract="true">
-        <property name="list" ref="activiti-listeners.task.assignment" />
+        <property name="list" ref="activiti-listeners.task.assignment"/>
     </bean>
     <bean id="activiti-listener.task.create" parent="activiti-listener-registrar" abstract="true">
-        <property name="list" ref="activiti-listeners.task.create" />
+        <property name="list" ref="activiti-listeners.task.create"/>
     </bean>
     <bean id="activiti-listener.task.complete" parent="activiti-listener-registrar" abstract="true">
-        <property name="list" ref="activiti-listeners.task.complete" />
+        <property name="list" ref="activiti-listeners.task.complete"/>
     </bean>
     <bean id="activiti-listener.process.start" parent="activiti-listener-registrar" abstract="true">
-        <property name="list" ref="activiti-listeners.process.start" />
+        <property name="list" ref="activiti-listeners.process.start"/>
     </bean>
     <bean id="activiti-listener.process.end" parent="activiti-listener-registrar" abstract="true">
-        <property name="list" ref="activiti-listeners.process.end" />
+        <property name="list" ref="activiti-listeners.process.end"/>
     </bean>
 
     <!-- core listeners configuration -->
@@ -233,15 +241,15 @@
     <bean parent="activiti-listener.task.assignment">
         <property name="values">
             <list>
-                <ref bean="assignTaskToSingleCandidate" />
-                <ref bean="onAssignTaskSetLastOwnerListener" />
-                <ref bean="onAssignPoolTaskListener" />
-                <ref bean="workflowMirrorListener" />
-                <ref bean="taskAssignDateListener" />
+                <ref bean="assignTaskToSingleCandidate"/>
+                <ref bean="onAssignTaskSetLastOwnerListener"/>
+                <ref bean="onAssignPoolTaskListener"/>
+                <ref bean="workflowMirrorListener"/>
+                <ref bean="taskAssignDateListener"/>
                 <!--<ref bean="grantWorkflowPackage" />-->
-                <ref bean="simpleGrantWorkflowPackage" />
-                <ref bean="taskHistoryListener" />
-                <ref bean="sendUnavailableOnAssignTaskListener" />
+                <ref bean="simpleGrantWorkflowPackage"/>
+                <ref bean="taskHistoryListener"/>
+                <ref bean="sendUnavailableOnAssignTaskListener"/>
                 <ref bean="taskEventListener"/>
             </list>
         </property>
@@ -250,17 +258,19 @@
     <bean parent="activiti-listener.task.create">
         <property name="values">
             <list>
-                <ref bean="citeckTaskSenderPull" />
-                <ref bean="lastCommentPull" />
-                <ref bean="taskPriorityPull" />
+                <ref bean="citeckTaskSenderPull"/>
+                <ref bean="lastCommentPull"/>
+                <ref bean="taskPriorityPull"/>
                 <ref bean="taskOriginalOwner"/>
-                <ref bean="workflowMirrorListener" />
+                <ref bean="workflowMirrorListener"/>
                 <!--<ref bean="grantWorkflowPackage" />-->
-                <ref bean="simpleGrantWorkflowPackage" />
-                <ref bean="taskHistoryListener" />
-                <ref bean="assignTaskToSingleCandidate" />
-                <ref bean="sendTaskNotificationListener" />
+                <ref bean="simpleGrantWorkflowPackage"/>
+                <ref bean="taskHistoryListener"/>
+                <ref bean="sendTaskNotificationListener"/>
                 <ref bean="taskEventListener"/>
+                <!--assignTaskToSingleCandidate must be at the end of registrations
+                for the correct sequence of listeners-->
+                <ref bean="assignTaskToSingleCandidate"/>
             </list>
         </property>
     </bean>
@@ -268,14 +278,14 @@
     <bean parent="activiti-listener.task.complete">
         <property name="values">
             <list>
-                <ref bean="citeckTaskSenderPush" />
-                <ref bean="lastCommentPush" />
-                <ref bean="taskOutcomePush" />
+                <ref bean="citeckTaskSenderPush"/>
+                <ref bean="lastCommentPush"/>
+                <ref bean="taskOutcomePush"/>
                 <!--<ref bean="revokeWorkflowPackage" />-->
-                <ref bean="completeDelegateTaskListener" />
-                <ref bean="sendUnavailableOnCompleteTaskListener" />
-                <ref bean="workflowMirrorListener" />
-                <ref bean="taskHistoryListener" />
+                <ref bean="completeDelegateTaskListener"/>
+                <ref bean="sendUnavailableOnCompleteTaskListener"/>
+                <ref bean="workflowMirrorListener"/>
+                <ref bean="taskHistoryListener"/>
                 <ref bean="taskEventListener"/>
             </list>
         </property>
@@ -284,12 +294,12 @@
     <bean parent="activiti-listener.process.start">
         <property name="values">
             <list>
-                <ref bean="setInitiatorStartProcessListener" />
-                <ref bean="lifeCycleStartProcessListener" />
-                <ref bean="workflowHistoryListener" />
-                <ref bean="setPriorityWorkflowListener" />
-                <ref bean="packageFieldsFillingListener" />
-                <ref bean="sendStartWorkflowNotificationListener" />
+                <ref bean="setInitiatorStartProcessListener"/>
+                <ref bean="lifeCycleStartProcessListener"/>
+                <ref bean="workflowHistoryListener"/>
+                <ref bean="setPriorityWorkflowListener"/>
+                <ref bean="packageFieldsFillingListener"/>
+                <ref bean="sendStartWorkflowNotificationListener"/>
             </list>
         </property>
     </bean>
@@ -298,12 +308,12 @@
         <property name="values">
             <list>
                 <!--<ref bean="revokeFinalWorkflowPackage" />-->
-                <ref bean="cancelWorkflowListener" />
-                <ref bean="completeWorkflowListener" />
-                <ref bean="lifeCycleEndProcessListener" />
-                <ref bean="workflowHistoryListener" />
-                <ref bean="mirrorEndProcessListener" />
-                <ref bean="caseTaskEndProcessListener" />
+                <ref bean="cancelWorkflowListener"/>
+                <ref bean="completeWorkflowListener"/>
+                <ref bean="lifeCycleEndProcessListener"/>
+                <ref bean="workflowHistoryListener"/>
+                <ref bean="mirrorEndProcessListener"/>
+                <ref bean="caseTaskEndProcessListener"/>
             </list>
         </property>
     </bean>
@@ -312,21 +322,21 @@
     <!-- lifecycle listeners -->
     <!-- =================== -->
 
-    <bean id="lifeCycleEndProcessListener" class="ru.citeck.ecos.workflow.listeners.LifeCycleEndProcessListener" />
-    <bean id="lifeCycleStartProcessListener" class="ru.citeck.ecos.workflow.listeners.LifeCycleStartProcessListener" />
+    <bean id="lifeCycleEndProcessListener" class="ru.citeck.ecos.workflow.listeners.LifeCycleEndProcessListener"/>
+    <bean id="lifeCycleStartProcessListener" class="ru.citeck.ecos.workflow.listeners.LifeCycleStartProcessListener"/>
 
     <!-- =================== -->
     <!-- case management listeners -->
     <!-- =================== -->
 
-    <bean id="caseTaskEndProcessListener" class="ru.citeck.ecos.workflow.listeners.CaseTaskEndProcessListener" />
+    <bean id="caseTaskEndProcessListener" class="ru.citeck.ecos.workflow.listeners.CaseTaskEndProcessListener"/>
 
     <!-- =================== -->
     <!--  history listeners  -->
     <!-- =================== -->
 
-    <bean id="taskHistoryListener" class="ru.citeck.ecos.workflow.listeners.TaskHistoryListener" />
-    <bean id="workflowHistoryListener" class="ru.citeck.ecos.workflow.listeners.WorkflowHistoryListener" />
+    <bean id="taskHistoryListener" class="ru.citeck.ecos.workflow.listeners.TaskHistoryListener"/>
+    <bean id="workflowHistoryListener" class="ru.citeck.ecos.workflow.listeners.WorkflowHistoryListener"/>
 
 
     <bean id="taskEventListener" class="ru.citeck.ecos.workflow.listeners.TaskEventListener"/>
@@ -343,107 +353,114 @@
     </bean>
 
     <bean id="onAssignPoolTaskListener" class="ru.citeck.ecos.workflow.listeners.OnAssignPoolTaskListener">
-        <property name="serviceRegistry" ref="ServiceRegistry" />
-        <property name="sender" ref="PoolTaskNotificationSender" />
+        <property name="serviceRegistry" ref="ServiceRegistry"/>
+        <property name="sender" ref="PoolTaskNotificationSender"/>
         <property name="enabled" value="${notification.pool.task.enabled}"/>
     </bean>
 
     <bean id="PoolTaskNotificationSender"
-        class="ru.citeck.ecos.notification.TaskNotificationSender" parent="AbstractNotificationSender">
-        <property name="serviceRegistry" ref="ServiceRegistry" />
-        <property name="templateRoot" value="/app:company_home/app:dictionary/app:email_templates/cm:workflownotification" />
-        <property name="notificationType" value="assign_task" />
+          class="ru.citeck.ecos.notification.TaskNotificationSender" parent="AbstractNotificationSender">
+        <property name="serviceRegistry" ref="ServiceRegistry"/>
+        <property name="templateRoot"
+                  value="/app:company_home/app:dictionary/app:email_templates/cm:workflownotification"/>
+        <property name="notificationType" value="assign_task"/>
         <property name="defaultTemplate" value="cm:pool-task-email-notification.html.ftl"/>
     </bean>
 
     <bean id="sendTaskNotificationListener" class="ru.citeck.ecos.notification.ActivitiTaskListener">
-        <property name="sender" ref="DelegateTaskNotificationSender" />
+        <property name="sender" ref="DelegateTaskNotificationSender"/>
         <property name="enabled" value="${notification.start.task.enabled}"/>
     </bean>
 
     <!-- Delegate Task Notification Sender-->
     <bean id="DelegateTaskNotificationSender"
-        class="ru.citeck.ecos.notification.DelegateTaskNotificationSender" parent="AbstractNotificationSender">
-        <property name="serviceRegistry" ref="ServiceRegistry" />
-        <property name="templateRoot" value="/app:company_home/app:dictionary/app:email_templates/cm:workflownotification" />
+          class="ru.citeck.ecos.notification.DelegateTaskNotificationSender" parent="AbstractNotificationSender">
+        <property name="serviceRegistry" ref="ServiceRegistry"/>
+        <property name="templateRoot"
+                  value="/app:company_home/app:dictionary/app:email_templates/cm:workflownotification"/>
         <property name="defaultTemplate" value="cm:default-email-notification.html.ftl"/>
         <property name="nodeOwnerDAO" ref="NodeOwnerDAO"/>
-        <property name="notificationType" value="start_task" />
+        <property name="notificationType" value="start_task"/>
     </bean>
 
     <bean id="completeDelegateTaskListener" class="ru.citeck.ecos.notification.CompleteTaskListener">
-        <property name="serviceRegistry" ref="ServiceRegistry" />
-        <property name="sender" ref="CompleteDelegateTaskNotificationSender" />
+        <property name="serviceRegistry" ref="ServiceRegistry"/>
+        <property name="sender" ref="CompleteDelegateTaskNotificationSender"/>
         <property name="enabled" value="${notification.complete.task.enabled}"/>
     </bean>
 
     <bean id="sendUnavailableOnCompleteTaskListener" class="ru.citeck.ecos.notification.CompleteTaskListener">
-        <property name="serviceRegistry" ref="ServiceRegistry" />
-        <property name="sender" ref="NotAvailableCompleteTaskNotificationSender" />
+        <property name="serviceRegistry" ref="ServiceRegistry"/>
+        <property name="sender" ref="NotAvailableCompleteTaskNotificationSender"/>
         <property name="enabled" value="${notification.unavailable.complete.task.enabled}"/>
     </bean>
 
     <bean id="CompleteDelegateTaskNotificationSender"
-        class="ru.citeck.ecos.notification.StartDelegateTaskNotificationSender" parent="AbstractNotificationSender">
-        <property name="serviceRegistry" ref="ServiceRegistry" />
-        <property name="templateRoot" value="/app:company_home/app:dictionary/app:email_templates/cm:workflownotification" />
+          class="ru.citeck.ecos.notification.StartDelegateTaskNotificationSender" parent="AbstractNotificationSender">
+        <property name="serviceRegistry" ref="ServiceRegistry"/>
+        <property name="templateRoot"
+                  value="/app:company_home/app:dictionary/app:email_templates/cm:workflownotification"/>
         <property name="nodeOwnerDAO" ref="NodeOwnerDAO"/>
-        <property name="notificationType" value="complete_task" />
+        <property name="notificationType" value="complete_task"/>
     </bean>
 
     <bean id="NotAvailableCompleteTaskNotificationSender"
           class="ru.citeck.ecos.notification.NotAvailableTaskNotificationSender" parent="AbstractNotificationSender">
-        <property name="serviceRegistry" ref="ServiceRegistry" />
-        <property name="templateRoot" value="/app:company_home/app:dictionary/app:email_templates/cm:workflownotification" />
+        <property name="serviceRegistry" ref="ServiceRegistry"/>
+        <property name="templateRoot"
+                  value="/app:company_home/app:dictionary/app:email_templates/cm:workflownotification"/>
         <property name="nodeOwnerDAO" ref="NodeOwnerDAO"/>
         <property name="availabilityService" ref="availabilityService"/>
-        <property name="notificationType" value="complete_task" />
+        <property name="notificationType" value="complete_task"/>
     </bean>
 
     <bean id="sendUnavailableOnAssignTaskListener" class="ru.citeck.ecos.notification.ActivitiTaskListener">
-        <property name="sender" ref="NotAvailableAssignTaskNotificationSender" />
+        <property name="sender" ref="NotAvailableAssignTaskNotificationSender"/>
         <property name="enabled" value="${notification.unavailable.assign.task.enabled}"/>
     </bean>
 
     <bean id="NotAvailableAssignTaskNotificationSender"
           class="ru.citeck.ecos.notification.NotAvailableTaskNotificationSender" parent="AbstractNotificationSender">
-        <property name="serviceRegistry" ref="ServiceRegistry" />
-        <property name="templateRoot" value="/app:company_home/app:dictionary/app:email_templates/cm:workflownotification" />
+        <property name="serviceRegistry" ref="ServiceRegistry"/>
+        <property name="templateRoot"
+                  value="/app:company_home/app:dictionary/app:email_templates/cm:workflownotification"/>
         <property name="nodeOwnerDAO" ref="NodeOwnerDAO"/>
         <property name="availabilityService" ref="availabilityService"/>
-        <property name="notificationType" value="assign_task" />
+        <property name="notificationType" value="assign_task"/>
     </bean>
 
 
     <bean id="sendStartWorkflowNotificationListener" class="ru.citeck.ecos.notification.StartWorkflowListener">
-        <property name="sender" ref="StartWorkflowNotificationSender" />
+        <property name="sender" ref="StartWorkflowNotificationSender"/>
         <property name="enabled" value="${notification.start.workflow.enabled}"/>
     </bean>
 
     <bean id="cancelWorkflowListener" class="ru.citeck.ecos.notification.CancelWorkflowListener">
         <property name="enabled" value="${notification.cancel.workflow.enabled}"/>
-        <property name="sender" ref="CancelWorkflowNotificationSender" />
+        <property name="sender" ref="CancelWorkflowNotificationSender"/>
     </bean>
 
     <bean id="completeWorkflowListener" class="ru.citeck.ecos.notification.CompleteWorkflowListener">
         <property name="enabled" value="${notification.complete.workflow.enabled}"/>
-        <property name="sender" ref="CompleteWorkflowNotificationSender" />
+        <property name="sender" ref="CompleteWorkflowNotificationSender"/>
     </bean>
 
     <!--Start Delegate Task Notification Sender-->
     <bean id="StartWorkflowNotificationSender"
-        class="ru.citeck.ecos.notification.ExecutionEntityNotificationSender" parent="AbstractNotificationSender">
-        <property name="serviceRegistry" ref="ServiceRegistry" />
-        <property name="templateRoot" value="/app:company_home/app:dictionary/app:email_templates/cm:workflownotification" />
+          class="ru.citeck.ecos.notification.ExecutionEntityNotificationSender" parent="AbstractNotificationSender">
+        <property name="serviceRegistry" ref="ServiceRegistry"/>
+        <property name="templateRoot"
+                  value="/app:company_home/app:dictionary/app:email_templates/cm:workflownotification"/>
         <property name="notificationType" value="start_workflow"/>
         <property name="nodeOwnerDAO" ref="NodeOwnerDAO"/>
     </bean>
 
     <!--Cancel Workflow Notification Sender-->
     <bean id="CancelWorkflowNotificationSender"
-        class="ru.citeck.ecos.notification.ExecutionEntityNotificationSender" parent="AbstractNotificationSender">
-        <property name="serviceRegistry" ref="ServiceRegistry" />
-        <property name="templateRoot" value="/app:company_home/app:dictionary/app:email_templates/cm:workflownotification" />
+          class="ru.citeck.ecos.notification.ExecutionEntityNotificationSender" parent="AbstractNotificationSender">
+        <property name="serviceRegistry" ref="ServiceRegistry"/>
+        <property name="templateRoot"
+                  value="/app:company_home/app:dictionary/app:email_templates/cm:workflownotification"/>
         <property name="notificationType" value="cancel_workflow"/>
         <property name="nodeOwnerDAO" ref="NodeOwnerDAO"/>
     </bean>
@@ -451,8 +468,9 @@
     <!--Complete Workflow Notification Sender-->
     <bean id="CompleteWorkflowNotificationSender"
           class="ru.citeck.ecos.notification.ExecutionEntityNotificationSender" parent="AbstractNotificationSender">
-        <property name="serviceRegistry" ref="ServiceRegistry" />
-        <property name="templateRoot" value="/app:company_home/app:dictionary/app:email_templates/cm:workflownotification" />
+        <property name="serviceRegistry" ref="ServiceRegistry"/>
+        <property name="templateRoot"
+                  value="/app:company_home/app:dictionary/app:email_templates/cm:workflownotification"/>
         <property name="notificationType" value="complete_workflow"/>
         <property name="nodeOwnerDAO" ref="NodeOwnerDAO"/>
     </bean>
@@ -463,12 +481,13 @@
 
     <!-- task listener, that assigns task to a single candidate user -->
     <bean id="assignTaskToSingleCandidate" class="ru.citeck.ecos.workflow.listeners.AssignTaskToSingleCandidate">
-        <property name="authorityService" ref="AuthorityService" />
+        <property name="authorityService" ref="AuthorityService"/>
     </bean>
 
-    <bean id="onAssignTaskSetLastOwnerListener" class="ru.citeck.ecos.workflow.listeners.OnAssignTaskSetLastOwnerListener">
-        <property name="serviceRegistry" ref="ServiceRegistry" />
-        <property name="sender" ref="DelegateTaskNotificationSender" />
+    <bean id="onAssignTaskSetLastOwnerListener"
+          class="ru.citeck.ecos.workflow.listeners.OnAssignTaskSetLastOwnerListener">
+        <property name="serviceRegistry" ref="ServiceRegistry"/>
+        <property name="sender" ref="DelegateTaskNotificationSender"/>
         <property name="enabled" value="${notification.reassing.task.enabled}"/>
     </bean>
 
@@ -476,28 +495,28 @@
     <!-- property setting listeners -->
     <!-- ========================== -->
 
-    <bean id="citeckTaskSenderPush" class="ru.citeck.ecos.workflow.listeners.TaskSenderPush" />
-    <bean id="citeckTaskSenderPull" class="ru.citeck.ecos.workflow.listeners.TaskSenderPull" />
+    <bean id="citeckTaskSenderPush" class="ru.citeck.ecos.workflow.listeners.TaskSenderPush"/>
+    <bean id="citeckTaskSenderPull" class="ru.citeck.ecos.workflow.listeners.TaskSenderPull"/>
 
     <!-- task listener, that pushes task comment to execution -->
     <bean id="lastCommentPush" class="ru.citeck.ecos.workflow.listeners.VariablePush">
-        <property name="taskVariable" value="bpm_comment" />
-        <property name="executionVariable" value="cwf_lastcomment" />
+        <property name="taskVariable" value="bpm_comment"/>
+        <property name="executionVariable" value="cwf_lastcomment"/>
     </bean>
 
     <!-- task listener, that pulls last comment from execution to task variable -->
     <bean id="lastCommentPull" class="ru.citeck.ecos.workflow.listeners.VariablePull">
-        <property name="executionVariable" value="cwf_lastcomment" />
-        <property name="taskVariable" value="cwf_lastcomment" />
+        <property name="executionVariable" value="cwf_lastcomment"/>
+        <property name="taskVariable" value="cwf_lastcomment"/>
     </bean>
 
     <!-- task listener, that pushes task outcome to execution variable "outcome" -->
     <bean id="taskOutcomePush" class="ru.citeck.ecos.workflow.listeners.TaskOutcomePush">
-        <property name="outcomePropertyName" value="outcome" />
+        <property name="outcomePropertyName" value="outcome"/>
     </bean>
 
     <!-- task listener, that pulls task priority from execution variable "bpm_workflowPriority" -->
-    <bean id="taskPriorityPull" class="ru.citeck.ecos.workflow.listeners.TaskPriorityPull" />
+    <bean id="taskPriorityPull" class="ru.citeck.ecos.workflow.listeners.TaskPriorityPull"/>
 
     <bean id="taskAssignDateListener" class="ru.citeck.ecos.workflow.listeners.TaskAssignDateListener">
         <property name="enabled" value="${task.assign.date.listener.enabled}"/>
@@ -508,14 +527,16 @@
     </bean>
 
     <!--Set workflow initiator-->
-    <bean id="setInitiatorStartProcessListener" class="ru.citeck.ecos.workflow.listeners.SetInitiatorStartProcessListener" />
+    <bean id="setInitiatorStartProcessListener"
+          class="ru.citeck.ecos.workflow.listeners.SetInitiatorStartProcessListener"/>
 
     <bean id="setPriorityWorkflowListener" class="ru.citeck.ecos.workflow.listeners.SetPriorityWorkflowListener">
-        <property name="nodeService" ref="nodeService" />
+        <property name="nodeService" ref="nodeService"/>
     </bean>
 
     <!--Set task due date-->
-    <bean id="setTaskDueDateAsProcessDueDateListener" class="ru.citeck.ecos.workflow.listeners.SetTaskDueDateAsProcessDueDateListener" />
+    <bean id="setTaskDueDateAsProcessDueDateListener"
+          class="ru.citeck.ecos.workflow.listeners.SetTaskDueDateAsProcessDueDateListener"/>
 
     <!-- ================== -->
     <!-- security listeners -->
@@ -523,12 +544,12 @@
 
     <!-- task listener which grants workflow package to task actors -->
     <bean id="grantWorkflowPackage" class="ru.citeck.ecos.workflow.listeners.GrantWorkflowPackageListener">
-        <property name="helper" ref="GrantWorkflowPackageHelper" />
-        <property name="grantedPermission" value="${workflow-security.grant-permission}" />
+        <property name="helper" ref="GrantWorkflowPackageHelper"/>
+        <property name="grantedPermission" value="${workflow-security.grant-permission}"/>
     </bean>
 
     <bean id="simpleGrantWorkflowPackage" class="ru.citeck.ecos.workflow.listeners.SimpleGrantWorkflowPackageListener">
-        <property name="grantedPermission" value="${workflow-security.grant-permission}" />
+        <property name="grantedPermission" value="${workflow-security.grant-permission}"/>
         <property name="permissionService" ref="PermissionService"/>
         <property name="nodeService" ref="nodeService"/>
     </bean>
@@ -541,38 +562,40 @@
 
     <!-- task listener which revokes workflow package from task actors -->
     <bean id="revokeWorkflowPackage" class="ru.citeck.ecos.workflow.listeners.RevokeWorkflowPackageListener">
-        <property name="helper" ref="GrantWorkflowPackageHelper" />
-        <property name="postRevokePermission" value="${workflow-security.post-revoke-permission}" />
+        <property name="helper" ref="GrantWorkflowPackageHelper"/>
+        <property name="postRevokePermission" value="${workflow-security.post-revoke-permission}"/>
     </bean>
 
     <!-- execution listener which revokes all permissions granted within process tasks -->
     <bean id="revokeFinalWorkflowPackage" class="ru.citeck.ecos.workflow.listeners.RevokeFinalWorkflowPackageListener">
-        <property name="helper" ref="GrantWorkflowPackageHelper" />
-        <property name="revokeTaskPermissions" value="${workflow-security.revoke-task-permissions}" />
-        <property name="revokeProcessPermissions" value="${workflow-security.revoke-process-permissions}" />
+        <property name="helper" ref="GrantWorkflowPackageHelper"/>
+        <property name="revokeTaskPermissions" value="${workflow-security.revoke-task-permissions}"/>
+        <property name="revokeProcessPermissions" value="${workflow-security.revoke-process-permissions}"/>
     </bean>
 
     <!-- grant/revoke task-listeners helper -->
     <bean id="GrantWorkflowPackageHelper" class="ru.citeck.ecos.workflow.listeners.GrantWorkflowPackageHelper">
-        <property name="grantPermissionService" ref="GrantPermissionService" />
+        <property name="grantPermissionService" ref="GrantPermissionService"/>
         <property name="authorityHelper" ref="authorityHelper"/>
     </bean>
 
     <!-- confiscate/return execute-listeners helper -->
-    <bean id="ConfiscateWorkflowPackageHelper" class="ru.citeck.ecos.workflow.listeners.ConfiscateWorkflowPackageHelper">
-        <property name="confiscateService" ref="ConfiscateService" />
-        <property name="grantHelper" ref="GrantWorkflowPackageHelper" />
+    <bean id="ConfiscateWorkflowPackageHelper"
+          class="ru.citeck.ecos.workflow.listeners.ConfiscateWorkflowPackageHelper">
+        <property name="confiscateService" ref="ConfiscateService"/>
+        <property name="grantHelper" ref="GrantWorkflowPackageHelper"/>
     </bean>
 
     <!-- check and fill necessary package field on start process listener -->
     <bean id="packageFieldsFillingListener" class="ru.citeck.ecos.workflow.listeners.PackageFieldsFillingListener">
         <property name="nodeService" ref="nodeService"/>
-        <property name="namespaceService" ref="NamespaceService" />
+        <property name="namespaceService" ref="NamespaceService"/>
     </bean>
 
     <bean id="activiti.due-date-resolvers.mappingRegistry" class="ru.citeck.ecos.spring.registry.MappingRegistry"/>
 
-    <bean id="additional.activitiBeanRegistry" class="org.springframework.beans.factory.config.MethodInvokingFactoryBean"
+    <bean id="additional.activitiBeanRegistry"
+          class="org.springframework.beans.factory.config.MethodInvokingFactoryBean"
           depends-on="activitiBeanRegistry">
         <property name="targetObject">
             <ref bean="activitiBeanRegistry"/>

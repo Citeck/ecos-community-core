@@ -1,22 +1,22 @@
-package ru.citeck.ecos.workflow.listeners;
+package ru.citeck.ecos.flowable.listeners;
 
-import lombok.extern.slf4j.Slf4j;
-import org.activiti.engine.delegate.DelegateTask;
-import org.activiti.engine.delegate.TaskListener;
+import org.flowable.engine.delegate.TaskListener;
+import org.flowable.task.service.delegate.DelegateTask;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import ru.citeck.ecos.events.EventConnection;
-import ru.citeck.ecos.stream.event.EventFactory;
+import ru.citeck.ecos.flowable.event.FlowableEventFactory;
+import ru.citeck.ecos.flowable.listeners.global.GlobalAssignmentTaskListener;
+import ru.citeck.ecos.flowable.listeners.global.GlobalCompleteTaskListener;
+import ru.citeck.ecos.flowable.listeners.global.GlobalCreateTaskListener;
+import ru.citeck.ecos.flowable.listeners.global.GlobalDeleteTaskListener;
 import ru.citeck.ecos.utils.TransactionUtils;
 
-/**
- * @author Roman Makarskiy
- */
-@Slf4j
-public class TaskEventListener extends AbstractTaskListener {
+public class TaskEventListener implements GlobalCreateTaskListener, GlobalAssignmentTaskListener,
+    GlobalCompleteTaskListener, GlobalDeleteTaskListener {
 
     private final EventConnection eventConnection;
-    private final EventFactory eventFactory;
+    private final FlowableEventFactory eventFactory;
 
     @Value("${event.task.create.emit.enabled}")
     private boolean eventTaskCreateEnabled;
@@ -33,23 +33,22 @@ public class TaskEventListener extends AbstractTaskListener {
     @Value("${ecos.server.tenant.id}")
     private String TENANT_ID;
 
-
     @Autowired
-    public TaskEventListener(EventConnection eventConnection, EventFactory eventFactory) {
+    public TaskEventListener(EventConnection eventConnection, FlowableEventFactory eventFactory) {
         this.eventConnection = eventConnection;
         this.eventFactory = eventFactory;
     }
 
     @Override
-    protected void notifyImpl(DelegateTask task) {
-        if (emitRequired(task)) {
+    public void notify(DelegateTask delegateTask) {
+        if (emitRequired(delegateTask)) {
             if (eventConnection == null) {
                 throw new RuntimeException("Sending event is required, but connection to event server is not enabled. " +
-                        "Check you configs.");
+                    "Check you configs.");
             }
-            eventFactory.fromActivitiTask(task)
-                    .ifPresent(eventDTO -> TransactionUtils.doAfterCommit(() -> eventConnection.emit(eventDTO,
-                            TENANT_ID)));
+            eventFactory.fromFlowableTask(delegateTask)
+                .ifPresent(eventDTO -> TransactionUtils.doAfterCommit(() -> eventConnection.emit(eventDTO,
+                    TENANT_ID)));
         }
     }
 

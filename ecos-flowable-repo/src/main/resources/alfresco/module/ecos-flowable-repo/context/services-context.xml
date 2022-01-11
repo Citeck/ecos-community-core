@@ -369,4 +369,6 @@
         <property name="workflowMirrorService" ref="workflowMirrorService"/>
     </bean>
 
+    <bean id="flowableTaskEventListener" class="ru.citeck.ecos.flowable.listeners.TaskEventListener"/>
+
 </beans>

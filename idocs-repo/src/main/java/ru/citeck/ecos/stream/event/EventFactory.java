@@ -108,7 +108,7 @@ public class EventFactory {
         NodeRef document = documentResolverRegistry.getResolver(task.getExecution()).getDocument(task.getExecution());
         if (document != null) {
             dto.setDocument(document.toString());
-            dto.setDocId(ALFRESCO_SOURCE + document.toString());
+            dto.setDocId(ALFRESCO_SOURCE + document);
         }
 
         QName taskType = QName.createQName(ListenerUtils.getTaskFormKey(task),
