@@ -16,24 +16,26 @@
 </#if>
 <#assign cloneParent = params.cloneParent!"false" />
 <#assign useInvariantValues = params.useInvariantValues!"false" />
+<#assign checkWritePermissionsForEditButton = params.checkWritePermissionsForEditButton!"false" />
 
 <#-- Parametes:
         * journalType - columns is defaultAttributes ("files-numenclature") [optional]
         * columns     - attributes name on string ("cm:name,tk:type") [optional]
         * maxheight   - maximum height of view-table-container ("150px", "50%") [optional]
         * style       - individual styles. added in the end of control (".style { font-size: 13px; }") [optional]
-        
+
         * highlightedColumnMarker    - marked rows as 'highlighted' if specified attribute exists and 'true' ("cm:content") [optional]
         * highlightedAdditionalClass - additional classes for highlighted rows. use only with 'highlightedColumnMarker' ("selected my-item") [optional]
 
         * downloadActionInViewMode - enable additional actions column in view mode with download button.
         * actionIsFirstColumn - moving action column to left
-        * showRemoveButton - show or hide edit button (default - true);
+        * showRemoveButton - show or hide remove button (default - true);
         * duplicateButton - add duplicate button
         * showDialogAfterDuplicate - show item in dialog after duplicateButton was clicked [optional] (only for duplicateButton=true)
         * needPullForDuplicate - pull attributes to duplicated item ("cm:name,tk:type") [optional] (only for duplicateButton=true)
         * cloneParent - parent noderef will be writen to duplicated item [optional] (only for duplicateButton=true)
         * virtualParent - marked, that should be use virtualParent for editing and duplicated records
+        * checkWritePermissionsForEditButton - show edit button only if user has write permissions
 -->
 
 <#-- TODO:
@@ -208,6 +210,10 @@
 <#macro actionsBody>
     <!-- ko ifnot: $parents[1].protected() || $parents[1].resolve("node.impl.inViewMode") -->
         <td class="value-item-actions">
+
+            <#if checkWritePermissionsForEditButton == "true">
+                <!-- ko if: $data.permissions() && $data.permissions().Write -->
+            </#if>
             <a class="edit-value-item" title="${msg('button.edit')}"
                 data-bind="click: Citeck.forms.dialog.bind(Citeck.forms, $data.nodeRef(), null, function() { $data.reset(true) },
                     {
@@ -216,6 +222,10 @@
                         parentRuntime: $root.key(),
                         virtualParent: ${((params.virtualParent!"false") == "true")?string},
                     }), clickBubble: false"></a>
+            <#if checkWritePermissionsForEditButton == "true">
+                <!-- /ko -->
+            </#if>
+
             <#if duplicateButton == "true">
                 <a class="duplicate-value-item" title="${msg('button.duplicate')}"
                     data-bind="click: Citeck.forms.duplicateValue.bind(null, $data, $parents[1],
