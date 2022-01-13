@@ -202,6 +202,16 @@ public interface OperandExpected {
     OperandExpected not();
 
     /**
+     * Operator TRUE
+     */
+    OperatorExpected alwaysTrue();
+
+    /**
+     * Operator FALSE
+     */
+    OperatorExpected alwaysFalse();
+
+    /**
      * Open bracket
      */
     OperandExpected open();
