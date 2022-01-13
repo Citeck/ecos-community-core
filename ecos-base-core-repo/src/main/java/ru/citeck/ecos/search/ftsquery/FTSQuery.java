@@ -647,59 +647,23 @@ public class FTSQuery implements OperatorExpected, OperandExpected {
             }
             Term<?> newTerm1 = term1.optimize();
 
-            boolean newTerm0IsConstant = newTerm0 instanceof ConstantBool;
-            boolean newTerm1IsConstant = newTerm1 instanceof ConstantBool;
+            if (operator == BinOperator.AND
+                && (newTerm0 == ConstantBool.FALSE || newTerm1 == ConstantBool.FALSE)) {
 
-            if (newTerm0IsConstant) {
-                boolean value0 = ((ConstantBool) newTerm0).value;
-                if (operator == BinOperator.AND) {
-                    if (value0) {
-                        if (newTerm1IsConstant) {
-                            boolean value1 = ((ConstantBool) newTerm1).value;
-                            if (value1) {
-                                return ConstantBool.TRUE;
-                            } else {
-                                return ConstantBool.FALSE;
-                            }
-                        } else {
-                            return newTerm1;
-                        }
-                    } else {
-                        return ConstantBool.FALSE;
-                    }
-                } else {
-                    if (value0) {
-                        return ConstantBool.TRUE;
-                    } else {
-                        if (newTerm1IsConstant) {
-                            boolean value1 = ((ConstantBool) newTerm1).value;
-                            if (value1) {
-                                return ConstantBool.TRUE;
-                            } else {
-                                return ConstantBool.FALSE;
-                            }
-                        } else {
-                            return newTerm1;
-                        }
-                    }
-                }
+                return ConstantBool.FALSE;
             }
-            if (newTerm1IsConstant) {
-                boolean value1 = ((ConstantBool) newTerm1).value;
-                if (operator == BinOperator.AND) {
-                    if (value1) {
-                        return newTerm0;
-                    } else {
-                        return ConstantBool.FALSE;
-                    }
-                } else {
-                    if (value1) {
-                        return ConstantBool.TRUE;
-                    } else {
-                        return newTerm0;
-                    }
-                }
+            if (operator == BinOperator.OR
+                && (newTerm0 == ConstantBool.TRUE || newTerm1 == ConstantBool.TRUE)) {
+
+                return ConstantBool.TRUE;
             }
+            if (newTerm0 instanceof ConstantBool) {
+                return newTerm1;
+            }
+            if (newTerm1 instanceof ConstantBool) {
+                return newTerm0;
+            }
+
             BinOperatorTerm result = new BinOperatorTerm(operator);
             result.term0 = newTerm0;
             result.term1 = newTerm1;
