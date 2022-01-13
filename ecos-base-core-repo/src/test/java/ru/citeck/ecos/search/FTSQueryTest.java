@@ -223,7 +223,7 @@ public class FTSQueryTest {
             .close()
             .getQuery());
 
-        assertEquals("(={111}111:\"abc\" AND ={222}222:\"abc\")", FTSQuery.createRaw()
+        assertEquals("={111}111:\"abc\" AND ={222}222:\"abc\"", FTSQuery.createRaw()
             .open()
             .exact(att1, "abc")
             .and()
@@ -241,7 +241,7 @@ public class FTSQueryTest {
             .close()
             .getQuery());
 
-        assertEquals("(={111}111:\"abc\" AND ={222}222:\"abc\")", FTSQuery.createRaw()
+        assertEquals("={111}111:\"abc\" AND ={222}222:\"abc\"", FTSQuery.createRaw()
             .open()
             .exact(att1, "abc")
             .and()

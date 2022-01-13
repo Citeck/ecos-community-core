@@ -396,7 +396,15 @@ public class FTSQuery implements OperatorExpected, OperandExpected {
 
     @Override
     public String getQuery() {
-        return group != null ? group.getQuery() : "";
+        if (group == null) {
+            return "";
+        }
+        Term<?> optimized = group.optimize();
+        if (optimized instanceof Group) {
+            return ((Group) optimized).getQuery();
+        } else {
+            return "";
+        }
     }
 
     @Override
@@ -428,7 +436,7 @@ public class FTSQuery implements OperatorExpected, OperandExpected {
     @Override
     public QueryResult queryDetails(SearchService searchService) {
 
-        String query = group.getQuery();
+        String query = this.getQuery();
 
         if (logger.isDebugEnabled()) {
             logger.debug("FTSQuery: " + query);
@@ -565,7 +573,7 @@ public class FTSQuery implements OperatorExpected, OperandExpected {
         }
     }
 
-    private static class ConstantBool implements Term<ConstantBool> {
+    private static class ConstantBool implements Operand<ConstantBool> {
 
         static final ConstantBool TRUE = new ConstantBool(true);
         static final ConstantBool FALSE = new ConstantBool(false);
@@ -620,23 +628,14 @@ public class FTSQuery implements OperatorExpected, OperandExpected {
 
         @Override
         public void toString(StringBuilder builder) {
-            boolean term0Processed = false;
-            if (!(term0 instanceof ConstantBool)) {
-                term0.toString(builder);
-                term0Processed = true;
-            }
+            term0.toString(builder);
             if (term1 == null) {
                 return;
             }
             if (term1 instanceof Group && ((Group) term1).isEmpty()) {
                 return;
             }
-            if (term1 instanceof ConstantBool) {
-                return;
-            }
-            if (term0Processed) {
-                builder.append(' ').append(operator).append(' ');
-            }
+            builder.append(' ').append(operator).append(' ');
             term1.toString(builder);
         }
 
@@ -982,17 +981,12 @@ public class FTSQuery implements OperatorExpected, OperandExpected {
 
         @Override
         public Term<?> optimize() {
-            UnOperatorTerm newUnOperatorTerm = null;
-            BinOperatorTerm newBinOperatorTerm = null;
-            Group newGroup = null;
-            Term<?> newTerm = null;
-            boolean hasChanges = false;
-
-            if (term != null) {
-                newTerm = term.optimize();
-                if (term != newTerm) {
-                    hasChanges = true;
-                }
+            Term<?> newTerm = term;
+            if (newTerm == null && biOperator != null) {
+                newTerm = biOperator;
+            }
+            if (newTerm != null) {
+                newTerm = newTerm.optimize();
                 if (newTerm instanceof ConstantBool) {
                     boolean constantValue = ((ConstantBool) newTerm).value;
                     if (constantValue) {
@@ -1003,42 +997,9 @@ public class FTSQuery implements OperatorExpected, OperandExpected {
                 }
             }
 
-            if (group != null) {
-                newGroup = (Group) group.optimize();
-                if (group != newGroup) {
-                    hasChanges = true;
-                }
-            }
-
-            if (unOperator != null) {
-                newUnOperatorTerm = (UnOperatorTerm) unOperator.optimize();
-                if (unOperator != newUnOperatorTerm) {
-                    hasChanges = true;
-                }
-            }
-
-            if (biOperator != null) {
-                Term<?> optimized = biOperator.optimize();
-                if (optimized instanceof BinOperatorTerm) {
-                    newBinOperatorTerm = (BinOperatorTerm) optimized;
-                    if (biOperator != newBinOperatorTerm) {
-                        hasChanges = true;
-                    }
-                } else {
-                    newTerm = optimized;
-                }
-            }
-
-            if (hasChanges) {
-                Group result = new Group();
-                result.unOperator = newUnOperatorTerm;
-                result.biOperator = newBinOperatorTerm;
-                result.group = newGroup;
-                result.term = newTerm;
-                return result;
-            } else {
-                return this;
-            }
+            Group result = new Group();
+            result.term = newTerm;
+            return result;
         }
 
         private void toString(StringBuilder builder, boolean isRootGroup) {
@@ -1056,14 +1017,9 @@ public class FTSQuery implements OperatorExpected, OperandExpected {
             if (term instanceof Operand) {
 
                 if (term instanceof Group) {
-                    Term<?> optimized = term.optimize();
-                    ((Group) optimized).toString(builder, isRootGroup);
+                    ((Group) term).toString(builder, isRootGroup);
                 } else {
-                    Term<?> optimized = term.optimize();
-                    if (optimized instanceof ConstantBool) {
-                        return;
-                    }
-                    optimized.toString(builder);
+                    term.toString(builder);
                 }
 
             } else {
@@ -1074,11 +1030,7 @@ public class FTSQuery implements OperatorExpected, OperandExpected {
                     builder.append('(');
                 }
                 if (term != null) {
-                    Term<?> optimized = term.optimize();
-                    if (optimized instanceof ConstantBool) {
-                        return;
-                    }
-                    optimized.toString(builder);
+                    term.toString(builder);
                 } else if (isRootGroup) {
                     builder.append("()");
                 }

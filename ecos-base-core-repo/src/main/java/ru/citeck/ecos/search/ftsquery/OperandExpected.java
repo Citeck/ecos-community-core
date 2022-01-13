@@ -204,12 +204,12 @@ public interface OperandExpected {
     /**
      * Operator TRUE
      */
-    OperandExpected alwaysTrue();
+    OperatorExpected alwaysTrue();
 
     /**
      * Operator FALSE
      */
-    OperandExpected alwaysFalse();
+    OperatorExpected alwaysFalse();
 
     /**
      * Open bracket
