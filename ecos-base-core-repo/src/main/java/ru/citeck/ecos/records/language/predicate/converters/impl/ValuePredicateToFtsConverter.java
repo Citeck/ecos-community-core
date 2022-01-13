@@ -582,10 +582,9 @@ public class ValuePredicateToFtsConverter implements PredicateToFtsConverter {
             List<NodeRef> innerValues = searchInnerValues(field, targetType.getName(), predicateValue, true);
             if (innerValues.size() > 0) {
                 query.any(field, new ArrayList<>(innerValues));
-                return;
+            } else {
+                query.alwaysFalse();
             }
-
-            query.exact(field, predicateValue);
         } else {
             query.exact(field, predicateValue);
         }
@@ -606,10 +605,9 @@ public class ValuePredicateToFtsConverter implements PredicateToFtsConverter {
             List<NodeRef> innerValues = searchInnerValues(field, targetType.getName(), predicateValue, false);
             if (innerValues.size() > 0) {
                 query.any(field, new ArrayList<>(innerValues));
-                return;
+            } else {
+                query.alwaysFalse();
             }
-
-            query.value(field, predicateValue);
         } else {
             query.value(field, predicateValue);
         }
@@ -703,10 +701,9 @@ public class ValuePredicateToFtsConverter implements PredicateToFtsConverter {
         List<NodeRef> assocs = searchInnerValues(field, targetTypeName, assocVal, false);
         if (assocs.size() > 0) {
             query.any(field, new ArrayList<>(assocs));
-            return;
+        } else {
+            query.alwaysFalse();
         }
-
-        query.value(field, value);
     }
 
     private List<NodeRef> searchInnerValues(QName field, QName targetTypeName, String value, boolean exact) {
