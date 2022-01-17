@@ -60,6 +60,7 @@ import ru.citeck.ecos.records3.record.atts.computed.ComputedAtt;
 import ru.citeck.ecos.records3.record.atts.computed.ComputedAttType;
 import ru.citeck.ecos.records3.record.atts.computed.ComputedUtils;
 import ru.citeck.ecos.records3.record.atts.computed.StoringType;
+import ru.citeck.ecos.records3.record.request.RequestContext;
 import ru.citeck.ecos.records3.record.request.context.SystemContextUtil;
 import ru.citeck.ecos.security.EcosPermissionService;
 import ru.citeck.ecos.utils.AuthorityUtils;
@@ -127,7 +128,7 @@ public class AlfNodesRecordsDAO extends LocalRecordsDao
         RecordsMutResult result = new RecordsMutResult();
 
         for (RecordMeta record : mutation.getRecords()) {
-            RecordMeta resRec = processSingleRecord(record);
+            RecordMeta resRec = processSingleRecord(record, false);
             result.addRecord(resRec);
         }
 
@@ -148,7 +149,7 @@ public class AlfNodesRecordsDAO extends LocalRecordsDao
         return dataValue;
     }
 
-    private RecordMeta processSingleRecord(RecordMeta record) {
+    private RecordMeta processSingleRecord(RecordMeta record, boolean isMutate) {
 
         ObjectData initialAtts = record.getAtts().deepCopy();
         for (String field : initialAtts.fieldNamesList()) {
@@ -431,11 +432,47 @@ public class AlfNodesRecordsDAO extends LocalRecordsDao
                     return null;
                 });
             }
+
+            if (!isMutate) {
+                ComputedUtils.doWithNewRecordJ(() -> {
+                    storeMutatedComputedAtts(finalNodeRef);
+                    return null;
+                });
+            }
+
             updateNodeDispName(resultRecord.getId());
             return null;
         });
 
         return resultRecord;
+    }
+
+    private void storeMutatedComputedAtts(NodeRef nodeRef) {
+        RecordRef typeRef = ecosTypeService.getEcosType(nodeRef);
+
+        ObjectData storedProps = getMutatedStoredProps(nodeRef, typeRef);
+        if (storedProps.size() != 0) {
+            processSingleRecord(new RecordMeta(RecordRef.valueOf(nodeRef.toString()), storedProps), true);
+        }
+    }
+
+    private ObjectData getMutatedStoredProps(NodeRef nodeRef, RecordRef docTypeRef) {
+
+        if (RecordRef.isEmpty(docTypeRef)) {
+            return ObjectData.create();
+        }
+
+        List<ComputedAtt> computedAtts = typeRefService.getComputedAtts(docTypeRef);
+        Set<String> attsToStore = new HashSet<>();
+
+        for (ComputedAtt att : computedAtts) {
+            StoringType storingType = att.getDef().getStoringType();
+            if (StoringType.ON_MUTATE.equals(storingType)) {
+                attsToStore.add(att.getId());
+            }
+        }
+
+        return recordsService.getAttributes(RecordRef.valueOf(nodeRef.toString()), attsToStore).getAttributes();
     }
 
     private void storeComputedAttsForNewNode(NodeRef nodeRef, ObjectData initialAtts) {
@@ -448,12 +485,12 @@ public class AlfNodesRecordsDAO extends LocalRecordsDao
                 RecordRef.valueOf(nodeRef.toString()),
                 ObjectData.create(counterProps)
             );
-            processSingleRecord(meta);
+            processSingleRecord(meta, false);
         }
 
         ObjectData storedProps = getStoredPropsForNewNode(nodeRef, initialAtts, typeRef);
         if (storedProps.size() != 0) {
-            processSingleRecord(new RecordMeta(RecordRef.valueOf(nodeRef.toString()), storedProps));
+            processSingleRecord(new RecordMeta(RecordRef.valueOf(nodeRef.toString()), storedProps), false);
         }
     }
 
