@@ -484,12 +484,12 @@ public class AlfNodesRecordsDAO extends LocalRecordsDao
                 RecordRef.valueOf(nodeRef.toString()),
                 ObjectData.create(counterProps)
             );
-            processSingleRecord(meta, true);
+            processSingleRecord(meta, false);
         }
 
         ObjectData storedProps = getStoredPropsForNewNode(nodeRef, initialAtts, typeRef);
         if (storedProps.size() != 0) {
-            processSingleRecord(new RecordMeta(RecordRef.valueOf(nodeRef.toString()), storedProps), true);
+            processSingleRecord(new RecordMeta(RecordRef.valueOf(nodeRef.toString()), storedProps), false);
         }
     }
 
