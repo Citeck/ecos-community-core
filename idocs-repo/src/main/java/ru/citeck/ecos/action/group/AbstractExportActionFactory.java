@@ -1,27 +1,28 @@
 package ru.citeck.ecos.action.group;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import lombok.Data;
+import com.fasterxml.jackson.databind.node.NullNode;
 import lombok.extern.slf4j.Slf4j;
 import org.alfresco.model.ContentModel;
+import org.alfresco.repo.security.authentication.AuthenticationUtil;
 import org.alfresco.service.cmr.repository.ContentService;
 import org.alfresco.service.cmr.repository.ContentWriter;
 import org.alfresco.service.cmr.repository.NodeRef;
 import org.alfresco.service.cmr.repository.NodeService;
 import org.alfresco.service.namespace.NamespaceService;
 import org.alfresco.service.namespace.QName;
-import org.alfresco.util.Pair;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang3.time.FastDateFormat;
-import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import ru.citeck.ecos.action.group.impl.BaseGroupAction;
-import ru.citeck.ecos.action.group.output.ExportOutputActionsRegistry;
 import ru.citeck.ecos.commons.data.DataValue;
-import ru.citeck.ecos.commons.data.ObjectData;
 import ru.citeck.ecos.commons.json.Json;
 import ru.citeck.ecos.model.lib.attributes.dto.AttributeType;
+import ru.citeck.ecos.notifications.lib.Notification;
+import ru.citeck.ecos.notifications.lib.NotificationType;
+import ru.citeck.ecos.records.notification.SystemAlfNotificationService;
+import ru.citeck.ecos.records.source.PeopleRecordsDao;
 import ru.citeck.ecos.records2.RecordRef;
 import ru.citeck.ecos.records3.RecordsService;
 import ru.citeck.ecos.records3.record.atts.dto.RecordAtts;
@@ -51,6 +52,8 @@ public abstract class AbstractExportActionFactory<T> implements GroupActionFacto
     protected ContentService contentService;
     protected NodeService nodeService;
     protected GroupActionService groupActionService;
+    protected SystemAlfNotificationService systemAlfNotificationService;
+
 
     protected String mimeType = "text/plain";
     protected String encoding = StandardCharsets.UTF_8.name();
@@ -63,11 +66,11 @@ public abstract class AbstractExportActionFactory<T> implements GroupActionFacto
     protected static final String REPORT = "Report";
     protected static final NodeRef ROOT_NODE_REF = new NodeRef("workspace://SpacesStore/attachments-root");
 
+    protected static final String TYPE_MAIL = "email";
     protected static final String PARAM_OUTPUT = "output";
     protected static final String PARAM_OUTPUT_TYPE = "type";
     protected static final String PARAM_OUTPUT_CONFIG = "config";
-
-    private ExportOutputActionsRegistry outputActionsRegistry;
+    protected static final String PARAM_OUTPUT_CONFIG_TEMPLATE_REF = "templateRef";
 
     public AbstractExportActionFactory() {
     }
@@ -84,19 +87,16 @@ public abstract class AbstractExportActionFactory<T> implements GroupActionFacto
 
         GroupActionConfig localConfig = new GroupActionConfig(config);
 
-        OutputConfig outConfig = null;
-        JsonNode output = localConfig.getParams().get(PARAM_OUTPUT);
-        if (output != null && output.isObject() && output.get(PARAM_OUTPUT_TYPE).isTextual()) {
-            String outputType = output.get(PARAM_OUTPUT_TYPE).asText();
-            if (StringUtils.isNotBlank(outputType)) {
-                outConfig = new OutputConfig();
-                outConfig.setType(outputType);
-                outConfig.setConfig(ObjectData.create(output.get(PARAM_OUTPUT_CONFIG)));
-                outputActionsRegistry.validate(outConfig.type, outConfig.config);
+        localConfig.setAsync(false);
+
+        String type = getType(config);
+        if (StringUtils.isNotBlank(type) && TYPE_MAIL.equals(type)) {
+            localConfig.setAsync(true);
+            String email = getEmail();
+            if (StringUtils.isBlank(email)) {
+                throw new RuntimeException("Email not found by " + email);
             }
         }
-
-        localConfig.setAsync(outConfig != null);
 
         String errorsLimitStr = config.getStrParam("errorsLimit");
         if (StringUtils.isNotBlank(errorsLimitStr)) {
@@ -115,7 +115,7 @@ public abstract class AbstractExportActionFactory<T> implements GroupActionFacto
             localConfig.setBatchSize(Integer.parseInt(batchSizeStr));
         }
 
-        return new ExportAction(localConfig, outConfig);
+        return new ExportAction(localConfig);
     }
 
     /**
@@ -152,6 +152,24 @@ public abstract class AbstractExportActionFactory<T> implements GroupActionFacto
             : null;
     }
 
+    private String getType(GroupActionConfig config) {
+        JsonNode outputParam = config.getParams().get(PARAM_OUTPUT);
+        JsonNode typeParam = outputParam.get(PARAM_OUTPUT_TYPE);
+        return typeParam != null && !(typeParam instanceof NullNode) ? typeParam.asText() : null;
+    }
+
+    private String getTemplateRef(GroupActionConfig config) {
+        JsonNode outputParam = config.getParams().get(PARAM_OUTPUT);
+        JsonNode configParam = outputParam.get(PARAM_OUTPUT_CONFIG);
+        JsonNode templateNode = configParam.get(PARAM_OUTPUT_CONFIG_TEMPLATE_REF);
+        return templateNode != null && !(templateNode instanceof NullNode) ? templateNode.asText() : null;
+    }
+
+    private String getEmail() {
+        String userName = AuthenticationUtil.getFullyAuthenticatedUser();
+        return recordsService.getAtt(RecordRef.create(PeopleRecordsDao.ID, userName), "cm:email").asText();
+    }
+
     @Autowired
     public void setRecordsService(RecordsService recordsService) {
         this.recordsService = recordsService;
@@ -173,8 +191,8 @@ public abstract class AbstractExportActionFactory<T> implements GroupActionFacto
     }
 
     @Autowired
-    public void setOutputActionsRegistry(ExportOutputActionsRegistry outputActionsRegistry) {
-        this.outputActionsRegistry = outputActionsRegistry;
+    public void setSystemAlfNotificationService(SystemAlfNotificationService systemAlfNotificationService) {
+        this.systemAlfNotificationService = systemAlfNotificationService;
     }
 
     class ExportAction extends BaseGroupAction<RecordRef> {
@@ -196,13 +214,8 @@ public abstract class AbstractExportActionFactory<T> implements GroupActionFacto
         private final T environment;
         private int nodesRowIdx = 1;
 
-        @Nullable
-        private OutputConfig outputConfig;
-
-        public ExportAction(GroupActionConfig config, OutputConfig outputConfig) {
+        public ExportAction(GroupActionConfig config) {
             super(config);
-
-            this.outputConfig = outputConfig;
 
             JsonNode columnsParam = config.getParams().get(PARAM_REPORT_COLUMNS);
             List<ReportColumnDef> columns = DataValue.create(columnsParam).asList(ReportColumnDef.class);
@@ -255,9 +268,7 @@ public abstract class AbstractExportActionFactory<T> implements GroupActionFacto
                         DataValue value = atts.getAtt(att);
                         if (value.isTextual()) {
                             String valueStr = value.asText();
-                            if (StringUtils.isNotBlank(valueStr)
-                                    && valueStr.endsWith("Z")
-                                    && valueStr.contains("T")) {
+                            if (StringUtils.isNotBlank(valueStr)) {
                                 Instant instant = Json.getMapper().convert(valueStr, Instant.class);
                                 if (instant != null) {
                                     atts.setAtt(att, format.format(Date.from(instant)));
@@ -280,11 +291,25 @@ public abstract class AbstractExportActionFactory<T> implements GroupActionFacto
             }
             try (ByteArrayOutputStream outputStream = new ByteArrayOutputStream()) {
                 writeToStream(outputStream, environment);
-                Pair<ActionResult<RecordRef>, NodeRef> actionResultList = createContentNode(outputStream);
-                if (outputConfig != null) {
-                    outputActionsRegistry.execute(outputConfig.type, outputConfig.config, actionResultList.getSecond());
+                List<ActionResult<RecordRef>> actionResultList = createContentNode(outputStream);
+                String type = getType(config);
+
+                if (StringUtils.isNotBlank(type) && TYPE_MAIL.equals(type)) {
+                    String templateRef = getTemplateRef(config);
+                    if (StringUtils.isNotBlank(templateRef)) {
+                        String email = getEmail();
+                        Notification notification = new Notification.Builder()
+                            .templateRef(RecordRef.valueOf(templateRef))
+                            .notificationType(NotificationType.EMAIL_NOTIFICATION)
+                            .recipients(Collections.singleton(email))
+                            .addToAdditionalMeta("url", actionResultList.get(0).getStatus().getUrl())
+                            .build();
+
+                        systemAlfNotificationService.send(notification);
+                    }
                 }
-                onProcessed(Collections.singletonList(actionResultList.getFirst()));
+
+                onProcessed(actionResultList);
             } catch (Exception e) {
                 log.error("Failed to write file. {}", config, e);
                 ActionResult<RecordRef> result = new ActionResult<>(RecordRef.valueOf(REPORT), ActionStatus.error(e));
@@ -292,7 +317,7 @@ public abstract class AbstractExportActionFactory<T> implements GroupActionFacto
             }
         }
 
-        protected Pair<ActionResult<RecordRef>, NodeRef> createContentNode(ByteArrayOutputStream baos) {
+        protected List<ActionResult<RecordRef>> createContentNode(ByteArrayOutputStream byteArrayOutputStream) {
 
             Map<QName, Serializable> props = new HashMap<>(1);
             String name = "records_export_" + Instant.now().toEpochMilli();
@@ -302,7 +327,7 @@ public abstract class AbstractExportActionFactory<T> implements GroupActionFacto
                 QName.createQName(NamespaceService.CONTENT_MODEL_1_0_URI, name),
                 ContentModel.TYPE_CONTENT, props).getChildRef();
             ActionStatus groupActionStatus;
-            try (InputStream byteArrayInputStream = new ByteArrayInputStream(baos.toByteArray())) {
+            try (InputStream byteArrayInputStream = new ByteArrayInputStream(byteArrayOutputStream.toByteArray())) {
                 ContentWriter writer = contentService.getWriter(contentNode, ContentModel.PROP_CONTENT, true);
                 writer.setMimetype(mimeType);
                 writer.setEncoding(encoding);
@@ -317,14 +342,7 @@ public abstract class AbstractExportActionFactory<T> implements GroupActionFacto
             ActionResult<RecordRef> groupActionResult = new ActionResult<>(
                 RecordRef.valueOf("Document"),
                 groupActionStatus);
-
-            return new Pair<>(groupActionResult, contentNode);
+            return Collections.singletonList(groupActionResult);
         }
-    }
-
-    @Data
-    private static class OutputConfig {
-        private String type;
-        private ObjectData config;
     }
 }
