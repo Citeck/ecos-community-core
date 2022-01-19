@@ -127,7 +127,7 @@ public class AlfNodesRecordsDAO extends LocalRecordsDao
         RecordsMutResult result = new RecordsMutResult();
 
         for (RecordMeta record : mutation.getRecords()) {
-            RecordMeta resRec = processSingleRecord(record);
+            RecordMeta resRec = processSingleRecord(record, true);
             result.addRecord(resRec);
         }
 
@@ -148,7 +148,7 @@ public class AlfNodesRecordsDAO extends LocalRecordsDao
         return dataValue;
     }
 
-    private RecordMeta processSingleRecord(RecordMeta record) {
+    private RecordMeta processSingleRecord(RecordMeta record, boolean isFirstInvocation) {
 
         ObjectData initialAtts = record.getAtts().deepCopy();
         for (String field : initialAtts.fieldNamesList()) {
@@ -427,9 +427,16 @@ public class AlfNodesRecordsDAO extends LocalRecordsDao
         SystemContextUtil.doAsSystemJ(() -> {
             if (isNewNodeConst) {
                 ComputedUtils.doWithNewRecordJ(() -> {
-                    storeComputedAttsForNewNode(finalNodeRef, initialAtts);
+                    storeComputedAtts(finalNodeRef, initialAtts, true);
                     return null;
                 });
+            } else {
+                if (isFirstInvocation) {
+                    ComputedUtils.doWithMutatedRecordJ(() -> {
+                        storeComputedAtts(finalNodeRef, initialAtts, false);
+                        return null;
+                    });
+                }
             }
             updateNodeDispName(resultRecord.getId());
             return null;
@@ -438,26 +445,27 @@ public class AlfNodesRecordsDAO extends LocalRecordsDao
         return resultRecord;
     }
 
-    private void storeComputedAttsForNewNode(NodeRef nodeRef, ObjectData initialAtts) {
+    private void storeComputedAtts(NodeRef nodeRef, ObjectData initialAtts, boolean isNewNode) {
 
         RecordRef typeRef = ecosTypeService.getEcosType(nodeRef);
-        Map<String, Long> counterProps = getCounterProps(nodeRef, initialAtts, typeRef);
-
-        if (!counterProps.isEmpty()) {
-            RecordMeta meta = new RecordMeta(
-                RecordRef.valueOf(nodeRef.toString()),
-                ObjectData.create(counterProps)
-            );
-            processSingleRecord(meta);
+        if (isNewNode) {
+            Map<String, Long> counterProps = getCounterProps(nodeRef, initialAtts, typeRef);
+            if (!counterProps.isEmpty()) {
+                RecordMeta meta = new RecordMeta(
+                    RecordRef.valueOf(nodeRef.toString()),
+                    ObjectData.create(counterProps)
+                );
+                processSingleRecord(meta, false);
+            }
         }
 
-        ObjectData storedProps = getStoredPropsForNewNode(nodeRef, initialAtts, typeRef);
+        ObjectData storedProps = getComputedStoredProps(nodeRef, typeRef);
         if (storedProps.size() != 0) {
-            processSingleRecord(new RecordMeta(RecordRef.valueOf(nodeRef.toString()), storedProps));
+            processSingleRecord(new RecordMeta(RecordRef.valueOf(nodeRef.toString()), storedProps), false);
         }
     }
 
-    private ObjectData getStoredPropsForNewNode(NodeRef nodeRef, ObjectData mutateAtts, RecordRef docTypeRef) {
+    private ObjectData getComputedStoredProps(NodeRef nodeRef, RecordRef docTypeRef) {
 
         if (RecordRef.isEmpty(docTypeRef)) {
             return ObjectData.create();
