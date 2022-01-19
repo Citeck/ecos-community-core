@@ -15,7 +15,13 @@
       "columns": "${reportColumns}",
       "batchSize": 1,
       "pageSize": 100,
-      "elementsLimit": 1000
+      "elementsLimit": 1000,
+      "output": {
+        "type": "email",
+        "config": {
+          "templateRef": "notifications/template@default-report-email-notification"
+        }
+      }
     }
   },
   "features": {
