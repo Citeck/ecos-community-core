@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import ru.citeck.ecos.records.language.predicate.converters.PredToFtsContext;
 import ru.citeck.ecos.records.language.predicate.converters.PredicateToFtsConverter;
+import ru.citeck.ecos.records.language.predicate.converters.impl.constants.ValuePredicateToFtsAlfrescoConstants;
 import ru.citeck.ecos.records2.predicate.model.EmptyPredicate;
 import ru.citeck.ecos.records2.predicate.model.Predicate;
 import ru.citeck.ecos.search.AssociationIndexPropertyRegistry;
@@ -30,12 +31,19 @@ public class EmptyPredicateToFtsConverter implements PredicateToFtsConverter {
         String attribute = ((EmptyPredicate) predicate).getAttribute();
         attribute = context.getAttsMapping().getOrDefault(attribute, attribute);
 
-        ClassAttributeDefinition attDef = dictUtils.getAttDefinition(attribute);
-
-        if (isTextField(attDef)) {
-            consumeQueryField(attribute, query::emptyString);
+        if (ValuePredicateToFtsAlfrescoConstants.ECOS_STATUS.equals(attribute)) {
+            query.emptyString(ValuePredicateToFtsAlfrescoConstants.ASSOC_CASE_STATUS_PROP)
+                .and()
+                .empty(associationIndexPropertyRegistry.getAssociationIndexProperty(
+                    ValuePredicateToFtsAlfrescoConstants.ASSOC_CASE_STATUS));
         } else {
-            consumeQueryField(attribute, query::empty);
+            ClassAttributeDefinition attDef = dictUtils.getAttDefinition(attribute);
+
+            if (isTextField(attDef)) {
+                consumeQueryField(attribute, query::emptyString);
+            } else {
+                consumeQueryField(attribute, query::empty);
+            }
         }
     }
 
