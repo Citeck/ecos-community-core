@@ -427,18 +427,17 @@ public class AlfNodesRecordsDAO extends LocalRecordsDao
         SystemContextUtil.doAsSystemJ(() -> {
             if (isNewNodeConst) {
                 ComputedUtils.doWithNewRecordJ(() -> {
-                    storeComputedAttsForNewNode(finalNodeRef, initialAtts);
+                    storeComputedAtts(finalNodeRef, initialAtts, true);
                     return null;
                 });
+            } else {
+                if (isFirstInvocation) {
+                    ComputedUtils.doWithMutatedRecordJ(() -> {
+                        storeComputedAtts(finalNodeRef, initialAtts, false);
+                        return null;
+                    });
+                }
             }
-
-            if (isFirstInvocation) {
-                ComputedUtils.doWithNewRecordJ(() -> {
-                    storeMutatedComputedAtts(finalNodeRef);
-                    return null;
-                });
-            }
-
             updateNodeDispName(resultRecord.getId());
             return null;
         });
@@ -446,54 +445,27 @@ public class AlfNodesRecordsDAO extends LocalRecordsDao
         return resultRecord;
     }
 
-    private void storeMutatedComputedAtts(NodeRef nodeRef) {
+    private void storeComputedAtts(NodeRef nodeRef, ObjectData initialAtts, boolean isNewNode) {
+
         RecordRef typeRef = ecosTypeService.getEcosType(nodeRef);
-
-        ObjectData storedProps = getMutatedStoredProps(nodeRef, typeRef);
-        if (storedProps.size() != 0) {
-            processSingleRecord(new RecordMeta(RecordRef.valueOf(nodeRef.toString()), storedProps), false);
-        }
-    }
-
-    private ObjectData getMutatedStoredProps(NodeRef nodeRef, RecordRef docTypeRef) {
-
-        if (RecordRef.isEmpty(docTypeRef)) {
-            return ObjectData.create();
-        }
-
-        List<ComputedAtt> computedAtts = typeRefService.getComputedAtts(docTypeRef);
-        Set<String> attsToStore = new HashSet<>();
-
-        for (ComputedAtt att : computedAtts) {
-            StoringType storingType = att.getDef().getStoringType();
-            if (StoringType.ON_MUTATE.equals(storingType)) {
-                attsToStore.add(att.getId());
+        if (isNewNode) {
+            Map<String, Long> counterProps = getCounterProps(nodeRef, initialAtts, typeRef);
+            if (!counterProps.isEmpty()) {
+                RecordMeta meta = new RecordMeta(
+                    RecordRef.valueOf(nodeRef.toString()),
+                    ObjectData.create(counterProps)
+                );
+                processSingleRecord(meta, false);
             }
         }
 
-        return recordsService.getAttributes(RecordRef.valueOf(nodeRef.toString()), attsToStore).getAttributes();
-    }
-
-    private void storeComputedAttsForNewNode(NodeRef nodeRef, ObjectData initialAtts) {
-
-        RecordRef typeRef = ecosTypeService.getEcosType(nodeRef);
-        Map<String, Long> counterProps = getCounterProps(nodeRef, initialAtts, typeRef);
-
-        if (!counterProps.isEmpty()) {
-            RecordMeta meta = new RecordMeta(
-                RecordRef.valueOf(nodeRef.toString()),
-                ObjectData.create(counterProps)
-            );
-            processSingleRecord(meta, false);
-        }
-
-        ObjectData storedProps = getStoredPropsForNewNode(nodeRef, initialAtts, typeRef);
+        ObjectData storedProps = getComputedStoredProps(nodeRef, typeRef);
         if (storedProps.size() != 0) {
             processSingleRecord(new RecordMeta(RecordRef.valueOf(nodeRef.toString()), storedProps), false);
         }
     }
 
-    private ObjectData getStoredPropsForNewNode(NodeRef nodeRef, ObjectData mutateAtts, RecordRef docTypeRef) {
+    private ObjectData getComputedStoredProps(NodeRef nodeRef, RecordRef docTypeRef) {
 
         if (RecordRef.isEmpty(docTypeRef)) {
             return ObjectData.create();
