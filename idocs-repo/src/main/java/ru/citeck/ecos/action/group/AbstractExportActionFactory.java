@@ -1,8 +1,10 @@
 package ru.citeck.ecos.action.group;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.NullNode;
 import lombok.extern.slf4j.Slf4j;
 import org.alfresco.model.ContentModel;
+import org.alfresco.repo.security.authentication.AuthenticationUtil;
 import org.alfresco.service.cmr.repository.ContentService;
 import org.alfresco.service.cmr.repository.ContentWriter;
 import org.alfresco.service.cmr.repository.NodeRef;
@@ -17,6 +19,10 @@ import ru.citeck.ecos.action.group.impl.BaseGroupAction;
 import ru.citeck.ecos.commons.data.DataValue;
 import ru.citeck.ecos.commons.json.Json;
 import ru.citeck.ecos.model.lib.attributes.dto.AttributeType;
+import ru.citeck.ecos.notifications.lib.Notification;
+import ru.citeck.ecos.notifications.lib.NotificationType;
+import ru.citeck.ecos.records.notification.SystemAlfNotificationService;
+import ru.citeck.ecos.records.source.PeopleRecordsDao;
 import ru.citeck.ecos.records2.RecordRef;
 import ru.citeck.ecos.records3.RecordsService;
 import ru.citeck.ecos.records3.record.atts.dto.RecordAtts;
@@ -46,6 +52,8 @@ public abstract class AbstractExportActionFactory<T> implements GroupActionFacto
     protected ContentService contentService;
     protected NodeService nodeService;
     protected GroupActionService groupActionService;
+    protected SystemAlfNotificationService systemAlfNotificationService;
+
 
     protected String mimeType = "text/plain";
     protected String encoding = StandardCharsets.UTF_8.name();
@@ -57,6 +65,12 @@ public abstract class AbstractExportActionFactory<T> implements GroupActionFacto
     protected static final String PARAM_REPORT_COLUMNS = "columns";
     protected static final String REPORT = "Report";
     protected static final NodeRef ROOT_NODE_REF = new NodeRef("workspace://SpacesStore/attachments-root");
+
+    protected static final String TYPE_MAIL = "email";
+    protected static final String PARAM_OUTPUT = "output";
+    protected static final String PARAM_OUTPUT_TYPE = "type";
+    protected static final String PARAM_OUTPUT_CONFIG = "config";
+    protected static final String PARAM_OUTPUT_CONFIG_TEMPLATE_REF = "templateRef";
 
     public AbstractExportActionFactory() {
     }
@@ -74,6 +88,15 @@ public abstract class AbstractExportActionFactory<T> implements GroupActionFacto
         GroupActionConfig localConfig = new GroupActionConfig(config);
 
         localConfig.setAsync(false);
+
+        String type = getType(config);
+        if (StringUtils.isNotBlank(type) && TYPE_MAIL.equals(type)) {
+            localConfig.setAsync(true);
+            String email = getEmail();
+            if (StringUtils.isBlank(email)) {
+                throw new RuntimeException("Email not found by " + email);
+            }
+        }
 
         String errorsLimitStr = config.getStrParam("errorsLimit");
         if (StringUtils.isNotBlank(errorsLimitStr)) {
@@ -129,6 +152,24 @@ public abstract class AbstractExportActionFactory<T> implements GroupActionFacto
             : null;
     }
 
+    private String getType(GroupActionConfig config) {
+        JsonNode outputParam = config.getParams().get(PARAM_OUTPUT);
+        JsonNode typeParam = outputParam.get(PARAM_OUTPUT_TYPE);
+        return typeParam != null && !(typeParam instanceof NullNode) ? typeParam.asText() : null;
+    }
+
+    private String getTemplateRef(GroupActionConfig config) {
+        JsonNode outputParam = config.getParams().get(PARAM_OUTPUT);
+        JsonNode configParam = outputParam.get(PARAM_OUTPUT_CONFIG);
+        JsonNode templateNode = configParam.get(PARAM_OUTPUT_CONFIG_TEMPLATE_REF);
+        return templateNode != null && !(templateNode instanceof NullNode) ? templateNode.asText() : null;
+    }
+
+    private String getEmail() {
+        String userName = AuthenticationUtil.getFullyAuthenticatedUser();
+        return recordsService.getAtt(RecordRef.create(PeopleRecordsDao.ID, userName), "cm:email").asText();
+    }
+
     @Autowired
     public void setRecordsService(RecordsService recordsService) {
         this.recordsService = recordsService;
@@ -147,6 +188,11 @@ public abstract class AbstractExportActionFactory<T> implements GroupActionFacto
     @Autowired
     public void setGroupActionService(GroupActionService groupActionService) {
         this.groupActionService = groupActionService;
+    }
+
+    @Autowired
+    public void setSystemAlfNotificationService(SystemAlfNotificationService systemAlfNotificationService) {
+        this.systemAlfNotificationService = systemAlfNotificationService;
     }
 
     class ExportAction extends BaseGroupAction<RecordRef> {
@@ -246,6 +292,23 @@ public abstract class AbstractExportActionFactory<T> implements GroupActionFacto
             try (ByteArrayOutputStream outputStream = new ByteArrayOutputStream()) {
                 writeToStream(outputStream, environment);
                 List<ActionResult<RecordRef>> actionResultList = createContentNode(outputStream);
+                String type = getType(config);
+
+                if (StringUtils.isNotBlank(type) && TYPE_MAIL.equals(type)) {
+                    String templateRef = getTemplateRef(config);
+                    if (StringUtils.isNotBlank(templateRef)) {
+                        String email = getEmail();
+                        Notification notification = new Notification.Builder()
+                            .templateRef(RecordRef.valueOf(templateRef))
+                            .notificationType(NotificationType.EMAIL_NOTIFICATION)
+                            .recipients(Collections.singleton(email))
+                            .addToAdditionalMeta("url", actionResultList.get(0).getStatus().getUrl())
+                            .build();
+
+                        systemAlfNotificationService.send(notification);
+                    }
+                }
+
                 onProcessed(actionResultList);
             } catch (Exception e) {
                 log.error("Failed to write file. {}", config, e);
