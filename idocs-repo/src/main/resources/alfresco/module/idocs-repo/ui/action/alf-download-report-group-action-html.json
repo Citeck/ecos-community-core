@@ -18,7 +18,7 @@
       "output": {
         "type": "email",
         "config": {
-          "templateRef": "notification/template@default-report-email-notification"
+          "templateRef": "notifications/template@default-report-email-notification"
         }
       }
     }

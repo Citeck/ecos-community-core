@@ -304,12 +304,11 @@ public abstract class AbstractExportActionFactory<T> implements GroupActionFacto
                             .recipients(Collections.singleton(email))
                             .addToAdditionalMeta("url", actionResultList.get(0).getStatus().getUrl())
                             .build();
-
                         systemAlfNotificationService.send(notification);
                     }
+                } else {
+                    onProcessed(actionResultList);
                 }
-
-                onProcessed(actionResultList);
             } catch (Exception e) {
                 log.error("Failed to write file. {}", config, e);
                 ActionResult<RecordRef> result = new ActionResult<>(RecordRef.valueOf(REPORT), ActionStatus.error(e));
