@@ -11,16 +11,20 @@
             <#elseif p.value?is_string>
                 "${p.value}"
             <#elseif p.value?is_hash>
-                <#assign result = "{"/>
-                <#assign first = true />
-                <#list p.value?keys as key>
-                    <#if first = false>
-                        <#assign result = result + ", "/>
-                    </#if>
-                    <#assign result = result + "${key} = ${p.value[key]}" />
-                    <#assign first = false/>
-                </#list>
-                <#assign result = result + "}"/>
+                <#attempt>
+                    <#assign result = "{"/>
+                    <#assign first = true />
+                    <#list p.value?keys as key>
+                        <#if first = false>
+                            <#assign result = result + ", "/>
+                        </#if>
+                        <#assign result = result + "${key} = ${p.value[key]}" />
+                        <#assign first = false/>
+                    </#list>
+                    <#assign result = result + "}"/>
+                <#recover>
+                    <#assign result = "##Unable to display property##"/>
+                </#attempt>
             <#-- output the result -->
                 "${result}"
             </#if>
