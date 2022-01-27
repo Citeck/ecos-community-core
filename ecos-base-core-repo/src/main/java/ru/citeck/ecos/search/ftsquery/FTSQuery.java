@@ -28,6 +28,7 @@ public class FTSQuery implements OperatorExpected, OperandExpected {
     private static final String ISUNSET = "ISUNSET";
     private static final String ISNULL = "ISNULL";
     private static final String ISNOTNULL = "ISNOTNULL";
+    private static final String EXISTS = "EXISTS";
     private static final String NOT = "NOT";
     private static final String PARENT = "PARENT";
     private static final String TYPE = "TYPE";
@@ -187,6 +188,12 @@ public class FTSQuery implements OperatorExpected, OperandExpected {
     @Override
     public FTSQuery isNotNull(QName field) {
         group.addTerm(new SysValueOperator(ISNOTNULL, field));
+        return this;
+    }
+
+    @Override
+    public FTSQuery exists(QName field) {
+        group.addTerm(new SysValueOperator(EXISTS, field));
         return this;
     }
 
