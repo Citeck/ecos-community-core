@@ -1,0 +1,39 @@
+---
+id: alfresco-persons-sync
+
+name:
+  ru: Пользователи из Alfresco
+  en: Persons from Alfresco
+
+enabled: true
+type: alfresco
+
+authorityType: PERSON
+manageNewAuthorities: true
+
+repeatDelayDuration: PT10S
+version: 1
+
+config:
+  batchSize: 30
+  attributes:
+    firstName: 'cm:firstName'
+    lastName: 'cm:lastName'
+    middleName: 'cm:middleName'
+    email: 'cm:email'
+    jobTitle: 'cm:jobtitle'
+    birthDate: 'ecos:birthDate'
+    sex: 'ecos:sex'
+    city: 'ecos:city'
+    organization: 'cm:organization'
+    nameInGenitiveCase: 'idocs:nameInGenitiveCase'
+    typeOfEmployment: 'ecos:typeOfEmployment'
+    phoneInternal: 'ecos:phoneInternal'
+    phoneWorking: 'ecos:phoneWorking'
+    isPersonDisabled: 'ecos:isPersonDisabled'
+    countryCode: 'ecos:countryCode'
+    timezone: 'ecos:timezone'
+    itn: 'ecos:inn'
+    inila: 'ecos:inila'
+    skype: 'cm:skype'
+    authorityGroups: 'assoc_src_cm:member[].cm:authorityName|rxg("GROUP_(.+)")|presuf("emodel/authority-group@")'

@@ -61,6 +61,7 @@ import java.util.stream.Collectors;
 public class AlfNodeRecord implements MetaValue {
 
     public static final String ATTR_DOC_SUM = "docSum";
+    public static final String ATTR_NODE_REF = "nodeRef";
     public static final String ATTR_TYPE = "type";
     public static final String ATTR_TYPE_UPPER = "TYPE";
 
@@ -247,6 +248,11 @@ public class AlfNodeRecord implements MetaValue {
         }
 
         switch (name) {
+
+            case ATTR_NODE_REF:
+
+                attribute = Collections.singletonList(new AlfNodeAttValue(node.nodeRef()));
+                break;
 
             case ATTR_UI_TYPE:
 

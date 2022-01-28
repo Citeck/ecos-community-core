@@ -9,7 +9,9 @@ import org.alfresco.service.cmr.search.SearchService;
 import org.alfresco.service.cmr.security.AuthorityService;
 import org.alfresco.service.cmr.security.AuthorityType;
 import org.alfresco.service.cmr.security.MutableAuthenticationService;
+import org.alfresco.service.cmr.security.PersonService;
 import org.alfresco.service.namespace.NamespaceService;
+import org.alfresco.service.namespace.QName;
 import org.apache.commons.lang.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -35,10 +37,9 @@ import ru.citeck.ecos.records2.source.dao.local.v2.LocalRecordsMetaDao;
 import ru.citeck.ecos.records2.source.dao.local.v2.LocalRecordsQueryWithMetaDao;
 import ru.citeck.ecos.utils.AuthorityUtils;
 
+import java.io.Serializable;
 import java.net.URLEncoder;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Component
@@ -69,14 +70,19 @@ public class PeopleRecordsDao extends LocalRecordsDao
     private final AlfNodesRecordsDAO alfNodesRecordsDao;
     private final NamespaceService namespaceService;
     private final MutableAuthenticationService authenticationService;
+    private final PersonService personService;
 
     @Autowired
-    public PeopleRecordsDao(AuthorityUtils authorityUtils,
-                            AuthorityService authorityService,
-                            NamespaceService namespaceService,
-                            AlfNodesRecordsDAO alfNodesRecordsDao,
-                            MutableAuthenticationService authenticationService) {
+    public PeopleRecordsDao(
+        PersonService personService,
+        AuthorityUtils authorityUtils,
+        AuthorityService authorityService,
+        NamespaceService namespaceService,
+        AlfNodesRecordsDAO alfNodesRecordsDao,
+        MutableAuthenticationService authenticationService
+    ) {
         setId(ID);
+        this.personService = personService;
         this.authorityUtils = authorityUtils;
         this.authorityService = authorityService;
         this.namespaceService = namespaceService;
@@ -93,7 +99,7 @@ public class PeopleRecordsDao extends LocalRecordsDao
     public RecordsMutResult mutateImpl(RecordsMutation mutation) {
 
         List<RecordMeta> handledMeta = mutation.getRecords().stream()
-            .map(this::handleMeta)
+            .map(this::handleMetaBeforeMutation)
             .collect(Collectors.toList());
 
         mutation.setRecords(handledMeta);
@@ -101,21 +107,44 @@ public class PeopleRecordsDao extends LocalRecordsDao
         return alfNodesRecordsDao.mutate(mutation);
     }
 
-    private RecordMeta handleMeta(RecordMeta meta) {
+    private RecordMeta handleMetaBeforeMutation(RecordMeta meta) {
 
         String username = meta.getId().getId();
+        boolean createIfNotExists = false;
 
-        if (meta.hasAttribute(ECOS_PASS)) {
-            String oldPass = meta.getAttribute(ECOS_OLD_PASS).asText();
-            String newPass = meta.getAttribute(ECOS_PASS).asText();
-            String verifyPass = meta.getAttribute(ECOS_PASS_VERIFY).asText();
+        if (username.isEmpty()) {
+            DataValue id = meta.getAtt("id");
+            if (id.isTextual() && StringUtils.isNotBlank(id.asText())) {
+                username = id.asText();
+                createIfNotExists = true;
+            }
+        }
+        if (username.isEmpty()) {
+            throw new RuntimeException("UserName can't be empty for person mutation");
+        }
 
-            this.updatePassword(username, oldPass, newPass, verifyPass);
+        NodeRef personRef = personService.getPersonOrNull(username);
+        if (personRef == null) {
+            if (!createIfNotExists) {
+                throw new RuntimeException("User doesn't exists: " + username);
+            }
+            Map<QName, Serializable> props = new HashMap<>();
+            props.put(ContentModel.PROP_USERNAME, username);
+            personRef = personService.createPerson(props);
 
+        } else {
+
+            if (meta.hasAttribute(ECOS_PASS)) {
+                String oldPass = meta.getAttribute(ECOS_OLD_PASS).asText();
+                String newPass = meta.getAttribute(ECOS_PASS).asText();
+                String verifyPass = meta.getAttribute(ECOS_PASS_VERIFY).asText();
+
+                this.updatePassword(username, oldPass, newPass, verifyPass);
+            }
         }
 
         //  search and set nodeRef for requested user
-        meta.setId(authorityService.getAuthorityNodeRef(username).toString());
+        meta.setId(personRef.toString());
 
         ObjectData attributes = meta.getAttributes();
         attributes.remove(ECOS_OLD_PASS);
