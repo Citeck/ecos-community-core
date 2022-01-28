@@ -445,6 +445,10 @@ public class AlfNodesRecordsDAO extends LocalRecordsDao
         return resultRecord;
     }
 
+    public void updateComputedAtts(NodeRef nodeRef, boolean isNewRecord) {
+        storeComputedAtts(nodeRef, ObjectData.create(), isNewRecord);
+    }
+
     private void storeComputedAtts(NodeRef nodeRef, ObjectData initialAtts, boolean isNewNode) {
 
         RecordRef typeRef = ecosTypeService.getEcosType(nodeRef);
