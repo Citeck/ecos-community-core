@@ -21,6 +21,8 @@ public interface OperandExpected {
      */
     OperatorExpected any(QName field, Iterable<Serializable> values);
 
+    OperatorExpected any(QName field, Iterable<Serializable> values, boolean exact);
+
     /**
      * Add multiple @key:"value" pairs to query
      * @param values values which would be added to query

@@ -99,13 +99,18 @@ public class FTSQuery implements OperatorExpected, OperandExpected {
 
     @Override
     public FTSQuery any(QName field, Iterable<Serializable> values) {
+        return any(field, values, false);
+    }
+
+    @Override
+    public FTSQuery any(QName field, Iterable<Serializable> values, boolean exact) {
         Iterator<Serializable> it = values.iterator();
         if (!it.hasNext()) {
             throw new IllegalArgumentException("Values is empty");
         }
         open();
         while (it.hasNext()) {
-            value(field, it.next());
+            value(field, it.next(), exact);
             if (it.hasNext()) or();
         }
         close();
