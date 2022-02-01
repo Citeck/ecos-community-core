@@ -604,7 +604,7 @@ public class ValuePredicateToFtsConverter implements PredicateToFtsConverter {
             ClassDefinition targetType = ((AssociationDefinition) attDef).getTargetClass();
             List<NodeRef> innerValues = searchInnerValues(field, targetType.getName(), predicateValue, false);
             if (innerValues.size() > 0) {
-                query.any(field, new ArrayList<>(innerValues), true);
+                query.any(field, new ArrayList<>(innerValues));
             } else {
                 query.alwaysFalse();
             }
