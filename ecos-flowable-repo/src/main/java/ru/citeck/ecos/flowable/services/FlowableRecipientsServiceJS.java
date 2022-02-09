@@ -11,7 +11,8 @@ import java.util.Set;
 /**
  * @author Roman Makarskiy
  */
-public class FlowableRecipientsServiceJS extends AlfrescoScopableProcessorExtension {
+public class FlowableRecipientsServiceJS extends AlfrescoScopableProcessorExtension
+    implements FlowableEngineProcessService {
 
     private FlowableRecipientsService flowableRecipientsService;
 
@@ -65,5 +66,10 @@ public class FlowableRecipientsServiceJS extends AlfrescoScopableProcessorExtens
 
     public void setFlowableRecipientsService(FlowableRecipientsService flowableRecipientsService) {
         this.flowableRecipientsService = flowableRecipientsService;
+    }
+
+    @Override
+    public String getKey() {
+        return getExtensionName();
     }
 }

@@ -318,17 +318,15 @@
         <property name="impl" ref="FlowableConfirmHelper" />
     </bean>
 
-    <bean name="FlowableConfirmDecisionsJS" class="ru.citeck.ecos.flowable.example.FlowableConfirmDecisionsJS" parent="baseJavaScriptExtension">
+    <bean name="FlowableConfirmDecisionsJS" class="ru.citeck.ecos.flowable.example.FlowableConfirmDecisionsJS" parent="ecos.baseJavaScriptExtension">
         <property name="extensionName" value="flowableConfirmDecisions" />
         <property name="impl" ref="FlowableConfirmHelper" />
-        <property name="serviceRegistry" ref="ServiceRegistry" />
     </bean>
 
     <bean id="flowableModelerServiceJS" name="FlowableModelerServiceJS" class="ru.citeck.ecos.flowable.services.FlowableModelerServiceJS"
-          parent="baseJavaScriptExtension">
+          parent="ecos.baseJavaScriptExtension">
         <property name="extensionName" value="flowableModelerService"/>
         <property name="flowableModelerService" ref="flowableModelerService"/>
-        <property name="serviceRegistry" ref="ServiceRegistry" />
     </bean>
 
     <bean id="flowableCustomCommentService" class="ru.citeck.ecos.flowable.services.impl.FlowableCustomCommentServiceImpl">
@@ -349,7 +347,7 @@
 
     <bean id="flowableRecipientsServiceJS" name="flowableRecipientsServiceJS"
           class="ru.citeck.ecos.flowable.services.FlowableRecipientsServiceJS"
-          parent="baseJavaScriptExtension">
+          parent="ecos.baseJavaScriptExtension">
         <property name="extensionName" value="flwRecipients"/>
         <property name="flowableRecipientsService" ref="flowableRecipientsService"/>
     </bean>
