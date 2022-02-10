@@ -18,7 +18,7 @@ import ru.citeck.ecos.model.EcosTypeModel;
 import ru.citeck.ecos.model.ICaseModel;
 import ru.citeck.ecos.records2.RecordRef;
 import ru.citeck.ecos.search.ftsquery.FTSQuery;
-import ru.citeck.ecos.utils.EcosU18NUtils;
+import ru.citeck.ecos.utils.EcosI18NUtils;
 
 import java.io.Serializable;
 import java.sql.Date;
@@ -62,7 +62,7 @@ public class CmmnLegacyEditorTemplateDaoImpl implements CmmnLegacyEditorTemplate
 
         MLText title = new MLText();
         title.addValue(Locale.ENGLISH, "Case");
-        title.addValue(EcosU18NUtils.RUSSIAN, "Кейс");
+        title.addValue(EcosI18NUtils.RUSSIAN, "Кейс");
         initialProps.put(ContentModel.PROP_TITLE, title);
 
         if (RecordRef.isNotEmpty(typeRef)) {

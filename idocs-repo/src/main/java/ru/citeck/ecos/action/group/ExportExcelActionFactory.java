@@ -35,7 +35,7 @@ public class ExportExcelActionFactory extends AbstractExportActionFactory<Export
     }
 
     @Override
-    protected ExcelEnvironment createEnvironment(GroupActionConfig config, List<String> requestedAttributes, List<String> columnTitles) {
+    protected ExcelEnvironment createEnvironment(GroupActionConfig config, List<ReportColumnDef> columns) {
         mimeType = MIMETYPE;
         Workbook workbook = null;
         String templatePath = config.getStrParam(PARAM_TEMPLATE);
@@ -67,7 +67,7 @@ public class ExportExcelActionFactory extends AbstractExportActionFactory<Export
                 header.setCenter(headerCenter);
             }
         }
-        createColumnTitlesRow(columnTitles, workbook, sheet);
+        createColumnTitlesRow(columns, workbook, sheet);
 
         ExcelEnvironment excelEnvironment = new ExcelEnvironment(workbook, sheet);
         createCellStyles(excelEnvironment);
@@ -75,14 +75,13 @@ public class ExportExcelActionFactory extends AbstractExportActionFactory<Export
     }
 
     @Override
-    protected int writeData(List<RecordAtts> nodesAttributes, int nextRowIndex, List<String> requestedAttributes, ExcelEnvironment excelEnvironment) {
-        for (RecordAtts attributes : nodesAttributes) {
+    protected int writeData(List<List<DataValue>> lines, int nextRowIndex, ExcelEnvironment excelEnvironment) {
+        for (List<DataValue> line : lines) {
             Row currentRow = excelEnvironment.getSheet().createRow(nextRowIndex);
-            for (int attIdx = 0; attIdx < requestedAttributes.size(); attIdx++) {
-                String attributeName = requestedAttributes.get(attIdx);
+            for (int attIdx = 0; attIdx < line.size(); attIdx++) {
                 Cell newCell = currentRow.createCell(attIdx);
                 newCell.setCellStyle(excelEnvironment.getValueCellStyle());
-                DataValue dataValue = attributes.getAtt(attributeName);
+                DataValue dataValue = line.get(attIdx);
                 if (dataValue.isDouble()) {
                     newCell.setCellStyle(excelEnvironment.getDoubleCellStyle());
                     newCell.setCellValue(dataValue.asDouble());
@@ -118,7 +117,7 @@ public class ExportExcelActionFactory extends AbstractExportActionFactory<Export
         excelEnvironment.getWorkbook().write(outputStream);
     }
 
-    private void createColumnTitlesRow(List<String> columnTitles, Workbook workbook, Sheet sheet) {
+    private void createColumnTitlesRow(List<ReportColumnDef> columnTitles, Workbook workbook, Sheet sheet) {
         if (CollectionUtils.isEmpty(columnTitles)) {
             log.warn(EMPTY_REPORT_MSG);
             return;
@@ -130,7 +129,7 @@ public class ExportExcelActionFactory extends AbstractExportActionFactory<Export
         for (int idx = 0; idx < columnTitles.size(); idx++) {
             Cell cell = row.createCell(idx);
             cell.setCellStyle(titleCellStyle);
-            cell.setCellValue(columnTitles.get(idx) != null ? columnTitles.get(idx) : "");
+            cell.setCellValue(columnTitles.get(idx).getName());
         }
     }
 

@@ -162,7 +162,7 @@ public class DictUtils {
 
         final Locale primaryLocale = I18NUtil.getLocale();
 
-        for (Locale locale : EcosU18NUtils.LOCALES) {
+        for (Locale locale : EcosI18NUtils.LOCALES) {
             I18NUtil.setLocale(locale);
             String title = typeDefinition.getTitle(messageService);
             if (StringUtils.isNotBlank(title)) {
