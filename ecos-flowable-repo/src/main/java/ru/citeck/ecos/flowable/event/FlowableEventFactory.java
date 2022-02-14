@@ -8,6 +8,8 @@ import org.alfresco.service.cmr.repository.AssociationRef;
 import org.alfresco.service.cmr.repository.NodeRef;
 import org.alfresco.service.cmr.repository.NodeService;
 import org.alfresco.service.cmr.security.AuthorityService;
+import org.alfresco.service.cmr.security.AuthorityType;
+import org.alfresco.service.cmr.security.PersonService;
 import org.alfresco.service.namespace.NamespaceService;
 import org.alfresco.service.namespace.QName;
 import org.apache.commons.collections.CollectionUtils;
@@ -141,9 +143,13 @@ public class FlowableEventFactory {
         Set<String> pooledUsers = new HashSet<>();
         pooledActors.forEach(nodeRef -> pooledUsers.addAll(authorityUtils.getContainedUsers(nodeRef, false)));
 
-        //Flowable does not send assign event, so add assignee to pooled users
+        //Flowable does not send assign event, so fill pooledUsers from assignee and pooledActors (deputy case)
         if (StringUtils.equals(eventName, TaskEventType.CREATE.toString()) && pooledUsers.isEmpty()) {
-            pooledUsers.add(assignee);
+            if (StringUtils.isNotBlank(assignee)) {
+                pooledUsers.add(assignee);
+            } else {
+                pooledActors.forEach(actor -> userNameFromActorRef(actor).ifPresent(pooledUsers::add));
+            }
         }
 
         dto.setTaskPooledUsers(pooledUsers);
@@ -158,6 +164,17 @@ public class FlowableEventFactory {
         dto.setWorkflowDescription((String) task.getVariable(VAR_DESCRIPTION));
 
         return Optional.of(EventDtoFactory.toEventDto(dto));
+    }
+
+    private Optional<String> userNameFromActorRef(NodeRef actor) {
+        String name = authorityUtils.getAuthorityName(actor);
+
+        AuthorityType actorType = AuthorityType.getAuthorityType(name);
+        if (AuthorityType.USER.equals(actorType)) {
+            return Optional.ofNullable(name);
+        }
+
+        return Optional.empty();
     }
 
     private String getFormCustomOutcome(DelegateTask delegateTask) {
