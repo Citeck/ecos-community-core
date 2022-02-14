@@ -72,7 +72,7 @@
         <ecos.apps.lib.version>3.9.1</ecos.apps.lib.version>
         <ecos.jackson.version>2.10.4.3</ecos.jackson.version>
         <ecos.snakeyaml.version>2.2.0</ecos.snakeyaml.version>
-        <ecos.commons.version>2.4.1</ecos.commons.version>
+        <ecos.commons.version>2.5.4.1</ecos.commons.version>
         <ecos.commands.version>2.6.0</ecos.commands.version>
         <ecos.rabbitmq.version>2.3.0</ecos.rabbitmq.version>
         <ecos.meta-repo.version>1.1.0</ecos.meta-repo.version>
