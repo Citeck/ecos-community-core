@@ -54,16 +54,16 @@ public class PeopleRecordsDao extends LocalRecordsDao
     private static final String PROP_USER_NAME = "userName";
     private static final String PROP_CM_USER_NAME = "cm:" + PROP_USER_NAME;
 
-    private static final String PROP_FULL_NAME = "fullName";
-    private static final String PROP_IS_AVAILABLE = "isAvailable";
-    private static final String PROP_IS_MUTABLE = "isMutable";
-    private static final String PROP_IS_ADMIN = "isAdmin";
-    private static final String PROP_IS_DISABLED = "isDisabled";
-    private static final String PROP_AUTHORITIES = "authorities";
+    public static final String PROP_FULL_NAME = "fullName";
+    public static final String PROP_IS_AVAILABLE = "isAvailable";
+    public static final String PROP_IS_MUTABLE = "isMutable";
+    public static final String PROP_IS_ADMIN = "isAdmin";
+    public static final String PROP_IS_DISABLED = "isDisabled";
+    public static final String PROP_AUTHORITIES = "authorities";
+    public static final String GROUPS = "groups";
     private static final String ECOS_OLD_PASS = "ecos:oldPass";
     private static final String ECOS_PASS = "ecos:pass";
     private static final String ECOS_PASS_VERIFY = "ecos:passVerify";
-    private static final String GROUPS = "groups";
 
     private final AuthorityUtils authorityUtils;
     private final AuthorityService authorityService;

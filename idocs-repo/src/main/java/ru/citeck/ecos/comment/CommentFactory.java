@@ -28,6 +28,7 @@ import ru.citeck.ecos.comment.model.CommentPermissions;
 import ru.citeck.ecos.comment.model.CommentTagDto;
 import ru.citeck.ecos.model.EcosCommonModel;
 import ru.citeck.ecos.records.models.AuthorityDTO;
+import ru.citeck.ecos.records.source.PeopleRecordsDao;
 import ru.citeck.ecos.records2.RecordRef;
 import ru.citeck.ecos.records2.RecordsService;
 
@@ -156,14 +157,13 @@ public class CommentFactory {
             canEdit = false;
             canDelete = false;
         } else {
-            boolean canAccessAsSiteManager =
-                permissionService.hasPermission(commentRef, SITE_MANAGER) == AccessStatus.ALLOWED;
-            boolean canAccessAsCoordinator =
-                permissionService.hasPermission(commentRef, PermissionService.COORDINATOR) == AccessStatus.ALLOWED;
             String author = (String) nodeService.getProperties(commentRef).get(ContentModel.PROP_CREATOR);
             String currentUser = serviceRegistry.getAuthenticationService().getCurrentUserName();
-            canEdit = author.equals(currentUser) || canAccessAsSiteManager || canAccessAsCoordinator;
-            canDelete = permissionService.hasPermission(commentRef, PermissionService.DELETE) == AccessStatus.ALLOWED;
+            boolean isAdmin = recordsService.getAtt(
+                RecordRef.create(PeopleRecordsDao.ID, currentUser), PeopleRecordsDao.PROP_IS_ADMIN).asBoolean();
+            canEdit = author.equals(currentUser) || isAdmin;
+            canDelete = canEdit &&
+                permissionService.hasPermission(commentRef, PermissionService.DELETE) == AccessStatus.ALLOWED;
         }
 
         permissions.put(CommentPermissions.CAN_EDIT.getValue(), canEdit);
