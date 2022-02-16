@@ -1,6 +1,6 @@
 package ru.citeck.ecos.config;
 
-import org.apache.activemq.ActiveMQConnectionFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.amqp.rabbit.connection.CachingConnectionFactory;
@@ -9,17 +9,20 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.jms.core.JmsTemplate;
 import ru.citeck.ecos.rabbitmq.RabbitMqConn;
 import ru.citeck.ecos.rabbitmq.RabbitMqConnFactory;
 import ru.citeck.ecos.rabbitmq.RabbitMqConnProps;
 import ru.citeck.ecos.rabbitmq.RabbitMqConnProvider;
 
+import javax.annotation.PreDestroy;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Properties;
 
 /**
  * Messaging configuration
  */
+@Slf4j
 @Configuration
 public class MessagingConfiguration {
 
@@ -31,7 +34,6 @@ public class MessagingConfiguration {
     private static final String RABBIT_MQ_USERNAME= "rabbitmq.server.username";
     private static final String RABBIT_MQ_PASSWORD = "rabbitmq.server.password";
     private static final String RABBIT_MQ_THREAD_POOL_SIZE = "rabbitmq.threadPoolSize";
-    private static final String BROKER_URL = "messaging.broker.url";
 
     /**
      * Global properties
@@ -40,34 +42,7 @@ public class MessagingConfiguration {
     @Qualifier("global-properties")
     private Properties properties;
 
-    /**
-     * ActiveMQ connection factory
-     * @return ActiveMQ connection factory
-     */
-    @Bean(name = "activeMQConnectionFactory")
-    public ActiveMQConnectionFactory activeMQConnectionFactory() {
-        if (properties.getProperty(BROKER_URL) != null) {
-            ActiveMQConnectionFactory activeMQConnectionFactory = new ActiveMQConnectionFactory();
-            activeMQConnectionFactory.setBrokerURL(properties.getProperty(BROKER_URL));
-            return activeMQConnectionFactory;
-        } else {
-            return null;
-        }
-    }
-
-    /**
-     * JMS template
-     * @param factory Connection factory
-     * @return JMS template
-     */
-    @Bean(name = "jmsTemplate")
-    public JmsTemplate jmsTemplate(ActiveMQConnectionFactory factory) {
-        if (factory != null) {
-            return new JmsTemplate(factory);
-        } else {
-            return null;
-        }
-    }
+    private final List<Runnable> closeActions = new ArrayList<>();
 
     /**
      * Connection factory bean
@@ -81,6 +56,7 @@ public class MessagingConfiguration {
             connectionFactory.setPort(Integer.parseInt(properties.getProperty(RABBIT_MQ_PORT)));
             connectionFactory.setUsername(properties.getProperty(RABBIT_MQ_USERNAME));
             connectionFactory.setPassword(properties.getProperty(RABBIT_MQ_PASSWORD));
+            closeActions.add(connectionFactory::destroy);
             return connectionFactory;
         } else {
             return null;
@@ -122,6 +98,12 @@ public class MessagingConfiguration {
         }
 
         return props;
+    }
+
+    @PreDestroy
+    public void close() {
+        log.info("Closing...");
+        closeActions.forEach(Runnable::run);
     }
 
     private static class Provider implements RabbitMqConnProvider {

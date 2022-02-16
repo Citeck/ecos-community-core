@@ -10,6 +10,8 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import ru.citeck.ecos.zookeeper.EcosZooKeeper;
 
+import javax.annotation.PreDestroy;
+
 @Slf4j
 @Configuration
 public class ZookeeperConfig {
@@ -28,6 +30,8 @@ public class ZookeeperConfig {
 
     @Value("${ecos.zookeeper.curator.retry-policy.max-retries}")
     private int maxRetries;
+
+    private CuratorFramework client;
 
     @Bean
     public EcosZooKeeper ecosZookeeper(CuratorFramework curatorFramework) {
@@ -48,10 +52,15 @@ public class ZookeeperConfig {
         log.info("Startup will be stopped until Zookeeper will be available");
         log.info("=========================================================");
 
-        CuratorFramework client = CuratorFrameworkFactory.newClient(connectString, retryPolicy);
-
+        client = CuratorFrameworkFactory.newClient(connectString, retryPolicy);
         client.start();
 
         return client;
+    }
+
+    @PreDestroy
+    public void destroy() {
+        log.info("Destroy...");
+        client.close();
     }
 }

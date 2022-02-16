@@ -1,12 +1,13 @@
 package ru.citeck.ecos.job;
 
-
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
+
+import javax.annotation.PreDestroy;
 
 @Slf4j
 @Configuration
@@ -24,9 +25,12 @@ public class AfterCommitJobPoolConfiguration {
     @Value("${after-commit-job.thread-pool.queue-capacity}")
     private Integer queueCapacity;
 
+    private ThreadPoolTaskExecutor executor;
+
     @Bean
     public TaskExecutor afterCommitTaskExecutor() {
-        ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
+
+        executor = new ThreadPoolTaskExecutor();
         executor.setCorePoolSize(corePoolSize);
         executor.setMaxPoolSize(maxPoolSize);
 
@@ -49,4 +53,9 @@ public class AfterCommitJobPoolConfiguration {
         return executor;
     }
 
+    @PreDestroy
+    public void destroy() {
+        log.info("Destroy...");
+        executor.shutdown();
+    }
 }
