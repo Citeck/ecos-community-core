@@ -272,7 +272,7 @@ public class RecordsConfiguration extends RecordsServiceFactory {
         @Override
         protected void onBootstrap(ApplicationEvent event) {
             try {
-                serviceFactory.initJobs(null);
+                serviceFactory.getJobExecutor().init();
             } catch (Exception e) {
                 log.error("JobsInitializer initialization failed", e);
             }
