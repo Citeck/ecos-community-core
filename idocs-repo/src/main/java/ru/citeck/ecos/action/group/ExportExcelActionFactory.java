@@ -4,11 +4,13 @@ import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.validator.routines.UrlValidator;
 import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.core.io.ClassPathResource;
+import org.springframework.extensions.surf.util.I18NUtil;
 import org.springframework.stereotype.Component;
 import ru.citeck.ecos.commons.data.DataValue;
 import ru.citeck.ecos.records3.record.atts.dto.RecordAtts;
@@ -98,6 +100,12 @@ public class ExportExcelActionFactory extends AbstractExportActionFactory<Export
                                     dataValue.asText()));
                         } catch (MalformedURLException e) {
                             newCell.setCellValue(dataValue.asText());
+                        }
+                    } else if (BooleanUtils.toBooleanObject(dataValue.asText()) != null){
+                        if (Boolean.parseBoolean(dataValue.asText())) {
+                            newCell.setCellValue(I18NUtil.getMessage("export.boolean.true.text"));
+                        } else {
+                            newCell.setCellValue(I18NUtil.getMessage("export.boolean.false.text"));
                         }
                     } else {
                         newCell.setCellValue(dataValue.asText());

@@ -110,6 +110,7 @@
                 <value>alfresco/module/idocs-repo/messages/working-calendar</value>
                 <value>alfresco/module/idocs-repo/messages/ecosbpm-model</value>
                 <value>alfresco/module/idocs-repo/messages/ecos-vacation-model</value>
+                <value>alfresco/module/idocs-repo/messages/export</value>
             </list>
         </property>
     </bean>
