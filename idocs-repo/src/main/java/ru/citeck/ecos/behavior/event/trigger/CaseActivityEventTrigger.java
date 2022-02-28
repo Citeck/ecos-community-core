@@ -103,12 +103,12 @@ public class CaseActivityEventTrigger implements CaseActivityPolicies.OnCaseActi
             data.hasOwner = isDataOwner = true;
         }
 
-        caseActivityEventService.fireEvent(activityRef, ICaseEventModel.CONSTR_ACTIVITY_STOPPED);
-
         NodeRef parent = nodeService.getPrimaryParent(activityNodeRef).getParentRef();
         if (parent != null && dictionaryService.isSubClass(nodeService.getType(parent), StagesModel.TYPE_STAGE)) {
             data.stagesToTryComplete.add(parent);
         }
+
+        caseActivityEventService.fireEvent(activityRef, ICaseEventModel.CONSTR_ACTIVITY_STOPPED);
 
         if (isDataOwner) {
             RecordRef documentId = activityRef.getProcessId();
@@ -162,6 +162,6 @@ public class CaseActivityEventTrigger implements CaseActivityPolicies.OnCaseActi
 
     private static class TransactionData {
         boolean hasOwner = false;
-        Set<NodeRef> stagesToTryComplete = new HashSet<>();
+        Set<NodeRef> stagesToTryComplete = new LinkedHashSet<>();
     }
 }

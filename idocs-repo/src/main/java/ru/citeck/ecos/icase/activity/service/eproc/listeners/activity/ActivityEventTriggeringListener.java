@@ -84,8 +84,6 @@ public class ActivityEventTriggeringListener implements
             data.hasOwner = isDataOwner = true;
         }
 
-        caseActivityEventService.fireEvent(activityRef, ICaseEventModel.CONSTR_ACTIVITY_STOPPED);
-
         //TODO: micro optimization: check, that parentActivity is stage and only after this request activity instance from service
         //This will optimize execution because of getStateInstance works recursively, getDefinition works from cache.
         ActivityInstance activityInstance = eprocActivityService.getStateInstance(activityRef);
@@ -93,6 +91,8 @@ public class ActivityEventTriggeringListener implements
         if (parentInstance != null && EProcUtils.isStage(parentInstance.getDefinition())) {
             data.stagesToTryComplete.add(parentInstance);
         }
+
+        caseActivityEventService.fireEvent(activityRef, ICaseEventModel.CONSTR_ACTIVITY_STOPPED);
 
         if (isDataOwner) {
             RecordRef caseRef = activityRef.getProcessId();
@@ -145,6 +145,6 @@ public class ActivityEventTriggeringListener implements
 
     private static class TransactionData {
         boolean hasOwner = false;
-        Set<ActivityInstance> stagesToTryComplete = new HashSet<>();
+        Set<ActivityInstance> stagesToTryComplete = new LinkedHashSet<>();
     }
 }
