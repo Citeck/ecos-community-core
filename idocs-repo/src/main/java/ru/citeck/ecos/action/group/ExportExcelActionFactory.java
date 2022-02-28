@@ -101,12 +101,6 @@ public class ExportExcelActionFactory extends AbstractExportActionFactory<Export
                         } catch (MalformedURLException e) {
                             newCell.setCellValue(dataValue.asText());
                         }
-                    } else if (BooleanUtils.toBooleanObject(dataValue.asText()) != null){
-                        if (Boolean.parseBoolean(dataValue.asText())) {
-                            newCell.setCellValue(I18NUtil.getMessage("export.boolean.true.text"));
-                        } else {
-                            newCell.setCellValue(I18NUtil.getMessage("export.boolean.false.text"));
-                        }
                     } else {
                         newCell.setCellValue(dataValue.asText());
                     }

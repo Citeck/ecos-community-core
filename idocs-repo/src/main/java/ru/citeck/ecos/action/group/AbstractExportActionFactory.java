@@ -16,6 +16,7 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang3.time.FastDateFormat;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.extensions.surf.util.I18NUtil;
 import ru.citeck.ecos.action.group.impl.BaseGroupAction;
 import ru.citeck.ecos.action.group.output.ExportOutputActionsRegistry;
 import ru.citeck.ecos.commons.data.DataValue;
@@ -249,6 +250,18 @@ public abstract class AbstractExportActionFactory<T> implements GroupActionFacto
                     format = DATE_FORMAT;
                 } else if (AttributeType.DATETIME.equals(type)) {
                     format = DATE_TIME_FORMAT;
+                }
+                if (AttributeType.BOOLEAN.equals(type)) {
+                    for (RecordAtts atts : nodesAttributes) {
+                        String value = atts.getAtt(att).asText();
+                        if (!value.isEmpty()) {
+                            if (Boolean.TRUE.toString().equals(value)) {
+                                atts.setAtt(att, I18NUtil.getMessage("label.yes"));
+                            } else {
+                                atts.setAtt(att, I18NUtil.getMessage("label.no"));
+                            }
+                        }
+                    }
                 }
                 if (format != null) {
                     for (RecordAtts atts : nodesAttributes) {
