@@ -35,7 +35,6 @@ public class FTSQuery implements OperatorExpected, OperandExpected {
     private static final String TYPE = "TYPE";
     private static final String PATH = "PATH";
     private static final String ASPECT = "ASPECT";
-    private static final String EXISTS = "EXISTS";
     private static final String VALUE_ENVELOP_START = "(";
     private static final String VALUE_ENVELOP_END = ")";
 
@@ -221,11 +220,6 @@ public class FTSQuery implements OperatorExpected, OperandExpected {
     @Override
     public FTSQuery aspect(QName aspectName) {
         group.addTerm(new SysValueOperator(ASPECT, aspectName));
-        return this;
-    }
-
-    public FTSQuery exists(QName fieldName) {
-        group.addTerm(new SysValueOperator(EXISTS, fieldName));
         return this;
     }
 
