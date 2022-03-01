@@ -173,6 +173,11 @@ public interface OperandExpected {
     OperatorExpected isNotNull(QName field);
 
     /**
+     * Field exists
+     */
+    OperatorExpected exists(QName field);
+
+    /**
      * Field is null or unset
      * @param field field to check
      */
