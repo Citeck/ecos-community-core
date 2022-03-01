@@ -64,6 +64,9 @@ public class AuthorityRecordsDao extends LocalRecordsDao implements LocalRecords
             if (name.equals("nodeRef")) {
                 return authorityUtils.getNodeRef(id);
             }
+            if (name.equals("containedUsers")) {
+                return authorityUtils.getContainedUsers(id, false);
+            }
             return getAlfMetaValue().getAttribute(name, field);
         }
 
