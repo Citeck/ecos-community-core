@@ -37,7 +37,6 @@ columns:
         actionId: view-task
 
   - id: wfm:document
-    searchable: false
 
   - id: wfm:counterparty
     searhable: false
