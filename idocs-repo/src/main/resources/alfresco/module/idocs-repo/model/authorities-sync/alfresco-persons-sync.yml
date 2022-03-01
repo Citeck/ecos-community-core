@@ -12,7 +12,7 @@ authorityType: PERSON
 manageNewAuthorities: true
 
 repeatDelayDuration: PT10S
-version: 2
+version: 3
 
 config:
   batchSize: 30
