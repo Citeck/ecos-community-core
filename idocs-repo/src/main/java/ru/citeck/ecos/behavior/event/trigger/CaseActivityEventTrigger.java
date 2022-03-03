@@ -1,5 +1,7 @@
 package ru.citeck.ecos.behavior.event.trigger;
 
+import lombok.extern.slf4j.Slf4j;
+import org.alfresco.model.ContentModel;
 import org.alfresco.repo.policy.Behaviour;
 import org.alfresco.repo.policy.PolicyComponent;
 import org.alfresco.repo.transaction.AlfrescoTransactionSupport;
@@ -8,6 +10,7 @@ import org.alfresco.service.ServiceRegistry;
 import org.alfresco.service.cmr.dictionary.DictionaryService;
 import org.alfresco.service.cmr.repository.NodeRef;
 import org.alfresco.service.cmr.repository.NodeService;
+import org.alfresco.util.transaction.TransactionSupportUtil;
 import org.apache.commons.lang.mutable.MutableInt;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.DependsOn;
@@ -30,6 +33,7 @@ import java.util.*;
 
 @Component
 @DependsOn("idocs.dictionaryBootstrap")
+@Slf4j
 public class CaseActivityEventTrigger implements CaseActivityPolicies.OnCaseActivityStartedPolicy,
                                                  CaseActivityPolicies.OnCaseActivityStoppedPolicy {
 
@@ -72,6 +76,10 @@ public class CaseActivityEventTrigger implements CaseActivityPolicies.OnCaseActi
 
         TransactionData data = getTransactionData();
         boolean isDataOwner = false;
+        if (log.isDebugEnabled()) {
+            log.debug("onCaseActivityStarted.activityNodeRef: " + activityNodeRef + ", stageName: " +
+                nodeService.getProperty(activityNodeRef, ContentModel.PROP_TITLE) + ", hasOwner: " + data.hasOwner);
+        }
         if (!data.hasOwner) {
             data.hasOwner = isDataOwner = true;
         }
@@ -81,6 +89,12 @@ public class CaseActivityEventTrigger implements CaseActivityPolicies.OnCaseActi
         if (dictionaryService.isSubClass(nodeService.getType(activityNodeRef), StagesModel.TYPE_STAGE)) {
             Integer version = (Integer) nodeService.getProperty(activityNodeRef, ActivityModel.PROP_TYPE_VERSION);
             if (version != null && version >= 1) {
+                if (log.isDebugEnabled()) {
+                    log.debug("onCaseActivityStarted.stagesToTryComplete.add: " + activityNodeRef +
+                        ", size: " + data.stagesToTryComplete.size() +
+                        ", thread: " + Thread.currentThread().getId() +
+                        ", trx: " + TransactionSupportUtil.getTransactionId());
+                }
                 data.stagesToTryComplete.add(activityNodeRef);
             }
         }
@@ -99,12 +113,23 @@ public class CaseActivityEventTrigger implements CaseActivityPolicies.OnCaseActi
 
         TransactionData data = getTransactionData();
         boolean isDataOwner = false;
+        if (log.isDebugEnabled()) {
+            log.debug("onCaseActivityStopped.activityNodeRef: " + activityNodeRef + ", stageName: " +
+                nodeService.getProperty(activityNodeRef, ContentModel.PROP_TITLE) + ", hasOwner: " + data.hasOwner);
+        }
         if (!data.hasOwner) {
             data.hasOwner = isDataOwner = true;
         }
 
         NodeRef parent = nodeService.getPrimaryParent(activityNodeRef).getParentRef();
         if (parent != null && dictionaryService.isSubClass(nodeService.getType(parent), StagesModel.TYPE_STAGE)) {
+            if (log.isDebugEnabled()) {
+                log.debug("onCaseActivityStopped.stagesToTryComplete.add: " + parent +
+                    ", activityNodeRef: " + activityNodeRef +
+                    ", size: " + data.stagesToTryComplete.size() +
+                    ", thread: " + Thread.currentThread().getId() +
+                    ", trx: " + TransactionSupportUtil.getTransactionId());
+            }
             data.stagesToTryComplete.add(parent);
         }
 
@@ -133,6 +158,9 @@ public class CaseActivityEventTrigger implements CaseActivityPolicies.OnCaseActi
             ActivityRef stageRef = alfActivityUtils.composeActivityRef(stage);
             if (!caseActivityService.hasActiveChildren(stageRef)) {
 
+                if (log.isDebugEnabled()) {
+                    log.debug("tryToFireStageChildrenStoppedEvents.stageNodeRef: " + stage);
+                }
                 MutableInt completedCounter = completedStages.computeIfAbsent(stage, s -> new MutableInt(0));
                 completedCounter.increment();
 
