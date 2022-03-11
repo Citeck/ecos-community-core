@@ -103,7 +103,7 @@ public class EcosReqContextRequestFilter implements Filter {
                     .getBody();
             }
 
-            String[] jwtAuthorities = claims.get(JWT_AUTHORITIES_KEY).toString().split(",");
+            String[] jwtAuthorities = String.valueOf(claims.get(JWT_AUTHORITIES_KEY)).split(",");
             if (ArrayUtils.contains(jwtAuthorities, AUTH_ROLE_SYSTEM)) {
                 isSystemRequest = true;
             }
