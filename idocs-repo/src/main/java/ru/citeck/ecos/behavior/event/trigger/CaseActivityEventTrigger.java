@@ -1,7 +1,6 @@
 package ru.citeck.ecos.behavior.event.trigger;
 
 import lombok.extern.slf4j.Slf4j;
-import org.alfresco.model.ContentModel;
 import org.alfresco.repo.policy.Behaviour;
 import org.alfresco.repo.policy.PolicyComponent;
 import org.alfresco.repo.transaction.AlfrescoTransactionSupport;
@@ -17,6 +16,7 @@ import org.springframework.context.annotation.DependsOn;
 import org.springframework.stereotype.Component;
 import ru.citeck.ecos.behavior.ChainingJavaBehaviour;
 import ru.citeck.ecos.icase.activity.dto.ActivityRef;
+import ru.citeck.ecos.icase.activity.dto.CaseActivity;
 import ru.citeck.ecos.icase.activity.service.CaseActivityEventService;
 import ru.citeck.ecos.icase.activity.service.CaseActivityService;
 import ru.citeck.ecos.icase.activity.service.alfresco.CaseActivityPolicies;
@@ -77,8 +77,9 @@ public class CaseActivityEventTrigger implements CaseActivityPolicies.OnCaseActi
         TransactionData data = getTransactionData();
         boolean isDataOwner = false;
         if (log.isDebugEnabled()) {
+            CaseActivity activity = caseActivityService.getActivity(activityRef);
             log.debug("onCaseActivityStarted.activityNodeRef: " + activityNodeRef + ", stageName: " +
-                nodeService.getProperty(activityNodeRef, ContentModel.PROP_TITLE) + ", hasOwner: " + data.hasOwner);
+                activity.getTitle() + ", hasOwner: " + data.hasOwner);
         }
         if (!data.hasOwner) {
             data.hasOwner = isDataOwner = true;
@@ -114,8 +115,9 @@ public class CaseActivityEventTrigger implements CaseActivityPolicies.OnCaseActi
         TransactionData data = getTransactionData();
         boolean isDataOwner = false;
         if (log.isDebugEnabled()) {
+            CaseActivity activity = caseActivityService.getActivity(activityRef);
             log.debug("onCaseActivityStopped.activityNodeRef: " + activityNodeRef + ", stageName: " +
-                nodeService.getProperty(activityNodeRef, ContentModel.PROP_TITLE) + ", hasOwner: " + data.hasOwner);
+                activity.getTitle() + ", hasOwner: " + data.hasOwner);
         }
         if (!data.hasOwner) {
             data.hasOwner = isDataOwner = true;

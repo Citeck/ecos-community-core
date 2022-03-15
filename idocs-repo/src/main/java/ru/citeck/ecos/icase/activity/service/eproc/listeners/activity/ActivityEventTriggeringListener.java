@@ -10,6 +10,7 @@ import org.springframework.stereotype.Component;
 import ru.citeck.ecos.icase.activity.dto.ActivityDefinition;
 import ru.citeck.ecos.icase.activity.dto.ActivityInstance;
 import ru.citeck.ecos.icase.activity.dto.ActivityRef;
+import ru.citeck.ecos.icase.activity.dto.CaseActivity;
 import ru.citeck.ecos.icase.activity.service.CaseActivityEventService;
 import ru.citeck.ecos.icase.activity.service.CaseActivityService;
 import ru.citeck.ecos.icase.activity.service.eproc.EProcActivityService;
@@ -61,7 +62,9 @@ public class ActivityEventTriggeringListener implements
         TransactionData data = getTransactionData();
         boolean isDataOwner = false;
         if (log.isDebugEnabled()) {
-            log.debug("onStartedActivity.activityRef: " + activityRef + ", hasOwner: " + data.hasOwner);
+            CaseActivity activity = caseActivityService.getActivity(activityRef);
+            log.debug("onStartedActivity.activityRef: " + activityRef + ", stageName: " + activity.getTitle() +
+                ", hasOwner: " + data.hasOwner);
         }
         if (!data.hasOwner) {
             data.hasOwner = isDataOwner = true;
@@ -93,7 +96,9 @@ public class ActivityEventTriggeringListener implements
         TransactionData data = getTransactionData();
         boolean isDataOwner = false;
         if (log.isDebugEnabled()) {
-            log.debug("onStoppedActivity.activityRef: " + activityRef + ", hasOwner: " + data.hasOwner);
+            CaseActivity activity = caseActivityService.getActivity(activityRef);
+            log.debug("onStoppedActivity.activityRef: " + activityRef + ", stageName: " + activity.getTitle() +
+                ", hasOwner: " + data.hasOwner);
         }
         if (!data.hasOwner) {
             data.hasOwner = isDataOwner = true;
