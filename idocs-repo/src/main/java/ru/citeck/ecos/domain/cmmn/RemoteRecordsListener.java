@@ -87,7 +87,7 @@ public class RemoteRecordsListener {
 
     private void onEventImpl(EventData event, boolean isNewRec) {
 
-        log.info(
+        log.debug(
             "Record mutated: " + event.recordRef
                 + " type: " + event.typeRef
                 + " new record: " + isNewRec
@@ -97,7 +97,7 @@ public class RemoteRecordsListener {
         }
 
         if (!isTypeCase.getUnchecked(event.typeRef)) {
-            log.info("Record is not a case");
+            log.debug("Record is not a case");
             return;
         }
 
