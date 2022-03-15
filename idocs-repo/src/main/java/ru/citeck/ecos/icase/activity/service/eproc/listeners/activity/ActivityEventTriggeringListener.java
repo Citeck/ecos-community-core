@@ -1,13 +1,16 @@
 package ru.citeck.ecos.icase.activity.service.eproc.listeners.activity;
 
+import lombok.extern.slf4j.Slf4j;
 import org.alfresco.repo.transaction.AlfrescoTransactionSupport;
 import org.alfresco.repo.transaction.TransactionalResourceHelper;
+import org.alfresco.util.transaction.TransactionSupportUtil;
 import org.apache.commons.lang.mutable.MutableInt;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import ru.citeck.ecos.icase.activity.dto.ActivityDefinition;
 import ru.citeck.ecos.icase.activity.dto.ActivityInstance;
 import ru.citeck.ecos.icase.activity.dto.ActivityRef;
+import ru.citeck.ecos.icase.activity.dto.CaseActivity;
 import ru.citeck.ecos.icase.activity.service.CaseActivityEventService;
 import ru.citeck.ecos.icase.activity.service.CaseActivityService;
 import ru.citeck.ecos.icase.activity.service.eproc.EProcActivityService;
@@ -22,6 +25,7 @@ import javax.annotation.PostConstruct;
 import java.util.*;
 
 @Component
+@Slf4j
 public class ActivityEventTriggeringListener implements
         OnStartedActivityListener,
         OnStoppedActivityListener {
@@ -57,6 +61,11 @@ public class ActivityEventTriggeringListener implements
     public void onStartedActivity(ActivityRef activityRef) {
         TransactionData data = getTransactionData();
         boolean isDataOwner = false;
+        if (log.isDebugEnabled()) {
+            CaseActivity activity = caseActivityService.getActivity(activityRef);
+            log.debug("onStartedActivity.activityRef: " + activityRef + ", stageName: " + activity.getTitle() +
+                ", hasOwner: " + data.hasOwner);
+        }
         if (!data.hasOwner) {
             data.hasOwner = isDataOwner = true;
         }
@@ -65,6 +74,12 @@ public class ActivityEventTriggeringListener implements
 
         ActivityDefinition activityDefinition = eprocActivityService.getActivityDefinition(activityRef);
         if (EProcUtils.isStage(activityDefinition)) {
+            if (log.isDebugEnabled()) {
+                log.debug("onStartedActivity.stagesToTryComplete.add: " + activityRef +
+                    ", size: " + data.stagesToTryComplete.size() +
+                    ", thread: " + Thread.currentThread().getId() +
+                    ", trx: " + TransactionSupportUtil.getTransactionId());
+            }
             ActivityInstance activityInstance = eprocActivityService.getStateInstance(activityRef);
             data.stagesToTryComplete.add(activityInstance);
         }
@@ -80,19 +95,31 @@ public class ActivityEventTriggeringListener implements
     public void onStoppedActivity(ActivityRef activityRef) {
         TransactionData data = getTransactionData();
         boolean isDataOwner = false;
+        if (log.isDebugEnabled()) {
+            CaseActivity activity = caseActivityService.getActivity(activityRef);
+            log.debug("onStoppedActivity.activityRef: " + activityRef + ", stageName: " + activity.getTitle() +
+                ", hasOwner: " + data.hasOwner);
+        }
         if (!data.hasOwner) {
             data.hasOwner = isDataOwner = true;
         }
-
-        caseActivityEventService.fireEvent(activityRef, ICaseEventModel.CONSTR_ACTIVITY_STOPPED);
 
         //TODO: micro optimization: check, that parentActivity is stage and only after this request activity instance from service
         //This will optimize execution because of getStateInstance works recursively, getDefinition works from cache.
         ActivityInstance activityInstance = eprocActivityService.getStateInstance(activityRef);
         ActivityInstance parentInstance = activityInstance.getParentInstance();
         if (parentInstance != null && EProcUtils.isStage(parentInstance.getDefinition())) {
+            if (log.isDebugEnabled()) {
+                log.debug("onStoppedActivity.stagesToTryComplete.add: " + parentInstance +
+                    ", activityRef: " + activityRef +
+                    ", size: " + data.stagesToTryComplete.size() +
+                    ", thread: " + Thread.currentThread().getId() +
+                    ", trx: " + TransactionSupportUtil.getTransactionId());
+            }
             data.stagesToTryComplete.add(parentInstance);
         }
+
+        caseActivityEventService.fireEvent(activityRef, ICaseEventModel.CONSTR_ACTIVITY_STOPPED);
 
         if (isDataOwner) {
             RecordRef caseRef = activityRef.getProcessId();
@@ -116,6 +143,9 @@ public class ActivityEventTriggeringListener implements
             ActivityRef stageRef = EProcUtils.composeActivityRef(stage, caseRef);
             if (!caseActivityService.hasActiveChildren(stageRef)) {
 
+                if (log.isDebugEnabled()) {
+                    log.debug("tryToFireStageChildrenStoppedEvents.stage: " + stage);
+                }
                 MutableInt completedCounter = completedStages.computeIfAbsent(stage, s -> new MutableInt(0));
                 completedCounter.increment();
 
@@ -145,6 +175,6 @@ public class ActivityEventTriggeringListener implements
 
     private static class TransactionData {
         boolean hasOwner = false;
-        Set<ActivityInstance> stagesToTryComplete = new HashSet<>();
+        Set<ActivityInstance> stagesToTryComplete = new LinkedHashSet<>();
     }
 }
