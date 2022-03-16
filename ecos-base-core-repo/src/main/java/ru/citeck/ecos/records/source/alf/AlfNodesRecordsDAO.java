@@ -154,6 +154,10 @@ public class AlfNodesRecordsDAO extends LocalRecordsDao
     }
 
     private RecordMeta processSingleRecord(RecordMeta record) {
+        return processSingleRecord(record, true);
+    }
+
+    private RecordMeta processSingleRecord(RecordMeta record, boolean firstCall) {
 
         ObjectData initialAtts = record.getAtts().deepCopy();
         for (String field : initialAtts.fieldNamesList()) {
@@ -470,7 +474,9 @@ public class AlfNodesRecordsDAO extends LocalRecordsDao
         final boolean isNewNodeConst = isNewNode;
         AuthContext.runAsSystemJ(() -> {
             Objects.requireNonNull(finalNodeRef);
-            updateComputedAtts(finalNodeRef, isNewNodeConst);
+            if (firstCall) {
+                updateComputedAtts(finalNodeRef, isNewNodeConst);
+            }
             return null;
         });
 
@@ -485,7 +491,7 @@ public class AlfNodesRecordsDAO extends LocalRecordsDao
         ObjectData attsToStore = computedAttsService.computeAttsToStore(recordRef, isNewRecord, typeRef);
 
         if (attsToStore.size() > 0) {
-            processSingleRecord(new RecordMeta(recordRef, attsToStore));
+            processSingleRecord(new RecordMeta(recordRef, attsToStore), false);
         }
 
         updateNodeDispName(recordRef);
