@@ -21,6 +21,7 @@ import ru.citeck.ecos.commons.data.DataValue;
 import ru.citeck.ecos.commons.data.ObjectData;
 import ru.citeck.ecos.context.lib.auth.AuthContext;
 import ru.citeck.ecos.domain.model.alf.service.AlfAutoModelService;
+import ru.citeck.ecos.graphql.AlfGqlContext;
 import ru.citeck.ecos.icase.CaseStatusService;
 import ru.citeck.ecos.model.EcosModel;
 import ru.citeck.ecos.model.EcosTypeModel;
@@ -47,6 +48,7 @@ import ru.citeck.ecos.records2.RecordRef;
 import ru.citeck.ecos.records2.graphql.meta.value.EmptyValue;
 import ru.citeck.ecos.records2.graphql.meta.value.MetaField;
 import ru.citeck.ecos.records2.graphql.meta.value.MetaValue;
+import ru.citeck.ecos.records2.graphql.meta.value.field.EmptyMetaField;
 import ru.citeck.ecos.records2.meta.RecordsTemplateService;
 import ru.citeck.ecos.records2.request.delete.RecordsDelResult;
 import ru.citeck.ecos.records2.request.delete.RecordsDeletion;
@@ -488,7 +490,9 @@ public class AlfNodesRecordsDAO extends LocalRecordsDao
         RecordRef typeRef = ecosTypeService.getEcosType(nodeRef);
         RecordRef recordRef = RecordRef.create("", nodeRef.toString());
 
-        ObjectData attsToStore = computedAttsService.computeAttsToStore(recordRef, isNewRecord, typeRef);
+        MetaValue metaValue = createMetaValue(recordRef);
+        metaValue.init(AlfGqlContext.getCurrent(), EmptyMetaField.INSTANCE);
+        ObjectData attsToStore = computedAttsService.computeAttsToStore(metaValue, isNewRecord, typeRef);
 
         if (attsToStore.size() > 0) {
             processSingleRecord(new RecordMeta(recordRef, attsToStore), false);
