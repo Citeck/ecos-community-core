@@ -66,6 +66,7 @@ import ru.citeck.ecos.records3.RecordsProperties;
 import ru.citeck.ecos.security.EcosPermissionService;
 import ru.citeck.ecos.utils.AuthorityUtils;
 import ru.citeck.ecos.utils.NodeUtils;
+import ru.citeck.ecos.utils.PrefixRecordRefUtils;
 
 import java.io.Serializable;
 import java.util.*;
@@ -147,10 +148,7 @@ public class AlfNodesRecordsDAO extends LocalRecordsDao
             dataValue.forEach(value -> resultArr.add(fixNodeRef(value)));
             return resultArr;
         } else if (dataValue.isTextual()) {
-            String textValue = dataValue.asText();
-            if (textValue.startsWith("alfresco/@")) {
-                return DataValue.createStr(textValue.replaceFirst("alfresco/@", ""));
-            }
+            return DataValue.createStr(PrefixRecordRefUtils.replaceFirstPrefix(dataValue.asText()));
         }
         return dataValue;
     }
@@ -694,7 +692,9 @@ public class AlfNodesRecordsDAO extends LocalRecordsDao
             }
 
             if (parent.startsWith(PeopleRecordsDao.ID + "@")
-                    || parent.startsWith("alfresco/" + PeopleRecordsDao.ID + "@")) {
+                    || parent.startsWith("alfresco/" + PeopleRecordsDao.ID + "@")
+                    || parent.startsWith(PrefixRecordRefUtils.PREFIX_EMODEL_PERSON)
+                    || parent.startsWith(PrefixRecordRefUtils.PREFIX_EMODEL_GROUP)) {
 
                 String personId = RecordRef.valueOf(parent).getId();
                 NodeRef authorityRef = authorityUtils.getNodeRef(personId);

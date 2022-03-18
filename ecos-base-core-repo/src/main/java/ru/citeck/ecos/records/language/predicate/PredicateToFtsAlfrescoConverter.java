@@ -20,6 +20,7 @@ import ru.citeck.ecos.records2.predicate.model.*;
 import ru.citeck.ecos.records2.querylang.QueryLangConverter;
 import ru.citeck.ecos.records2.querylang.QueryLangService;
 import ru.citeck.ecos.search.ftsquery.FTSQuery;
+import ru.citeck.ecos.utils.PrefixRecordRefUtils;
 
 import java.util.*;
 
@@ -113,9 +114,8 @@ public class PredicateToFtsAlfrescoConverter implements QueryLangConverter<Predi
     }
 
     private DataValue mapAlfrescoNodeRefs(DataValue value) {
-
-        if (value.isTextual() && value.asText().startsWith(ALFRESCO_APP_NODE_REF_PREFIX)) {
-            return DataValue.createStr(value.asText().replaceFirst(ALFRESCO_APP_NODE_REF_PREFIX, WORKSPACE));
+        if (value.isTextual()) {
+            return DataValue.createStr(PrefixRecordRefUtils.replaceFirstPrefix(value.asText()));
         }
         if (value.isArray()) {
             DataValue newArr = DataValue.createArr();

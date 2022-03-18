@@ -26,6 +26,7 @@ import ru.citeck.ecos.records2.request.query.RecordsQueryResult;
 import ru.citeck.ecos.records2.request.query.SortBy;
 import ru.citeck.ecos.records3.record.request.RequestContext;
 import ru.citeck.ecos.records3.record.request.msg.MsgLevel;
+import ru.citeck.ecos.utils.PrefixRecordRefUtils;
 
 import java.util.Collections;
 import java.util.Date;
@@ -134,7 +135,7 @@ public class SearchServiceAlfNodesSearch {
             return new RecordsQueryResult<>();
         }
 
-        query = query.replace("alfresco/@workspace://", "workspace://");
+        query = PrefixRecordRefUtils.replacePrefix(query);
         searchParameters.setQuery(query);
 
         if (!ignoreQuerySort) {

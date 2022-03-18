@@ -103,12 +103,10 @@ public class AuthorityUtils {
         if (authority == null) {
             return null;
         }
-        if (authority.startsWith("alfresco/@")){
-            authority = authority.replace("alfresco/@", "");
-        }
         if (authority.startsWith("workspace://SpacesStore/")) {
             return new NodeRef(authority);
         }
+        authority = PrefixRecordRefUtils.replaceFirstPrefix(authority);
         return authorityService.getAuthorityNodeRef(authority);
     }
 

@@ -33,6 +33,7 @@ import ru.citeck.ecos.records2.source.dao.local.v2.LocalRecordsQueryWithMetaDao;
 import ru.citeck.ecos.records3.RecordsProperties;
 import ru.citeck.ecos.search.ftsquery.FTSQuery;
 import ru.citeck.ecos.utils.AuthorityUtils;
+import ru.citeck.ecos.utils.PrefixRecordRefUtils;
 import ru.citeck.ecos.utils.DictUtils;
 import ru.citeck.ecos.utils.NodeUtils;
 
@@ -221,7 +222,10 @@ public class CaseDocumentRecordsDao extends LocalRecordsDao implements LocalReco
         if (RecordRef.isEmpty(recordRef)) {
             return null;
         }
-        if (PeopleRecordsDao.ID.equals(recordRef.getSourceId())) {
+
+        if (PeopleRecordsDao.ID.equals(recordRef.getSourceId())
+            || recordRef.toString().startsWith(PrefixRecordRefUtils.PREFIX_EMODEL_PERSON)
+            || recordRef.toString().startsWith(PrefixRecordRefUtils.PREFIX_EMODEL_GROUP)) {
             return authorityUtils.getNodeRef(recordRef.getId());
         }
         if (nodeUtils.isNodeRef(recordRef.getId())) {

@@ -131,6 +131,7 @@
         <dependency>
             <groupId>${project.groupId}</groupId>
             <artifactId>ecos-base-core-repo</artifactId>
+            <version>${revision}</version>
         </dependency>
 
         <dependency>
