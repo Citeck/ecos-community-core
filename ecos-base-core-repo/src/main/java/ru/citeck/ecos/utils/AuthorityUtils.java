@@ -103,10 +103,10 @@ public class AuthorityUtils {
         if (authority == null) {
             return null;
         }
+        authority = PrefixRecordRefUtils.replaceFirstPrefix(authority);
         if (authority.startsWith("workspace://SpacesStore/")) {
             return new NodeRef(authority);
         }
-        authority = PrefixRecordRefUtils.replaceFirstPrefix(authority);
         return authorityService.getAuthorityNodeRef(authority);
     }
 

@@ -1,7 +1,9 @@
 package ru.citeck.ecos.records.language.predicate;
 
 import lombok.extern.slf4j.Slf4j;
+import org.alfresco.service.cmr.repository.NodeRef;
 import org.alfresco.service.cmr.search.SearchService;
+import org.alfresco.service.cmr.security.AuthorityService;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -34,6 +36,7 @@ public class PredicateToFtsAlfrescoConverter implements QueryLangConverter<Predi
     private ConvertersDelegator delegator;
     private AlfAutoModelService alfAutoModelService;
     private EcosTypeAlfTypeService ecosTypeAlfTypeService;
+    private AuthorityService authorityService;
 
     @Autowired
     public PredicateToFtsAlfrescoConverter(QueryLangService queryLangService,
@@ -115,7 +118,14 @@ public class PredicateToFtsAlfrescoConverter implements QueryLangConverter<Predi
 
     private DataValue mapAlfrescoNodeRefs(DataValue value) {
         if (value.isTextual()) {
-            return DataValue.createStr(PrefixRecordRefUtils.replaceFirstPrefix(value.asText()));
+            if (value.asText().startsWith(ALFRESCO_APP_NODE_REF_PREFIX)) {
+                return DataValue.createStr(value.asText().replaceFirst(ALFRESCO_APP_NODE_REF_PREFIX, WORKSPACE));
+            }
+            if (PrefixRecordRefUtils.isAuthority(value.asText())) {
+                NodeRef authority =
+                    authorityService.getAuthorityNodeRef(PrefixRecordRefUtils.replaceFirstPrefix(value.asText()));
+                return DataValue.createStr(authority.toString());
+            }
         }
         if (value.isArray()) {
             DataValue newArr = DataValue.createArr();
@@ -133,5 +143,10 @@ public class PredicateToFtsAlfrescoConverter implements QueryLangConverter<Predi
     @Autowired(required = false)
     public void setAlfAutoModelService(AlfAutoModelService alfAutoModelService) {
         this.alfAutoModelService = alfAutoModelService;
+    }
+
+    @Autowired
+    public void setAuthorityService(AuthorityService authorityService){
+        this.authorityService = authorityService;
     }
 }

@@ -148,7 +148,14 @@ public class AlfNodesRecordsDAO extends LocalRecordsDao
             dataValue.forEach(value -> resultArr.add(fixNodeRef(value)));
             return resultArr;
         } else if (dataValue.isTextual()) {
-            return DataValue.createStr(PrefixRecordRefUtils.replaceFirstPrefix(dataValue.asText()));
+            String textValue = dataValue.asText();
+            if (textValue.startsWith("alfresco/@")) {
+                return DataValue.createStr(textValue.replaceFirst("alfresco/@", ""));
+            }
+            if (PrefixRecordRefUtils.isAuthority(textValue)) {
+                NodeRef nodeRef = authorityUtils.getNodeRef(PrefixRecordRefUtils.replaceFirstPrefix(textValue));
+                return DataValue.createStr(nodeRef.toString());
+            }
         }
         return dataValue;
     }
@@ -696,8 +703,8 @@ public class AlfNodesRecordsDAO extends LocalRecordsDao
                     || parent.startsWith(PrefixRecordRefUtils.PREFIX_EMODEL_PERSON)
                     || parent.startsWith(PrefixRecordRefUtils.PREFIX_EMODEL_GROUP)) {
 
-                String personId = RecordRef.valueOf(parent).getId();
-                NodeRef authorityRef = authorityUtils.getNodeRef(personId);
+                String parentId = PrefixRecordRefUtils.getId(parent);
+                NodeRef authorityRef = authorityUtils.getNodeRef(parentId);
                 if (authorityRef == null) {
                     throw new RuntimeException("Incorrect authority: " + parent);
                 }

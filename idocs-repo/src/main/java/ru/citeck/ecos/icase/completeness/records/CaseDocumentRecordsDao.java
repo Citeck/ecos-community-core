@@ -226,7 +226,7 @@ public class CaseDocumentRecordsDao extends LocalRecordsDao implements LocalReco
         if (PeopleRecordsDao.ID.equals(recordRef.getSourceId())
             || recordRef.toString().startsWith(PrefixRecordRefUtils.PREFIX_EMODEL_PERSON)
             || recordRef.toString().startsWith(PrefixRecordRefUtils.PREFIX_EMODEL_GROUP)) {
-            return authorityUtils.getNodeRef(recordRef.getId());
+              return authorityUtils.getNodeRef(PrefixRecordRefUtils.getId(recordRef.toString()));
         }
         if (nodeUtils.isNodeRef(recordRef.getId())) {
             return new NodeRef(recordRef.getId());

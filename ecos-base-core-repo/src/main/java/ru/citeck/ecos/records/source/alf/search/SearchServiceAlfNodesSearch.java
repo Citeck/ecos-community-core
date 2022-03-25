@@ -26,6 +26,7 @@ import ru.citeck.ecos.records2.request.query.RecordsQueryResult;
 import ru.citeck.ecos.records2.request.query.SortBy;
 import ru.citeck.ecos.records3.record.request.RequestContext;
 import ru.citeck.ecos.records3.record.request.msg.MsgLevel;
+import ru.citeck.ecos.utils.AuthorityUtils;
 import ru.citeck.ecos.utils.PrefixRecordRefUtils;
 
 import java.util.Collections;
@@ -61,14 +62,17 @@ public class SearchServiceAlfNodesSearch {
     private SearchService searchService;
     private NamespaceService namespaceService;
     private AlfAutoModelService alfAutoModelService;
+    private AuthorityUtils authorityUtils;
 
     @Autowired
     public SearchServiceAlfNodesSearch(SearchService searchService,
                                        AlfNodesRecordsDAO recordsSource,
-                                       NamespaceService namespaceService) {
+                                       NamespaceService namespaceService,
+                                       AuthorityUtils authorityUtils) {
 
         this.searchService = searchService;
         this.namespaceService = namespaceService;
+        this.authorityUtils = authorityUtils;
 
         recordsSource.register(new SearchWithLanguage(SearchService.LANGUAGE_FTS_ALFRESCO, AfterIdType.DB_ID));
         recordsSource.register(new SearchWithLanguage(SearchService.LANGUAGE_LUCENE, AfterIdType.DB_ID));
@@ -135,7 +139,9 @@ public class SearchServiceAlfNodesSearch {
             return new RecordsQueryResult<>();
         }
 
-        query = PrefixRecordRefUtils.replacePrefix(query);
+        query = query.replace("alfresco/@workspace://", "workspace://");
+        query = PrefixRecordRefUtils.replaceAuthorityNodes(query, authorityUtils);
+
         searchParameters.setQuery(query);
 
         if (!ignoreQuerySort) {
