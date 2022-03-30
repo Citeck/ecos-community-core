@@ -8,7 +8,7 @@
         query = jsonData.query,
         language = jsonData.language || null,
         journalId = jsonData.journalId,
-        excludedRecords = jsonData.excludedRecords,
+        excludedRecords = jsonData.excludedRecords || null,
         actionResults,
         actionResultsData,
         records;
