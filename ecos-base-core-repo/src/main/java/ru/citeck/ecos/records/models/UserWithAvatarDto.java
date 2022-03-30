@@ -1,12 +1,13 @@
 package ru.citeck.ecos.records.models;
 
 import lombok.Data;
+import ru.citeck.ecos.records.source.PeopleRecordsDao;
 import ru.citeck.ecos.records3.record.atts.schema.annotation.AttName;
 
 import java.util.Date;
 
 @Data
-public class UserDTO {
+public class UserWithAvatarDto {
 
     private String id;
     private String userName;
@@ -15,6 +16,7 @@ public class UserDTO {
     private String middleName;
     private Date birthDate;
     private String displayName;
+    private String avatarUrl;
 
     @AttName("cm:userName")
     public void setUserName(String userName) {
@@ -44,5 +46,10 @@ public class UserDTO {
     @AttName(".disp")
     public void setDisplayName(String displayName) {
         this.displayName = displayName;
+    }
+
+    @AttName(PeopleRecordsDao.PERSON_AVATAR + ".url")
+    public void setAvatarUrl(String avatarUrl) {
+        this.avatarUrl = avatarUrl;
     }
 }

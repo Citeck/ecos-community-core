@@ -1,7 +1,7 @@
 package ru.citeck.ecos.records.version;
 
 import lombok.Data;
-import ru.citeck.ecos.records.models.UserDTO;
+import ru.citeck.ecos.records.models.UserWithAvatarDto;
 
 import java.util.Date;
 
@@ -16,8 +16,7 @@ public class VersionDTO {
     private String  name;
     private String version;
     private Date modified;
-    private UserDTO modifier;
+    private UserWithAvatarDto modifier;
     private String comment;
     private String downloadUrl;
-
 }
