@@ -31,6 +31,7 @@ import java.util.Set;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 
+import lombok.extern.slf4j.Slf4j;
 import org.alfresco.error.AlfrescoRuntimeException;
 import org.alfresco.model.ContentModel;
 import org.alfresco.repo.transaction.RetryingTransactionHelper.RetryingTransactionCallback;
@@ -59,12 +60,16 @@ import org.alfresco.service.namespace.RegexQNamePattern;
 import org.alfresco.service.transaction.TransactionService;
 import org.alfresco.util.GUID;
 import org.alfresco.util.ISO9075;
+import org.apache.commons.lang.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.extensions.surf.util.URLEncoder;
 import org.springframework.extensions.webscripts.Cache;
 import org.springframework.extensions.webscripts.DeclarativeWebScript;
 import org.springframework.extensions.webscripts.Status;
 import org.springframework.extensions.webscripts.WebScriptRequest;
 import org.springframework.extensions.webscripts.servlet.WebScriptServletRequest;
+import ru.citeck.ecos.domain.admin.nodebrowser.NodeBrowserNodeDao;
 
 /**
  * Admin Console NodeBrowser WebScript POST controller.
@@ -74,9 +79,12 @@ import org.springframework.extensions.webscripts.servlet.WebScriptServletRequest
  * @author Kevin Roast
  * @since 5.1
  */
+@Slf4j
 public class NodeBrowserPost extends DeclarativeWebScript implements Serializable
 {
     private static final long serialVersionUID = 8464392337270665212L;
+
+    private static final int MAX_ASSOCS = 200;
 
     // stores and node
     transient private List<StoreRef> stores = null;
@@ -91,6 +99,11 @@ public class NodeBrowserPost extends DeclarativeWebScript implements Serializabl
     transient private OwnableService ownableService;
     transient private LockService lockService;
     transient private CheckOutCheckInService cociService;
+
+    transient private NodeBrowserNodeDao nodeBrowserNodeDao;
+
+    private int childAssocsLimit = MAX_ASSOCS;
+    private int sourceAssocsLimit = MAX_ASSOCS;
 
     /**
      * @param transactionService        transaction service
@@ -366,13 +379,35 @@ public class NodeBrowserPost extends DeclarativeWebScript implements Serializabl
      */
     public List<ChildAssociation> getChildren(NodeRef nodeRef)
     {
-        List<ChildAssociationRef> refs = getNodeService().getChildAssocs(nodeRef);
-        List<ChildAssociation> assocs = new ArrayList<ChildAssociation>(refs.size());
+        List<ChildAssociationRef> refs = getChildAssocRefs(nodeRef);
+        List<ChildAssociation> assocs = new ArrayList<>(refs.size());
         for (ChildAssociationRef ref : refs)
         {
             assocs.add(new ChildAssociation(ref));
         }
         return assocs;
+    }
+
+    private List<ChildAssociationRef> getChildAssocRefs(NodeRef nodeRef) {
+        return getChildAssocRefs(nodeRef, 0, childAssocsLimit);
+    }
+
+    private List<ChildAssociationRef> getChildAssocRefs(NodeRef nodeRef, int skipCount, int maxItems) {
+
+        List<ChildAssociationRef> refs;
+
+        if (nodeBrowserNodeDao != null) {
+            refs = nodeBrowserNodeDao.getChildAssocs(nodeRef, skipCount, maxItems).getElements();
+        } else {
+            refs = getNodeService().getChildAssocs(
+                nodeRef,
+                RegexQNamePattern.MATCH_ALL,
+                RegexQNamePattern.MATCH_ALL,
+                maxItems,
+                false
+            );
+        }
+        return refs;
     }
 
     /**
@@ -408,18 +443,22 @@ public class NodeBrowserPost extends DeclarativeWebScript implements Serializabl
      */
     public List<PeerAssociation> getSourceAssocs(NodeRef nodeRef)
     {
-        List<AssociationRef> refs = null;
+        List<AssociationRef> refs;
         try
         {
-            refs = getNodeService().getSourceAssocs(nodeRef, RegexQNamePattern.MATCH_ALL);
+            if (nodeBrowserNodeDao != null) {
+                refs = nodeBrowserNodeDao.getSourceAssocs(nodeRef, 0, sourceAssocsLimit).getElements();
+            } else {
+                refs = getNodeService().getSourceAssocs(nodeRef, RegexQNamePattern.MATCH_ALL);
+            }
         }
         catch (UnsupportedOperationException err)
         {
             // some stores do not support associations
             // but we doesn't want NPE in code below
-            refs = new ArrayList<AssociationRef>();
+            refs = new ArrayList<>();
         }
-        List<PeerAssociation> assocs = new ArrayList<PeerAssociation>(refs.size());
+        List<PeerAssociation> assocs = new ArrayList<>(refs.size());
         for (AssociationRef ref : refs)
         {
             assocs.add(new PeerAssociation(ref.getTypeQName(), ref.getSourceRef(), ref.getTargetRef()));
@@ -607,7 +646,7 @@ public class NodeBrowserPost extends DeclarativeWebScript implements Serializabl
                                 currentNode = nodeRef;
                                 // this is not really a search for results, it is a direct node reference
                                 // so gather the child assocs as usual and update the action value for the UI location
-                                assocRefs = getNodeService().getChildAssocs(currentNode);
+                                assocRefs = getChildAssocRefs(currentNode);
                                 actionValue = query;
                                 action = "parent";
                                 break;
@@ -651,14 +690,14 @@ public class NodeBrowserPost extends DeclarativeWebScript implements Serializabl
                 {
                     // iterate the properties and children of a store root node
                     currentNode = getNodeService().getRootNode(storeRef);
-                    assocRefs = getNodeService().getChildAssocs(currentNode);
+                    assocRefs = getChildAssocRefs(currentNode);
                     break;
                 }
                 case "parent":
                 case "children":
                 {
                     currentNode = new NodeRef(actionValue);
-                    assocRefs = getNodeService().getChildAssocs(currentNode);
+                    assocRefs = getChildAssocRefs(currentNode);
                     break;
                 }
             }
@@ -778,6 +817,30 @@ public class NodeBrowserPost extends DeclarativeWebScript implements Serializabl
         }
 
         return url.toString();
+    }
+
+    @Autowired(required = false)
+    public void setNodeBrowserNodeDao(NodeBrowserNodeDao nodeBrowserNodeDao) {
+        this.nodeBrowserNodeDao = nodeBrowserNodeDao;
+    }
+
+    @Value("${ecos.admin.node-browser.child-assocs-limit}")
+    public void setChildAssocsLimit(String childAssocsLimitStr) {
+        childAssocsLimit = getAssocsLimitFromParam(childAssocsLimitStr);
+        log.info("Child associations limit: " + childAssocsLimit);
+    }
+
+    @Value("${ecos.admin.node-browser.source-assocs-limit}")
+    public void setSourceAssocsLimit(String sourceAssocsLimitStr) {
+        sourceAssocsLimit = getAssocsLimitFromParam(sourceAssocsLimitStr);
+        log.info("Source associations limit: " + sourceAssocsLimit);
+    }
+
+    private int getAssocsLimitFromParam(String param) {
+        if (StringUtils.isNotBlank(param) && Character.isDigit(param.charAt(0))) {
+            return Integer.parseInt(param);
+        }
+        return MAX_ASSOCS;
     }
 
     /**
