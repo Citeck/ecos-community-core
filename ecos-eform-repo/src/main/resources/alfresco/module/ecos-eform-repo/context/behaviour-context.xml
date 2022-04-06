@@ -9,7 +9,9 @@
     <bean id="eform.files-temp-root.split-children" parent="ecos.splitChildrenBehaviour">
         <property name="node" value="workspace://SpacesStore/eform-files-temp-root" />
         <property name="splitBehaviour">
-            <bean class="ru.citeck.ecos.behavior.common.SplitChildrenBehaviour.DateSplit" />
+            <bean class="ru.citeck.ecos.behavior.common.SplitChildrenBehaviour.UuidSplit">
+                <property name="depth" value="5" />
+            </bean>
         </property>
         <property name="containerType" value="{http://www.alfresco.org/model/system/1.0}container" />
         <property name="childAssocType" value="{http://www.alfresco.org/model/system/1.0}children" />
