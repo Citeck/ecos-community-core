@@ -844,7 +844,7 @@
                 <configuration>
 
                     <!-- We need the flat file H2 database to run the Repo -->
-                    <enableH2>true</enableH2>
+                    <enablePostgreSQL>true</enablePostgreSQL>
                     <!-- We always need the Platform/Repo webapp - alfresco.war -->
                     <enablePlatform>true</enablePlatform>
                     <!-- Enable Solr webapp so we can use search -->
