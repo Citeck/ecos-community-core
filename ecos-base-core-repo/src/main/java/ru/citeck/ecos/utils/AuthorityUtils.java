@@ -125,7 +125,7 @@ public class AuthorityUtils {
         if (StringUtils.isBlank(authorityStr)) {
             return false;
         }
-        if (authorityStr.startsWith(NodeUtils.WORKSPACE_PREFIX)) {
+        if (authorityStr.startsWith(NodeUtils.WORKSPACE_SPACES_STORE_PREFIX)) {
             QName type = nodeService.getType(new NodeRef(authorityStr));
             return dictionaryService.isSubClass(type, ContentModel.TYPE_AUTHORITY);
         }
@@ -152,7 +152,7 @@ public class AuthorityUtils {
         if (StringUtils.isBlank(authority)) {
             return null;
         }
-        if (authority.startsWith(NodeUtils.WORKSPACE_PREFIX)) {
+        if (authority.startsWith(NodeUtils.WORKSPACE_SPACES_STORE_PREFIX)) {
             return new NodeRef(authority);
         }
         String authorityName = authority;

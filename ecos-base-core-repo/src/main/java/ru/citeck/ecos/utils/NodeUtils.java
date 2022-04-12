@@ -40,6 +40,8 @@ public class NodeUtils {
     public static final String ARCHIVE_PREFIX = StoreRef.PROTOCOL_ARCHIVE + StoreRef.URI_FILLER;
     public static final String DELETED_PREFIX = StoreRef.PROTOCOL_DELETED + StoreRef.URI_FILLER;
 
+    public static final String WORKSPACE_SPACES_STORE_PREFIX = WORKSPACE_PREFIX + "SpacesStore/";
+
     private static final String KEY_PENDING_DELETE_NODES = "DbNodeServiceImpl.pendingDeleteNodes";
 
     private static final List<String> NODE_REF_PREFIXES = Arrays.asList(
