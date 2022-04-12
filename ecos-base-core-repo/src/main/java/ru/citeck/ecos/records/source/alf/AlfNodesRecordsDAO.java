@@ -147,11 +147,11 @@ public class AlfNodesRecordsDAO extends LocalRecordsDao
             return resultArr;
         } else if (dataValue.isTextual()) {
             String textValue = dataValue.asText();
-            if (authorityUtils.isAuthorityRef(textValue)) {
+            if (textValue.startsWith(AlfNodeRecord.NODE_REF_SOURCE_ID_PREFIX)) {
+                return DataValue.createStr(textValue.replaceFirst(AlfNodeRecord.NODE_REF_SOURCE_ID_PREFIX, ""));
+            } else if (authorityUtils.isAuthorityRef(textValue)) {
                 NodeRef nodeRef = authorityUtils.getNodeRef(textValue);
                 return DataValue.createStr(String.valueOf(nodeRef));
-            } else if (textValue.startsWith(AlfNodeRecord.NODE_REF_SOURCE_ID_PREFIX)) {
-                return DataValue.createStr(textValue.replaceFirst(AlfNodeRecord.NODE_REF_SOURCE_ID_PREFIX, ""));
             }
         }
         return dataValue;
