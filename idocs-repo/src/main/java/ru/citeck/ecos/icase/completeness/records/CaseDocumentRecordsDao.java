@@ -20,7 +20,6 @@ import org.springframework.stereotype.Component;
 import ru.citeck.ecos.icase.completeness.CaseCompletenessService;
 import ru.citeck.ecos.model.EcosModel;
 import ru.citeck.ecos.node.EcosTypeService;
-import ru.citeck.ecos.records.source.PeopleRecordsDao;
 import ru.citeck.ecos.records2.RecordRef;
 import ru.citeck.ecos.records2.graphql.meta.annotation.MetaAtt;
 import ru.citeck.ecos.records2.graphql.meta.value.MetaField;
@@ -33,7 +32,6 @@ import ru.citeck.ecos.records2.source.dao.local.v2.LocalRecordsQueryWithMetaDao;
 import ru.citeck.ecos.records3.RecordsProperties;
 import ru.citeck.ecos.search.ftsquery.FTSQuery;
 import ru.citeck.ecos.utils.AuthorityUtils;
-import ru.citeck.ecos.utils.PrefixRecordRefUtils;
 import ru.citeck.ecos.utils.DictUtils;
 import ru.citeck.ecos.utils.NodeUtils;
 
@@ -222,11 +220,8 @@ public class CaseDocumentRecordsDao extends LocalRecordsDao implements LocalReco
         if (RecordRef.isEmpty(recordRef)) {
             return null;
         }
-
-        if (PeopleRecordsDao.ID.equals(recordRef.getSourceId())
-            || recordRef.toString().startsWith(PrefixRecordRefUtils.PREFIX_EMODEL_PERSON)
-            || recordRef.toString().startsWith(PrefixRecordRefUtils.PREFIX_EMODEL_GROUP)) {
-              return authorityUtils.getNodeRef(PrefixRecordRefUtils.getId(recordRef.toString()));
+        if (authorityUtils.isAuthorityRef(recordRef)) {
+            return authorityUtils.getNodeRef(recordRef);
         }
         if (nodeUtils.isNodeRef(recordRef.getId())) {
             return new NodeRef(recordRef.getId());

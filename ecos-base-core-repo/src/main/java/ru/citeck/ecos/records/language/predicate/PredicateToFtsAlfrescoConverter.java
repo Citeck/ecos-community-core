@@ -1,9 +1,7 @@
 package ru.citeck.ecos.records.language.predicate;
 
 import lombok.extern.slf4j.Slf4j;
-import org.alfresco.service.cmr.repository.NodeRef;
 import org.alfresco.service.cmr.search.SearchService;
-import org.alfresco.service.cmr.security.AuthorityService;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -13,6 +11,7 @@ import ru.citeck.ecos.domain.model.alf.service.AlfAutoModelService;
 import ru.citeck.ecos.node.etype.EcosTypeAlfTypeService;
 import ru.citeck.ecos.records.language.predicate.converters.PredToFtsContext;
 import ru.citeck.ecos.records.language.predicate.converters.delegators.ConvertersDelegator;
+import ru.citeck.ecos.records.source.alf.meta.AlfNodeRecord;
 import ru.citeck.ecos.records.source.alf.search.SearchServiceAlfNodesSearch;
 import ru.citeck.ecos.records2.RecordConstants;
 import ru.citeck.ecos.records2.RecordRef;
@@ -22,7 +21,7 @@ import ru.citeck.ecos.records2.predicate.model.*;
 import ru.citeck.ecos.records2.querylang.QueryLangConverter;
 import ru.citeck.ecos.records2.querylang.QueryLangService;
 import ru.citeck.ecos.search.ftsquery.FTSQuery;
-import ru.citeck.ecos.utils.PrefixRecordRefUtils;
+import ru.citeck.ecos.utils.AuthorityUtils;
 
 import java.util.*;
 
@@ -31,12 +30,12 @@ import java.util.*;
 public class PredicateToFtsAlfrescoConverter implements QueryLangConverter<Predicate, String> {
 
     private static final String WORKSPACE = "workspace";
-    private static final String ALFRESCO_APP_NODE_REF_PREFIX = "alfresco/@" + WORKSPACE;
+    private static final String ALFRESCO_APP_NODE_REF_PREFIX = AlfNodeRecord.NODE_REF_SOURCE_ID_PREFIX + WORKSPACE;
 
     private ConvertersDelegator delegator;
     private AlfAutoModelService alfAutoModelService;
-    private EcosTypeAlfTypeService ecosTypeAlfTypeService;
-    private AuthorityService authorityService;
+    private AuthorityUtils authorityUtils;
+    private final EcosTypeAlfTypeService ecosTypeAlfTypeService;
 
     @Autowired
     public PredicateToFtsAlfrescoConverter(QueryLangService queryLangService,
@@ -121,10 +120,8 @@ public class PredicateToFtsAlfrescoConverter implements QueryLangConverter<Predi
             if (value.asText().startsWith(ALFRESCO_APP_NODE_REF_PREFIX)) {
                 return DataValue.createStr(value.asText().replaceFirst(ALFRESCO_APP_NODE_REF_PREFIX, WORKSPACE));
             }
-            if (PrefixRecordRefUtils.isAuthority(value.asText())) {
-                NodeRef authority =
-                    authorityService.getAuthorityNodeRef(PrefixRecordRefUtils.replaceFirstPrefix(value.asText()));
-                return DataValue.createStr(authority.toString());
+            if (authorityUtils.isAuthorityRef(value.asText())) {
+                return DataValue.create(authorityUtils.getNodeRef(value));
             }
         }
         if (value.isArray()) {
@@ -146,7 +143,7 @@ public class PredicateToFtsAlfrescoConverter implements QueryLangConverter<Predi
     }
 
     @Autowired
-    public void setAuthorityService(AuthorityService authorityService){
-        this.authorityService = authorityService;
+    public void setAuthorityUtils(AuthorityUtils authorityUtils) {
+        this.authorityUtils = authorityUtils;
     }
 }

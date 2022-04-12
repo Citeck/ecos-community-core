@@ -35,7 +35,6 @@ import ru.citeck.ecos.node.EcosTypeService;
 import ru.citeck.ecos.node.etype.EcosTypeAlfTypeService;
 import ru.citeck.ecos.node.etype.EcosTypeChildAssocService;
 import ru.citeck.ecos.node.etype.EcosTypeRootService;
-import ru.citeck.ecos.records.source.PeopleRecordsDao;
 import ru.citeck.ecos.records.source.alf.file.AlfNodeContentFileHelper;
 import ru.citeck.ecos.records.source.alf.meta.AlfNodeRecord;
 import ru.citeck.ecos.records.source.alf.search.AlfNodesSearch;
@@ -66,7 +65,6 @@ import ru.citeck.ecos.records3.RecordsProperties;
 import ru.citeck.ecos.security.EcosPermissionService;
 import ru.citeck.ecos.utils.AuthorityUtils;
 import ru.citeck.ecos.utils.NodeUtils;
-import ru.citeck.ecos.utils.PrefixRecordRefUtils;
 
 import java.io.Serializable;
 import java.util.*;
@@ -149,12 +147,11 @@ public class AlfNodesRecordsDAO extends LocalRecordsDao
             return resultArr;
         } else if (dataValue.isTextual()) {
             String textValue = dataValue.asText();
-            if (textValue.startsWith("alfresco/@")) {
-                return DataValue.createStr(textValue.replaceFirst("alfresco/@", ""));
-            }
-            if (PrefixRecordRefUtils.isAuthority(textValue)) {
-                NodeRef nodeRef = authorityUtils.getNodeRef(PrefixRecordRefUtils.replaceFirstPrefix(textValue));
-                return DataValue.createStr(nodeRef.toString());
+            if (authorityUtils.isAuthorityRef(textValue)) {
+                NodeRef nodeRef = authorityUtils.getNodeRef(textValue);
+                return DataValue.createStr(String.valueOf(nodeRef));
+            } else if (textValue.startsWith(AlfNodeRecord.NODE_REF_SOURCE_ID_PREFIX)) {
+                return DataValue.createStr(textValue.replaceFirst(AlfNodeRecord.NODE_REF_SOURCE_ID_PREFIX, ""));
             }
         }
         return dataValue;
@@ -697,14 +694,8 @@ public class AlfNodesRecordsDAO extends LocalRecordsDao
             if (parentRef != null) {
                 return parentRef;
             }
-
-            if (parent.startsWith(PeopleRecordsDao.ID + "@")
-                    || parent.startsWith("alfresco/" + PeopleRecordsDao.ID + "@")
-                    || parent.startsWith(PrefixRecordRefUtils.PREFIX_EMODEL_PERSON)
-                    || parent.startsWith(PrefixRecordRefUtils.PREFIX_EMODEL_GROUP)) {
-
-                String parentId = PrefixRecordRefUtils.getId(parent);
-                NodeRef authorityRef = authorityUtils.getNodeRef(parentId);
+            if (authorityUtils.isAuthorityRef(parent)) {
+                NodeRef authorityRef = authorityUtils.getNodeRef(parent);
                 if (authorityRef == null) {
                     throw new RuntimeException("Incorrect authority: " + parent);
                 }
