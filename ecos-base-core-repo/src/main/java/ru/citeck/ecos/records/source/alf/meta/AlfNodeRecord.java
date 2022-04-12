@@ -60,6 +60,8 @@ import java.util.stream.Collectors;
 
 public class AlfNodeRecord implements MetaValue {
 
+    public static final String NODE_REF_SOURCE_ID_PREFIX = "alfresco/@";
+
     public static final String ATTR_DOC_SUM = "docSum";
     public static final String ATTR_NODE_REF = "nodeRef";
     public static final String ATTR_TYPE = "type";
@@ -137,7 +139,7 @@ public class AlfNodeRecord implements MetaValue {
     @Override
     public String getId() {
         if (recordRef.getAppName().isEmpty() && recordRef.getSourceId().isEmpty()) {
-            return "alfresco/@" + recordRef.toString();
+            return NODE_REF_SOURCE_ID_PREFIX + recordRef;
         }
         return recordRef.toString();
     }

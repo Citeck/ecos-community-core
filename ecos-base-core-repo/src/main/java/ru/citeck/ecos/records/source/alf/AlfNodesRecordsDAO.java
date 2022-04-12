@@ -35,7 +35,6 @@ import ru.citeck.ecos.node.EcosTypeService;
 import ru.citeck.ecos.node.etype.EcosTypeAlfTypeService;
 import ru.citeck.ecos.node.etype.EcosTypeChildAssocService;
 import ru.citeck.ecos.node.etype.EcosTypeRootService;
-import ru.citeck.ecos.records.source.PeopleRecordsDao;
 import ru.citeck.ecos.records.source.alf.file.AlfNodeContentFileHelper;
 import ru.citeck.ecos.records.source.alf.meta.AlfNodeRecord;
 import ru.citeck.ecos.records.source.alf.search.AlfNodesSearch;
@@ -148,8 +147,11 @@ public class AlfNodesRecordsDAO extends LocalRecordsDao
             return resultArr;
         } else if (dataValue.isTextual()) {
             String textValue = dataValue.asText();
-            if (textValue.startsWith("alfresco/@")) {
-                return DataValue.createStr(textValue.replaceFirst("alfresco/@", ""));
+            if (textValue.startsWith(AlfNodeRecord.NODE_REF_SOURCE_ID_PREFIX)) {
+                return DataValue.createStr(textValue.replaceFirst(AlfNodeRecord.NODE_REF_SOURCE_ID_PREFIX, ""));
+            } else if (authorityUtils.isAuthorityRef(textValue)) {
+                NodeRef nodeRef = authorityUtils.getNodeRef(textValue);
+                return DataValue.createStr(String.valueOf(nodeRef));
             }
         }
         return dataValue;
@@ -692,12 +694,8 @@ public class AlfNodesRecordsDAO extends LocalRecordsDao
             if (parentRef != null) {
                 return parentRef;
             }
-
-            if (parent.startsWith(PeopleRecordsDao.ID + "@")
-                    || parent.startsWith("alfresco/" + PeopleRecordsDao.ID + "@")) {
-
-                String personId = RecordRef.valueOf(parent).getId();
-                NodeRef authorityRef = authorityUtils.getNodeRef(personId);
+            if (authorityUtils.isAuthorityRef(parent)) {
+                NodeRef authorityRef = authorityUtils.getNodeRef(parent);
                 if (authorityRef == null) {
                     throw new RuntimeException("Incorrect authority: " + parent);
                 }

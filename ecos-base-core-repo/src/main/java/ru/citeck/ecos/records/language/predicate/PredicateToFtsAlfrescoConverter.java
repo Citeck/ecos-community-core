@@ -11,6 +11,7 @@ import ru.citeck.ecos.domain.model.alf.service.AlfAutoModelService;
 import ru.citeck.ecos.node.etype.EcosTypeAlfTypeService;
 import ru.citeck.ecos.records.language.predicate.converters.PredToFtsContext;
 import ru.citeck.ecos.records.language.predicate.converters.delegators.ConvertersDelegator;
+import ru.citeck.ecos.records.source.alf.meta.AlfNodeRecord;
 import ru.citeck.ecos.records.source.alf.search.SearchServiceAlfNodesSearch;
 import ru.citeck.ecos.records2.RecordConstants;
 import ru.citeck.ecos.records2.RecordRef;
@@ -20,6 +21,7 @@ import ru.citeck.ecos.records2.predicate.model.*;
 import ru.citeck.ecos.records2.querylang.QueryLangConverter;
 import ru.citeck.ecos.records2.querylang.QueryLangService;
 import ru.citeck.ecos.search.ftsquery.FTSQuery;
+import ru.citeck.ecos.utils.AuthorityUtils;
 
 import java.util.*;
 
@@ -28,11 +30,12 @@ import java.util.*;
 public class PredicateToFtsAlfrescoConverter implements QueryLangConverter<Predicate, String> {
 
     private static final String WORKSPACE = "workspace";
-    private static final String ALFRESCO_APP_NODE_REF_PREFIX = "alfresco/@" + WORKSPACE;
+    private static final String ALFRESCO_APP_NODE_REF_PREFIX = AlfNodeRecord.NODE_REF_SOURCE_ID_PREFIX + WORKSPACE;
 
     private ConvertersDelegator delegator;
     private AlfAutoModelService alfAutoModelService;
-    private EcosTypeAlfTypeService ecosTypeAlfTypeService;
+    private AuthorityUtils authorityUtils;
+    private final EcosTypeAlfTypeService ecosTypeAlfTypeService;
 
     @Autowired
     public PredicateToFtsAlfrescoConverter(QueryLangService queryLangService,
@@ -113,9 +116,13 @@ public class PredicateToFtsAlfrescoConverter implements QueryLangConverter<Predi
     }
 
     private DataValue mapAlfrescoNodeRefs(DataValue value) {
-
-        if (value.isTextual() && value.asText().startsWith(ALFRESCO_APP_NODE_REF_PREFIX)) {
-            return DataValue.createStr(value.asText().replaceFirst(ALFRESCO_APP_NODE_REF_PREFIX, WORKSPACE));
+        if (value.isTextual()) {
+            if (value.asText().startsWith(ALFRESCO_APP_NODE_REF_PREFIX)) {
+                return DataValue.createStr(value.asText().replaceFirst(ALFRESCO_APP_NODE_REF_PREFIX, WORKSPACE));
+            }
+            if (authorityUtils.isAuthorityRef(value.asText())) {
+                return DataValue.create(authorityUtils.getNodeRef(value));
+            }
         }
         if (value.isArray()) {
             DataValue newArr = DataValue.createArr();
@@ -133,5 +140,10 @@ public class PredicateToFtsAlfrescoConverter implements QueryLangConverter<Predi
     @Autowired(required = false)
     public void setAlfAutoModelService(AlfAutoModelService alfAutoModelService) {
         this.alfAutoModelService = alfAutoModelService;
+    }
+
+    @Autowired
+    public void setAuthorityUtils(AuthorityUtils authorityUtils) {
+        this.authorityUtils = authorityUtils;
     }
 }

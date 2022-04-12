@@ -20,7 +20,6 @@ import org.springframework.stereotype.Component;
 import ru.citeck.ecos.icase.completeness.CaseCompletenessService;
 import ru.citeck.ecos.model.EcosModel;
 import ru.citeck.ecos.node.EcosTypeService;
-import ru.citeck.ecos.records.source.PeopleRecordsDao;
 import ru.citeck.ecos.records2.RecordRef;
 import ru.citeck.ecos.records2.graphql.meta.annotation.MetaAtt;
 import ru.citeck.ecos.records2.graphql.meta.value.MetaField;
@@ -221,8 +220,8 @@ public class CaseDocumentRecordsDao extends LocalRecordsDao implements LocalReco
         if (RecordRef.isEmpty(recordRef)) {
             return null;
         }
-        if (PeopleRecordsDao.ID.equals(recordRef.getSourceId())) {
-            return authorityUtils.getNodeRef(recordRef.getId());
+        if (authorityUtils.isAuthorityRef(recordRef)) {
+            return authorityUtils.getNodeRef(recordRef);
         }
         if (nodeUtils.isNodeRef(recordRef.getId())) {
             return new NodeRef(recordRef.getId());

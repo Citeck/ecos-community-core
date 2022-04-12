@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.util.ISO8601Utils;
 import lombok.val;
 import org.alfresco.error.AlfrescoRuntimeException;
 import org.alfresco.model.ContentModel;
+import org.alfresco.service.cmr.repository.NodeRef;
 import org.alfresco.service.cmr.repository.StoreRef;
 import org.alfresco.service.cmr.search.QueryConsistency;
 import org.alfresco.service.cmr.search.ResultSet;
@@ -18,6 +19,7 @@ import org.springframework.stereotype.Component;
 import ru.citeck.ecos.commons.data.DataValue;
 import ru.citeck.ecos.domain.model.alf.service.AlfAutoModelService;
 import ru.citeck.ecos.records.source.alf.AlfNodesRecordsDAO;
+import ru.citeck.ecos.records.source.alf.meta.AlfNodeRecord;
 import ru.citeck.ecos.records.source.alf.search.AlfNodesSearch.AfterIdType;
 import ru.citeck.ecos.records2.RecordConstants;
 import ru.citeck.ecos.records2.RecordRef;
@@ -26,17 +28,19 @@ import ru.citeck.ecos.records2.request.query.RecordsQueryResult;
 import ru.citeck.ecos.records2.request.query.SortBy;
 import ru.citeck.ecos.records3.record.request.RequestContext;
 import ru.citeck.ecos.records3.record.request.msg.MsgLevel;
+import ru.citeck.ecos.utils.AuthorityUtils;
+import ru.citeck.ecos.utils.NodeUtils;
 
-import java.util.Collections;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 import java.util.function.Supplier;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 @Component
 public class SearchServiceAlfNodesSearch {
+
+    public static final Pattern AUTHORITY_REF_PATTERN = Pattern.compile("emodel/(person|authority-group)@[-\\w]+");
 
     public static final String ECOS_PARAMS_DELIM = "__?";
     public static final String ECOS_TYPE_DELIM = ECOS_PARAMS_DELIM + "_type=";
@@ -57,17 +61,20 @@ public class SearchServiceAlfNodesSearch {
         DEFAULT_PROPS_MAPPING = Collections.unmodifiableMap(defaultPropsMapping);
     }
 
-    private SearchService searchService;
-    private NamespaceService namespaceService;
+    private final SearchService searchService;
+    private final AuthorityUtils authorityUtils;
+    private final NamespaceService namespaceService;
     private AlfAutoModelService alfAutoModelService;
 
     @Autowired
     public SearchServiceAlfNodesSearch(SearchService searchService,
                                        AlfNodesRecordsDAO recordsSource,
-                                       NamespaceService namespaceService) {
+                                       NamespaceService namespaceService,
+                                       AuthorityUtils authorityUtils) {
 
         this.searchService = searchService;
         this.namespaceService = namespaceService;
+        this.authorityUtils = authorityUtils;
 
         recordsSource.register(new SearchWithLanguage(SearchService.LANGUAGE_FTS_ALFRESCO, AfterIdType.DB_ID));
         recordsSource.register(new SearchWithLanguage(SearchService.LANGUAGE_LUCENE, AfterIdType.DB_ID));
@@ -134,8 +141,7 @@ public class SearchServiceAlfNodesSearch {
             return new RecordsQueryResult<>();
         }
 
-        query = query.replace("alfresco/@workspace://", "workspace://");
-        searchParameters.setQuery(query);
+        searchParameters.setQuery(fixRecordRefs(query));
 
         if (!ignoreQuerySort) {
 
@@ -180,6 +186,23 @@ public class SearchServiceAlfNodesSearch {
                 resultSet.close();
             }
         }
+    }
+
+    private String fixRecordRefs(String query) {
+        String queryRes = query.replaceAll(
+            AlfNodeRecord.NODE_REF_SOURCE_ID_PREFIX + NodeUtils.WORKSPACE_PREFIX,
+            NodeUtils.WORKSPACE_PREFIX
+        );
+        Matcher matcher = AUTHORITY_REF_PATTERN.matcher(queryRes);
+        Set<String> refsSet = new HashSet<>();
+        while (matcher.find()) {
+            refsSet.add(matcher.group());
+        }
+        for (String ref : refsSet) {
+            NodeRef authorityRef = authorityUtils.getNodeRef(ref);
+            queryRes = queryRes.replaceAll(ref, String.valueOf(authorityRef));
+        }
+        return queryRes;
     }
 
     private void addDebugMsg(RequestContext reqCtx, Supplier<String> msg) {
