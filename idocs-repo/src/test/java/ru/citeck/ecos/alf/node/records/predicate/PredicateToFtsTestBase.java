@@ -69,6 +69,7 @@ public abstract class PredicateToFtsTestBase {
             ecosTypeAlfTypeService
         );
         converter.setAlfAutoModelService(alfAutoModelService);
+        converter.setAuthorityUtils(authorityUtils);
 
         val delegator = new ConvertersDelegator();
         converter.setDelegator(delegator);
