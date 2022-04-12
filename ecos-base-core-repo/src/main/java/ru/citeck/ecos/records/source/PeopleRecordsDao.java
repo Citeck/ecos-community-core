@@ -4,6 +4,7 @@ import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import org.alfresco.model.ContentModel;
 import org.alfresco.repo.security.authentication.AuthenticationUtil;
+import org.alfresco.service.cmr.repository.ContentData;
 import org.alfresco.service.cmr.repository.NodeRef;
 import org.alfresco.service.cmr.search.SearchService;
 import org.alfresco.service.cmr.security.AuthorityService;
@@ -14,10 +15,13 @@ import org.alfresco.service.namespace.NamespaceService;
 import org.alfresco.service.namespace.QName;
 import org.apache.commons.lang.StringUtils;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import ru.citeck.ecos.commons.data.DataValue;
 import ru.citeck.ecos.commons.data.ObjectData;
+import ru.citeck.ecos.commons.utils.digest.DigestAlgorithm;
+import ru.citeck.ecos.commons.utils.digest.DigestUtils;
 import ru.citeck.ecos.model.EcosModel;
 import ru.citeck.ecos.records.source.alf.AlfNodesRecordsDAO;
 import ru.citeck.ecos.records.source.alf.meta.AlfNodeRecord;
@@ -35,10 +39,14 @@ import ru.citeck.ecos.records2.source.dao.MutableRecordsDao;
 import ru.citeck.ecos.records2.source.dao.local.LocalRecordsDao;
 import ru.citeck.ecos.records2.source.dao.local.v2.LocalRecordsMetaDao;
 import ru.citeck.ecos.records2.source.dao.local.v2.LocalRecordsQueryWithMetaDao;
+import ru.citeck.ecos.records3.record.atts.value.AttValueCtx;
+import ru.citeck.ecos.records3.record.mixin.AttMixin;
 import ru.citeck.ecos.utils.AuthorityUtils;
+import ru.citeck.ecos.utils.NodeUtils;
 
 import java.io.Serializable;
 import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -61,10 +69,13 @@ public class PeopleRecordsDao extends LocalRecordsDao
     public static final String PROP_IS_DISABLED = "isDisabled";
     public static final String PROP_AUTHORITIES = "authorities";
     public static final String GROUPS = "groups";
+    public static final String PERSON_AVATAR = "personAvatar";
+
     private static final String ECOS_OLD_PASS = "ecos:oldPass";
     private static final String ECOS_PASS = "ecos:pass";
     private static final String ECOS_PASS_VERIFY = "ecos:passVerify";
 
+    private final NodeUtils nodeUtils;
     private final AuthorityUtils authorityUtils;
     private final AuthorityService authorityService;
     private final AlfNodesRecordsDAO alfNodesRecordsDao;
@@ -74,6 +85,7 @@ public class PeopleRecordsDao extends LocalRecordsDao
 
     @Autowired
     public PeopleRecordsDao(
+        NodeUtils nodeUtils,
         PersonService personService,
         AuthorityUtils authorityUtils,
         AuthorityService authorityService,
@@ -82,12 +94,15 @@ public class PeopleRecordsDao extends LocalRecordsDao
         MutableAuthenticationService authenticationService
     ) {
         setId(ID);
+        this.nodeUtils = nodeUtils;
         this.personService = personService;
         this.authorityUtils = authorityUtils;
         this.authorityService = authorityService;
         this.namespaceService = namespaceService;
         this.alfNodesRecordsDao = alfNodesRecordsDao;
         this.authenticationService = authenticationService;
+
+        alfNodesRecordsDao.addAttributesMixin(new AlfNodesMixin());
     }
 
     @Override
@@ -349,16 +364,22 @@ public class PeopleRecordsDao extends LocalRecordsDao
     }
 
     @RequiredArgsConstructor
-    private static class AvatarValue implements MetaValue {
+    private class AvatarValue implements MetaValue {
 
         private final String nodeRef;
 
         @Override
         public Object getAttribute(@NotNull String name, @NotNull MetaField field) throws Exception {
             if ("url".equals(name)) {
+                ContentData contentData = nodeUtils.getProperty(new NodeRef(nodeRef), EcosModel.PROP_PHOTO);
+                if (contentData == null || StringUtils.isBlank(contentData.getContentUrl())) {
+                    return null;
+                }
+                byte[] contentUrlBytes = contentData.getContentUrl().getBytes(StandardCharsets.UTF_8);
+                String cacheBust = DigestUtils.getDigest(contentUrlBytes, DigestAlgorithm.MD5).getHash();
                 String nodeRefParam = URLEncoder.encode(nodeRef, "UTF-8");
                 return "/gateway/alfresco/alfresco/s/citeck/ecos/image/thumbnail" +
-                    "?nodeRef=" + nodeRefParam + "&property=ecos%3Aphoto";
+                    "?nodeRef=" + nodeRefParam + "&property=ecos%3Aphoto&cb=" + cacheBust;
             }
             return null;
         }
@@ -396,6 +417,25 @@ public class PeopleRecordsDao extends LocalRecordsDao
         @Override
         public boolean has(String authority) {
             return getAuthorities().contains(authority);
+        }
+    }
+
+    private class AlfNodesMixin implements AttMixin {
+        @Nullable
+        @Override
+        public Object getAtt(@NotNull String att, @NotNull AttValueCtx value) throws Exception {
+            if (att.equals(PERSON_AVATAR)) {
+                String nodeRef = value.getRef().getId();
+                if (nodeUtils.isNodeRef(nodeRef)) {
+                    return new AvatarValue(nodeRef);
+                }
+            }
+            return null;
+        }
+        @NotNull
+        @Override
+        public Collection<String> getProvidedAtts() {
+            return Collections.singletonList(PERSON_AVATAR);
         }
     }
 }

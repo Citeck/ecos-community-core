@@ -27,7 +27,7 @@ import ru.citeck.ecos.comment.model.CommentDto;
 import ru.citeck.ecos.comment.model.CommentPermissions;
 import ru.citeck.ecos.comment.model.CommentTagDto;
 import ru.citeck.ecos.model.EcosCommonModel;
-import ru.citeck.ecos.records.models.AuthorityDTO;
+import ru.citeck.ecos.records.models.UserWithAvatarDto;
 import ru.citeck.ecos.records.source.PeopleRecordsDao;
 import ru.citeck.ecos.records2.RecordRef;
 import ru.citeck.ecos.records2.RecordsService;
@@ -117,10 +117,10 @@ public class CommentFactory {
         return diff >= EDITED_DIFF_RANGE;
     }
 
-    private AuthorityDTO toUserDTO(String userName) {
+    private UserWithAvatarDto toUserDTO(String userName) {
         NodeRef userRef = authorityService.getAuthorityNodeRef(userName);
         RecordRef userRecord = RecordRef.create("", userRef.toString());
-        return recordsService.getMeta(userRecord, AuthorityDTO.class);
+        return recordsService.getMeta(userRecord, UserWithAvatarDto.class);
     }
 
     private String getCommentText(NodeRef commentRef) {

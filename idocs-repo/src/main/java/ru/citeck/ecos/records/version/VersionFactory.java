@@ -10,7 +10,7 @@ import org.alfresco.service.cmr.version.VersionService;
 import org.alfresco.service.namespace.QName;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import ru.citeck.ecos.records.models.UserDTO;
+import ru.citeck.ecos.records.models.UserWithAvatarDto;
 import ru.citeck.ecos.records2.RecordRef;
 import ru.citeck.ecos.records2.RecordsService;
 
@@ -72,8 +72,8 @@ public class VersionFactory {
         dto.setModified(version.getFrozenModifiedDate());
 
         String frozenModifier = version.getFrozenModifier();
-        UserDTO modifier = recordsService.getMeta(RecordRef.create("",
-                authorityService.getAuthorityNodeRef(frozenModifier).toString()), UserDTO.class);
+        UserWithAvatarDto modifier = recordsService.getMeta(RecordRef.create("",
+                authorityService.getAuthorityNodeRef(frozenModifier).toString()), UserWithAvatarDto.class);
         dto.setModifier(modifier);
 
         return dto;
@@ -85,8 +85,8 @@ public class VersionFactory {
         Map<QName, Serializable> properties = nodeService.getProperties(document);
 
         String creator = (String) properties.get(ContentModel.PROP_CREATOR);
-        UserDTO creatorDto = recordsService.getMeta(RecordRef.create("",
-                authorityService.getAuthorityNodeRef(creator).toString()), UserDTO.class);
+        UserWithAvatarDto creatorDto = recordsService.getMeta(RecordRef.create("",
+                authorityService.getAuthorityNodeRef(creator).toString()), UserWithAvatarDto.class);
 
         dto.setName((String) properties.get(ContentModel.PROP_NAME));
         dto.setModified((Date) properties.get(ContentModel.PROP_CREATED));

@@ -10,7 +10,7 @@
         sourceId = jsonData.sourceId || '',
         sortBy = jsonData.sortBy || [],
         consistency = jsonData.consistency || 'DEFAULT',
-        excludedRecords = jsonData.excludedRecords,
+        excludedRecords = jsonData.excludedRecords || null,
         actionResults,
         actionResultsData,
         records;
