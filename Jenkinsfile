@@ -4,8 +4,6 @@ properties([
 timestamps {
   node {
 
-    def repoUrl = "git@bitbucket.org:citeck/ecos-community-core.git"
-
     stage('Checkout Script Tools SCM') {
       dir('jenkins-script-tools') {
         checkout([
@@ -22,6 +20,8 @@ timestamps {
     def buildTools = load "jenkins-script-tools/scripts/build-tools.groovy"
 
     try {
+
+      def repoUrl = sh(script: "git config --get remote.origin.url", returnStdout: true).trim()
 
       stage('Checkout SCM') {
         checkout([
