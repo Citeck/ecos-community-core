@@ -21,7 +21,7 @@ timestamps {
 
     try {
 
-      def repoUrl = sh(script: "git config --get remote.origin.url", returnStdout: true).trim()
+      def repoUrl = "git@gitlab.citeck.ru:citeck-projects/ecos-community-core.git"
 
       stage('Checkout SCM') {
         checkout([
