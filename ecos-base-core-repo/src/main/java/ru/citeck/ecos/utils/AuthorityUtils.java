@@ -2,6 +2,7 @@ package ru.citeck.ecos.utils;
 
 import org.alfresco.model.ContentModel;
 import org.alfresco.service.cmr.dictionary.DictionaryService;
+import org.alfresco.service.cmr.repository.InvalidNodeRefException;
 import org.alfresco.service.cmr.repository.NodeRef;
 import org.alfresco.service.cmr.repository.NodeService;
 import org.alfresco.service.cmr.security.AuthenticationService;
@@ -23,6 +24,7 @@ import ru.citeck.ecos.records2.RecordRef;
 
 import java.io.Serializable;
 import java.util.*;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 @Component
@@ -125,9 +127,13 @@ public class AuthorityUtils {
         if (StringUtils.isBlank(authorityStr)) {
             return false;
         }
-        if (authorityStr.startsWith(NodeUtils.WORKSPACE_SPACES_STORE_PREFIX)) {
-            QName type = nodeService.getType(new NodeRef(authorityStr));
-            return dictionaryService.isSubClass(type, ContentModel.TYPE_AUTHORITY);
+        if (NodeUtils.isNodeRefWithUuid(authorityStr)) {
+            try {
+                QName type = nodeService.getType(new NodeRef(authorityStr));
+                return dictionaryService.isSubClass(type, ContentModel.TYPE_AUTHORITY);
+            } catch (InvalidNodeRefException e) {
+                return false;
+            }
         }
         return AUTHORITY_REFS_PREFIXES_WITH_REPLACEMENT.stream()
             .map(Pair::getFirst)
