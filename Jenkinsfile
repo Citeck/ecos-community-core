@@ -19,9 +19,11 @@ timestamps {
     currentBuild.changeSets.clear()
     def buildTools = load "jenkins-script-tools/scripts/build-tools.groovy"
 
+    def repoUrl = "unknown"
+
     try {
 
-      def repoUrl = "git@gitlab.citeck.ru:citeck-projects/ecos-community-core.git"
+      repoUrl = sh(script: "git config --get remote.origin.url", returnStdout: true).trim()
 
       stage('Checkout SCM') {
         checkout([
