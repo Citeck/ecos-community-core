@@ -200,6 +200,12 @@ public class WorkflowTaskRecords extends LocalRecordsDao
             if (isDate(name) && StringUtils.isEmpty(valueStr)) {
                 valueStr = null;
             }
+            if (authorityUtils.isAuthorityRef(valueStr)) {
+                NodeRef nodeRef = authorityUtils.getNodeRef(valueStr);
+                if (nodeRef != null) {
+                    valueStr = nodeRef.toString();
+                }
+            }
             taskProps.put(name, valueStr);
         } else if (value.isBoolean()) {
             taskProps.put(name, value.asBoolean());
@@ -215,7 +221,12 @@ public class WorkflowTaskRecords extends LocalRecordsDao
             Set<NodeRef> nodeRefs = new HashSet<>();
             for (DataValue jsonNode : value) {
                 String stringNode = jsonNode.asText();
-                if (NodeRef.isNodeRef(stringNode)) {
+                if (authorityUtils.isAuthorityRef(stringNode)) {
+                    NodeRef nodeRef = authorityUtils.getNodeRef(stringNode);
+                    if (nodeRef != null) {
+                        nodeRefs.add(nodeRef);
+                    }
+                } else if (nodeUtils.isNodeRef(stringNode)) {
                     nodeRefs.add(new NodeRef(stringNode));
                 }
             }
