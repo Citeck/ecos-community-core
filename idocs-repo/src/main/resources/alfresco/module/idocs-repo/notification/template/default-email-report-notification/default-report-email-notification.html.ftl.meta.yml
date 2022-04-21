@@ -1,0 +1,14 @@
+{
+  "id" : "default-report-email-notification",
+  "name" : "default-report-email-notification",
+  "notificationTitle" : {
+    "ru" : "Выгрузка завершена",
+    "en" : "The upload is completed"
+  },
+  "model" : {
+    "web_url" : "$webUrl",
+    "date" : "$now?str",
+    "url" : "$url"
+  },
+  "multiTemplateConfig" : []
+}
