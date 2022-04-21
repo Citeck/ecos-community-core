@@ -26,6 +26,7 @@ import ru.citeck.ecos.invariants.view.NodeViewService;
 import ru.citeck.ecos.invariants.view.forms.TypeFormProvider;
 import ru.citeck.ecos.model.CiteckWorkflowModel;
 import ru.citeck.ecos.service.namespace.EcosNsPrefixResolver;
+import ru.citeck.ecos.utils.AuthorityUtils;
 
 import java.io.Serializable;
 import java.util.*;
@@ -35,14 +36,10 @@ public class WorkflowFormProvider implements NodeViewProvider {
 
     private static final String ACTIVITI_PREFIX = ActivitiConstants.ENGINE_ID + "$";
 
-    private static final Log logger = LogFactory.getLog(WorkflowFormProvider.class);
-
     @Autowired
     private NodeViewService nodeViewService;
     @Autowired
     private NamespaceService namespaceService;
-    @Autowired
-    private TaskService taskService;
     @Autowired
     @Qualifier("workflowServiceImpl")
     private WorkflowService workflowService;
@@ -54,6 +51,8 @@ public class WorkflowFormProvider implements NodeViewProvider {
     private NodeService nodeService;
     @Autowired
     private DictionaryService dictionaryService;
+    @Autowired
+    private AuthorityUtils authorityUtils;
 
     @Override
     public NodeViewDefinition getNodeView(String workflowId, String formId, FormMode mode, Map<String, Object> params) {
@@ -112,7 +111,7 @@ public class WorkflowFormProvider implements NodeViewProvider {
             if (items instanceof NodeRef) {
                 itemsRefs.add((NodeRef) items);
             } else if (items instanceof Collection) {
-                for (Object item : (Collection) items) {
+                for (Object item : (Collection<?>) items) {
                     if (item instanceof NodeRef) {
                         itemsRefs.add((NodeRef) item);
                     }
@@ -174,9 +173,13 @@ public class WorkflowFormProvider implements NodeViewProvider {
             return new NodeRef((String) value);
         } else if (value instanceof ArrayList) {
             ArrayList<NodeRef> refList = new ArrayList<>();
-            for (Object nodeString : (ArrayList) value) {
+            for (Object nodeString : (ArrayList<?>) value) {
                 if (nodeString instanceof String) {
-                    refList.add(new NodeRef((String) nodeString));
+                    if (authorityUtils.isAuthorityRef(value)) {
+                        refList.add(authorityUtils.getNodeRef(value));
+                    } else {
+                        refList.add(new NodeRef((String) nodeString));
+                    }
                 }
             }
             return refList;
