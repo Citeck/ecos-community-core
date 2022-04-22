@@ -241,8 +241,8 @@ public class WorkflowRecordsDao extends LocalRecordsDao
                             if (strValue.contains("workspace://")) {
                                 strValue = strValue.replaceFirst("alfresco/@", "");
                             }
-                            if (authorityUtils.isAuthorityRef(stringName)) {
-                                nodeRefs.add(authorityUtils.getNodeRefNotNull(stringName));
+                            if (authorityUtils.isAuthorityRef(strValue)) {
+                                nodeRefs.add(authorityUtils.getNodeRefNotNull(strValue));
                             } else if (nodeUtils.isNodeRef(strValue)) {
                                 nodeRefs.add(new NodeRef(strValue));
                             }

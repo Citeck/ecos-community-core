@@ -175,8 +175,8 @@ public class WorkflowFormProvider implements NodeViewProvider {
             ArrayList<NodeRef> refList = new ArrayList<>();
             for (Object nodeString : (ArrayList<?>) value) {
                 if (nodeString instanceof String) {
-                    if (authorityUtils.isAuthorityRef(value)) {
-                        refList.add(authorityUtils.getNodeRefNotNull(value));
+                    if (authorityUtils.isAuthorityRef(nodeString)) {
+                        refList.add(authorityUtils.getNodeRefNotNull(nodeString));
                     } else {
                         refList.add(new NodeRef((String) nodeString));
                     }
