@@ -41,6 +41,8 @@ import ru.citeck.ecos.records2.source.dao.local.v2.LocalRecordsMetaDao;
 import ru.citeck.ecos.records2.source.dao.local.v2.LocalRecordsQueryWithMetaDao;
 import ru.citeck.ecos.records3.RecordsService;
 import ru.citeck.ecos.records3.record.dao.query.dto.query.Consistency;
+import ru.citeck.ecos.utils.AuthorityUtils;
+import ru.citeck.ecos.utils.NodeUtils;
 import ru.citeck.ecos.utils.WorkflowUtils;
 import ru.citeck.ecos.workflow.EcosWorkflowService;
 
@@ -63,21 +65,27 @@ public class WorkflowRecordsDao extends LocalRecordsDao
     private final EcosWorkflowService ecosWorkflowService;
     private final NamespaceService namespaceService;
     private final DictionaryService dictionaryService;
+    private final AuthorityUtils authorityUtils;
     private final WorkflowUtils workflowUtils;
     private final NodeService nodeService;
+    private final NodeUtils nodeUtils;
 
     @Autowired
     public WorkflowRecordsDao(EcosWorkflowService ecosWorkflowService,
                               NamespaceService namespaceService,
                               DictionaryService dictionaryService,
+                              AuthorityUtils authorityUtils,
                               WorkflowUtils workflowUtils,
-                              NodeService nodeService) {
+                              NodeService nodeService,
+                              NodeUtils nodeUtils) {
         setId(ID);
         this.ecosWorkflowService = ecosWorkflowService;
         this.namespaceService = namespaceService;
         this.dictionaryService = dictionaryService;
+        this.authorityUtils = authorityUtils;
         this.nodeService = nodeService;
         this.workflowUtils = workflowUtils;
+        this.nodeUtils = nodeUtils;
     }
 
     @NotNull
@@ -227,13 +235,15 @@ public class WorkflowRecordsDao extends LocalRecordsDao
                 QName name = QName.resolveToQName(namespaceService, stringName);
                 if (dictionaryService.getAssociation(name) != null) {
                     List<NodeRef> nodeRefs = new ArrayList<>();
-                    for (Object jsonNode : (List) value) {
+                    for (Object jsonNode : (List<?>) value) {
                         if (jsonNode instanceof String) {
                             String strValue = (String) jsonNode;
                             if (strValue.contains("workspace://")) {
                                 strValue = strValue.replaceFirst("alfresco/@", "");
                             }
-                            if (NodeRef.isNodeRef(strValue)) {
+                            if (authorityUtils.isAuthorityRef(stringName)) {
+                                nodeRefs.add(authorityUtils.getNodeRefNotNull(stringName));
+                            } else if (nodeUtils.isNodeRef(strValue)) {
                                 nodeRefs.add(new NodeRef(strValue));
                             }
                         }

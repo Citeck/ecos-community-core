@@ -150,7 +150,7 @@ public class AlfNodesRecordsDAO extends LocalRecordsDao
             if (textValue.startsWith(AlfNodeRecord.NODE_REF_SOURCE_ID_PREFIX)) {
                 return DataValue.createStr(textValue.replaceFirst(AlfNodeRecord.NODE_REF_SOURCE_ID_PREFIX, ""));
             } else if (authorityUtils.isAuthorityRef(textValue)) {
-                NodeRef nodeRef = authorityUtils.getNodeRef(textValue);
+                NodeRef nodeRef = authorityUtils.getNodeRefNotNull(textValue);
                 return DataValue.createStr(String.valueOf(nodeRef));
             }
         }
@@ -695,11 +695,7 @@ public class AlfNodesRecordsDAO extends LocalRecordsDao
                 return parentRef;
             }
             if (authorityUtils.isAuthorityRef(parent)) {
-                NodeRef authorityRef = authorityUtils.getNodeRef(parent);
-                if (authorityRef == null) {
-                    throw new RuntimeException("Incorrect authority: " + parent);
-                }
-                return authorityRef;
+                return authorityUtils.getNodeRefNotNull(parent);
             }
             return getByPath(parent);
         }

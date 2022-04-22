@@ -140,6 +140,15 @@ public class AuthorityUtils {
             .anyMatch(prefix -> authorityStr.startsWith(prefix) && !authorityStr.endsWith("@"));
     }
 
+    @NotNull
+    public NodeRef getNodeRefNotNull(Object authority) {
+        NodeRef nodeRef = getNodeRef(authority);
+        if (nodeRef == null) {
+            throw new RuntimeException("Authority is not found: " + authority);
+        }
+        return nodeRef;
+    }
+
     @Nullable
     public NodeRef getNodeRef(Object authority) {
         if (authority instanceof NodeRef) {

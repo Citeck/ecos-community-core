@@ -194,7 +194,7 @@ public class EcosWorkflowService {
         }
         if (value instanceof String) {
             if (authorityUtils.isAuthorityRef(value)) {
-                return authorityUtils.getNodeRef(value);
+                return authorityUtils.getNodeRefNotNull(value);
             } else if (nodeUtils.isNodeRef(value)) {
                 return nodeUtils.getNodeRefOrNull(value);
             }

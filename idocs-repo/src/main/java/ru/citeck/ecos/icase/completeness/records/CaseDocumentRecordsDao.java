@@ -221,7 +221,7 @@ public class CaseDocumentRecordsDao extends LocalRecordsDao implements LocalReco
             return null;
         }
         if (authorityUtils.isAuthorityRef(recordRef)) {
-            return authorityUtils.getNodeRef(recordRef);
+            return authorityUtils.getNodeRefNotNull(recordRef);
         }
         if (nodeUtils.isNodeRef(recordRef.getId())) {
             return new NodeRef(recordRef.getId());
