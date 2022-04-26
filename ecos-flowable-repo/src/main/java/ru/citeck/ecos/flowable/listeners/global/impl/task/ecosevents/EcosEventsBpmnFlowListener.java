@@ -6,11 +6,11 @@ import org.flowable.bpmn.model.FlowElement;
 import org.flowable.engine.delegate.DelegateExecution;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import ru.citeck.ecos.flowable.listeners.global.GlobalFlowElementTakeListener;
+import ru.citeck.ecos.flowable.listeners.global.GlobalFlowElementStartListener;
 
 @Component
 @RequiredArgsConstructor(onConstructor_={@Autowired})
-public class EcosEventsBpmnFlowListenerElement implements GlobalFlowElementTakeListener {
+public class EcosEventsBpmnFlowListener implements GlobalFlowElementStartListener {
 
     private final EcosEventsTaskEventEmitter emitter;
 
@@ -18,7 +18,7 @@ public class EcosEventsBpmnFlowListenerElement implements GlobalFlowElementTakeL
     public void notify(DelegateExecution execution) {
         FlowElement flow = execution.getCurrentFlowElement();
         if (flow != null && StringUtils.isNotBlank(flow.getId())) {
-            emitter.emitFlowElementTakeEvent(execution);
+            emitter.emitFlowElementEvent(execution);
         }
     }
 }
