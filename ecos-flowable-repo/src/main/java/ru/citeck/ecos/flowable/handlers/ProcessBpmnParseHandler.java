@@ -1,6 +1,8 @@
 package ru.citeck.ecos.flowable.handlers;
 
-import org.flowable.bpmn.model.*;
+import org.flowable.bpmn.model.BaseElement;
+import org.flowable.bpmn.model.FlowableListener;
+import org.flowable.bpmn.model.ImplementationType;
 import org.flowable.bpmn.model.Process;
 import org.flowable.engine.delegate.ExecutionListener;
 import org.flowable.engine.impl.bpmn.parser.BpmnParse;
@@ -10,7 +12,6 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.stereotype.Component;
 import ru.citeck.ecos.flowable.listeners.global.GlobalEndExecutionListener;
-import ru.citeck.ecos.flowable.listeners.global.GlobalFlowElementTakeListener;
 import ru.citeck.ecos.flowable.listeners.global.GlobalStartExecutionListener;
 import ru.citeck.ecos.flowable.listeners.global.GlobalTakeExecutionListener;
 
@@ -31,35 +32,12 @@ public class ProcessBpmnParseHandler implements BpmnParseHandler, ApplicationCon
     public Collection<Class<? extends BaseElement>> getHandledTypes() {
         List<Class<? extends BaseElement>> result = new ArrayList<>();
         result.add(Process.class);
-        result.add(SequenceFlow.class);
-        result.add(ServiceTask.class);
-        result.add(ExclusiveGateway.class);
-        result.add(ParallelGateway.class);
         return result;
     }
 
     @Override
     public void parse(BpmnParse bpmnParse, BaseElement baseElement) {
-
-        if (baseElement instanceof Process) {
-            parseProcess((Process) baseElement);
-        } else if (baseElement instanceof FlowElement) {
-            parseFlowElement((FlowElement) baseElement);
-        }
-    }
-
-    private void parseFlowElement(FlowElement flowElement) {
-
-        List<FlowableListener> listeners = flowElement.getExecutionListeners();
-        Collection<String> takeExecutionListeners = getBeansNames(GlobalFlowElementTakeListener.class);
-        for (String listener : takeExecutionListeners) {
-            listeners.add(createFlowableListener(listener, ExecutionListener.EVENTNAME_TAKE));
-        }
-        flowElement.setExecutionListeners(listeners);
-    }
-
-    private void parseProcess(Process process) {
-
+        Process process = (Process) baseElement;
         List<FlowableListener> listeners = process.getExecutionListeners();
 
         /* Start event */

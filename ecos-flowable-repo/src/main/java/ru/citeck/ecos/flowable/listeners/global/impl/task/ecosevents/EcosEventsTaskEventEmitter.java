@@ -42,7 +42,7 @@ public class EcosEventsTaskEventEmitter {
 
     private EventsEmitter<EcosTaskEvent> taskCompletedEmitter;
     private EventsEmitter<EcosTaskEvent> taskCreatedEmitter;
-    private EventsEmitter<FlowElementTakeEvent> flowTakeEmitter;
+    private EventsEmitter<FlowElementEvent> flowElementStartEmitter;
 
     @PostConstruct
     public void init() {
@@ -58,10 +58,10 @@ public class EcosEventsTaskEventEmitter {
             builder.setEventType("bpmn-user-task-create");
             return Unit.INSTANCE;
         });
-        flowTakeEmitter = eventsService.getEmitter(builder -> {
+        flowElementStartEmitter = eventsService.getEmitter(builder -> {
             builder.setSource("ecos-flowable");
-            builder.setEventClass(FlowElementTakeEvent.class);
-            builder.setEventType("bpmn-flow-element-take");
+            builder.setEventClass(FlowElementEvent.class);
+            builder.setEventType("bpmn-flow-element-start");
             return Unit.INSTANCE;
         });
     }
@@ -124,7 +124,7 @@ public class EcosEventsTaskEventEmitter {
         return event;
     }
 
-    public void emitFlowElementTakeEvent(DelegateExecution execution) {
+    public void emitFlowElementEvent(DelegateExecution execution) {
 
         String processDefId = execution.getProcessDefinitionId();
         ProcessDefinition processDef = processDefinitionService.getProcessDefinitionById(processDefId);
@@ -139,19 +139,20 @@ public class EcosEventsTaskEventEmitter {
             );
         }
 
-        FlowElementTakeEvent event = new FlowElementTakeEvent();
+        FlowElementEvent event = new FlowElementEvent();
 
         event.setExecutionId(execution.getId());
         event.setElementDefId(execution.getCurrentFlowElement().getId());
         event.setElementType(flowElement.getClass().getSimpleName());
         event.setEngine("flowable");
+        event.setEventName(execution.getEventName());
 
         event.setProcDefId(processDef.getKey());
         event.setProcDefVersion(processDef.getVersion());
         event.setProcInstanceId(execution.getProcessInstanceId());
         event.setDocument(FlowableListenerUtils.getDocumentRecordRef(execution, nodeService));
 
-        flowTakeEmitter.emit(event);
+        flowElementStartEmitter.emit(event);
     }
 
     private static Instant toInstantOrNull(Date date) {
@@ -173,7 +174,7 @@ public class EcosEventsTaskEventEmitter {
     }
 
     @Data
-    private static class FlowElementTakeEvent {
+    private static class FlowElementEvent {
         private String executionId;
         private String elementType;
         private String elementDefId;
@@ -182,6 +183,7 @@ public class EcosEventsTaskEventEmitter {
         private int procDefVersion;
         private String procInstanceId;
         private RecordRef document;
+        private String eventName;
     }
 
     @Data

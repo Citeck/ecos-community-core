@@ -1,6 +1,7 @@
 package ru.citeck.ecos.flowable.configuration;
 
 import com.zaxxer.hikari.HikariDataSource;
+import lombok.extern.slf4j.Slf4j;
 import org.alfresco.repo.i18n.MessageService;
 import org.alfresco.repo.service.ServiceDescriptorRegistry;
 import org.alfresco.repo.tenant.TenantService;
@@ -11,7 +12,6 @@ import org.alfresco.repo.workflow.WorkflowQNameConverter;
 import org.alfresco.service.cmr.dictionary.DictionaryService;
 import org.alfresco.service.namespace.NamespaceService;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.log4j.Logger;
 import org.flowable.common.engine.impl.interceptor.CommandInterceptor;
 import org.flowable.engine.FormService;
 import org.flowable.engine.ProcessEngineConfiguration;
@@ -27,6 +27,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.transaction.PlatformTransactionManager;
 import ru.citeck.ecos.flowable.constants.FlowableConstants;
 import ru.citeck.ecos.flowable.converters.FlowableNodeConverter;
+import ru.citeck.ecos.flowable.handlers.FlowElementBpmnParseHandler;
 import ru.citeck.ecos.flowable.handlers.ProcessBpmnParseHandler;
 import ru.citeck.ecos.flowable.handlers.UserTaskBpmnParseHandler;
 import ru.citeck.ecos.flowable.interceptors.FlowableAuthenticationInterceptor;
@@ -50,10 +51,9 @@ import java.util.function.Consumer;
 /**
  * Flowable configuration
  */
+@Slf4j
 @Configuration
 public class FlowableConfiguration {
-
-    private static final Logger logger = Logger.getLogger(FlowableConfiguration.class);
 
     /**
      * Properties constants
@@ -124,12 +124,12 @@ public class FlowableConfiguration {
         int maxPoolSize = Integer.parseInt(properties.getProperty(FLOWABLE_DBCP_MAX_POOL_SIZE));
 
         String msg = "Connection to flowable data source with parameters:\n" +
-                "dbUrl: " + dbUrl + "\n" +
-                "driverClassName: " + driverClassName + "\n" +
-                "username: " + username + "\n" +
-                "minIdle: " + minIdle + "\n" +
-                "maxPoolSize: " + maxPoolSize + "\n";
-        logger.info(msg);
+            "dbUrl: " + dbUrl + "\n" +
+            "driverClassName: " + driverClassName + "\n" +
+            "username: " + username + "\n" +
+            "minIdle: " + minIdle + "\n" +
+            "maxPoolSize: " + maxPoolSize + "\n";
+        log.info(msg);
 
         try {
             HikariDataSource hikariDataSource = new HikariDataSource();
@@ -148,7 +148,6 @@ public class FlowableConfiguration {
         }
     }
 
-
     /**
      * Flowable process engine configuration
      *
@@ -157,21 +156,22 @@ public class FlowableConfiguration {
      * @return Process engine configuration
      */
     @Bean(name = "flowableEngineConfiguration")
-    public SpringProcessEngineConfiguration flowableEngineConfiguration(@Qualifier("flowableDataSource") DataSource dataSource,
-                                                                        @Qualifier("workflow.variable.EcosPojoTypeHandler")
-                                                                                EcosPojoTypeHandler<?> ecosPojoTypeHandler,
-                                                                        ServiceDescriptorRegistry descriptorRegistry,
-                                                                        @Qualifier("flowableScriptNodeType")
-                                                                                FlowableScriptNodeVariableType
-                                                                                flowableScriptNodeVariableType,
-                                                                        @Qualifier("flowableScriptNodeListType")
-                                                                                FlowableScriptNodeListVariableType
-                                                                                flowableScriptNodeListVariableType,
-                                                                        @Qualifier("transactionManager")
-                                                                                PlatformTransactionManager
-                                                                                transactionManager,
-                                                                        ProcessBpmnParseHandler processBpmnParseHandler,
-                                                                        UserTaskBpmnParseHandler taskBpmnParseHandler) {
+    public SpringProcessEngineConfiguration flowableEngineConfiguration(
+        @Qualifier("flowableDataSource")
+        DataSource dataSource,
+        @Qualifier("workflow.variable.EcosPojoTypeHandler")
+        EcosPojoTypeHandler<?> ecosPojoTypeHandler,
+        ServiceDescriptorRegistry descriptorRegistry,
+        @Qualifier("flowableScriptNodeType")
+        FlowableScriptNodeVariableType flowableScriptNodeVariableType,
+        @Qualifier("flowableScriptNodeListType")
+        FlowableScriptNodeListVariableType flowableScriptNodeListVariableType,
+        @Qualifier("transactionManager")
+        PlatformTransactionManager transactionManager,
+        ProcessBpmnParseHandler processBpmnParseHandler,
+        FlowElementBpmnParseHandler flowElementBpmnParseHandler,
+        UserTaskBpmnParseHandler taskBpmnParseHandler
+    ) {
         if (dataSource != null) {
             SpringProcessEngineConfiguration config = new SpringProcessEngineConfiguration();
             config.setDataSource(dataSource);
@@ -190,7 +190,7 @@ public class FlowableConfiguration {
 
             config.setDatabaseSchemaUpdate(ProcessEngineConfiguration.DB_SCHEMA_UPDATE_TRUE);
             config.setTransactionSynchronizationAdapterOrder(
-                    AlfrescoTransactionSupport.SESSION_SYNCHRONIZATION_ORDER - 100
+                AlfrescoTransactionSupport.SESSION_SYNCHRONIZATION_ORDER - 100
             );
 
             List<CommandInterceptor> customPostCommandInterceptors = new ArrayList<>();
@@ -204,9 +204,10 @@ public class FlowableConfiguration {
 
             setMailConfiguration(config);
 
-            List<BpmnParseHandler> parseHandlers = new ArrayList<>(2);
+            List<BpmnParseHandler> parseHandlers = new ArrayList<>(3);
             parseHandlers.add(processBpmnParseHandler);
             parseHandlers.add(taskBpmnParseHandler);
+            parseHandlers.add(flowElementBpmnParseHandler);
             config.setPreBpmnParseHandlers(parseHandlers);
 
             List<VariableType> types = config.getCustomPreVariableTypes();
@@ -251,10 +252,14 @@ public class FlowableConfiguration {
     private Map<Object, Object> getEngineBeans(ServiceDescriptorRegistry descriptorRegistry) {
         Map<Object, Object> beans = new HashMap<>();
 
-        CaseCompletenessServiceJS caseCompletenessServiceJS = applicationContext.getBean(BEAN_KEY_COMPLETENESS_SERVICE_JS,
-                CaseCompletenessServiceJS.class);
-        CaseStatusServiceJS caseStatusServiceJS = applicationContext.getBean(BEAN_KEY_CASE_STATUS_SERVICE_JS,
-                CaseStatusServiceJS.class);
+        CaseCompletenessServiceJS caseCompletenessServiceJS = applicationContext.getBean(
+            BEAN_KEY_COMPLETENESS_SERVICE_JS,
+            CaseCompletenessServiceJS.class
+        );
+        CaseStatusServiceJS caseStatusServiceJS = applicationContext.getBean(
+            BEAN_KEY_CASE_STATUS_SERVICE_JS,
+            CaseStatusServiceJS.class
+        );
         Properties properties = applicationContext.getBean("global-properties", Properties.class);
         NotificationService notificationService = applicationContext.getBean(
             BEAN_KEY_SYSTEM_ALF_NOTIFICATION_SERVICE, NotificationService.class);
@@ -269,9 +274,10 @@ public class FlowableConfiguration {
         beans.put(FlowableConstants.FLOWABLE_EMAIL_SENDER_BEAN_KEY, flowableEmailSender);
 
         Map<String, FlowableEngineProcessService> engineProcessServices = applicationContext.getBeansOfType(
-                FlowableEngineProcessService.class);
+            FlowableEngineProcessService.class
+        );
         engineProcessServices.forEach((k, v) -> {
-            logger.info("Added flowable process engine service: " + v.getKey());
+            log.info("Added flowable process engine service: " + v.getKey());
             beans.put(v.getKey(), v);
         });
 
@@ -340,9 +346,10 @@ public class FlowableConfiguration {
      */
     @Bean(name = "flowableWorkflowPropertyHandlerRegistry")
     public FlowableWorkflowPropertyHandlerRegistry flowableWorkflowPropertyHandlerRegistry(
-            FlowableNodeConverter flowableNodeConverter,
-            MessageService messageService,
-            NamespaceService namespaceService) {
+        FlowableNodeConverter flowableNodeConverter,
+        MessageService messageService,
+        NamespaceService namespaceService
+    ) {
         /* Qname converter */
         WorkflowQNameConverter workflowQNameConverter = new WorkflowQNameConverter(namespaceService);
         /* Default workflow property handler */
@@ -372,7 +379,7 @@ public class FlowableConfiguration {
         // QName converter
         WorkflowQNameConverter workflowQNameConverter = new WorkflowQNameConverter(namespaceService);
         WorkflowObjectFactory workflowObjectFactory = new WorkflowObjectFactory(workflowQNameConverter,
-                tenantService, messageService, dictionaryService, FlowableConstants.ENGINE_ID, null);
+            tenantService, messageService, dictionaryService, FlowableConstants.ENGINE_ID, null);
         return new FlowableTaskTypeManagerImpl(workflowObjectFactory, formService);
     }
 
