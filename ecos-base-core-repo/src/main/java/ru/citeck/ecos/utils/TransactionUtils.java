@@ -12,6 +12,7 @@ import org.springframework.core.task.TaskExecutor;
 import org.springframework.extensions.surf.util.I18NUtil;
 import ru.citeck.ecos.domain.auth.EcosReqContext;
 import ru.citeck.ecos.domain.auth.EcosReqContextData;
+import ru.citeck.ecos.records3.record.request.RequestContext;
 import ru.citeck.ecos.utils.performance.ActionPerformance;
 import ru.citeck.ecos.utils.performance.Performance;
 
@@ -193,11 +194,15 @@ public class TransactionUtils {
     }
 
     private static void doInTransaction(final Runnable job) {
-        transactionService.getRetryingTransactionHelper().doInTransaction(
-                (RetryingTransactionHelper.RetryingTransactionCallback<String>) () -> {
+        RequestContext.doWithTxnJ(() ->
+            transactionService.getRetryingTransactionHelper().doInTransaction(() -> {
                     job.run();
                     return null;
-                }, false, true);
+                },
+                false,
+                true
+            )
+        );
     }
 
     public static void setServiceRegistry(ServiceRegistry serviceRegistry) {
