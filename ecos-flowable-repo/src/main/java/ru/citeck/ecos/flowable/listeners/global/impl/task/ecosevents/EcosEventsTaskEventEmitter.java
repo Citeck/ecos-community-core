@@ -4,11 +4,9 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import kotlin.Unit;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
-import org.alfresco.service.cmr.repository.NodeRef;
 import org.alfresco.service.cmr.repository.NodeService;
 import org.apache.commons.lang.StringUtils;
 import org.flowable.bpmn.model.FlowElement;
-import org.flowable.bpmn.model.SequenceFlow;
 import org.flowable.engine.delegate.DelegateExecution;
 import org.flowable.engine.repository.ProcessDefinition;
 import org.flowable.task.service.delegate.BaseTaskListener;
@@ -97,7 +95,7 @@ public class EcosEventsTaskEventEmitter {
         event.setProcDefId(processDef.getKey());
         event.setProcDefVersion(processDef.getVersion());
         event.setProcInstanceId(flowableTask.getProcessInstanceId());
-        event.setActivityDefId(flowableTask.getTaskDefinitionKey());
+        event.setElementDefId(flowableTask.getTaskDefinitionKey());
         event.setCreated(toInstantOrNull(flowableTask.getCreateTime()));
         event.setDueDate(toInstantOrNull(flowableTask.getDueDate()));
         event.setDescription(flowableTask.getDescription());
@@ -144,8 +142,8 @@ public class EcosEventsTaskEventEmitter {
         FlowElementTakeEvent event = new FlowElementTakeEvent();
 
         event.setExecutionId(execution.getId());
-        event.setActivityDefId(execution.getCurrentFlowElement().getId());
-        event.setActivityType(flowElement.getClass().getSimpleName());
+        event.setElementDefId(execution.getCurrentFlowElement().getId());
+        event.setElementType(flowElement.getClass().getSimpleName());
         event.setEngine("flowable");
 
         event.setProcDefId(processDef.getKey());
@@ -177,8 +175,8 @@ public class EcosEventsTaskEventEmitter {
     @Data
     private static class FlowElementTakeEvent {
         private String executionId;
-        private String activityType;
-        private String activityDefId;
+        private String elementType;
+        private String elementDefId;
         private String engine;
         private String procDefId;
         private int procDefVersion;
@@ -194,7 +192,7 @@ public class EcosEventsTaskEventEmitter {
         private String procDefId;
         private int procDefVersion;
         private String procInstanceId;
-        private String activityDefId;
+        private String elementDefId;
         private Instant created;
         private Instant dueDate;
         private String description;
