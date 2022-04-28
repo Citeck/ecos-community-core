@@ -93,7 +93,7 @@ public class EcosEventsTaskEventEmitter {
         event.setEngine("flowable");
         event.setAssignee(flowableTask.getAssignee());
         event.setProcDefId(processDef.getKey());
-        event.setProcDefVersion(processDef.getVersion());
+        event.setProcDeploymentVersion(processDef.getVersion());
         event.setProcInstanceId(flowableTask.getProcessInstanceId());
         event.setElementDefId(flowableTask.getTaskDefinitionKey());
         event.setCreated(toInstantOrNull(flowableTask.getCreateTime()));
@@ -148,7 +148,7 @@ public class EcosEventsTaskEventEmitter {
         event.setEventName(execution.getEventName());
 
         event.setProcDefId(processDef.getKey());
-        event.setProcDefVersion(processDef.getVersion());
+        event.setProcDeploymentVersion(processDef.getVersion());
         event.setProcInstanceId(execution.getProcessInstanceId());
         event.setDocument(FlowableListenerUtils.getDocumentRecordRef(execution, nodeService));
 
@@ -180,7 +180,7 @@ public class EcosEventsTaskEventEmitter {
         private String elementDefId;
         private String engine;
         private String procDefId;
-        private int procDefVersion;
+        private int procDeploymentVersion;
         private String procInstanceId;
         private RecordRef document;
         private String eventName;
@@ -192,7 +192,7 @@ public class EcosEventsTaskEventEmitter {
         private String engine;
         private String assignee;
         private String procDefId;
-        private int procDefVersion;
+        private int procDeploymentVersion;
         private String procInstanceId;
         private String elementDefId;
         private Instant created;
