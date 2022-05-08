@@ -25,11 +25,13 @@ import org.alfresco.model.ContentModel;
 import org.alfresco.repo.security.authentication.AuthenticationUtil;
 import org.alfresco.repo.transaction.AlfrescoTransactionSupport;
 import org.alfresco.repo.transaction.TransactionalResourceHelper;
+import org.alfresco.service.cmr.dictionary.DictionaryService;
 import org.alfresco.service.cmr.repository.*;
 import org.alfresco.service.cmr.search.ResultSet;
 import org.alfresco.service.cmr.search.SearchParameters;
 import org.alfresco.service.cmr.search.SearchService;
 import org.alfresco.service.cmr.security.AuthenticationService;
+import org.alfresco.service.cmr.security.AuthorityService;
 import org.alfresco.service.cmr.security.PersonService;
 import org.alfresco.service.namespace.QName;
 import org.alfresco.service.transaction.TransactionService;
@@ -130,6 +132,7 @@ public class HistoryService {
     private HistoryRemoteService historyRemoteService;
     private TransactionService transactionService;
     private RecordsService recordsService;
+    private DictionaryService dictionaryService;
 
     private StoreRef storeRef;
     private NodeRef historyRoot;
@@ -237,14 +240,14 @@ public class HistoryService {
             username = AuthenticationUtil.getSystemUserName();
         } else {
             username = (String) getDocumentProperty(document, MODIFIER_PROPERTY);
-            String currentUsername = authenticationService.getCurrentUserName();
-            if (currentUsername != null) {
-                username = currentUsername;
+            NodeRef initiator = getInitiator(properties);
+            if (initiator != null) {
+                username = RepoUtils.getAuthorityName(initiator, nodeService, dictionaryService);
             }
         }
         NodeRef userRef = personService.getPerson(username);
         requestParams.put(USERNAME, username);
-        requestParams.put(USER_ID, userRef.getId());
+        requestParams.put(USER_ID, userRef == null ? null : userRef.getId());
         /* Event time */
         Date now = (Date) creationDate.clone();
         if (HistoryEventType.ASSOC_ADDED.equals(eventType) || HistoryEventType.TASK_ASSIGN.equals(eventType)) {
@@ -657,6 +660,10 @@ public class HistoryService {
 
     public void setHistoryRoot(NodeRef historyRoot) {
         this.historyRoot = historyRoot;
+    }
+
+    public void setDictionaryService(DictionaryService dictionaryService) {
+        this.dictionaryService = dictionaryService;
     }
 
     @Autowired
