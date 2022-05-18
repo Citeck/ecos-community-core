@@ -15,6 +15,7 @@ import ru.citeck.ecos.commands.context.CommandCtxManager;
 import ru.citeck.ecos.commands.rabbit.RabbitCommandsService;
 import ru.citeck.ecos.commands.remote.RemoteCommandsService;
 import ru.citeck.ecos.commands.transaction.TransactionManager;
+import ru.citeck.ecos.eureka.EcosEurekaConfiguration;
 import ru.citeck.ecos.eureka.EurekaAlfInstanceConfig;
 import ru.citeck.ecos.rabbitmq.RabbitMqConn;
 import ru.citeck.ecos.rabbitmq.RabbitMqConnProvider;
@@ -37,6 +38,7 @@ public class CommandsServiceFactoryConfig extends CommandsServiceFactory {
     private RetryingTransactionHelper retryHelper;
 
     @Autowired
+    @Qualifier(EcosEurekaConfiguration.ALF_INSTANCE_CONFIG)
     private EurekaAlfInstanceConfig instanceConfig;
 
     @Autowired
