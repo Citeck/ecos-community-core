@@ -2,6 +2,7 @@ package ru.citeck.ecos.eureka;
 
 import com.netflix.appinfo.ApplicationInfoManager;
 import com.netflix.appinfo.EurekaInstanceConfig;
+import com.netflix.appinfo.HealthCheckHandler;
 import com.netflix.appinfo.InstanceInfo;
 import com.netflix.discovery.DiscoveryManager;
 import com.netflix.discovery.EurekaClient;
@@ -28,6 +29,7 @@ public class EcosEurekaClient {
 
     private Map<String, ServerInfo> serversInfo = new ConcurrentHashMap<>();
     private InstanceInfo.InstanceStatus status = InstanceInfo.InstanceStatus.STARTING;
+    private InstanceInfo.InstanceStatus shareStatus = InstanceInfo.InstanceStatus.STARTING;
 
     @Autowired
     @Qualifier(EcosEurekaConfiguration.ALF_INSTANCE_CONFIG)
@@ -46,8 +48,8 @@ public class EcosEurekaClient {
     @PostConstruct
     public void init() {
         try {
-            getClient();
             getShareClient();
+            getClient();
         } catch (EurekaDisabled e) {
             log.info("Eureka disabled");
         } catch (Exception e) {
@@ -81,10 +83,10 @@ public class EcosEurekaClient {
     }
 
     private DiscoveryManager initManager() {
-        return getDiscoveryManager(instanceConfig);
+        return getDiscoveryManager(instanceConfig, this::getStatus);
     }
 
-    private DiscoveryManager getDiscoveryManager(EurekaInstanceConfig instanceConfig) {
+    private DiscoveryManager getDiscoveryManager(EurekaInstanceConfig instanceConfig, HealthCheckHandler handler) {
         DiscoveryManager manager = DiscoveryManager.getInstance();
 
         if (clientConfig == null || !clientConfig.isEurekaEnabled()) {
@@ -106,23 +108,33 @@ public class EcosEurekaClient {
 
         ApplicationInfoManager.getInstance().initComponent(instanceConfig);
         manager.initComponent(instanceConfig, clientConfig);
-        manager.getEurekaClient().registerHealthCheck(instanceStatus -> status);
-
-        status = InstanceInfo.InstanceStatus.UP;
+        manager.getEurekaClient().registerHealthCheck(handler);
 
         return manager;
     }
 
+    private InstanceInfo.InstanceStatus getStatus(InstanceInfo.InstanceStatus instanceStatus) {
+        return status;
+    }
+
+    private InstanceInfo.InstanceStatus getShareStatus(InstanceInfo.InstanceStatus instanceStatus) {
+        return shareStatus;
+    }
+
     private DiscoveryManager initShareManager() {
-        return getDiscoveryManager(shareInstanceConfig);
+        return getDiscoveryManager(shareInstanceConfig, this::getShareStatus);
     }
 
     private EurekaClient initClient() {
-        return getManager().getEurekaClient();
+        DiscoveryManager manager = getManager();
+        status = InstanceInfo.InstanceStatus.UP;
+        return manager.getEurekaClient();
     }
 
     private EurekaClient initShareClient() {
-        return getShareManager().getEurekaClient();
+        DiscoveryManager manager = getShareManager();
+        shareStatus = InstanceInfo.InstanceStatus.UP;
+        return manager.getEurekaClient();
     }
 
     @Data
