@@ -59,6 +59,7 @@ public class WorkflowRecordsDao extends LocalRecordsDao
     public static final String ID = "workflow";
 
     private static final String DEFINITION_PREFIX = "def_";
+    private static final String PROCESS_DEF_ATTR = "processDef";
     private static final int MIN_RECORDS_SIZE = 0;
     private static final int MAX_RECORDS_SIZE = 10000;
 
@@ -179,8 +180,16 @@ public class WorkflowRecordsDao extends LocalRecordsDao
 
         List<RecordMeta> handledMeta = mutation.getRecords().stream()
             .map(meta -> {
-                if (StringUtils.startsWith(meta.getId().getId(), DEFINITION_PREFIX)) {
-                    return handleDefWorkflow(meta);
+                if (StringUtils.isBlank(meta.getId().getId())){
+                    String processDef = meta.getAttribute(PROCESS_DEF_ATTR).asText();
+                    if (StringUtils.isNotBlank(processDef)){
+                        return handleDefWorkflow(meta, RecordRef.valueOf(processDef));
+                    } else {
+                        return cancelWorkflowIfRequired(meta);
+                    }
+                }
+                else if (StringUtils.startsWith(meta.getId().getId(), DEFINITION_PREFIX)) {
+                    return handleDefWorkflow(meta, meta.getId());
                 } else {
                     return cancelWorkflowIfRequired(meta);
                 }
@@ -210,11 +219,11 @@ public class WorkflowRecordsDao extends LocalRecordsDao
         return meta;
     }
 
-    private RecordMeta handleDefWorkflow(RecordMeta meta) {
-        WorkflowDefinition definition = ecosWorkflowService.getDefinitionByName(meta.getId().getId()
-            .replaceFirst(DEFINITION_PREFIX, ""));
+    private RecordMeta handleDefWorkflow(RecordMeta meta, RecordRef workflowRef) {
+        WorkflowDefinition definition = ecosWorkflowService.getDefinitionByName(
+            workflowRef.getId().replaceFirst(DEFINITION_PREFIX, ""));
         String id = ecosWorkflowService.startFormWorkflow(definition.getId(), prepareProps(meta.getAttributes()));
-        return StringUtils.isNotBlank(id) ? new RecordMeta(ID + "@" + id) : new RecordMeta(meta.getId());
+        return StringUtils.isNotBlank(id) ? new RecordMeta(ID + "@" + id) : new RecordMeta(workflowRef.getId());
     }
 
     private Map<String, Object> prepareProps(ObjectData metaAttributes) {
