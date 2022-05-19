@@ -53,6 +53,7 @@ import ru.citeck.ecos.utils.NodeUtils;
 import ru.citeck.ecos.utils.WorkflowUtils;
 import ru.citeck.ecos.workflow.owner.OwnerAction;
 import ru.citeck.ecos.workflow.owner.OwnerService;
+import ru.citeck.ecos.workflow.records.WorkflowRecordsDao;
 import ru.citeck.ecos.workflow.tasks.EcosTaskService;
 import ru.citeck.ecos.workflow.tasks.TaskInfo;
 
@@ -71,6 +72,8 @@ public class WorkflowTaskRecords extends LocalRecordsDao
     private static final String DOCUMENT_FIELD_PREFIX = "_ECM_";
     private static final String OUTCOME_PREFIX = "outcome_";
     private static final String APP_ALFRESCO = "alfresco";
+    private static final String APP_EPROC = "eproc";
+
 
     private static final String ID = "wftask";
 
@@ -342,7 +345,15 @@ public class WorkflowTaskRecords extends LocalRecordsDao
         WorkflowTaskRecords.TasksQuery tasksQuery = query.getQuery(WorkflowTaskRecords.TasksQuery.class);
         if (tasksQuery.document != null) {
             RecordRef docRecordRef = RecordRef.valueOf(tasksQuery.document);
-            if (docRecordRef.getSourceId().equals("workflow")) {
+            if (docRecordRef.getAppName().startsWith(APP_EPROC)) {
+                docRecordRef = RecordRef.valueOf(docRecordRef.getId());
+
+                if (docRecordRef.getSourceId().isEmpty()) {
+                    docRecordRef = docRecordRef.withSourceId(WorkflowRecordsDao.ID);
+                }
+            }
+
+            if (docRecordRef.getSourceId().equals(WorkflowRecordsDao.ID)) {
                 tasksQuery.setWorkflowId(docRecordRef.getId());
                 tasksQuery.setDocument(null);
             }
