@@ -36,12 +36,12 @@ public class TempFilesParentComponent {
      */
     private final String daoInstanceId = generateComponentInstanceId();
 
-    private RootDirectory newFilesParent;
+    private volatile RootDirectory newFilesParent;
     private final Object newFilesParentLock = new Object();
 
     private final AtomicBoolean newFilesParentReady = new AtomicBoolean();
-    private String timeContainerKey;
-    private NodeRef timeContainerRef;
+    private volatile String timeContainerKey;
+    private volatile NodeRef timeContainerRef;
     private final Object timeContainerLock = new Object();
 
     @Autowired
