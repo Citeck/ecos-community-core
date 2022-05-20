@@ -18,6 +18,7 @@ import org.springframework.extensions.webscripts.Status;
 import org.springframework.extensions.webscripts.WebScriptRequest;
 import org.springframework.extensions.webscripts.servlet.FormData;
 import ru.citeck.ecos.eform.model.EcosEformFileModel;
+import ru.citeck.ecos.eform.service.TempFilesParentComponent;
 
 import java.io.Serializable;
 import java.nio.charset.StandardCharsets;
@@ -37,10 +38,9 @@ public class FileEformPost extends DeclarativeWebScript {
     private static final String PARAM_FILE = "file";
     private static final String MODEL_NODE_REF = "nodeRef";
 
-    private static final NodeRef ROOT_NODE_REF = new NodeRef("workspace://SpacesStore/eform-files-temp-root");
-
     private NodeService nodeService;
     private ContentService contentService;
+    private TempFilesParentComponent tempFilesParentComponent;
 
     @Override
     protected Map<String, Object> executeImpl(WebScriptRequest req, Status status, Cache cache) {
@@ -73,7 +73,7 @@ public class FileEformPost extends DeclarativeWebScript {
         props.put(ContentModel.PROP_NAME, file.fileName);
 
         NodeRef createdTempFile = nodeService.createNode(
-                ROOT_NODE_REF,
+                tempFilesParentComponent.getOrCreateParentForNewTempFile(),
                 ContentModel.ASSOC_CHILDREN,
                 QName.createQName(NamespaceService.CONTENT_MODEL_1_0_URI, GUID.generate()),
                 EcosEformFileModel.TYPE_TEMP_FILE,
@@ -123,6 +123,11 @@ public class FileEformPost extends DeclarativeWebScript {
                     ", content=" + content +
                     '}';
         }
+    }
+
+    @Autowired
+    public void setTempFilesParentComponent(TempFilesParentComponent tempFilesParentComponent) {
+        this.tempFilesParentComponent = tempFilesParentComponent;
     }
 
     @Autowired
