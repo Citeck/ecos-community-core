@@ -1,40 +1,36 @@
-package ru.citeck.ecos.records.source.alf;
+package ru.citeck.ecos.records.source.alf.assoc;
 
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import org.alfresco.service.cmr.dictionary.AssociationDefinition;
 import org.alfresco.service.cmr.dictionary.DictionaryService;
-import org.alfresco.service.cmr.repository.ChildAssociationRef;
 import org.alfresco.service.cmr.repository.NodeRef;
-import org.alfresco.service.cmr.repository.NodeService;
 import org.alfresco.service.namespace.NamespaceService;
 import org.alfresco.service.namespace.QName;
-import org.alfresco.service.namespace.RegexQNamePattern;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import ru.citeck.ecos.commons.data.ObjectData;
+import ru.citeck.ecos.records.source.alf.assoc.dao.AlfAnyAssocDao;
+import ru.citeck.ecos.records.source.alf.assoc.dao.AlfAssocDao;
 import ru.citeck.ecos.records2.RecordRef;
 import ru.citeck.ecos.records3.record.atts.dto.LocalRecordAtts;
 import ru.citeck.ecos.records3.record.dao.AbstractRecordsDao;
 import ru.citeck.ecos.records3.record.dao.mutate.RecordMutateDao;
 import ru.citeck.ecos.utils.NodeUtils;
 
-import java.util.List;
-import java.util.UUID;
-import java.util.stream.Collectors;
+import java.util.*;
 
 @Component
 @RequiredArgsConstructor(onConstructor_={@Autowired})
 public class AlfAssocActionsRecordsDao extends AbstractRecordsDao implements RecordMutateDao {
 
-    public enum ActionType { CREATE, REMOVE }
-
-    private final NodeUtils nodeUtils;
     private final DictionaryService dictionaryService;
     private final NamespaceService namespaceService;
-    private final NodeService nodeService;
+    private final NodeUtils nodeUtils;
+
+    private Map<QName, AlfAssocDao> assocsDao = Collections.emptyMap();
 
     @NotNull
     @Override
@@ -49,30 +45,18 @@ public class AlfAssocActionsRecordsDao extends AbstractRecordsDao implements Rec
         NodeRef sourceRef = nodeUtils.getNodeRef(actionDto.getSourceRef());
         NodeRef targetRef = nodeUtils.getNodeRef(actionDto.getTargetRef());
 
-        if (association.isChild()) {
-
-            // We should get child assocs using getParentAssocs because parent node
-            // may contain a lot of children and nodeService.getChildAssocs will be very slow
-            List<ChildAssociationRef> currentAssocs =
-                nodeService.getParentAssocs(targetRef, assocQName, RegexQNamePattern.MATCH_ALL)
-                    .stream()
-                    .filter(assoc -> sourceRef.equals(assoc.getParentRef()))
-                    .collect(Collectors.toList());
-
-            if (currentAssocs.isEmpty() && ActionType.CREATE.equals(actionDto.action)) {
-                QName qName = QName.createQName(assocQName.getNamespaceURI(), UUID.randomUUID().toString());
-                nodeService.addChild(sourceRef, targetRef, assocQName, qName);
-            }
-            if (!currentAssocs.isEmpty() && ActionType.REMOVE.equals(actionDto.action)) {
-                nodeService.removeSecondaryChildAssociation(currentAssocs.get(0));
-            }
-        } else {
-            if (ActionType.CREATE.equals(actionDto.action)) {
-                nodeUtils.createAssoc(sourceRef, targetRef, assocQName);
-            } else if (ActionType.REMOVE.equals(actionDto.action)) {
-                nodeUtils.removeAssoc(sourceRef, targetRef, assocQName);
-            }
+        AlfAssocDao alfAssocDao = needAlfAssocDao(assocQName);
+        switch (actionDto.action) {
+            case CREATE:
+                alfAssocDao.create(sourceRef, targetRef, association);
+                break;
+            case REMOVE:
+                alfAssocDao.remove(sourceRef, targetRef, association);
+                break;
+            default:
+                throw new IllegalArgumentException("Unknown action type: " + actionDto.action);
         }
+
         return localRecordAtts.getId();
     }
 
@@ -97,15 +81,47 @@ public class AlfAssocActionsRecordsDao extends AbstractRecordsDao implements Rec
         return action;
     }
 
+    private AlfAssocDao needAlfAssocDao(QName assocQName) {
+        AlfAssocDao alfAssocDao = assocsDao.get(assocQName);
+        if (alfAssocDao == null) {
+            alfAssocDao = assocsDao.get(AlfAnyAssocDao.QNAME);
+            if (alfAssocDao == null) {
+                throw new IllegalStateException("Associations DAO can't be found" +
+                    " for " + assocQName + ". Registered types: " + assocsDao.keySet());
+            }
+        }
+        return alfAssocDao;
+    }
+
     @NotNull
     @Override
     public String getId() {
         return "assoc-actions";
     }
 
+    @Autowired
+    public void setAssocsDao(List<AlfAssocDao> assocsDaoList) {
+
+        List<AlfAssocDao> mutableList = new ArrayList<>(assocsDaoList);
+        mutableList.sort((dao0, dao1) -> {
+            // reversed order
+            if (dao0.getOrder() > dao1.getOrder()) {
+                return -1;
+            } else if (dao0.getOrder() < dao1.getOrder()) {
+                return 1;
+            }
+            return 0;
+        });
+        Map<QName, AlfAssocDao> daoMap = new HashMap<>();
+        mutableList.forEach(dao ->
+            dao.getQNames().forEach(qname -> daoMap.put(qname, dao))
+        );
+        this.assocsDao = daoMap;
+    }
+
     @Data
     public static class ActionDto {
-        private ActionType action;
+        private AlfAssocActionType action;
         private RecordRef sourceRef;
         private RecordRef targetRef;
         private String association;
