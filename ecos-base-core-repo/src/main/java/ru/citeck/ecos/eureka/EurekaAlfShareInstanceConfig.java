@@ -14,6 +14,7 @@ import java.util.Properties;
 
 public class EurekaAlfShareInstanceConfig extends EurekaAlfInstanceConfig implements EurekaInstanceConfig {
 
+    private static final String UUID = GUID.generate();
     private InetUtils.HostInfo hostInfo;
 
     public EurekaAlfShareInstanceConfig(Properties globalProperties, InetUtils inetUtils) {
@@ -25,6 +26,11 @@ public class EurekaAlfShareInstanceConfig extends EurekaAlfInstanceConfig implem
         } catch (final UnknownHostException e) {
             throw new IllegalArgumentException(e);
         }
+    }
+
+    @Override
+    public String getInstanceId() {
+        return getAppname() + ":" + UUID;
     }
 
     @Override

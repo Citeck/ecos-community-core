@@ -30,6 +30,8 @@ public class EcosEurekaClient {
     private Map<String, ServerInfo> serversInfo = new ConcurrentHashMap<>();
     private InstanceInfo.InstanceStatus status = InstanceInfo.InstanceStatus.STARTING;
     private InstanceInfo.InstanceStatus shareStatus = InstanceInfo.InstanceStatus.STARTING;
+    private boolean alfrescoRegistered = false;
+    private boolean shareRegistered = false;
 
     @Autowired
     @Qualifier(EcosEurekaConfiguration.ALF_INSTANCE_CONFIG)
@@ -48,7 +50,6 @@ public class EcosEurekaClient {
     @PostConstruct
     public void init() {
         try {
-            getShareClient();
             getClient();
         } catch (EurekaDisabled e) {
             log.info("Eureka disabled");
@@ -83,7 +84,36 @@ public class EcosEurekaClient {
     }
 
     private DiscoveryManager initManager() {
-        return getDiscoveryManager(instanceConfig, this::getStatus);
+        DiscoveryManager manager = getDiscoveryManager(instanceConfig, this::getAlfStatus);
+        status = InstanceInfo.InstanceStatus.UP;
+        return manager;
+    }
+
+    private DiscoveryManager initShareManager() {
+        DiscoveryManager manager = getDiscoveryManager(shareInstanceConfig, this::getShareStatus);
+        shareStatus = InstanceInfo.InstanceStatus.UP;
+        return manager;
+    }
+
+    private InstanceInfo.InstanceStatus getAlfStatus(InstanceInfo.InstanceStatus instanceStatus) {
+        if (!alfrescoRegistered) {
+            if (InstanceInfo.InstanceStatus.UP.equals(ApplicationInfoManager.getInstance().getInfo().getStatus())) {
+                alfrescoRegistered = true;
+                getShareClient();
+            }
+        }
+        return status;
+    }
+
+    private InstanceInfo.InstanceStatus getShareStatus(InstanceInfo.InstanceStatus instanceStatus) {
+        if (!shareRegistered) {
+            if (InstanceInfo.InstanceStatus.UP.equals(ApplicationInfoManager.getInstance().getInfo().getStatus())) {
+                shareRegistered = true;
+                //restore alfresco config
+                ApplicationInfoManager.getInstance().initComponent(instanceConfig);
+            }
+        }
+        return shareStatus;
     }
 
     private DiscoveryManager getDiscoveryManager(EurekaInstanceConfig instanceConfig, HealthCheckHandler handler) {
@@ -113,28 +143,12 @@ public class EcosEurekaClient {
         return manager;
     }
 
-    private InstanceInfo.InstanceStatus getStatus(InstanceInfo.InstanceStatus instanceStatus) {
-        return status;
-    }
-
-    private InstanceInfo.InstanceStatus getShareStatus(InstanceInfo.InstanceStatus instanceStatus) {
-        return shareStatus;
-    }
-
-    private DiscoveryManager initShareManager() {
-        return getDiscoveryManager(shareInstanceConfig, this::getShareStatus);
-    }
-
     private EurekaClient initClient() {
-        DiscoveryManager manager = getManager();
-        status = InstanceInfo.InstanceStatus.UP;
-        return manager.getEurekaClient();
+        return getManager().getEurekaClient();
     }
 
     private EurekaClient initShareClient() {
-        DiscoveryManager manager = getShareManager();
-        shareStatus = InstanceInfo.InstanceStatus.UP;
-        return manager.getEurekaClient();
+        return getShareManager().getEurekaClient();
     }
 
     @Data
