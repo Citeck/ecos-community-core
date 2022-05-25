@@ -1,0 +1,15 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<template-instance>
+    <template-type>ru/citeck/ecos-manage-groups-v2</template-type>
+    <components>
+        <component>
+            <region-id>groups-editor</region-id>
+            <sub-components>
+                <sub-component id="default">
+                    <url>/citeck/components/console/groups</url>
+                </sub-component>
+            </sub-components>
+        </component>
+    </components>
+
+</template-instance>

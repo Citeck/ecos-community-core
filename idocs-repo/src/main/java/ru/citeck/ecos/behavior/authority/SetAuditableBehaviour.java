@@ -6,6 +6,7 @@ import ecos.com.google.common.cache.LoadingCache;
 import org.alfresco.model.ContentModel;
 import org.alfresco.repo.node.NodeServicePolicies;
 import org.alfresco.repo.policy.Behaviour;
+import org.alfresco.repo.security.authentication.AuthenticationUtil;
 import org.alfresco.service.cmr.repository.AssociationRef;
 import org.alfresco.service.cmr.repository.ChildAssociationRef;
 import org.alfresco.service.cmr.repository.NodeRef;
@@ -90,12 +91,11 @@ public class SetAuditableBehaviour extends AbstractBehaviour
     }
 
     private boolean addAuditAspectIfRequired(NodeRef nodeRef) {
-        if (!nodeService.exists(nodeRef)) {
+        return AuthenticationUtil.runAsSystem(() -> {
+            if (nodeService.exists(nodeRef) && !nodeService.hasAspect(nodeRef, ContentModel.ASPECT_AUDITABLE)) {
+                nodeService.addAspect(nodeRef, ContentModel.ASPECT_AUDITABLE, Collections.emptyMap());
+            }
             return true;
-        }
-        if (!nodeService.hasAspect(nodeRef, ContentModel.ASPECT_AUDITABLE)) {
-            nodeService.addAspect(nodeRef, ContentModel.ASPECT_AUDITABLE, Collections.emptyMap());
-        }
-        return true;
+        });
     }
 }
