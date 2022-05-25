@@ -79,7 +79,7 @@ public class AuthorityGroupManagerActionRecordsDao implements RecordMutateDao {
     @Override
     public String mutate(@NotNull LocalRecordAtts localRecordAtts) {
 
-        String type = localRecordAtts.getAtt("type", "");
+        String type = localRecordAtts.getAttributes().get("type", "");
 
         Class<? extends AuthorityAction> actionClass = actionTypes.get(type);
         if (actionClass == null) {
