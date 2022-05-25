@@ -37,7 +37,7 @@
   */
   var $html = Alfresco.util.encodeHTML;
 
-  const ecosAddOrRemove = (parent, child, add, successMessage, failureMessage) => {
+  var ecosAddOrRemove = (parent, child, add, successMessage, failureMessage) => {
     var actionRecord = Citeck.Records.getRecordToEdit('alfresco/authority-group-manager-action@');
     actionRecord.att('type', "add-or-remove");
     actionRecord.att('parent', parent);
