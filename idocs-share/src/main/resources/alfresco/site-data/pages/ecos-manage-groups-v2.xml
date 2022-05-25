@@ -1,0 +1,8 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<page>
+    <id>ecos-manage-groups-v2</id>
+    <page-type>user-profile</page-type>
+    <title>Manage groups</title>
+    <template-instance>ecos-manage-groups-v2</template-instance>
+    <authentication>user</authentication>
+</page>
