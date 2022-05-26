@@ -441,7 +441,7 @@
 @media screen and (max-width: 800px) {
   .static .invariants-form .template-table {
     width: 100% !important;
-  } 
+  }
 }
 
 @media screen and (max-width: 825px) {
@@ -571,7 +571,7 @@
   margin-right: 10px;
 }
 
-.invariants-form .template-wide .template-block .block-region .form-region.template-none, 
+.invariants-form .template-wide .template-block .block-region .form-region.template-none,
 .invariants-form .template-wide .template-block .block-region .form-region.template-default {
   display: none;
 }
@@ -659,7 +659,7 @@
   margin-right: 10px;
 }
 
-.invariants-form .template-wide .template-block .block-region .form-region.template-none, 
+.invariants-form .template-wide .template-block .block-region .form-region.template-none,
 .invariants-form .template-wide .template-block .block-region .form-region.template-default {
   display: none;
 }
@@ -2041,7 +2041,7 @@ div[id*="multiple-text"] .multiple-text-control input {
     margin-right: 10px;
 }
 
-.selected-filter-criteria-container table.filter-criteria-table td.criterion-value-selector .criterion-value-field-input, 
+.selected-filter-criteria-container table.filter-criteria-table td.criterion-value-selector .criterion-value-field-input,
 .selected-filter-criteria-container table.filter-criteria-table td.criterion-value-selector .criterion-value-field-view {
     display: inline-block;
 }
@@ -2240,7 +2240,8 @@ div[id*="multiple-text"] .multiple-text-control input {
 
 /* view-actions */
 .invariants-form .template-view span.value-item .value-item-actions a,
-.invariants-form .template-view-table tr.value-item td.value-item-actions a {
+.invariants-form .template-view-table tr.value-item td.value-item-actions a,
+.invariants-form .template-text .value-item-actions a {
   display: inline-block;
   width: 12px;
   height: 12px;
@@ -2265,9 +2266,16 @@ div[id*="multiple-text"] .multiple-text-control input {
 }
 
 .invariants-form .template-view span.value-item .value-item-actions a.delete-value-item,
-.invariants-form .template-view-table tr.value-item .value-item-actions a.delete-value-item {
+.invariants-form .template-view-table tr.value-item .value-item-actions a.delete-value-item,
+.invariants-form .template-text .value-item-actions a.delete-value-item,
+.invariants-form .template-text .value-item-actions a.delete-value-item.delete-value-item-disabled:hover {
   background-image: url(images/remove.png);
   background-size: 10px;
+}
+
+.invariants-form .template-text .value-item-actions a.delete-value-item.delete-value-item-disabled {
+  opacity: 60%;
+  cursor: default;
 }
 
 .invariants-form .template-view-table tr.value-item .value-item-actions a.duplicate-value-item:hover {
@@ -2275,7 +2283,8 @@ div[id*="multiple-text"] .multiple-text-control input {
 }
 
 .invariants-form .template-view span.value-item .value-item-actions a.delete-value-item:hover,
-.invariants-form .template-view-table tr.value-item .value-item-actions a.delete-value-item:hover {
+.invariants-form .template-view-table tr.value-item .value-item-actions a.delete-value-item:hover,
+.invariants-form .template-text .value-item-actions a.delete-value-item:hover {
   background-image: url(images/remove-active.png);
 }
 
@@ -2352,7 +2361,7 @@ div[id*="multiple-text"] .multiple-text-control input {
 
 
 .invariants-form .template-tabs .tabs-title li.tab-title:not(.selected) {
-  cursor: pointer;  
+  cursor: pointer;
 }
 
 .invariants-form .template-tabs .tabs-title li.tab-title.disabled,
@@ -2456,7 +2465,7 @@ div[id*="multiple-text"] .multiple-text-control input {
 }
 
 .invariants-form .template-tabs .tabs-title li.tab-title:not(.selected) {
-  cursor: pointer;  
+  cursor: pointer;
 }
 
 .invariants-form .template-tabs .tabs-title li.tab-title[data-activity=false],
