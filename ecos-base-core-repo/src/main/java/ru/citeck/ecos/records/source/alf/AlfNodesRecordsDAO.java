@@ -155,9 +155,11 @@ public class AlfNodesRecordsDAO extends LocalRecordsDao
             }
         }
         initialAtts.forEachJ((k, v) -> {
-            DataValue fixed = fixNodeRef(v);
-            if (fixed != v) {
-                initialAtts.set(k, fixed);
+            if (!RecordConstants.ATT_ALIAS.equals(k)) {
+                DataValue fixed = fixNodeRef(v);
+                if (fixed != v) {
+                    initialAtts.set(k, fixed);
+                }
             }
         });
 

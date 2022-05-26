@@ -157,13 +157,13 @@ public class AuthorityGroupManagerActionRecordsDao implements RecordMutateDao {
 
                 throw new PermissionDeniedException();
             }
+        } else {
+            authoritiesToCheck = authorityService.getContainedAuthorities(AuthorityType.GROUP, group, false);
             if (managedGroupsByAuthority.containsKey(group)
-                    || authoritiesToCheck.stream().anyMatch(managedGroupsByAuthority::containsKey)) {
+                || authoritiesToCheck.stream().anyMatch(managedGroupsByAuthority::containsKey)) {
 
                 throw new PermissionDeniedException();
             }
-        } else {
-            authoritiesToCheck = authorityService.getContainedAuthorities(AuthorityType.GROUP, group, false);
         }
 
         if (authoritiesToCheck.stream().anyMatch(PROTECTED_GROUPS::contains)) {
