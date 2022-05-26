@@ -4,13 +4,11 @@ import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import org.alfresco.model.ContentModel;
 import org.alfresco.repo.security.authentication.AuthenticationUtil;
+import org.alfresco.rest.framework.core.exceptions.PermissionDeniedException;
 import org.alfresco.service.cmr.repository.ContentData;
 import org.alfresco.service.cmr.repository.NodeRef;
 import org.alfresco.service.cmr.search.SearchService;
-import org.alfresco.service.cmr.security.AuthorityService;
-import org.alfresco.service.cmr.security.AuthorityType;
-import org.alfresco.service.cmr.security.MutableAuthenticationService;
-import org.alfresco.service.cmr.security.PersonService;
+import org.alfresco.service.cmr.security.*;
 import org.alfresco.service.namespace.NamespaceService;
 import org.alfresco.service.namespace.QName;
 import org.apache.commons.lang.StringUtils;
@@ -29,6 +27,7 @@ import ru.citeck.ecos.records2.QueryContext;
 import ru.citeck.ecos.records2.RecordMeta;
 import ru.citeck.ecos.records2.RecordRef;
 import ru.citeck.ecos.records2.graphql.meta.value.*;
+import ru.citeck.ecos.records2.graphql.meta.value.field.EmptyMetaField;
 import ru.citeck.ecos.records2.request.delete.RecordsDelResult;
 import ru.citeck.ecos.records2.request.delete.RecordsDeletion;
 import ru.citeck.ecos.records2.request.mutation.RecordsMutResult;
@@ -39,6 +38,7 @@ import ru.citeck.ecos.records2.source.dao.MutableRecordsDao;
 import ru.citeck.ecos.records2.source.dao.local.LocalRecordsDao;
 import ru.citeck.ecos.records2.source.dao.local.v2.LocalRecordsMetaDao;
 import ru.citeck.ecos.records2.source.dao.local.v2.LocalRecordsQueryWithMetaDao;
+import ru.citeck.ecos.records3.record.atts.value.AttValue;
 import ru.citeck.ecos.records3.record.atts.value.AttValueCtx;
 import ru.citeck.ecos.records3.record.mixin.AttMixin;
 import ru.citeck.ecos.utils.AuthorityUtils;
@@ -74,6 +74,10 @@ public class PeopleRecordsDao extends LocalRecordsDao
     private static final String ECOS_OLD_PASS = "ecos:oldPass";
     private static final String ECOS_PASS = "ecos:pass";
     private static final String ECOS_PASS_VERIFY = "ecos:passVerify";
+
+    private static final String GROUP_USERS_PROFILE_ADMIN = "GROUP_USERS_PROFILE_ADMIN";
+    private static final String PERMS_WRITE = "Write";
+    private static final String ADMIN_USERNAME = "admin";
 
     private final NodeUtils nodeUtils;
     private final AuthorityUtils authorityUtils;
@@ -113,13 +117,39 @@ public class PeopleRecordsDao extends LocalRecordsDao
     @Override
     public RecordsMutResult mutateImpl(RecordsMutation mutation) {
 
-        List<RecordMeta> handledMeta = mutation.getRecords().stream()
-            .map(this::handleMetaBeforeMutation)
-            .collect(Collectors.toList());
+        RecordsMutResult fullMutResult = new RecordsMutResult();
 
-        mutation.setRecords(handledMeta);
+        for (RecordMeta record : mutation.getRecords()) {
 
-        return alfNodesRecordsDao.mutate(mutation);
+            String personUserName = record.getId().getId();
+
+            RecordMeta handledMeta = this.handleMetaBeforeMutation(record);
+            RecordsMutation newMutation = new RecordsMutation(mutation);
+            newMutation.setRecords(Collections.singletonList(handledMeta));
+
+            RecordsMutResult mutResult;
+            if (personUserName.equals(authenticationService.getCurrentUserName())
+                    || AuthenticationUtil.isRunAsUserTheSystemUser()
+                    || authorityService.hasAdminAuthority()) {
+
+                mutResult = alfNodesRecordsDao.mutate(newMutation);
+
+            } else {
+                UserValue userValue = new UserValue(record.getId());
+                userValue.init(QueryContext.getCurrent(), EmptyMetaField.INSTANCE);
+                if (userValue.getPermissions().has(PERMS_WRITE)) {
+                    mutResult = AuthenticationUtil.runAs(
+                        () -> alfNodesRecordsDao.mutate(newMutation),
+                        ADMIN_USERNAME
+                    );
+                } else {
+                    throw new PermissionDeniedException();
+                }
+            }
+            fullMutResult.merge(mutResult);
+        }
+
+        return fullMutResult;
     }
 
     private RecordMeta handleMetaBeforeMutation(RecordMeta meta) {
@@ -320,7 +350,7 @@ public class PeopleRecordsDao extends LocalRecordsDao
                 case PROP_IS_MUTABLE:
                     return authenticationService.isAuthenticationMutable(userName);
                 case PROP_IS_ADMIN:
-                    return authorityService.isAdminAuthority(userName);
+                    return isAdmin();
                 case PROP_IS_DISABLED:
                     String isDisabledProp = EcosModel.PROP_IS_PERSON_DISABLED.toPrefixString(namespaceService);
                     return alfNode.getAttribute(isDisabledProp, field);
@@ -338,6 +368,8 @@ public class PeopleRecordsDao extends LocalRecordsDao
                     return new AvatarValue(alfNode.getId());
                 case GROUPS:
                     return getUserGroups(userName, queryContext, field);
+                case "permissions":
+                    return getPermissions();
             }
             return alfNode.getAttribute(name, field);
         }
@@ -345,6 +377,38 @@ public class PeopleRecordsDao extends LocalRecordsDao
         @Override
         public RecordRef getRecordType() {
             return ETYPE;
+        }
+
+        public boolean isAdmin() {
+            return authorityService.isAdminAuthority(userName);
+        }
+
+        public UserPermissions getPermissions() {
+            return new UserPermissions(this);
+        }
+    }
+
+    @RequiredArgsConstructor
+    private class UserPermissions implements AttValue {
+
+        private final UserValue userValue;
+
+        @Nullable
+        @Override
+        public String asText() throws Exception {
+            return null;
+        }
+
+        @Override
+        public boolean has(String permission) {
+            if (PERMS_WRITE.equalsIgnoreCase(permission)
+                    && !authorityService.hasAdminAuthority()
+                    && authorityService.getAuthorities().contains(GROUP_USERS_PROFILE_ADMIN)
+                    && !Objects.equals(authenticationService.getCurrentUserName(), userValue.userName)) {
+
+                return !userValue.isAdmin();
+            }
+            return userValue.alfNode.getPermissions().has(permission);
         }
     }
 
