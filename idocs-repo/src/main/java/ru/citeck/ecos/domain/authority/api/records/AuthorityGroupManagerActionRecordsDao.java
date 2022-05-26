@@ -44,13 +44,19 @@ public class AuthorityGroupManagerActionRecordsDao implements RecordMutateDao {
 
     @PostConstruct
     public void init() {
+
         actionTypes.put(AddOrRemoveAuthorityAction.ID, AddOrRemoveAuthorityAction.class);
         actionTypes.put(CreateGroupAction.ID, CreateGroupAction.class);
-        if (StringUtils.isBlank(authorityGroupManagerConfigValue)
-                || authorityGroupManagerConfigValue.charAt(0) == '$') {
-            managedGroupsByAuthority = Collections.emptyMap();
-        } else {
-            managedGroupsByAuthority = new HashMap<>();
+
+        managedGroupsByAuthority = new LinkedHashMap<>();
+        managedGroupsByAuthority.put(
+            "GROUP_AUTHORITY_GROUPS_MANAGERS",
+            Collections.singleton("GROUP_MANAGED_AUTHORITY_GROUPS")
+        );
+
+        if (!StringUtils.isBlank(authorityGroupManagerConfigValue)
+                && authorityGroupManagerConfigValue.charAt(0) != '$') {
+
             String[] lines = authorityGroupManagerConfigValue.split(";");
             for (String line : lines) {
                 if (StringUtils.isBlank(line)) {

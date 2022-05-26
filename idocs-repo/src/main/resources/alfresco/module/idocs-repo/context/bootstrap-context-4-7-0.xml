@@ -29,4 +29,25 @@
         </property>
     </bean>
 
+    <bean id="idocs.module-component.authority-groups-management" parent="idocs.import-spaces.4-7-0">
+        <property name="name" value="authority-groups-management" />
+        <property name="description" value="authority-groups-management" />
+        <property name="bootstrapViews">
+            <list>
+                <props>
+                    <prop key="path">/</prop>
+                    <prop key="location">alfresco/templates/bootstrap/ru/citeck/common/group.xml</prop>
+                    <prop key="messages">alfresco/module/idocs-repo/bootstrap/groups/managed-authority-groups</prop>
+                    <prop key="encoding">UTF-8</prop>
+                </props>
+                <props>
+                    <prop key="path">/</prop>
+                    <prop key="location">alfresco/templates/bootstrap/ru/citeck/common/group.xml</prop>
+                    <prop key="messages">alfresco/module/idocs-repo/bootstrap/groups/authority-groups-managers</prop>
+                    <prop key="encoding">UTF-8</prop>
+                </props>
+            </list>
+        </property>
+    </bean>
+
 </beans>
