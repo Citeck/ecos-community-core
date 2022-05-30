@@ -1,31 +1,28 @@
 package ru.citeck.ecos.eureka;
 
-import com.netflix.appinfo.DataCenterInfo;
-import com.netflix.appinfo.EurekaInstanceConfig;
+import lombok.extern.slf4j.Slf4j;
 import org.alfresco.util.GUID;
 import org.apache.commons.lang.StringUtils;
 import ru.citeck.ecos.utils.InetUtils;
 
-import java.net.InetAddress;
-import java.net.UnknownHostException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 
-public class EurekaAlfShareInstanceConfig extends EurekaAlfInstanceConfig implements EurekaInstanceConfig {
+@Slf4j
+public class EurekaAlfShareInstanceConfig extends EurekaAlfInstanceConfig {
+
+    public static final String APP_NAME_ALFSHARE = "alfshare";
+    private static final String HOME_PAGE_URL = "/alfshare/";
+
+    private static final String ENV_PROP_PORT = "ECOS_EUREKA_INSTANCE_SHARE_PORT";
+    private static final String ENV_PROP_IP = "ECOS_EUREKA_INSTANCE_SHARE_IP";
+    private static final String ENV_PROP_HOST = "ECOS_EUREKA_INSTANCE_SHARE_HOST";
 
     private static final String UUID = GUID.generate();
-    private InetUtils.HostInfo hostInfo;
 
     public EurekaAlfShareInstanceConfig(Properties globalProperties, InetUtils inetUtils) {
         super(globalProperties, inetUtils);
-        try {
-            String host = getGlobalStrParam("share.host", () -> "localhost");
-            InetAddress inetAddress = InetAddress.getByName(host);
-            hostInfo = inetUtils.convertAddress(inetAddress);
-        } catch (final UnknownHostException e) {
-            throw new IllegalArgumentException(e);
-        }
     }
 
     @Override
@@ -35,29 +32,32 @@ public class EurekaAlfShareInstanceConfig extends EurekaAlfInstanceConfig implem
 
     @Override
     public String getAppname() {
-        //todo
-//        return getStrParam("instance.appname", () -> "alfshare");
-        return "alfshare";
+        return APP_NAME_ALFSHARE;
     }
 
-    //todo
     @Override
     public String getAppGroupName() {
-        return "alfshare";
+        return getAppname();
     }
 
-    //todo
     @Override
     public int getNonSecurePort() {
-        return getGlobalIntParam("share.port", () -> 8080);
+        String portFromEnv = System.getenv(ENV_PROP_PORT);
+        if (portFromEnv != null) {
+            try {
+                return Integer.parseInt(portFromEnv);
+            } catch (NumberFormatException e) {
+                log.warn("Incorrect port in " + ENV_PROP_PORT + " param. Value: " + portFromEnv);
+            }
+        }
+        return super.getNonSecurePort();
     }
 
-    //todo
     @Override
     public String getHostName(boolean refresh) {
-        String host = getGlobalStrParam("share.host", () -> "localhost");
-        if ("localhost".equals(host) || "127.0.0.1".equals(host)) {
-            host = getIpAddress();
+        String host = System.getenv(ENV_PROP_HOST);
+        if (StringUtils.isBlank(host)) {
+            host = super.getHostName(refresh);
         }
         return host;
     }
@@ -72,30 +72,23 @@ public class EurekaAlfShareInstanceConfig extends EurekaAlfInstanceConfig implem
 
     @Override
     public String getIpAddress() {
-        Boolean isDev = getGlobalBoolParam("ecos.environment.dev", () -> false);
-        if (isDev) {
-            String osName = StringUtils.defaultString(System.getProperty("os.name"));
-            if (osName.contains("Windows")) {
-                return "host.docker.internal";
-            }
+        String envValue = System.getenv(ENV_PROP_IP);
+        if (StringUtils.isNotEmpty(envValue)) {
+            return envValue;
         }
-
-        return hostInfo.getIpAddress();
+        return super.getIpAddress();
     }
 
-    //todo
     @Override
     public String getHomePageUrlPath() {
-        return "/alfshare/";
+        return HOME_PAGE_URL;
     }
 
-    //todo
     @Override
     public String getHomePageUrl() {
-        return "/alfshare/";
+        return HOME_PAGE_URL;
     }
 
-    //todo what is it?
     @Override
     public String getNamespace() {
         return getAppname();
