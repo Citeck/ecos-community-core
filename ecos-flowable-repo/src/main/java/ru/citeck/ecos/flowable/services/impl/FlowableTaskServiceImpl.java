@@ -12,16 +12,25 @@ import org.alfresco.service.cmr.workflow.WorkflowService;
 import org.alfresco.service.cmr.workflow.WorkflowTask;
 import org.alfresco.service.namespace.NamespaceService;
 import org.apache.commons.lang.StringUtils;
+import org.flowable.bpmn.model.FlowElement;
+import org.flowable.bpmn.model.Process;
+import org.flowable.bpmn.model.UserTask;
+import org.flowable.engine.RuntimeService;
 import org.flowable.engine.TaskService;
+import org.flowable.engine.impl.RuntimeServiceImpl;
+import org.flowable.engine.impl.util.ProcessDefinitionUtil;
 import org.flowable.identitylink.api.IdentityLink;
 import org.flowable.identitylink.api.IdentityLinkType;
 import org.flowable.task.api.Task;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.extensions.surf.util.I18NUtil;
 import ru.citeck.ecos.flowable.constants.FlowableConstants;
 import ru.citeck.ecos.flowable.services.FlowableHistoryService;
 import ru.citeck.ecos.flowable.services.FlowableTaskService;
 import ru.citeck.ecos.model.CiteckWorkflowModel;
+import ru.citeck.ecos.model.lib.role.dto.RoleDef;
 import ru.citeck.ecos.records2.RecordRef;
 import ru.citeck.ecos.utils.RepoUtils;
 import ru.citeck.ecos.utils.WorkflowUtils;
@@ -31,10 +40,9 @@ import ru.citeck.ecos.workflow.tasks.EngineTaskService;
 import ru.citeck.ecos.workflow.tasks.TaskInfo;
 
 import javax.annotation.PostConstruct;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 /**
@@ -48,6 +56,8 @@ public class FlowableTaskServiceImpl implements FlowableTaskService, EngineTaskS
     private static final String INITIATOR_PLACEHOLDER = "$INITIATOR";
 
     public static final String VAR_ORIGINAL_TASK_FORM_KEY = "originalTaskFormKey";
+    private static final Pattern FLW_RECIPIENTS_ROLE_ID_PATTERN =
+        Pattern.compile("\\$\\{flwRecipients\\.getRole(?:Users|Groups)\\(document\\s*,\\s*['\"](.+)['\"]\\)}");
 
     private TaskService taskService;
 
@@ -66,6 +76,8 @@ public class FlowableTaskServiceImpl implements FlowableTaskService, EngineTaskS
     private NodeService nodeService;
     @Autowired
     private NamespaceService namespaceService;
+    @Autowired
+    private RuntimeService runtimeService;
 
     @PostConstruct
     public void init() {
@@ -222,6 +234,63 @@ public class FlowableTaskServiceImpl implements FlowableTaskService, EngineTaskS
         return assigneeName;
     }
 
+    private Set<String> getCandidateRoles(String taskId) {
+
+        if (!taskExists(taskId)) {
+            return Collections.emptySet();
+        }
+        Set<String> result = new LinkedHashSet<>();
+        for (String candidate : getTaskDefCandidates(taskId)) {
+            if (StringUtils.isBlank(candidate)) {
+                continue;
+            }
+            Matcher matcher = FLW_RECIPIENTS_ROLE_ID_PATTERN.matcher(candidate);
+            if (matcher.matches()) {
+                String roleName = matcher.group(1);
+                if (StringUtils.isNotBlank(roleName)) {
+                    result.add(roleName);
+                }
+            }
+        }
+        return result;
+    }
+
+    private Set<String> getTaskDefCandidates(String taskId) {
+
+        Task task = taskService.createTaskQuery().taskId(taskId).singleResult();
+        if (task == null) {
+            return Collections.emptySet();
+        }
+
+        return ((RuntimeServiceImpl) runtimeService).getCommandExecutor().execute(context -> {
+
+            String procDefId = task.getProcessDefinitionId();
+            String taskDefKey = task.getTaskDefinitionKey();
+
+            if (StringUtils.isBlank(procDefId) || StringUtils.isBlank(taskDefKey)) {
+                return Collections.emptySet();
+            }
+
+            Process process = ProcessDefinitionUtil.getProcess(procDefId);
+            if (process == null) {
+                return Collections.emptySet();
+            }
+            FlowElement flowElement = process.getFlowElement(taskDefKey, true);
+            if (!(flowElement instanceof UserTask)) {
+                return Collections.emptySet();
+            }
+            List<String> candidates = ((UserTask) flowElement).getCandidateUsers();
+
+            if (candidates == null || candidates.isEmpty()) {
+                candidates = ((UserTask) flowElement).getCandidateGroups();
+                if (candidates == null || candidates.isEmpty()) {
+                    return Collections.emptySet();
+                }
+            }
+            return new HashSet<>(candidates);
+        });
+    }
+
     private String getIdentityLinkAuthority(String type, String taskId) {
         if (!taskExists(taskId)) {
             return null;
@@ -273,6 +342,7 @@ public class FlowableTaskServiceImpl implements FlowableTaskService, EngineTaskS
         taskService.complete(taskId, taskVariables, executionVariables);
     }
 
+    @NotNull
     public RecordRef getDocument(String taskId) {
         Object bpmPackage = getVariable(taskId, VAR_PACKAGE);
         return workflowUtils.getTaskDocumentRefFromPackage(bpmPackage);
@@ -352,6 +422,7 @@ public class FlowableTaskServiceImpl implements FlowableTaskService, EngineTaskS
             return FlowableTaskServiceImpl.this.getVariablesLocal(getId());
         }
 
+        @NotNull
         @Override
         public RecordRef getDocument() {
             return FlowableTaskServiceImpl.this.getDocument(getId());
@@ -367,6 +438,11 @@ public class FlowableTaskServiceImpl implements FlowableTaskService, EngineTaskS
             WorkflowTask wfTask = workflowService.getTaskById("flowable$" + this.getId());
             WorkflowPath wfPath = wfTask.getPath();
             return wfPath.getInstance();
+        }
+
+        @Override
+        public Set<String> getCandidateRoles() {
+            return FlowableTaskServiceImpl.this.getCandidateRoles(getId());
         }
     }
 }

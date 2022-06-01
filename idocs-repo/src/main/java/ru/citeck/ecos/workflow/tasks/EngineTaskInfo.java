@@ -7,6 +7,7 @@ import ru.citeck.ecos.records2.RecordRef;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 public class EngineTaskInfo implements TaskInfo {
 
@@ -81,5 +82,10 @@ public class EngineTaskInfo implements TaskInfo {
     @Override
     public WorkflowInstance getWorkflow() {
         return AuthenticationUtil.runAsSystem(info::getWorkflow);
+    }
+
+    @Override
+    public Set<String> getCandidateRoles() {
+        return AuthenticationUtil.runAsSystem(info::getCandidateRoles);
     }
 }

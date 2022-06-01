@@ -44,6 +44,8 @@ import ru.citeck.ecos.role.CaseRoleAssocsDao;
 import ru.citeck.ecos.role.CaseRoleService;
 import ru.citeck.ecos.utils.NodeUtils;
 import ru.citeck.ecos.workflow.listeners.TaskDataListenerUtils;
+import ru.citeck.ecos.workflow.tasks.EcosTaskService;
+import ru.citeck.ecos.workflow.tasks.TaskInfo;
 
 import java.io.Serializable;
 import java.util.*;
@@ -61,8 +63,6 @@ public class TaskHistoryListener implements GlobalCreateTaskListener, GlobalAssi
     GlobalCompleteTaskListener {
 
     private static final String VAR_ADDITIONAL_EVENT_PROPERTIES = "event_additionalProperties";
-    private static final Pattern FLW_RECIPIENTS_ROLE_ID_PATTERN =
-        Pattern.compile("\\$\\{flwRecipients\\.getRoleUsers\\(document\\s*,\\s*['\"](.+)['\"]\\)}");
 
     private static final Map<String, String> eventNames;
 
@@ -92,6 +92,7 @@ public class TaskHistoryListener implements GlobalCreateTaskListener, GlobalAssi
     private NodeUtils nodeUtils;
     private RoleService roleService;
     private RecordsService recordsService;
+    private EcosTaskService ecosTaskService;
 
     /**
      * Property names
@@ -362,41 +363,25 @@ public class TaskHistoryListener implements GlobalCreateTaskListener, GlobalAssi
     @NotNull
     private String getRoleFromCandidates(RecordRef documentRef, DelegateTask delegateTask) {
 
-        String procDefId = delegateTask.getProcessDefinitionId();
-        String taskDefKey = delegateTask.getTaskDefinitionKey();
-
-        if (StringUtils.isBlank(procDefId) || StringUtils.isBlank(taskDefKey)) {
+        if (RecordRef.isEmpty(documentRef)) {
             return "";
         }
-        Process process = ProcessDefinitionUtil.getProcess(procDefId);
-        if (process == null) {
+        RecordRef ecosType = RecordRef.valueOf(recordsService.getAtt(documentRef, "_type?id").asText());
+        if (RecordRef.isEmpty(ecosType)) {
             return "";
         }
-        FlowElement flowElement = process.getFlowElement(taskDefKey, true);
-        if (!(flowElement instanceof UserTask)) {
+        TaskInfo taskInfo = ecosTaskService.getTaskInfo(ENGINE_PREFIX + delegateTask.getId()).orElse(null);
+        if (taskInfo == null) {
             return "";
         }
-        List<String> candidates = ((UserTask) flowElement).getCandidateUsers();
-        if (candidates == null || candidates.isEmpty()) {
+        Set<String> roles = taskInfo.getCandidateRoles();
+        if (roles.isEmpty()) {
             return "";
         }
-        for (String user : candidates) {
-            if (StringUtils.isNotBlank(user)) {
-                Matcher matcher = FLW_RECIPIENTS_ROLE_ID_PATTERN.matcher(user);
-                if (matcher.matches()) {
-                    String roleName = matcher.group(1);
-                    if (!roleName.isEmpty() && RecordRef.isNotEmpty(documentRef)) {
-                        String ecosType = recordsService.getAtt(documentRef, "_type?id").asText();
-                        if (!ecosType.isEmpty()) {
-                            RoleDef roleDef = roleService.getRoleDef(RecordRef.valueOf(ecosType), roleName);
-                            if (!roleDef.getId().isEmpty()) {
-                                roleName = roleDef.getName().getClosest(I18NUtil.getLocale());
-                            }
-                        }
-                    }
-                    return roleName;
-                }
-            }
+        String roleId = roles.stream().findFirst().orElse("");
+        RoleDef roleDef = roleService.getRoleDef(ecosType, roleId);
+        if (!roleDef.getId().isEmpty()) {
+            return roleDef.getName().getClosest(I18NUtil.getLocale());
         }
         return "";
     }
@@ -481,5 +466,10 @@ public class TaskHistoryListener implements GlobalCreateTaskListener, GlobalAssi
     @Autowired
     public void setRecordsService(RecordsService recordsService) {
         this.recordsService = recordsService;
+    }
+
+    @Autowired
+    public void setEcosTaskService(EcosTaskService ecosTaskService) {
+        this.ecosTaskService = ecosTaskService;
     }
 }

@@ -34,7 +34,6 @@ import ru.citeck.ecos.model.lib.role.service.RoleService;
 import ru.citeck.ecos.model.lib.type.dto.TypeModelDef;
 import ru.citeck.ecos.node.EcosTypeService;
 import ru.citeck.ecos.records.type.TypeDto;
-import ru.citeck.ecos.records.type.TypesManager;
 import ru.citeck.ecos.records2.RecordRef;
 import ru.citeck.ecos.records3.RecordsServiceFactory;
 import ru.citeck.ecos.records3.record.request.RequestContext;
@@ -403,7 +402,7 @@ public class CaseRoleServiceImpl implements CaseRoleService {
         RecordRef caseRef = RecordRef.valueOf(String.valueOf(getRoleCaseRef(roleRef)));
         NodeRef finalRoleRef = roleRef;
 
-        return RequestContext.doWithCtx(recordsServiceFactory, requestContext ->
+        return getDelegates(roleRef, RequestContext.doWithCtx(recordsServiceFactory, requestContext ->
                 AuthenticationUtil.runAsSystem(() ->
                         SystemContextUtil.doAsSystemJ(() ->
                                         roleService.getAssignees(caseRef, finalRoleRef.getId())
@@ -414,7 +413,7 @@ public class CaseRoleServiceImpl implements CaseRoleService {
                                 requestContext
                         )
                 )
-        );
+        ));
     }
 
     @Override
@@ -597,20 +596,32 @@ public class CaseRoleServiceImpl implements CaseRoleService {
     }
 
     @Override
+    public void setDelegate(NodeRef roleRef, Object assignee, Object delegate) {
+        setDelegate(roleRef, authorityUtils.getNodeRef(assignee), authorityUtils.getNodeRef(delegate));
+    }
+
+    @Override
     public void setDelegate(NodeRef roleRef, NodeRef assignee, NodeRef delegate) {
+        if (roleRef == null || assignee == null || delegate == null) {
+            return;
+        }
         setDelegates(roleRef, Collections.singletonMap(assignee, delegate));
     }
 
     @Override
-    public void setDelegates(NodeRef roleRef, Map<NodeRef, NodeRef> delegates) {
+    public void setDelegates(NodeRef roleRef, Map<?, ?> delegates) {
 
         Map<NodeRef, NodeRef> actualDelegates = new HashMap<>(getDelegates(roleRef));
         boolean wasChanged = false;
 
-        for (Map.Entry<NodeRef, NodeRef> entry : delegates.entrySet()) {
+        for (Map.Entry<?, ?> entry : delegates.entrySet()) {
 
-            NodeRef assignee = entry.getKey();
-            NodeRef delegate = entry.getValue();
+            NodeRef assignee = authorityUtils.getNodeRef(entry.getKey());
+            NodeRef delegate = authorityUtils.getNodeRef(entry.getValue());
+
+            if (assignee == null || delegate == null) {
+                continue;
+            }
 
             if (Objects.equals(assignee, delegate)) {
                 continue;
@@ -658,6 +669,28 @@ public class CaseRoleServiceImpl implements CaseRoleService {
 
     @Override
     public Map<NodeRef, NodeRef> getDelegates(NodeRef roleRef) {
+        if (isAlfRole(roleRef)) {
+            return getAlfRoleDelegates(roleRef);
+        } else {
+            return getEcosRoleDelegates(roleRef);
+        }
+    }
+
+    private Map<NodeRef, NodeRef> getEcosRoleDelegates(NodeRef roleRef) {
+
+        String roleId = getRoleId(roleRef);
+        NodeRef caseRef = getRoleCaseRef(roleRef);
+
+        if (StringUtils.isBlank(roleId)) {
+            return new HashMap<>();
+        }
+        return new LinkedHashMap<>(
+            getEcosRolesDelegatesNodeRef(caseRef)
+                .getOrDefault(roleId, Collections.emptyMap())
+        );
+    }
+
+    private Map<NodeRef, NodeRef> getAlfRoleDelegates(NodeRef roleRef) {
         String delegatesStr = (String) nodeService.getProperty(roleRef, ICaseRoleModel.PROP_DELEGATES);
         Map<NodeRef, NodeRef> delegates = new HashMap<>();
         if (delegatesStr != null) {
@@ -685,15 +718,92 @@ public class CaseRoleServiceImpl implements CaseRoleService {
     }
 
     private void persistDelegates(NodeRef roleRef, Map<NodeRef, NodeRef> delegates) {
-        JSONObject jsonObject = new JSONObject();
+        Map<NodeRef, NodeRef> validDelegates = new HashMap<>();
+        delegates.forEach((k, v) -> {
+            if (nodeService.exists(k) && nodeService.exists(v)) {
+                validDelegates.put(k, v);
+            }
+        });
+        if (isAlfRole(roleRef)) {
+            persistAlfRoleDelegates(roleRef, validDelegates);
+        } else {
+            persistEcosRoleDelegates(roleRef, validDelegates);
+        }
+    }
 
-        for (Map.Entry<NodeRef, NodeRef> entry : delegates.entrySet()) {
-            if (nodeService.exists(entry.getKey()) && nodeService.exists(entry.getValue())) {
+    private void persistEcosRoleDelegates(NodeRef roleRef, Map<NodeRef, NodeRef> delegates) {
+
+        String roleId = getRoleId(roleRef);
+        NodeRef caseRef = getRoleCaseRef(roleRef);
+
+        Map<String, Map<NodeRef, NodeRef>> delegatesByRoleId
+            = new LinkedHashMap<>(getEcosRolesDelegatesNodeRef(caseRef));
+        delegatesByRoleId.put(roleId, delegates);
+        persistEcosRolesDelegatesNodeRef(caseRef, delegatesByRoleId);
+    }
+
+    @NotNull
+    private Map<String, Map<NodeRef, NodeRef>> getEcosRolesDelegatesNodeRef(@Nullable NodeRef caseRef) {
+        Map<String, Map<NodeRef, NodeRef>> result = new LinkedHashMap<>();
+        getEcosRolesDelegates(caseRef).forEach((roleId, delegations) -> {
+            Map<NodeRef, NodeRef> nodeRefsRes = new LinkedHashMap<>();
+            delegations.forEach((k, v) -> nodeRefsRes.put(
+                authorityUtils.getNodeRef(k),
+                authorityUtils.getNodeRef(v)
+            ));
+            result.put(roleId, nodeRefsRes);
+        });
+        return result;
+    }
+
+    @NotNull
+    private Map<String, Map<String, String>> getEcosRolesDelegates(@Nullable NodeRef caseRef) {
+        String rolesDelegatesStr = (String) nodeService.getProperty(caseRef, ICaseRoleModel.PROP_DELEGATES);
+        if (StringUtils.isBlank(rolesDelegatesStr)) {
+            return Collections.emptyMap();
+        }
+        ObjectData data = Json.getMapper().read(rolesDelegatesStr, ObjectData.class);
+        if (data == null || data.size() == 0) {
+            return Collections.emptyMap();
+        }
+        Map<String, Map<String, String>> rolesDelegates = new LinkedHashMap<>();
+        data.forEachJ((roleId, roleDelegates) -> {
+            Map<String, String> roleDelegatesMap = new LinkedHashMap<>();
+            roleDelegates.forEachJ((k, v) -> {
                 try {
-                    jsonObject.putOpt(entry.getKey().toString(), entry.getValue().toString());
-                } catch (JSONException e) {
-                    //do nothing
+                    roleDelegatesMap.put(
+                        authorityUtils.getAuthorityNameNotNull(k),
+                        authorityUtils.getAuthorityNameNotNull(v)
+                    );
+                } catch (Exception e) {
+                    log.debug("Invalid delegates data. Key: " + k + " Value: " + v, e);
                 }
+            });
+            rolesDelegates.put(roleId, roleDelegatesMap);
+        });
+        return rolesDelegates;
+    }
+
+    private void persistEcosRolesDelegatesNodeRef(NodeRef caseRef, Map<String, Map<NodeRef, NodeRef>> delegates) {
+        ObjectData data = ObjectData.create();
+        delegates.forEach((roleId, roleDelegates) -> {
+            Map<String, String> roleData = new LinkedHashMap<>();
+            roleDelegates.forEach((k, v) -> roleData.put(
+                authorityUtils.getAuthorityName(k),
+                authorityUtils.getAuthorityName(v)
+            ));
+            data.set(roleId, roleData);
+        });
+        nodeService.setProperty(caseRef, ICaseRoleModel.PROP_DELEGATES, Json.getMapper().toString(data));
+    }
+
+    private void persistAlfRoleDelegates(NodeRef roleRef, Map<NodeRef, NodeRef> delegates) {
+        JSONObject jsonObject = new JSONObject();
+        for (Map.Entry<NodeRef, NodeRef> entry : delegates.entrySet()) {
+            try {
+                jsonObject.putOpt(entry.getKey().toString(), entry.getValue().toString());
+            } catch (JSONException e) {
+                //do nothing
             }
         }
         nodeService.setProperty(roleRef, ICaseRoleModel.PROP_DELEGATES, jsonObject.toString());
@@ -718,10 +828,7 @@ public class CaseRoleServiceImpl implements CaseRoleService {
     }
 
     private Set<NodeRef> getDelegates(NodeRef roleRef, Set<NodeRef> assignees) {
-        if (!isAlfRole(roleRef)) {
-            // todo
-            return assignees;
-        }
+
         Map<NodeRef, NodeRef> delegation = getDelegates(roleRef);
         if (delegation.isEmpty()) {
             return assignees;
@@ -732,7 +839,9 @@ public class CaseRoleServiceImpl implements CaseRoleService {
             NodeRef next = delegation.get(assigneeRef);
             int idx = 0;
             for (; idx < ASSIGNEE_DELEGATION_DEPTH_LIMIT; idx++) {
-                if (next == null) break;
+                if (next == null) {
+                    break;
+                }
                 delegateRef = next;
                 next = delegation.get(next);
             }

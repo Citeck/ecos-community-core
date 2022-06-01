@@ -189,6 +189,8 @@ public interface CaseRoleService {
      */
     void setDelegate(NodeRef roleRef, NodeRef assignee, NodeRef delegate);
 
+    void setDelegate(NodeRef roleRef, Object assignee, Object delegate);
+
     /**
      * Set assignees delegates for role. This delegates would be set
      * as assignees in dynamic roles instead of specified assignees
@@ -199,7 +201,7 @@ public interface CaseRoleService {
      * @param delegates is a map where key is authority for replacement and value is
      *                  authority which set instead of the authority in key
      */
-    void setDelegates(NodeRef roleRef, Map<NodeRef, NodeRef> delegates);
+    void setDelegates(NodeRef roleRef, Map<?, ?> delegates);
 
     /**
      * Remove delegate for authority

@@ -48,9 +48,12 @@ import ru.citeck.ecos.records2.source.dao.MutableRecordsDao;
 import ru.citeck.ecos.records2.source.dao.local.LocalRecordsDao;
 import ru.citeck.ecos.records2.source.dao.local.v2.LocalRecordsMetaDao;
 import ru.citeck.ecos.records2.source.dao.local.v2.LocalRecordsQueryDao;
+import ru.citeck.ecos.role.CaseRoleService;
+import ru.citeck.ecos.security.EcosPermissionService;
 import ru.citeck.ecos.utils.AuthorityUtils;
 import ru.citeck.ecos.utils.NodeUtils;
 import ru.citeck.ecos.utils.WorkflowUtils;
+import ru.citeck.ecos.workflow.mirror.WorkflowMirrorService;
 import ru.citeck.ecos.workflow.owner.OwnerAction;
 import ru.citeck.ecos.workflow.owner.OwnerService;
 import ru.citeck.ecos.workflow.tasks.EcosTaskService;
@@ -86,6 +89,9 @@ public class WorkflowTaskRecords extends LocalRecordsDao
     private final DictionaryService dictionaryService;
     private final EcosTypeService ecosTypeService;
     private final NodeUtils nodeUtils;
+    private final CaseRoleService caseRoleService;
+    private final EcosPermissionService ecosPermissionService;
+    private final WorkflowMirrorService workflowMirrorService;
 
     @Autowired
     public WorkflowTaskRecords(EcosTaskService ecosTaskService,
@@ -96,8 +102,13 @@ public class WorkflowTaskRecords extends LocalRecordsDao
                                WorkflowUtils workflowUtils, AuthorityUtils authorityUtils,
                                NamespaceService namespaceService,
                                DictionaryService dictionaryService, EcosTypeService ecosTypeService,
-                               NodeUtils nodeUtils) {
+                               NodeUtils nodeUtils,
+                               CaseRoleService caseRoleService,
+                               EcosPermissionService ecosPermissionService,
+                               WorkflowMirrorService workflowMirrorService) {
         setId(ID);
+        this.workflowMirrorService = workflowMirrorService;
+        this.ecosPermissionService = ecosPermissionService;
         this.counterpartyResolver = counterpartyResolver;
         this.namespaceService = namespaceService;
         this.dictionaryService = dictionaryService;
@@ -110,6 +121,7 @@ public class WorkflowTaskRecords extends LocalRecordsDao
         this.authorityUtils = authorityUtils;
         this.ecosTypeService = ecosTypeService;
         this.nodeUtils = nodeUtils;
+        this.caseRoleService = caseRoleService;
     }
 
     @Override
@@ -229,6 +241,7 @@ public class WorkflowTaskRecords extends LocalRecordsDao
     }
 
     private void processChangeOwnerAction(RecordMeta meta, String taskId) {
+
         DataValue changeOwner = meta.getAttribute(ATT_CHANGE_OWNER);
         String paramAction = changeOwner.get(ATT_ACTION).asText();
 
@@ -243,7 +256,38 @@ public class WorkflowTaskRecords extends LocalRecordsDao
             owner = CURRENT_USER.equals(ownerParam) ? AuthenticationUtil.getRunAsUser() : ownerParam;
         }
 
-        ownerService.changeOwner(taskId, action, owner);
+        String normalizedOwner = authorityUtils.getAuthorityName(owner);
+
+        TaskInfo taskInfo = ecosTaskService.getTaskInfo(taskId).orElse(null);
+        if (taskInfo == null) {
+            throw new IllegalStateException("taskInfo is null for taskId: " + taskId);
+        }
+        Set<String> roles = taskInfo.getCandidateRoles();
+        RecordRef document = taskInfo.getDocument();
+        if (document.getId().startsWith(NodeUtils.WORKSPACE_SPACES_STORE_PREFIX) && !roles.isEmpty()) {
+
+            NodeRef documentNodeRef = new NodeRef(document.getId());
+
+            for (String roleId : roles) {
+                NodeRef roleRef = caseRoleService.getRole(documentNodeRef, roleId);
+                if (roleRef == null) {
+                    continue;
+                }
+                Set<NodeRef> assignees = caseRoleService.getAssignees(documentNodeRef, roleId);
+                Map<NodeRef, String> delegates = new HashMap<>();
+                for (NodeRef assignee : assignees) {
+                    delegates.put(assignee, normalizedOwner);
+                }
+                if (!delegates.isEmpty()) {
+                    caseRoleService.setDelegates(roleRef, delegates);
+                }
+            }
+        }
+        ownerService.changeOwner(taskId, action, normalizedOwner);
+        if (document.getId().startsWith(NodeUtils.WORKSPACE_SPACES_STORE_PREFIX)) {
+            ecosPermissionService.updateNodePermissions(new NodeRef(document.getId()));
+        }
+        workflowMirrorService.mirrorTask(taskId);
     }
 
     private String getEcmFieldName(String name) {
