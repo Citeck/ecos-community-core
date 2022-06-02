@@ -52,6 +52,7 @@ import ru.citeck.ecos.role.CaseRoleService;
 import ru.citeck.ecos.security.EcosPermissionService;
 import ru.citeck.ecos.utils.AuthorityUtils;
 import ru.citeck.ecos.utils.NodeUtils;
+import ru.citeck.ecos.utils.TransactionUtils;
 import ru.citeck.ecos.utils.WorkflowUtils;
 import ru.citeck.ecos.workflow.mirror.WorkflowMirrorService;
 import ru.citeck.ecos.workflow.owner.OwnerAction;
@@ -293,7 +294,9 @@ public class WorkflowTaskRecords extends LocalRecordsDao
         }
         ownerService.changeOwner(taskId, action, normalizedOwner);
         if (document.getId().startsWith(NodeUtils.WORKSPACE_SPACES_STORE_PREFIX)) {
-            ecosPermissionService.updateNodePermissions(new NodeRef(document.getId()));
+            TransactionUtils.doAfterBehaviours(() ->
+                ecosPermissionService.updateNodePermissions(new NodeRef(document.getId()))
+            );
         }
         workflowMirrorService.mirrorTask(taskId);
     }
