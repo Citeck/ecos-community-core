@@ -56,6 +56,7 @@ public class AuthorityUtils {
         return authorityService.getContainedAuthorities(AuthorityType.USER, rootName, immediate);
     }
 
+    @Nullable
     public String getAuthorityName(NodeRef authority) {
         Map<QName, Serializable> properties = nodeService.getProperties(authority);
         String name = (String) properties.get(ContentModel.PROP_AUTHORITY_NAME);
@@ -63,6 +64,32 @@ public class AuthorityUtils {
             name = (String) properties.get(ContentModel.PROP_USERNAME);
         }
         return name;
+    }
+
+    @NotNull
+    public String getAuthorityNameNotNull(@NotNull Object authority) {
+        String authorityName = getAuthorityName(authority);
+        if (StringUtils.isBlank(authorityName)) {
+            throw new IllegalArgumentException("Authority name can't be calculated for authority: " + authority);
+        }
+        return authorityName;
+    }
+
+    public String getAuthorityName(@Nullable Object authority) {
+        if (authority == null) {
+            return null;
+        }
+        if (authority instanceof NodeRef) {
+            return getAuthorityName((NodeRef) authority);
+        }
+        String authorityStr = anyAuthorityToNormalizedStr(authority);
+        if (StringUtils.isBlank(authorityStr)) {
+            return null;
+        }
+        if (authorityStr.startsWith(NodeUtils.WORKSPACE_SPACES_STORE_PREFIX)) {
+            return getAuthorityName(new NodeRef(authorityStr));
+        }
+        return normalizePrefixedAuthority(authorityStr);
     }
 
     public Set<String> getUserAuthorities(String userName) {
@@ -170,16 +197,19 @@ public class AuthorityUtils {
         if (authority.startsWith(NodeUtils.WORKSPACE_SPACES_STORE_PREFIX)) {
             return new NodeRef(authority);
         }
-        String authorityName = authority;
-        if (authorityName.contains("@") && !authorityName.endsWith("@")) {
+        return authorityService.getAuthorityNodeRef(normalizePrefixedAuthority(authority));
+    }
+
+    @NotNull
+    private String normalizePrefixedAuthority(@NotNull String authority) {
+        if (authority.contains("@") && !authority.endsWith("@")) {
             for (Pair<String, String> prefix : AUTHORITY_REFS_PREFIXES_WITH_REPLACEMENT) {
-                if (authorityName.startsWith(prefix.getFirst())) {
-                    authorityName = authorityName.replaceFirst(prefix.getFirst(), prefix.getSecond());
-                    break;
+                if (authority.startsWith(prefix.getFirst())) {
+                    return authority.replaceFirst(prefix.getFirst(), prefix.getSecond());
                 }
             }
         }
-        return authorityService.getAuthorityNodeRef(authorityName);
+        return authority;
     }
 
     @NotNull

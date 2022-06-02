@@ -30,6 +30,15 @@ public class EcosPermissionService {
 
     private Set<QName> protectedAttributes = new HashSet<>();
 
+    public void updateNodePermissions(NodeRef nodeRef) {
+        if (nodeRef != null && ecosPermissionComponent != null) {
+            AuthenticationUtil.runAsSystem(() -> {
+                ecosPermissionComponent.updateNodePermissions(new AlfNodeInfoImpl(nodeRef, serviceRegistry));
+                return null;
+            });
+        }
+    }
+
     public boolean isAttributeProtected(NodeRef nodeRef, String attributeName) {
 
         if (nodeRef == null || StringUtils.isBlank(attributeName)) {

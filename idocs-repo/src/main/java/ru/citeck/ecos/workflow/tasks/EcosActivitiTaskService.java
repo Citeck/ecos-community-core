@@ -17,6 +17,7 @@ import org.alfresco.service.cmr.workflow.WorkflowService;
 import org.alfresco.service.cmr.workflow.WorkflowTask;
 import org.alfresco.service.namespace.NamespaceService;
 import org.apache.commons.lang.StringUtils;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -174,6 +175,7 @@ public class EcosActivitiTaskService implements EngineTaskService {
         return null;
     }
 
+    @NotNull
     private RecordRef getDocument(String taskId) {
 
         Object bpmPackage = getVariable(taskId, VAR_PACKAGE);
@@ -260,6 +262,7 @@ public class EcosActivitiTaskService implements EngineTaskService {
         }
 
         @Override
+        @NotNull
         public RecordRef getDocument() {
             return EcosActivitiTaskService.this.getDocument(getId());
         }
