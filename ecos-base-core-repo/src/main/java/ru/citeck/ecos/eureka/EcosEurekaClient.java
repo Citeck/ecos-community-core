@@ -1,6 +1,8 @@
 package ru.citeck.ecos.eureka;
 
+import com.netflix.appinfo.ApplicationInfoManager;
 import com.netflix.appinfo.EurekaInstanceConfig;
+import com.netflix.appinfo.HealthCheckHandler;
 import com.netflix.appinfo.InstanceInfo;
 import com.netflix.discovery.DiscoveryManager;
 import com.netflix.discovery.EurekaClient;
@@ -8,9 +10,9 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
@@ -18,33 +20,41 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 
+@Slf4j
 @Component
 public class EcosEurekaClient {
-
-    private static final Logger logger = LoggerFactory.getLogger(EcosEurekaClient.class);
 
     private static final Long INFO_CACHE_AGE = TimeUnit.SECONDS.toMillis(30L);
     private static final String ERROR_MSG = "Cannot get an instance of '%s' service from eureka";
 
     private Map<String, ServerInfo> serversInfo = new ConcurrentHashMap<>();
     private InstanceInfo.InstanceStatus status = InstanceInfo.InstanceStatus.STARTING;
+    private InstanceInfo.InstanceStatus shareStatus = InstanceInfo.InstanceStatus.STARTING;
+    private boolean alfrescoRegistered = false;
+    private boolean shareRegistered = false;
 
     @Autowired
-    private EurekaInstanceConfig instanceConfig;
+    @Qualifier(EcosEurekaConfiguration.ALF_INSTANCE_CONFIG)
+    private EurekaAlfInstanceConfig instanceConfig;
+    @Autowired
+    @Qualifier(EcosEurekaConfiguration.SHARE_INSTANCE_CONFIG)
+    private EurekaAlfShareInstanceConfig shareInstanceConfig;
     @Autowired
     private EurekaAlfClientConfig clientConfig;
 
     @Getter(lazy = true) private final DiscoveryManager manager = initManager();
+    @Getter(lazy = true) private final DiscoveryManager shareManager = initShareManager();
     @Getter(lazy = true) private final EurekaClient client = initClient();
+    @Getter(lazy = true) private final EurekaClient shareClient = initShareClient();
 
     @PostConstruct
     public void init() {
         try {
             getClient();
         } catch (EurekaDisabled e) {
-            logger.info("Eureka disabled");
+            log.info("Eureka disabled");
         } catch (Exception e) {
-            logger.error("Eureka client init failed", e);
+            log.error("Eureka client init failed", e);
         }
     }
 
@@ -61,6 +71,9 @@ public class EcosEurekaClient {
         InstanceInfo info;
         try {
             info = getClient().getNextServerFromEureka(serverName, false);
+            if (info == null) {
+                info = getShareClient().getNextServerFromEureka(serverName, false);
+            }
         } catch (Exception e) {
             throw new RuntimeException(String.format(ERROR_MSG, serverName), e);
         }
@@ -71,6 +84,39 @@ public class EcosEurekaClient {
     }
 
     private DiscoveryManager initManager() {
+        DiscoveryManager manager = getDiscoveryManager(instanceConfig, this::getAlfStatus);
+        status = InstanceInfo.InstanceStatus.UP;
+        return manager;
+    }
+
+    private DiscoveryManager initShareManager() {
+        DiscoveryManager manager = getDiscoveryManager(shareInstanceConfig, this::getShareStatus);
+        shareStatus = InstanceInfo.InstanceStatus.UP;
+        return manager;
+    }
+
+    private InstanceInfo.InstanceStatus getAlfStatus(InstanceInfo.InstanceStatus instanceStatus) {
+        if (!alfrescoRegistered) {
+            if (InstanceInfo.InstanceStatus.UP.equals(ApplicationInfoManager.getInstance().getInfo().getStatus())) {
+                alfrescoRegistered = true;
+                getShareClient();
+            }
+        }
+        return status;
+    }
+
+    private InstanceInfo.InstanceStatus getShareStatus(InstanceInfo.InstanceStatus instanceStatus) {
+        if (!shareRegistered) {
+            if (InstanceInfo.InstanceStatus.UP.equals(ApplicationInfoManager.getInstance().getInfo().getStatus())) {
+                shareRegistered = true;
+                //restore alfresco config
+                ApplicationInfoManager.getInstance().initComponent(instanceConfig);
+            }
+        }
+        return shareStatus;
+    }
+
+    private DiscoveryManager getDiscoveryManager(EurekaInstanceConfig instanceConfig, HealthCheckHandler handler) {
         DiscoveryManager manager = DiscoveryManager.getInstance();
 
         if (clientConfig == null || !clientConfig.isEurekaEnabled()) {
@@ -78,28 +124,31 @@ public class EcosEurekaClient {
         }
 
         if (!clientConfig.shouldRegisterWithEureka()) {
-            logger.info("===============================================");
-            logger.info("Eureka enabled, but instance won't be registered");
-            logger.info("===============================================");
+            log.info("===============================================");
+            log.info("Eureka enabled, but instance won't be registered");
+            log.info("===============================================");
         } else {
-            logger.info("===================================");
-            logger.info("Register in eureka with params:");
-            logger.info("Host: " + instanceConfig.getHostName(false) + ":" + instanceConfig.getNonSecurePort());
-            logger.info("IP:   " + instanceConfig.getIpAddress() + ":" + instanceConfig.getNonSecurePort());
-            logger.info("Application name: " + instanceConfig.getAppname());
-            logger.info("===================================");
+            log.info("===================================");
+            log.info("Register in eureka with params:");
+            log.info("Host: " + instanceConfig.getHostName(false) + ":" + instanceConfig.getNonSecurePort());
+            log.info("IP:   " + instanceConfig.getIpAddress() + ":" + instanceConfig.getNonSecurePort());
+            log.info("Application name: " + instanceConfig.getAppname());
+            log.info("===================================");
         }
 
+        ApplicationInfoManager.getInstance().initComponent(instanceConfig);
         manager.initComponent(instanceConfig, clientConfig);
-        manager.getEurekaClient().registerHealthCheck(instanceStatus -> status);
-
-        status = InstanceInfo.InstanceStatus.UP;
+        manager.getEurekaClient().registerHealthCheck(handler);
 
         return manager;
     }
 
     private EurekaClient initClient() {
         return getManager().getEurekaClient();
+    }
+
+    private EurekaClient initShareClient() {
+        return getShareManager().getEurekaClient();
     }
 
     @Data

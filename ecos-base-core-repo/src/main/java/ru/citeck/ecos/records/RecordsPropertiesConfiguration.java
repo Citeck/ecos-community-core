@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import ru.citeck.ecos.eureka.EcosEurekaConfiguration;
 import ru.citeck.ecos.eureka.EurekaAlfInstanceConfig;
 import ru.citeck.ecos.records3.RecordsProperties;
 
@@ -39,6 +40,7 @@ public class RecordsPropertiesConfiguration {
         "^ecos\\.records\\.apps\\.(?<appName>[\\w-]*)\\.(?<configName>.*)$");
 
     @Autowired
+    @Qualifier(EcosEurekaConfiguration.ALF_INSTANCE_CONFIG)
     private EurekaAlfInstanceConfig eurekaAlfInstanceConfig;
 
     @Autowired

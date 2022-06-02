@@ -10,6 +10,8 @@ import java.util.Properties;
 
 @Configuration
 public class EcosEurekaConfiguration {
+    public static final String ALF_INSTANCE_CONFIG = "eurekaAlfInstanceConfig";
+    public static final String SHARE_INSTANCE_CONFIG = "eurekaAlfShareInstanceConfig";
 
     @Autowired
     @Qualifier("global-properties")
@@ -18,9 +20,14 @@ public class EcosEurekaConfiguration {
     @Autowired
     private InetUtils inetUtils;
 
-    @Bean
+    @Bean(name = ALF_INSTANCE_CONFIG)
     public EurekaAlfInstanceConfig getEurekaInstanceConfig() {
         return new EurekaAlfInstanceConfig(properties, inetUtils);
+    }
+
+    @Bean(name = SHARE_INSTANCE_CONFIG)
+    public EurekaAlfShareInstanceConfig getEurekaShareInstanceConfig() {
+        return new EurekaAlfShareInstanceConfig(properties, inetUtils);
     }
 
     @Bean
