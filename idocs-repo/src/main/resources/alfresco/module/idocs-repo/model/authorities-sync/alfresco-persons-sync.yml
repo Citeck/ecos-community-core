@@ -12,7 +12,7 @@ authorityType: PERSON
 manageNewAuthorities: true
 
 repeatDelayDuration: PT10S
-version: 3
+version: 4
 
 config:
   batchSize: 30
@@ -38,4 +38,8 @@ config:
     skype: 'cm:skype'
     photoCacheKey: 'ecos:photo.contentUrl'
     atWorkplace: 'deputy:available'
+    location: 'cm:location'
+    mobile: 'cm:mobile'
+    userStatus: 'cm:userStatus'
+    workingCalendar: 'org:workingCalendar?id'
     authorityGroups: 'assoc_src_cm:member[].cm:authorityName|rxg("GROUP_(.+)")|presuf("emodel/authority-group@")'
