@@ -519,7 +519,10 @@ public class HistoryService {
      */
     public boolean isEnabledRemoteHistoryService() {
         String propertyValue = properties.getProperty(ENABLED_REMOTE_HISTORY_SERVICE);
-        return !StringUtils.isBlank(propertyValue) && Boolean.parseBoolean(propertyValue);
+        if (StringUtils.isBlank(propertyValue)) {
+            return true;
+        }
+        return Boolean.parseBoolean(propertyValue);
     }
 
     /**

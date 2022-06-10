@@ -23,6 +23,8 @@ import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 import ru.citeck.ecos.constants.DocumentHistoryConstants;
+import ru.citeck.ecos.eureka.EcosServiceDiscovery;
+import ru.citeck.ecos.eureka.EcosServiceInstanceInfo;
 import ru.citeck.ecos.history.HistoryRemoteService;
 import ru.citeck.ecos.model.ActivityModel;
 import ru.citeck.ecos.model.HistoryModel;
@@ -79,7 +81,6 @@ public class HistoryRemoteServiceImpl implements HistoryRemoteService {
      */
     private static final String USE_ACTIVE_MQ = "ecos.citeck.history.service.use.activemq";
     private static final String CSV_RESULT_FOLDER = "ecos.citeck.history.service.csv.folder";
-    private static final String HISTORY_SERVICE_HOST = "ecos.citeck.history.service.host";
 
     /**
      * Path constants
@@ -119,6 +120,21 @@ public class HistoryRemoteServiceImpl implements HistoryRemoteService {
     @Autowired(required = false)
     private JmsTemplate jmsTemplate;
 
+    private EcosServiceDiscovery ecosServiceDiscovery;
+
+    private String getHistoryServiceHost() {
+        EcosServiceInstanceInfo instanceInfo = ecosServiceDiscovery.getInstanceInfo("history");
+        if (instanceInfo == null) {
+            throw new RuntimeException("History service is not available");
+        }
+        String hostUrl = "http";
+        if (instanceInfo.getSecurePortEnabled()) {
+            hostUrl += "s";
+        }
+        hostUrl += "://" + instanceInfo.getHost() + ":" + instanceInfo.getPort();
+        return hostUrl;
+    }
+
     /**
      * Get all history records
      *
@@ -129,7 +145,7 @@ public class HistoryRemoteServiceImpl implements HistoryRemoteService {
     @Override
     public List<Map> getAllHistoryRecords(int page, int limit) {
         String url = String.format(GET_ALL_RECORDS, page, limit);
-        return restTemplate.getForObject(properties.getProperty(HISTORY_SERVICE_HOST) + url, List.class);
+        return restTemplate.getForObject(getHistoryServiceHost() + url, List.class);
     }
 
     /**
@@ -141,7 +157,7 @@ public class HistoryRemoteServiceImpl implements HistoryRemoteService {
     @Override
     public List<Map> getHistoryRecords(String documentUuid) {
         return restTemplate.postForObject(
-            properties.getProperty(HISTORY_SERVICE_HOST) + GET_BY_DOCUMENT_ID_PATH,
+            getHistoryServiceHost() + GET_BY_DOCUMENT_ID_PATH,
             documentUuid,
             List.class);
     }
@@ -189,7 +205,7 @@ public class HistoryRemoteServiceImpl implements HistoryRemoteService {
             url = String.format(GET_BY_USERNAME_START_END_DATE, username, startDate.getTime(), endDate.getTime(), limit);
         }
 
-        return restTemplate.getForObject(properties.getProperty(HISTORY_SERVICE_HOST) + url, List.class);
+        return restTemplate.getForObject(getHistoryServiceHost() + url, List.class);
     }
 
     /**
@@ -213,7 +229,7 @@ public class HistoryRemoteServiceImpl implements HistoryRemoteService {
             } else {
                 MultiValueMap<String, Object> paramsMap = new LinkedMultiValueMap();
                 paramsMap.setAll(requestParams);
-                restTemplate.postForObject(properties.getProperty(HISTORY_SERVICE_HOST) + INSERT_RECORD_PATH, paramsMap, Boolean.class);
+                restTemplate.postForObject(getHistoryServiceHost() + INSERT_RECORD_PATH, paramsMap, Boolean.class);
             }
 
         } catch (Exception exception) {
@@ -250,7 +266,7 @@ public class HistoryRemoteServiceImpl implements HistoryRemoteService {
             } else {
                 MultiValueMap<String, Object> map = new LinkedMultiValueMap<>();
                 map.add("records", convertListOfMapsToJsonString(result));
-                restTemplate.postForObject(properties.getProperty(HISTORY_SERVICE_HOST) + INSERT_RECORDS_PATH, map, Boolean.class);
+                restTemplate.postForObject(getHistoryServiceHost() + INSERT_RECORDS_PATH, map, Boolean.class);
             }
             /* Update document status */
             updateDocumentHistoryStatus(documentRef, true);
@@ -428,7 +444,7 @@ public class HistoryRemoteServiceImpl implements HistoryRemoteService {
             }
         } else {
             restTemplate.postForObject(
-                properties.getProperty(HISTORY_SERVICE_HOST) + DELETE_BY_DOCUMENT_ID_PATH,
+                getHistoryServiceHost() + DELETE_BY_DOCUMENT_ID_PATH,
                 documentNodeRef.getId(),
                 Object.class);
         }
@@ -493,5 +509,10 @@ public class HistoryRemoteServiceImpl implements HistoryRemoteService {
 
     public void setNodeUtils(NodeUtils nodeUtils) {
         this.nodeUtils = nodeUtils;
+    }
+
+    @Autowired
+    public void setEcosServiceDiscovery(EcosServiceDiscovery ecosServiceDiscovery) {
+        this.ecosServiceDiscovery = ecosServiceDiscovery;
     }
 }

@@ -53,11 +53,13 @@ public class HistoryRecordsDao extends LocalRecordsDao
         if (LANGUAGE_DOCUMENT.equals(language)) {
             Query queryData = query.getQuery(Query.class);
             String documentId = resolveDocumentId(queryData.nodeRef);
-
+            boolean forceLocal = Boolean.TRUE.equals(queryData.local);
             events = historyGet.getHistoryEvents(documentId,
                 queryData.filter,
                 queryData.events,
-                queryData.taskTypes);
+                queryData.taskTypes,
+                forceLocal
+            );
         } else {
             int skipCount = query.getSkipCount();
             int maxItems = query.getMaxItems();
@@ -105,5 +107,6 @@ public class HistoryRecordsDao extends LocalRecordsDao
         public String filter;
         public String events;
         public String taskTypes;
+        public Boolean local;
     }
 }
