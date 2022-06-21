@@ -61,6 +61,7 @@ columns:
     name:
       en: Due date
       ru: Срок
+    type: DATETIME
 
   - id: cwf:senderName
     name:
@@ -107,6 +108,7 @@ columns:
       en: Start date
       ru: Дата начала
     visible: false
+    type: DATETIME
 
   - id: bpm:comment
     name:
