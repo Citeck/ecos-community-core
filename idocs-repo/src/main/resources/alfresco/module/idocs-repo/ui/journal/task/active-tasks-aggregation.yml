@@ -1,4 +1,4 @@
-id: active-tasks-test-aggr
+id: active-tasks-test-aggregation
 name: { ru: Активные задачи,en: Active tasks }
 
 sourceId: eproc/proc-task
