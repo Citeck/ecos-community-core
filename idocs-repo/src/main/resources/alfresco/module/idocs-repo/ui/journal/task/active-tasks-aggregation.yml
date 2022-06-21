@@ -1,5 +1,5 @@
 id: active-tasks-test-aggregation
-name: { ru: Активные задачи,en: Active tasks }
+name: { ru: Активные задачи, en: Active tasks }
 
 sourceId: eproc/proc-task
 
@@ -19,9 +19,6 @@ actions:
   - uiserv/action@edit-task
 
 columns:
-
-  - id: .disp
-    name: DISP!
 
   - id: bpm:priority
     formatter:
