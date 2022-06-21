@@ -16,11 +16,13 @@ predicate:
 actions:
   - uiserv/action@view-task
   - uiserv/action@view-task-in-background
-  - uiserv/action@edit-task
 
 columns:
 
   - id: bpm:priority
+    name:
+      en: Priority
+      ru: Приоритет
     formatter:
       type: workflowPriority
 
@@ -35,15 +37,30 @@ columns:
         actionId: view-task
 
   - id: wfm:document
+    name:
+      en: Document
+      ru: Документ
 
   - id: wfm:counterparty
+    name:
+      en: Counterparty
+      ru: Контрагент
     searhable: false
 
   - id: wfm:documentTypeTitle
+    name:
+      en: Document type
+      ru: Тип документа
 
   - id: wfm:documentKindTitle
+    name:
+      en: Document kind
+      ru: Вид документа
 
   - id: bpm:dueDate
+    name:
+      en: Due date
+      ru: Срок
 
   - id: cwf:senderName
     name:
@@ -53,9 +70,15 @@ columns:
     visible: false
 
   - id: cwf:sender
+    name:
+      en: Sender
+      ru: Отправитель
     visible: false
 
   - id: wfm:assignee
+    name:
+      en: Assignee
+      ru: Исполнитель
     visible: false
     editor:
       type: orgstruct
@@ -63,9 +86,15 @@ columns:
         allowedAuthorityTypes: USER
 
   - id: bpm:status
+    name:
+      en: Status
+      ru: Статус
     visible: false
 
   - id: bpm:pooledActors
+    name:
+      en: Roles and users
+      ru: Роли и пользователи
     sortable: false
     visible: false
     editor:
@@ -74,9 +103,15 @@ columns:
         allowedAuthorityTypes: USER,GROUP
 
   - id: bpm:startDate
+    name:
+      en: Start date
+      ru: Дата начала
     visible: false
 
   - id: bpm:comment
+    name:
+      en: Comment
+      ru: Комментарий
     visible: false
 
   - id: cwf:taskTitle
@@ -86,9 +121,15 @@ columns:
     visible: false
 
   - id: cm:name
+    name:
+      en: Name
+      ru: Имя
     visible: false
     searchable: false
 
   - id: wfm:taskType
+    name:
+      en: Task type
+      ru: Тип задачи
     visible: false
     searchable: false
