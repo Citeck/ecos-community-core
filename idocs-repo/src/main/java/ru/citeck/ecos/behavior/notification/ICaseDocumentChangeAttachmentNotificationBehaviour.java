@@ -96,18 +96,20 @@ public class ICaseDocumentChangeAttachmentNotificationBehaviour extends Abstract
         ChildAssociationRef primaryParent = nodeService.getPrimaryParent(nodeRef);
         NodeRef caseRef = primaryParent.getParentRef();
 
-        if (nodeService.exists(caseRef) && isActive(caseRef)
-                && primaryParent.getTypeQName().equals(ICaseModel.ASSOC_DOCUMENTS)) {
+        if (nodeService.exists(caseRef) && primaryParent.getTypeQName().equals(ICaseModel.ASSOC_DOCUMENTS)) {
+            if (!isActive(caseRef)) {
+                return;
+            }
             QName parentQName = nodeService.getType(caseRef);
-            if (sender != null && parentQName.equals(documentQName)) {
+            if (parentQName.equals(documentQName)) {
                 String fileName = (String) nodeService.getProperty(nodeRef, ContentModel.PROP_NAME);
                 addition = new HashMap<>();
-                addition = addTypeAndKind(nodeRef, addition);
+                addTypeAndKind(nodeRef, addition);
                 addition.put(PARAM_METHOD, PARAM_METHOD_ON_DELETE);
                 addition.put(PARAM_FILE_NAME, fileName);
                 sender.setAdditionArgs(addition);
                 sender.sendNotification(caseRef, nodeRef, recipients,
-                        notificationType, subjectTemplate, true);
+                    notificationType, subjectTemplate, true);
             }
         }
     }
