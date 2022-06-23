@@ -10,4 +10,6 @@ public interface TypesManager {
     NumTemplateDto getNumTemplate(RecordRef templateRef);
 
     Long getNextNumber(RecordRef templateRef, ObjectData model);
+
+    RecordRef getEcosType(String alfType);
 }
