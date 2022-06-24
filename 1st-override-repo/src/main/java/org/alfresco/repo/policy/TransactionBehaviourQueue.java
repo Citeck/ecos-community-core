@@ -143,13 +143,17 @@ public class TransactionBehaviourQueue implements TransactionListener {
             }
             String currentUser = AuthenticationUtil.getFullyAuthenticatedUser();
             if (currentUser == null && context.authenticatedUser != null) {
-                final ExecutionContext finalContext = context;
-                AuthenticationUtil.runAs(() -> {
+                ExecutionContext finalContext = context;
+                AuthenticationUtil.runAs(() -> AuthenticationUtil.runAsSystem(() -> {
                     execute(finalContext);
                     return null;
-                }, context.authenticatedUser);
+                }), context.authenticatedUser);
             } else {
-                execute(context);
+                ExecutionContext finalContext = context;
+                AuthenticationUtil.runAsSystem(() -> {
+                    execute(finalContext);
+                    return null;
+                });
             }
             context = queueContext.queue.poll();
         }
