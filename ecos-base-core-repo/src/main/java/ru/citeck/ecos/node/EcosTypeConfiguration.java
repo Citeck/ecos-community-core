@@ -13,6 +13,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
 import ru.citeck.ecos.model.ClassificationModel;
 import ru.citeck.ecos.model.EcosTypeModel;
+import ru.citeck.ecos.records.type.TypesManager;
 import ru.citeck.ecos.records2.RecordRef;
 
 import javax.annotation.PostConstruct;
@@ -29,6 +30,9 @@ public class EcosTypeConfiguration {
 
     @Autowired
     private NodeService nodeService;
+
+    @Autowired
+    private TypesManager typesManager;
 
     private LoadingCache<Pair<NodeRef, NodeRef>, Optional<String>> typeByTK;
 
@@ -58,6 +62,9 @@ public class EcosTypeConfiguration {
         }
 
         if (StringUtils.isBlank(ecosTypeId)) {
+            if (info.getType() != null) {
+               return typesManager.getEcosType(info.getType().getLocalName());
+            }
             return null;
         }
 

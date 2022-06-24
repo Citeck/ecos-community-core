@@ -1,6 +1,8 @@
 package ru.citeck.ecos.records.type;
 
 import ecos.com.google.common.cache.CacheBuilder;
+import ecos.com.google.common.cache.CacheLoader;
+import ecos.com.google.common.cache.LoadingCache;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -12,7 +14,6 @@ import ru.citeck.ecos.commands.dto.CommandResult;
 import ru.citeck.ecos.commons.data.MLText;
 import ru.citeck.ecos.commons.data.ObjectData;
 import ru.citeck.ecos.model.lib.type.dto.TypePermsDef;
-import ecos.com.google.common.cache.Cache;
 import ru.citeck.ecos.records2.RecordRef;
 import ru.citeck.ecos.records2.predicate.PredicateService;
 import ru.citeck.ecos.records2.predicate.model.Predicates;
@@ -56,10 +57,10 @@ public class TypesSyncConfiguration {
 
         return new TypesManager() {
 
-            private Cache<String, String> typesCache = CacheBuilder.newBuilder()
-                .maximumSize(1000)
-                .expireAfterWrite(1, TimeUnit.MINUTES)
-                .build();
+            private LoadingCache<String, RecordRef> typesCache = CacheBuilder.newBuilder()
+                .maximumSize(300)
+                .expireAfterAccess(30, TimeUnit.SECONDS)
+                .build(CacheLoader.from(this::getEcosTypeImpl));
 
             @Override
             public TypeDto getType(RecordRef typeRef) {
@@ -101,26 +102,28 @@ public class TypesSyncConfiguration {
                 if (StringUtils.isEmpty(alfType)) {
                     return null;
                 }
-                String ecosType = typesCache.getIfPresent(alfType);
-                if (ecosType == null) {
-                    RecordsQuery query = RecordsQuery.create()
-                        .withSourceId("emodel/type")
-                        .withLanguage(PredicateService.LANGUAGE_PREDICATE)
-                        .withQuery(Predicates.not(Predicates.empty("properties")))
-                        .build();
-                    RecsQueryRes<TypeDef> result = recordsService.query(query, TypeDef.class);
-                    for (TypeDef typeDef : result.getRecords()) {
-                        if (alfType.equals(typeDef.getProperties().get("alfType").asText())) {
-                            ecosType = typeDef.id;
-                            typesCache.put(alfType, ecosType);
-                            break;
-                        }
+                return typesCache.getUnchecked(alfType);
+            }
+
+            private RecordRef getEcosTypeImpl(String alfType) {
+                RecordsQuery query = RecordsQuery.create()
+                    .withSourceId("emodel/type")
+                    .withLanguage(PredicateService.LANGUAGE_PREDICATE)
+                    .withQuery(Predicates.not(Predicates.empty("properties")))
+                    .build();
+                RecsQueryRes<TypeDef> result = recordsService.query(query, TypeDef.class);
+                String ecosType = null;
+                for (TypeDef typeDef : result.getRecords()) {
+                    if (alfType.equals(typeDef.getProperties().get("alfType").asText())) {
+                        ecosType = typeDef.id;
+                        break;
                     }
                 }
-                if (ecosType != null) {
+                if (ecosType == null) {
+                    return RecordRef.EMPTY;
+                } else {
                     return RecordRef.create("emodel", "type", ecosType);
                 }
-                return null;
             }
         };
     }
