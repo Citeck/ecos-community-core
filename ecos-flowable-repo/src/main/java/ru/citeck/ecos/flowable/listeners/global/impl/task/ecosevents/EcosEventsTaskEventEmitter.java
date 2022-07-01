@@ -35,6 +35,7 @@ public class EcosEventsTaskEventEmitter {
 
     private static final String OUTCOME_FIELD = "outcome";
     private static final String COMMENT_FIELD = "comment";
+    private static final String VIA_MAIL_FIELD = "isCompletedViaMail";
 
     private final FlowableProcessDefinitionService processDefinitionService;
     private final EventsService eventsService;
@@ -111,6 +112,7 @@ public class EcosEventsTaskEventEmitter {
 
         event.setComment(toStringOrNull(flowableTask.getVariable(COMMENT_FIELD)));
         event.setOutcome(toStringOrNull(flowableTask.getVariable(OUTCOME_FIELD)));
+        event.setCompletedViaMail(toBoolean(flowableTask.getVariable(VIA_MAIL_FIELD)));
 
         Object formInfo = flowableTask.getVariable("_formInfo");
         if (formInfo instanceof ObjectNode) {
@@ -162,6 +164,13 @@ public class EcosEventsTaskEventEmitter {
         return date.toInstant();
     }
 
+    private static boolean toBoolean(Object value) {
+        if (value == null) {
+            return false;
+        }
+        return Boolean.valueOf(value.toString());
+    }
+
     @Nullable
     private static String toStringOrNull(Object value) {
         if (value == null) {
@@ -205,5 +214,6 @@ public class EcosEventsTaskEventEmitter {
         private String outcome;
         private MLText outcomeName;
         private RecordRef document;
+        private boolean isCompletedViaMail;
     }
 }
