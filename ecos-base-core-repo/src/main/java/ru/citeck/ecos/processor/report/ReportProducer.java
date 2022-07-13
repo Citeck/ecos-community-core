@@ -135,7 +135,7 @@ public class ReportProducer extends AbstractDataBundleLine {
                     if (colAttribute.equals(ROW_NUM)) {
                         data.put(DATA_TYPE_ATTR, DATA_TYPE_INTEGER);
                         data.put(DATA_VALUE_ATTR, i + 1);
-                    } else {
+                    } else if (!colAttribute.contains(".")) {
                         QName colAttrQName = QName.resolveToQName(namespaceService, colAttribute);
                         Object value = nodeAttributeService.getAttribute(node, colAttrQName);
                         QName typeQName = getAttributeTypeName(colAttrQName);
@@ -152,6 +152,16 @@ public class ReportProducer extends AbstractDataBundleLine {
                         }
 
                         data.put(DATA_VALUE_ATTR, getFormattedValue(colAttrQName, value, colDateFormat));
+                    } else {
+                        String[] path = colAttribute.split("\\.");
+                        HashMap<String, Object> value = evalNestedAttributeValue(node, path, 0);
+                        QName colAttrQName = null;
+                        if (value != null) {
+                            data.putAll(value);
+                            colAttrQName = QName.resolveToQName(namespaceService, path[path.length - 1]);
+                        }
+                        String formattedValue = getFormattedValue(colAttrQName, value != null ? value.get(DATA_VALUE_ATTR) : null, colDateFormat);
+                        data.put(DATA_VALUE_ATTR, formattedValue);
                     }
                 }
 
@@ -163,6 +173,48 @@ public class ReportProducer extends AbstractDataBundleLine {
         }
 
         return res;
+    }
+
+    @SuppressWarnings("rawtypes")
+    private HashMap<String, Object> evalNestedAttributeValue(NodeRef nodeRef, String[] path, int level) {
+
+        if (path.length == 0) {
+            return null;
+        }
+
+        QName colAttrQName = QName.resolveToQName(namespaceService, path[level]);
+        Object value = nodeAttributeService.getAttribute(nodeRef, colAttrQName);
+
+        if (path.length == level + 1) {
+            HashMap<String, Object> data = new HashMap<>();
+            QName typeQName = getAttributeTypeName(colAttrQName);
+            if (typeQName != null) {
+                if (typeQName.equals(DataTypeDefinition.DOUBLE)) {
+                    data.put(DATA_TYPE_ATTR, DATA_TYPE_DOUBLE);
+                } else if (typeQName.equals(DataTypeDefinition.INT)) {
+                    data.put(DATA_TYPE_ATTR, DATA_TYPE_INTEGER);
+                }
+            }
+            if (path[level].equals(TASK_TYPE)) {
+                value = recordsService.getAttribute(RecordRef.valueOf(nodeRef.toString()),
+                    TASK_TYPE).asText();
+            }
+            data.put(DATA_VALUE_ATTR, value);
+            return data;
+        } else {
+            if (!(value instanceof ArrayList)) {
+                return null;
+            }
+            ArrayList assocs = (ArrayList) value;
+            if (assocs.size() != 1) {
+                return null;
+            }
+            Object assoc = assocs.get(0);
+            if (!(assoc instanceof NodeRef)) {
+                return null;
+            }
+            return evalNestedAttributeValue((NodeRef) assoc, path, level + 1);
+        }
     }
 
     @SuppressWarnings("rawtypes")
