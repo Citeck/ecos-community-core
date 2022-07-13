@@ -7,7 +7,7 @@
   "description": {},
   "customModule": null,
   "typeRef": "emodel/type@cat-doc-type-ecos-bpm-process",
-  "width": "default",
+  "width": null,
   "i18n": {},
   "definition": {
     "components": [
@@ -36,6 +36,10 @@
                   "ru": "Выберите категорию",
                   "en": "Category"
                 },
+                "key": "ecosbpm_category",
+                "validate": {
+                  "required": true
+                },
                 "dataSrc": "custom",
                 "data": {
                   "custom": "values = (data.bpm_categories || {}).records || [];"
@@ -44,12 +48,9 @@
                 "refreshOn": [
                   "bpm_categories"
                 ],
-                "validate": {
-                  "required": true
-                },
-                "key": "ecosbpm_category",
+                "optionalWhenDisabled": false,
                 "properties": {
-                  "attribute": "ecosbpm:category"
+                  "attribute": "ecosbpm:sectionRef"
                 },
                 "type": "ecosSelect",
                 "input": true
@@ -255,11 +256,11 @@
         "source": {
           "type": "recordsQuery",
           "recordsQuery": {
+            "query": "value = {\n  \"sourceId\": \"eproc/bpmn-section\",\n  \"language\": \"predicate\",\n  \"query\": {}\n}",
             "attributes": {
               "label": "?disp",
               "value": "?id"
             },
-            "query": "value = {\n  \"sourceId\": \"alfresco/bpm-category\",\n  \"language\": \"all\"\n}",
             "isSingle": false
           },
           "forceLoad": false

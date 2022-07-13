@@ -24,6 +24,10 @@
                 <property name="ecosbpm:processId">
                     <type>d:text</type>
                 </property>
+                <property name="ecosbpm:sectionRef">
+                    <type>d:text</type>
+                </property>
+                <!-- Deprecated field with category. Use ecosbpm:sectionRef instead -->
                 <property name="ecosbpm:category">
                     <type>d:category</type>
                 </property>
