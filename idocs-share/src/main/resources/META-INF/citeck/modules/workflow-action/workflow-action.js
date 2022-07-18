@@ -1,11 +1,12 @@
 if (Alfresco.component.WorkflowDetailsActions) {
 
-    var userGroups, $workflow, $id;
+    var userGroups, $workflow, $id, adminGroup;
 
     Alfresco.component.WorkflowDetailsActions.prototype.onWorkflowFormReady = function WDA_onWorkflowFormReady(layer, args)
     {
         $workflow = this.workflow;
         $id = this.id;
+        adminGroup = this.options.adminGroup;
 
         if (!userGroups) {
             getUserGroups(Alfresco.constants.USERNAME);
@@ -19,7 +20,7 @@ if (Alfresco.component.WorkflowDetailsActions) {
         var url = YAHOO.lang.substitute(Alfresco.constants.PROXY_URI +
             "api/people/check-user-in-group?userName={userName}&groupFullName={groupFullName}", {
             userName: userName,
-            groupFullName: 'GROUP_ALFRESCO_ADMINISTRATORS'
+            groupFullName: adminGroup || 'GROUP_ALFRESCO_ADMINISTRATORS'
         });
 
         Alfresco.util.Ajax.jsonGet({
