@@ -55,6 +55,7 @@
         <alfresco.platform.artifactId>alfresco</alfresco.platform.artifactId>
         <alfresco.surf.version>6.10</alfresco.surf.version>
 
+        <spring.version>3.2.14.RELEASE</spring.version>
         <spring.rabbitmq.version>1.4.5.RELEASE</spring.rabbitmq.version>
         <spring.jms.version>3.2.8.RELEASE</spring.jms.version>
         <activemq.version>5.10.0</activemq.version>
@@ -339,7 +340,7 @@
         <dependency>
             <groupId>org.springframework</groupId>
             <artifactId>spring-test</artifactId>
-            <version>5.0.0.M5</version>
+            <version>${spring.version}</version>
             <scope>test</scope>
         </dependency>
 
