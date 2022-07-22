@@ -17,6 +17,4 @@ public class EcosReqContextData {
     private final String acceptLangHeader;
 
     private final boolean isSystemRequest;
-
-    private final float utcOffset;
 }

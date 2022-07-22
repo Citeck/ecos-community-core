@@ -17,11 +17,10 @@ import org.apache.commons.lang.StringUtils;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import ru.citeck.ecos.commons.data.DataValue;
 import ru.citeck.ecos.config.EcosConfigService;
-import ru.citeck.ecos.domain.auth.EcosReqContext;
+import ru.citeck.ecos.context.lib.time.TimeZoneContext;
 import ru.citeck.ecos.model.EcosTypeModel;
 import ru.citeck.ecos.node.EcosTypeService;
 import ru.citeck.ecos.records.language.predicate.converters.AssocToCustomSearchFieldsConfig;
@@ -39,9 +38,8 @@ import ru.citeck.ecos.utils.AuthorityUtils;
 import ru.citeck.ecos.utils.DictUtils;
 
 import javax.annotation.PostConstruct;
-import javax.annotation.PostConstruct;
-import javax.xml.datatype.Duration;
 import java.io.Serializable;
+import java.time.Duration;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
@@ -460,11 +458,11 @@ public class ValuePredicateToFtsConverter implements PredicateToFtsConverter {
         }
 
         if (TODAY.equals(predicateValue) && Boolean.TRUE.equals(isDateWithTimeAtt(attDef))) {
-            int utcOffset = (int) (EcosReqContext.getUtcOffset() * 60);
+            Duration utcOffset = TimeZoneContext.getUtcOffset();
             predicateValue = Instant.now()
-                .plus(utcOffset, ChronoUnit.MINUTES)
+                .plus(utcOffset)
                 .truncatedTo(ChronoUnit.DAYS)
-                .minus(utcOffset, ChronoUnit.MINUTES).toString() + "/P1D";
+                .minus(utcOffset).toString() + "/P1D";
         }
 
         boolean valueContainsSlash = predicateValue.contains(SLASH_DELIMITER);
@@ -573,7 +571,7 @@ public class ValuePredicateToFtsConverter implements PredicateToFtsConverter {
 
     private Date calcDateByBoundary(String intervalBoundary, Date date) {
         Date newDate;
-        Duration duration = TimeUtils.parseIsoDuration(intervalBoundary);
+        javax.xml.datatype.Duration duration = TimeUtils.parseIsoDuration(intervalBoundary);
         if (duration != null) {
             newDate = new Date(date.getTime());
             duration.addTo(newDate);
@@ -809,8 +807,7 @@ public class ValuePredicateToFtsConverter implements PredicateToFtsConverter {
             case CURRENT_USER:
                 return AuthenticationUtil.getFullyAuthenticatedUser();
             case TODAY:
-                int utcOffset = (int) (EcosReqContext.getUtcOffset() * 60);
-                return TimeUtils.formatIsoDate(Date.from(Instant.now().plus(utcOffset, ChronoUnit.MINUTES)));
+                return TimeUtils.formatIsoDate(Date.from(Instant.now().plus(TimeZoneContext.getUtcOffset())));
             case NOW:
                 return TimeUtils.formatIsoDateTime(new Date());
             default:
@@ -819,7 +816,7 @@ public class ValuePredicateToFtsConverter implements PredicateToFtsConverter {
     }
 
     private String evalDuration(String predicateValue) {
-        Duration duration = TimeUtils.parseIsoDuration(predicateValue);
+        javax.xml.datatype.Duration duration = TimeUtils.parseIsoDuration(predicateValue);
         if (duration != null) {
             Date date = new Date();
             duration.addTo(date);
