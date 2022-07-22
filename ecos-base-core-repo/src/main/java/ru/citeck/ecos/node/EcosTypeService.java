@@ -47,13 +47,8 @@ public class EcosTypeService {
     public EcosTypeService(ServiceRegistry serviceRegistry,
                            RecordsService recordsService,
                            DictUtils dictUtils) {
-        evaluators = new EvaluatorsByAlfNode<>(serviceRegistry, node -> {
-            if (node == null || node.getType() == null) {
-                return DEFAULT_TYPE;
-            }
-            RecordRef result = typesManager.getEcosType(node.getType().getLocalName());
-            return result != null ? result : DEFAULT_TYPE;
-        });
+
+        evaluators = new EvaluatorsByAlfNode<>(serviceRegistry, node -> DEFAULT_TYPE);
         this.recordsService = recordsService;
         this.dictUtils = dictUtils;
     }

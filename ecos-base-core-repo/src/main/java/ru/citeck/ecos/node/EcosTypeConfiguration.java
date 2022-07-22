@@ -9,6 +9,7 @@ import org.alfresco.service.cmr.repository.NodeService;
 import org.alfresco.service.namespace.QName;
 import org.alfresco.util.Pair;
 import org.apache.commons.lang3.StringUtils;
+import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
 import ru.citeck.ecos.model.ClassificationModel;
@@ -62,16 +63,17 @@ public class EcosTypeConfiguration {
         }
 
         if (StringUtils.isBlank(ecosTypeId)) {
-            if (info.getType() != null) {
-               return typesManager.getEcosType(info.getType().getLocalName());
-            }
-            return null;
+            ecosTypeId = typesManager.getEcosTypeByAlfType(info.getType()).getId();
         }
 
         return RecordRef.create("emodel", "type", ecosTypeId);
     }
 
-    private Optional<String> getTypeImpl(Pair<NodeRef, NodeRef> typeKind) {
+    private Optional<String> getTypeImpl(@Nullable Pair<NodeRef, NodeRef> typeKind) {
+
+        if (typeKind == null) {
+            return Optional.empty();
+        }
 
         NodeRef type = typeKind.getFirst();
         NodeRef kind = typeKind.getSecond();

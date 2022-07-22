@@ -3,24 +3,22 @@ package ru.citeck.ecos.records.type;
 import ecos.com.google.common.cache.CacheBuilder;
 import ecos.com.google.common.cache.CacheLoader;
 import ecos.com.google.common.cache.LoadingCache;
-import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
+import org.alfresco.service.namespace.NamespaceService;
+import org.alfresco.service.namespace.QName;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import ru.citeck.ecos.commands.CommandsService;
 import ru.citeck.ecos.commands.dto.CommandResult;
-import ru.citeck.ecos.commons.data.MLText;
 import ru.citeck.ecos.commons.data.ObjectData;
 import ru.citeck.ecos.model.lib.type.dto.TypePermsDef;
+import ru.citeck.ecos.model.lib.type.service.utils.TypeUtils;
+import ru.citeck.ecos.node.etype.EcosTypeAlfTypeService;
 import ru.citeck.ecos.records2.RecordRef;
-import ru.citeck.ecos.records2.predicate.PredicateService;
-import ru.citeck.ecos.records2.predicate.model.Predicates;
 import ru.citeck.ecos.records2.source.dao.local.RemoteSyncRecordsDao;
-import ru.citeck.ecos.records3.RecordsService;
-import ru.citeck.ecos.records3.record.dao.query.dto.query.RecordsQuery;
-import ru.citeck.ecos.records3.record.dao.query.dto.res.RecsQueryRes;
 
 import java.util.concurrent.TimeUnit;
 
@@ -32,7 +30,7 @@ public class TypesSyncConfiguration {
     private CommandsService commandsService;
 
     @Autowired
-    private RecordsService recordsService;
+    private NamespaceService namespaceService;
 
     @Bean(name = "remoteTypesSyncRecordsDao")
     public RemoteSyncRecordsDao<TypeDto> createRemoteTypesSyncRecordsDao() {
@@ -57,7 +55,7 @@ public class TypesSyncConfiguration {
 
         return new TypesManager() {
 
-            private LoadingCache<String, RecordRef> typesCache = CacheBuilder.newBuilder()
+            private final LoadingCache<QName, RecordRef> ecosTypeByAlfTypeCache = CacheBuilder.newBuilder()
                 .maximumSize(300)
                 .expireAfterAccess(30, TimeUnit.SECONDS)
                 .build(CacheLoader.from(this::getEcosTypeImpl));
@@ -97,41 +95,36 @@ public class TypesSyncConfiguration {
                 return number;
             }
 
+            @NotNull
             @Override
-            public RecordRef getEcosType(String alfType) {
-                if (StringUtils.isEmpty(alfType)) {
-                    return null;
+            public RecordRef getEcosTypeByAlfType(@Nullable QName alfType) {
+                if (alfType == null) {
+                    return RecordRef.EMPTY;
                 }
-                return typesCache.getUnchecked(alfType);
+                return ecosTypeByAlfTypeCache.getUnchecked(alfType);
             }
 
-            private RecordRef getEcosTypeImpl(String alfType) {
-                RecordsQuery query = RecordsQuery.create()
-                    .withSourceId("emodel/type")
-                    .withLanguage(PredicateService.LANGUAGE_PREDICATE)
-                    .withQuery(Predicates.not(Predicates.empty("properties")))
-                    .build();
-                RecsQueryRes<TypeDef> result = recordsService.query(query, TypeDef.class);
-                String ecosType = null;
-                for (TypeDef typeDef : result.getRecords()) {
-                    if (alfType.equals(typeDef.getProperties().get("alfType").asText())) {
-                        ecosType = typeDef.id;
-                        break;
+            @NotNull
+            private RecordRef getEcosTypeImpl(@Nullable QName alfType) {
+
+                if (alfType == null) {
+                    return RecordRef.EMPTY;
+                }
+
+                String typeShortName = alfType.toPrefixString(namespaceService);
+
+                for (TypeDto typeDto : typesDao.getRecords().values()) {
+                    ObjectData properties = typeDto.getProperties();
+                    if (properties == null) {
+                        continue;
+                    }
+                    String alfTypeProp = properties.get(EcosTypeAlfTypeService.PROP_ALF_TYPE).asText();
+                    if (alfTypeProp.equals(typeShortName)) {
+                        return TypeUtils.getTypeRef(typeDto.getId());
                     }
                 }
-                if (ecosType == null) {
-                    return RecordRef.EMPTY;
-                } else {
-                    return RecordRef.create("emodel", "type", ecosType);
-                }
+                return RecordRef.EMPTY;
             }
         };
-    }
-
-    @Data
-    static class TypeDef {
-        private String id;
-        private MLText name;
-        private ObjectData properties;
     }
 }

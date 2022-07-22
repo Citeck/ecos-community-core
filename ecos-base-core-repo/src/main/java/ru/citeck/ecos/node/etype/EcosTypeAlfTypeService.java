@@ -17,6 +17,8 @@ import ru.citeck.ecos.records3.RecordsService;
 @Service
 public class EcosTypeAlfTypeService {
 
+    public static final String PROP_ALF_TYPE = "alfType";
+
     private final QName DEFAULT_TYPE = ContentModel.TYPE_CMOBJECT;
 
     private final EcosTypeService ecosTypeService;
@@ -76,7 +78,7 @@ public class EcosTypeAlfTypeService {
         if (properties == null) {
             return null;
         }
-        String alfType = properties.get("alfType").asText();
+        String alfType = properties.get(PROP_ALF_TYPE).asText();
         return StringUtils.isNotBlank(alfType) ? alfType : null;
     }
 }
