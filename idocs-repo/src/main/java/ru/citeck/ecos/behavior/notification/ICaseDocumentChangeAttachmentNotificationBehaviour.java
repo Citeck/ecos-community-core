@@ -29,7 +29,6 @@ public class ICaseDocumentChangeAttachmentNotificationBehaviour extends Abstract
 
     private String documentType;
     private QName documentQName;
-    private HashMap<String, Object> addition;
 
     private static final String PARAM_TYPE = "type";
     private static final String PARAM_KIND = "kind";
@@ -78,8 +77,7 @@ public class ICaseDocumentChangeAttachmentNotificationBehaviour extends Abstract
             return;
         }
 
-        addition = new HashMap<>();
-        addition = addTypeAndKind(attachmentRef, addition);
+        HashMap<String, Object> addition = createTypeAndKind(attachmentRef);
         addition.put(PARAM_METHOD, PARAM_METHOD_ON_CREATE);
         sender.setAdditionArgs(addition);
         sender.sendNotification(caseRef, attachmentRef, recipients,
@@ -96,19 +94,14 @@ public class ICaseDocumentChangeAttachmentNotificationBehaviour extends Abstract
         ChildAssociationRef primaryParent = nodeService.getPrimaryParent(nodeRef);
         NodeRef caseRef = primaryParent.getParentRef();
 
-        if (nodeService.exists(caseRef) && isActive(caseRef)
-                && primaryParent.getTypeQName().equals(ICaseModel.ASSOC_DOCUMENTS)) {
-            QName parentQName = nodeService.getType(caseRef);
-            if (sender != null && parentQName.equals(documentQName)) {
-                String fileName = (String) nodeService.getProperty(nodeRef, ContentModel.PROP_NAME);
-                addition = new HashMap<>();
-                addition = addTypeAndKind(nodeRef, addition);
-                addition.put(PARAM_METHOD, PARAM_METHOD_ON_DELETE);
-                addition.put(PARAM_FILE_NAME, fileName);
-                sender.setAdditionArgs(addition);
-                sender.sendNotification(caseRef, nodeRef, recipients,
-                        notificationType, subjectTemplate, true);
-            }
+        if (check(primaryParent, caseRef)) {
+            String fileName = (String) nodeService.getProperty(nodeRef, ContentModel.PROP_NAME);
+            HashMap<String, Object> addition = createTypeAndKind(nodeRef);
+            addition.put(PARAM_METHOD, PARAM_METHOD_ON_DELETE);
+            addition.put(PARAM_FILE_NAME, fileName);
+            sender.setAdditionArgs(addition);
+            sender.sendNotification(caseRef, nodeRef, recipients,
+                notificationType, subjectTemplate, true);
         }
     }
 
@@ -121,30 +114,33 @@ public class ICaseDocumentChangeAttachmentNotificationBehaviour extends Abstract
         ChildAssociationRef primaryParent = nodeService.getPrimaryParent(nodeRef);
         NodeRef caseRef = primaryParent.getParentRef();
 
-        if (nodeService.exists(caseRef) && isActive(caseRef)
-                && primaryParent.getTypeQName().equals(ICaseModel.ASSOC_DOCUMENTS)
-                && nodeService.getType(caseRef).equals(documentQName)) {
-            addition = new HashMap<>();
-            addition = addTypeAndKind(nodeRef, addition);
+        if (check(primaryParent, caseRef)) {
+            HashMap<String, Object> addition = createTypeAndKind(nodeRef);
             addition.put(PARAM_METHOD, PARAM_METHOD_UPLOAD_NEW_VERSION);
             sender.setAdditionArgs(addition);
             sender.sendNotification(caseRef, nodeRef, recipients,
-                    notificationType, subjectTemplate);
+                notificationType, subjectTemplate);
         }
     }
 
-    private HashMap<String, Object> addTypeAndKind(NodeRef nodeRef, HashMap<String, Object> addition) {
-        if (nodeService.exists(nodeRef)) {
-            NodeRef documentType = (NodeRef) nodeService.getProperty(nodeRef,
-                    ClassificationModel.PROP_DOCUMENT_TYPE);
-            if (documentType != null) {
-                addition.put(PARAM_TYPE, documentType);
+    private boolean check(ChildAssociationRef primaryParent, NodeRef caseRef) {
+        if (nodeService.exists(caseRef) && primaryParent.getTypeQName().equals(ICaseModel.ASSOC_DOCUMENTS)) {
+            if (nodeService.getType(caseRef).equals(documentQName)) {
+                return isActive(caseRef);
             }
-            NodeRef documentKind = (NodeRef) nodeService.getProperty(nodeRef,
-                    ClassificationModel.PROP_DOCUMENT_KIND);
-            if (documentKind != null) {
-                addition.put(PARAM_KIND, documentKind);
-            }
+        }
+        return false;
+    }
+
+    private HashMap<String, Object> createTypeAndKind(NodeRef nodeRef) {
+        HashMap<String, Object> addition = new HashMap<>();
+        NodeRef documentType = (NodeRef) nodeService.getProperty(nodeRef, ClassificationModel.PROP_DOCUMENT_TYPE);
+        if (documentType != null) {
+            addition.put(PARAM_TYPE, documentType);
+        }
+        NodeRef documentKind = (NodeRef) nodeService.getProperty(nodeRef, ClassificationModel.PROP_DOCUMENT_KIND);
+        if (documentKind != null) {
+            addition.put(PARAM_KIND, documentKind);
         }
         return addition;
     }
