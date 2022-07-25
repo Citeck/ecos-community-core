@@ -10,7 +10,11 @@ public interface EcosBpmModel {
     QName TYPE_DEPLOYMENT_INFO = QName.createQName(NAMESPACE, "deploymentInfo");
 
     QName PROP_INDEX = QName.createQName(NAMESPACE, "index");
+
+    @Deprecated // Use sectionRef instead
     QName PROP_CATEGORY = QName.createQName(NAMESPACE, "category");
+    QName PROP_SECTION_REF = QName.createQName(NAMESPACE, "sectionRef");
+
     QName PROP_JSON_MODEL = QName.createQName(NAMESPACE, "jsonModel");
     QName PROP_THUMBNAIL = QName.createQName(NAMESPACE, "thumbnail");
     QName PROP_PROCESS_ID = QName.createQName(NAMESPACE, "processId");

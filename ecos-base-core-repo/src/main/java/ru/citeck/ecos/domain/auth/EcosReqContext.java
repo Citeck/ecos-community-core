@@ -41,9 +41,4 @@ public class EcosReqContext {
         EcosReqContextData data = context.get();
         return data != null && data.isSystemRequest();
     }
-
-    public static float getUtcOffset() {
-        EcosReqContextData data = context.get();
-        return data == null ? 0 : data.getUtcOffset();
-    }
 }

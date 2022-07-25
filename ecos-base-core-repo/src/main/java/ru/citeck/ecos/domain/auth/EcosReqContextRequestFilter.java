@@ -7,6 +7,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.web.context.support.WebApplicationContextUtils;
 import ru.citeck.ecos.context.lib.auth.AuthConstants;
+import ru.citeck.ecos.context.lib.time.TimeZoneContext;
 
 import javax.crypto.SecretKey;
 import javax.servlet.*;
@@ -14,6 +15,7 @@ import javax.servlet.annotation.WebFilter;
 import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.time.Duration;
 import java.util.Base64;
 import java.util.Properties;
 
@@ -62,7 +64,7 @@ public class EcosReqContextRequestFilter implements Filter {
         String ecosUser = null;
         String timezoneHeader = null;
         String acceptLangHeader = null;
-        float utcOffset = 0;
+        Duration utcOffset = Duration.ZERO;
 
         if (request instanceof HttpServletRequest) {
 
@@ -77,7 +79,13 @@ public class EcosReqContextRequestFilter implements Filter {
                 String utcOffsetPart = timezoneHeader.split(";")[0];
                 if (StringUtils.isNotBlank(utcOffsetPart)) {
                     try {
-                        utcOffset = Float.parseFloat(utcOffsetPart);
+                        float num = Float.parseFloat(utcOffsetPart);
+                        if (num > 0 && num < 10) {
+                            // special condition for legacy offset format in hours
+                            utcOffset = Duration.ofMinutes((int) (num * 60));
+                        } else {
+                            utcOffset = Duration.ofMinutes((int) num);
+                        }
                     } catch (NumberFormatException e) {
                         log.warn("Incorrect UTC offset: '" + utcOffsetPart + "'");
                     }
@@ -116,15 +124,17 @@ public class EcosReqContextRequestFilter implements Filter {
                 || StringUtils.isNotBlank(timezoneHeader)
                 || StringUtils.isNotBlank(acceptLangHeader)) {
 
+            Duration finalTzOffset = utcOffset;
             EcosReqContext.doWith(new EcosReqContextData(
                 ecosUser,
                 authorization,
                 timezoneHeader,
                 acceptLangHeader,
-                isSystemRequest,
-                utcOffset
+                isSystemRequest
             ), () -> {
-                chain.doFilter(request, response);
+                TimeZoneContext.doWithUtcOffsetJ(finalTzOffset, () ->
+                    chain.doFilter(request, response)
+                );
                 return null;
             });
         } else {

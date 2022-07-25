@@ -1,6 +1,7 @@
 package ru.citeck.ecos.records.language.predicate;
 
 import lombok.extern.slf4j.Slf4j;
+import org.alfresco.service.cmr.repository.NodeRef;
 import org.alfresco.service.cmr.search.SearchService;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -121,7 +122,12 @@ public class PredicateToFtsAlfrescoConverter implements QueryLangConverter<Predi
                 return DataValue.createStr(value.asText().replaceFirst(ALFRESCO_APP_NODE_REF_PREFIX, WORKSPACE));
             }
             if (authorityUtils.isAuthorityRef(value.asText())) {
-                return DataValue.create(authorityUtils.getNodeRef(value));
+                NodeRef ref = authorityUtils.getNodeRef(value);
+                if (ref == null) {
+                    return DataValue.NULL;
+                } else {
+                    return DataValue.createStr(ref.toString());
+                }
             }
         }
         if (value.isArray()) {
