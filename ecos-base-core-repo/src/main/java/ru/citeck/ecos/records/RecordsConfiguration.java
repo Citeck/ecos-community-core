@@ -2,7 +2,6 @@ package ru.citeck.ecos.records;
 
 import kotlin.Unit;
 import kotlin.jvm.functions.Function0;
-import org.alfresco.repo.security.authentication.AuthenticationUtil;
 import org.alfresco.service.ServiceRegistry;
 import org.alfresco.service.transaction.TransactionService;
 import org.apache.commons.lang.StringUtils;
@@ -26,7 +25,6 @@ import ru.citeck.ecos.eureka.EcosServiceDiscovery;
 import ru.citeck.ecos.eureka.EcosServiceInstanceInfo;
 import ru.citeck.ecos.eureka.EurekaContextConfig;
 import ru.citeck.ecos.graphql.AlfGqlContext;
-import ru.citeck.ecos.records2.RecordRef;
 import ru.citeck.ecos.records3.RecordsProperties;
 import ru.citeck.ecos.records2.evaluator.RecordEvaluatorService;
 import ru.citeck.ecos.records2.meta.RecordsTemplateService;
@@ -37,7 +35,6 @@ import ru.citeck.ecos.records2.RecordsService;
 import ru.citeck.ecos.records3.RecordsServiceFactory;
 import ru.citeck.ecos.records2.graphql.meta.value.MetaValuesConverter;
 import ru.citeck.ecos.records2.request.rest.RestHandler;
-import ru.citeck.ecos.records3.record.request.ContextAttsProvider;
 import ru.citeck.ecos.records3.record.request.RequestContext;
 import ru.citeck.ecos.records3.record.resolver.LocalRecordsResolver;
 import ru.citeck.ecos.records3.record.resolver.RemoteRecordsResolver;
@@ -45,7 +42,6 @@ import ru.citeck.ecos.records2.rest.*;
 import ru.citeck.ecos.records2.source.dao.local.meta.MetaRecordsDaoAttsProvider;
 import ru.citeck.ecos.records3.rest.RestHandlerAdapter;
 import ru.citeck.ecos.records3.txn.RecordsTxnService;
-import ru.citeck.ecos.utils.UrlUtils;
 
 import javax.annotation.PostConstruct;
 import java.util.*;
@@ -76,26 +72,11 @@ public class RecordsConfiguration extends RecordsServiceFactory {
     @Qualifier(EurekaContextConfig.SECURED_REST_TEMPLATE_ID)
     private RestTemplate eurekaSecuredRestTemplate;
 
-    @Autowired
-    private UrlUtils urlUtils;
-
     @PostConstruct
     public void init() {
         RequestContext.Companion.setDefaultServices(this);
     }
 
-    @NotNull
-    @Override
-    protected ContextAttsProvider createDefaultCtxAttsProvider() {
-        return () -> {
-            Map<String, Object> contextAtts = new HashMap<>();
-            contextAtts.put("user", RecordRef.valueOf("people@" + AuthenticationUtil.getFullyAuthenticatedUser()));
-            contextAtts.put("webUrl", urlUtils.getWebUrl());
-            contextAtts.put("shareUrl", urlUtils.getShareUrl());
-            contextAtts.put("alfMeta", RecordRef.create("alfresco", "meta", ""));
-            return contextAtts;
-        };
-    }
 
     @NotNull
     @Override
