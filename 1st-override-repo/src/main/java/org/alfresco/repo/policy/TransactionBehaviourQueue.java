@@ -130,10 +130,9 @@ public class TransactionBehaviourQueue implements TransactionListener {
     /* (non-Javadoc)
      * @see org.alfresco.repo.transaction.TransactionListener#beforeCommit(boolean)
      */
-    @SuppressWarnings("unchecked")
     public void beforeCommit(boolean readOnly) {
         QueueContext queueContext = AlfrescoTransactionSupport.getResource(QUEUE_CONTEXT_KEY);
-        ExecutionContext context = queueContext.queue.poll();
+        ExecutionContext<?> context = queueContext.queue.poll();
         while (context != null) {
             if (logger.isDebugEnabled()) {
                 int order = context.order;
@@ -142,14 +141,13 @@ public class TransactionBehaviourQueue implements TransactionListener {
                         ";\npolicyInterface=" + context.policyInterface);
             }
             String currentUser = AuthenticationUtil.getFullyAuthenticatedUser();
+            ExecutionContext<?> finalContext = context;
             if (currentUser == null && context.authenticatedUser != null) {
-                ExecutionContext finalContext = context;
                 AuthenticationUtil.runAs(() -> AuthenticationUtil.runAsSystem(() -> {
                     execute(finalContext);
                     return null;
                 }), context.authenticatedUser);
             } else {
-                ExecutionContext finalContext = context;
                 AuthenticationUtil.runAsSystem(() -> {
                     execute(finalContext);
                     return null;
