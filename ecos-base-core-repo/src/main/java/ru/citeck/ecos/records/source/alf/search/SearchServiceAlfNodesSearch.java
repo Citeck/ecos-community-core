@@ -17,12 +17,16 @@ import org.springframework.stereotype.Component;
 import ru.citeck.ecos.commons.data.DataValue;
 import ru.citeck.ecos.records.source.alf.AlfNodesRecordsDAO;
 import ru.citeck.ecos.records.source.alf.search.AlfNodesSearch.AfterIdType;
+import ru.citeck.ecos.records2.RecordConstants;
 import ru.citeck.ecos.records2.RecordRef;
 import ru.citeck.ecos.records2.request.query.RecordsQuery;
 import ru.citeck.ecos.records2.request.query.RecordsQueryResult;
 import ru.citeck.ecos.records2.request.query.SortBy;
 
+import java.util.Collections;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Component
@@ -31,6 +35,17 @@ public class SearchServiceAlfNodesSearch {
     private static final Log logger = LogFactory.getLog(SearchServiceAlfNodesSearch.class);
 
     private static final String FROM_DB_ID_FTS_QUERY = "(%s) AND @sys\\:node\\-dbid:<%d TO MAX]";
+
+    private static final Map<String, String> DEFAULT_PROPS_MAPPING;
+
+    static {
+        Map<String, String> defaultPropsMapping = new HashMap<>();
+        defaultPropsMapping.put(RecordConstants.ATT_CREATED, "cm:created");
+        defaultPropsMapping.put(RecordConstants.ATT_CREATOR, "cm:creator");
+        defaultPropsMapping.put(RecordConstants.ATT_MODIFIED, "cm:modified");
+        defaultPropsMapping.put(RecordConstants.ATT_MODIFIER, "cm:modifier");
+        DEFAULT_PROPS_MAPPING = Collections.unmodifiableMap(defaultPropsMapping);
+    }
 
     private SearchService searchService;
     private NamespaceService namespaceService;
@@ -101,8 +116,10 @@ public class SearchServiceAlfNodesSearch {
         searchParameters.setQuery(query);
 
         if (!ignoreQuerySort) {
+            Map<String, String> propsMapping = DEFAULT_PROPS_MAPPING;
             for (SortBy sortBy : recordsQuery.getSortBy()) {
-                String field = "@" + sortBy.getAttribute();
+                String att = sortBy.getAttribute();
+                String field = "@" + propsMapping.getOrDefault(att, att);
                 if (!afterIdMode || !afterIdSortField.equals(field)) {
                     searchParameters.addSort(field, sortBy.isAscending());
                 }
