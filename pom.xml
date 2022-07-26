@@ -70,7 +70,7 @@
         <ecos.context-lib.version>1.2.3</ecos.context-lib.version>
 
         <ecos.flowable.version>3.0.5.4</ecos.flowable.version>
-        <ecos.records.version>3.46.2</ecos.records.version>
+        <ecos.records.version>3.46.3</ecos.records.version>
         <ecos.apps.lib.version>3.11.3</ecos.apps.lib.version>
         <ecos.jackson.version>2.10.4.3</ecos.jackson.version>
         <ecos.snakeyaml.version>2.2.0</ecos.snakeyaml.version>
