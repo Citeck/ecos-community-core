@@ -43,21 +43,40 @@
     actionRecord.att('parent', parent);
     actionRecord.att('child', child);
     actionRecord.att('add', add);
+    return ecosExecuteAction(actionRecord, successMessage, failureMessage);
+  }
+
+  var ecosDelete = (child, successMessage, failureMessage) => {
+    var actionRecord = Citeck.Records.getRecordToEdit('alfresco/authority-group-manager-action@');
+    actionRecord.att('type', "delete");
+    actionRecord.att('child', child);
+    return ecosExecuteAction(actionRecord, successMessage, failureMessage);
+  }
+
+  var ecosUpdate = (child, displayName, successMessage, failureMessage) => {
+    var actionRecord = Citeck.Records.getRecordToEdit('alfresco/authority-group-manager-action@');
+    actionRecord.att('type', "update");
+    actionRecord.att('child', child);
+    actionRecord.att('displayName', displayName);
+    return ecosExecuteAction(actionRecord, successMessage, failureMessage);
+  }
+
+  var ecosExecuteAction = (actionRecord, successMessage, failureMessage) => {
     return actionRecord.save().then(() => {
 
       if (typeof successMessage !== "undefined") {
-          Alfresco.util.PopupManager.displayMessage({
-              text: successMessage,
-              displayTime: 4
-          });
+        Alfresco.util.PopupManager.displayMessage({
+          text: successMessage,
+          displayTime: 4
+        });
       }
 
     }).catch(e => {
       if (typeof failureMessage !== "undefined") {
         console.log(e);
         Alfresco.util.PopupManager.displayMessage({
-            text: failureMessage + " - " + e.message,
-            displayTime: 4
+          text: failureMessage + " - " + e.message,
+          displayTime: 4
         });
       } else {
         throw e;
@@ -506,7 +525,7 @@
             else
             {
                // Delete the group form the repository
-               this._deleteGroup(obj.shortName, obj.displayName);
+               this._deleteGroup(obj.shortName);
             }
          },
 
@@ -1097,13 +1116,19 @@
           * Deletes the group from the repository.
           *
           * @param shortName The shortName of the group
-          * @param displayName The displayName  of the group
           * shall be removed from parent group. If now present group will be deleted.
           */
-         _deleteGroup: function ConsoleGroups_SearchPanelHandler__deleteGroup(shortName, displayName)
+         _deleteGroup: function ConsoleGroups_SearchPanelHandler__deleteGroup(shortName)
          {
-            var url = Alfresco.constants.PROXY_URI + "api/groups/" + encodeURIComponent(shortName);
-            this._doDeleteCall(url, displayName);
+           ecosDelete(
+             "GROUP_" + shortName,
+             parent._msg("message.delete-success", shortName),
+             parent._msg("message.delete-failure", shortName)
+           ).then(() => {
+             var paths = this.widgets.columnbrowser.get("urlPath");
+             this.widgets.columnbrowser.load(paths, true);
+             this.doSearch();
+           });
          },
 
          /**
@@ -1974,13 +1999,19 @@
                form._setAllFieldsAsVisited();
                return;
             }
-            this.updateGroupRequest(parent.group,
-            {
-               displayName: YAHOO.lang.trim(Dom.get(parent.id + "-update-displayname").value)
-            },
-            {
-               fn: successHandler,
-               scope: this
+
+            ecosUpdate(
+              "GROUP_" + parent.group,
+              YAHOO.lang.trim(Dom.get(parent.id + "-update-displayname").value),
+              parent._msg("message.update-success"),
+              parent._msg("message.update-failure", parent.group)
+            ).then(() => {
+              var state = {"panel": "search", "refresh": "true"};
+              if (parent.query)
+              {
+                 state.query = parent.query;
+              }
+              parent.refreshUIState(state);
             });
          }
 
