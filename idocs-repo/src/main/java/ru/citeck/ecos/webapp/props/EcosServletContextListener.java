@@ -6,6 +6,10 @@ import org.springframework.web.context.ContextLoader;
 import javax.servlet.ServletContext;
 import java.lang.reflect.Method;
 
+/**
+ * Hack with reflection to add our ApplicationContextInitializer to spring context.
+ * In new versions of spring this solution may be replaced by spring.factories
+ */
 public class EcosServletContextListener implements WebApplicationInitializer {
 
     private static final String SET_INIT_PARAM_METHOD_NAME = "setInitParameter";

@@ -49,13 +49,13 @@ public class RecordsConfiguration extends RecordsServiceFactory {
 
     @Bean
     public RecordsService recordsService() {
-        return getRecordsService();
+        return super.getRecordsService();
     }
 
     @Bean
     @NotNull
     public ru.citeck.ecos.records3.RecordsService recordsServiceV1() {
-        return getRecordsServiceV1();
+        return super.getRecordsServiceV1();
     }
 
     @NotNull
@@ -72,12 +72,12 @@ public class RecordsConfiguration extends RecordsServiceFactory {
 
     @Bean
     public LocalRecordsResolver localRecordsResolver() {
-        return getLocalRecordsResolver();
+        return super.getLocalRecordsResolver();
     }
 
     @Bean
     public RecordEvaluatorService recordEvaluatorService() {
-        return getRecordEvaluatorService();
+        return super.getRecordEvaluatorService();
     }
 
     @Nullable
@@ -86,6 +86,7 @@ public class RecordsConfiguration extends RecordsServiceFactory {
         return webAppContext;
     }
 
+    @NotNull
     @Override
     protected RecordsProperties createProperties() {
         return properties;
@@ -93,15 +94,17 @@ public class RecordsConfiguration extends RecordsServiceFactory {
 
     @Bean
     public QueryLangService queryLangService() {
-        return getQueryLangService();
+        return super.getQueryLangService();
     }
 
     @Bean
-    public PredicateService predicateService() {
-        return getPredicateService();
+    @NotNull
+    public PredicateService recordsPredicateService() {
+        return super.createPredicateService();
     }
 
     @Bean
+    @NotNull
     @Override
     protected RestHandler createRestHandler() {
         return new RestHandler(this);
@@ -109,7 +112,7 @@ public class RecordsConfiguration extends RecordsServiceFactory {
 
     @Bean
     public MetaValuesConverter metaValuesConverter() {
-        return getMetaValuesConverter();
+        return super.getMetaValuesConverter();
     }
 
     @NotNull
@@ -121,18 +124,18 @@ public class RecordsConfiguration extends RecordsServiceFactory {
     @Bean
     @NotNull
     public MetaRecordsDaoAttsProvider metaRecordsDaoAttsProvider() {
-        return getMetaRecordsDaoAttsProvider();
+        return super.getMetaRecordsDaoAttsProvider();
     }
 
     @Bean
     @NotNull
     public RecordsTemplateService recordsTemplateService() {
-        return getRecordsTemplateService();
+        return super.getRecordsTemplateService();
     }
 
     @Bean
     @NotNull
     public RestHandlerAdapter restHandlerAdapter() {
-        return getRestHandlerAdapter();
+        return super.getRestHandlerAdapter();
     }
 }
