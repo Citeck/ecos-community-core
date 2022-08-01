@@ -4,8 +4,10 @@ import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.alfresco.error.AlfrescoRuntimeException;
 import org.alfresco.repo.security.authentication.AuthenticationUtil;
+import org.alfresco.repo.transaction.RetryingTransactionHelper;
 import org.alfresco.service.cmr.repository.NodeRef;
 import org.alfresco.service.cmr.repository.NodeService;
+import org.alfresco.service.transaction.TransactionService;
 import org.alfresco.util.ParameterCheck;
 import org.apache.commons.lang.StringUtils;
 import org.mozilla.javascript.JavaScriptException;
@@ -53,6 +55,12 @@ public class EcosTaskService {
 
     @Autowired
     private EcosCommentTagService commentTagService;
+
+    @Autowired
+    private TaskErrorEventsEmitter errorEventsEmitter;
+
+    @Autowired
+    private TransactionService transactionService;
 
     public void endTask(String taskId, Map<String, Object> variables) {
         endTask(taskId, null, variables, null);
@@ -127,6 +135,18 @@ public class EcosTaskService {
                     log.error("Cannot release task with id: " + taskId, changeOwnerException);
                 }
             }
+            try {
+                RetryingTransactionHelper helper = transactionService.getRetryingTransactionHelper();
+                helper.doInTransaction(() -> {
+                    TaskInfo errorTaskInfo = taskService.getTaskInfo(task.getLocalId());
+                    errorEventsEmitter.emitEndTaskErrorEvent(errorTaskInfo, exception);
+                    return null;
+                }, true, true);
+            } catch (Throwable e) {
+                log.error("Failed to emit error event: {} - {} \n{}",
+                    e.getMessage(), exception.getMessage(), e);
+            }
+
             unwrapJsExceptionAndThrow(exception);
         }
     }
@@ -221,8 +241,10 @@ public class EcosTaskService {
 
     private static class TaskId {
 
-        @Getter private final String engine;
-        @Getter private final String localId;
+        @Getter
+        private final String engine;
+        @Getter
+        private final String localId;
 
         TaskId(String taskId) {
             int delimIdx = taskId.indexOf('$');
