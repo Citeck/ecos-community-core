@@ -18,19 +18,15 @@ import org.springframework.stereotype.Service;
 import ru.citeck.ecos.comment.CommentTag;
 import ru.citeck.ecos.comment.EcosCommentTagService;
 import ru.citeck.ecos.commons.data.MLText;
-import ru.citeck.ecos.context.lib.auth.AuthContext;
 import ru.citeck.ecos.locks.LockUtils;
 import ru.citeck.ecos.model.CiteckWorkflowModel;
 import ru.citeck.ecos.props.EcosPropertiesService;
 import ru.citeck.ecos.records2.RecordRef;
-import ru.citeck.ecos.records3.record.request.RequestContext;
 import ru.citeck.ecos.workflow.owner.OwnerAction;
 import ru.citeck.ecos.workflow.owner.OwnerService;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 @Slf4j
 @Service
@@ -139,24 +135,17 @@ public class EcosTaskService {
                     log.error("Cannot release task with id: " + taskId, changeOwnerException);
                 }
             }
-            ExecutorService executorService = Executors.newSingleThreadExecutor();
-            executorService.execute(() -> {
-                try {
-                    AuthContext.runAsSystemJ(() ->
-                        RequestContext.doWithTxnJ(() -> {
-                            RetryingTransactionHelper helper = transactionService.getRetryingTransactionHelper();
-                            helper.doInTransaction(() -> {
-                                TaskInfo errorTaskInfo = taskService.getTaskInfo(task.getLocalId());
-                                errorEventsEmitter.emitEndTaskErrorEvent(errorTaskInfo, exception);
-                                return null;
-                            });
-                        }));
-                } catch (Throwable e) {
-                    log.error("Failed to emit error event: {} - {} \non cause error {} - {}",
-                        e.getMessage(), e.getStackTrace(), exception.getMessage(), exception.getStackTrace());
-                }
-            });
-            executorService.shutdown();
+            try {
+                RetryingTransactionHelper helper = transactionService.getRetryingTransactionHelper();
+                helper.doInTransaction(() -> {
+                    TaskInfo errorTaskInfo = taskService.getTaskInfo(task.getLocalId());
+                    errorEventsEmitter.emitEndTaskErrorEvent(errorTaskInfo, exception);
+                    return null;
+                }, true, true);
+            } catch (Throwable e) {
+                log.error("Failed to emit error event: {} - {} \non cause error {} - {}",
+                    e.getMessage(), e, exception.getMessage(), exception);
+            }
 
             unwrapJsExceptionAndThrow(exception);
         }
