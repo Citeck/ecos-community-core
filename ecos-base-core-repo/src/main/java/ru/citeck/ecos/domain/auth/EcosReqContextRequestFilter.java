@@ -7,9 +7,13 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.web.context.WebApplicationContext;
 import org.springframework.web.context.support.WebApplicationContextUtils;
-import ru.citeck.ecos.context.lib.auth.AuthConstants;
 import ru.citeck.ecos.context.lib.auth.AuthUser;
+import ru.citeck.ecos.context.lib.client.ClientContext;
+import ru.citeck.ecos.context.lib.client.data.ClientData;
+import ru.citeck.ecos.context.lib.i18n.I18nContext;
 import ru.citeck.ecos.context.lib.time.TimeZoneContext;
+import ru.citeck.ecos.webapp.lib.env.EcosWebAppEnvironment;
+import ru.citeck.ecos.webapp.lib.web.http.HttpHeaders;
 
 import javax.crypto.SecretKey;
 import javax.servlet.*;
@@ -18,9 +22,7 @@ import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
-import java.util.Base64;
-import java.util.Map;
-import java.util.Properties;
+import java.util.*;
 
 @Slf4j
 @WebFilter(urlPatterns = "/*")
@@ -37,9 +39,9 @@ public class EcosReqContextRequestFilter implements Filter {
         WebApplicationContext appContext = WebApplicationContextUtils
             .getRequiredWebApplicationContext(filterConfig.getServletContext());
 
-        Properties properties = (Properties) appContext.getBean("global-properties");
+        EcosWebAppEnvironment env = appContext.getBean(EcosWebAppEnvironment.class);
 
-        String jwtSecret = properties.getProperty(JWT_SECRET_PROP_KEY, "");
+        String jwtSecret = env.getText(JWT_SECRET_PROP_KEY, "");
         if (StringUtils.isNotBlank(jwtSecret)) {
             byte[] jwtSecretBytes;
             try {
@@ -72,16 +74,18 @@ public class EcosReqContextRequestFilter implements Filter {
         String ecosUser = null;
         String timezoneHeader = null;
         String acceptLangHeader = null;
+        String realIp = null;
         Duration utcOffset = Duration.ZERO;
 
         if (request instanceof HttpServletRequest) {
 
             HttpServletRequest httpReq = (HttpServletRequest) request;
 
-            authorization = httpReq.getHeader("Authorization");
-            ecosUser = httpReq.getHeader("X-ECOS-User");
-            timezoneHeader = httpReq.getHeader("X-ECOS-Timezone");
-            acceptLangHeader = httpReq.getHeader("Accept-Language");
+            authorization = httpReq.getHeader(HttpHeaders.AUTHORIZATION);
+            ecosUser = httpReq.getHeader(HttpHeaders.X_ECOS_USER);
+            timezoneHeader = httpReq.getHeader(HttpHeaders.X_ECOS_TIMEZONE);
+            acceptLangHeader = httpReq.getHeader(HttpHeaders.ACCEPT_LANGUAGE);
+            realIp = httpReq.getHeader(HttpHeaders.X_REAL_IP);
 
             if (StringUtils.isNotBlank(timezoneHeader)) {
                 String utcOffsetPart = timezoneHeader.split(";")[0];
@@ -133,6 +137,7 @@ public class EcosReqContextRequestFilter implements Filter {
                 || StringUtils.isNotBlank(acceptLangHeader)) {
 
             Duration finalTzOffset = utcOffset;
+            String finalRealIp = realIp;
             EcosReqContext.doWith(new EcosReqContextData(
                 ecosUser,
                 authorization,
@@ -140,14 +145,41 @@ public class EcosReqContextRequestFilter implements Filter {
                 acceptLangHeader,
                 isSystemRequest
             ), () -> {
-                TimeZoneContext.doWithUtcOffsetJ(finalTzOffset, () ->
-                    chain.doFilter(request, response)
+                I18nContext.doWithLocalesJ(getLocales(request), () ->
+                    TimeZoneContext.doWithUtcOffsetJ(finalTzOffset, () -> {
+                        if (StringUtils.isNotBlank(finalRealIp)) {
+                            ClientContext.doWithClientDataJ(ClientData.create()
+                                    .withIp(finalRealIp)
+                                    .build(),
+                                () -> chain.doFilter(request, response)
+                            );
+                        } else {
+                            chain.doFilter(request, response);
+                        }
+                    })
                 );
                 return null;
             });
         } else {
             chain.doFilter(request, response);
         }
+    }
+
+    private List<Locale> getLocales(ServletRequest request) {
+        List<Locale> locales = new ArrayList<>();
+        Enumeration<?> localesEnumeration = request.getLocales();
+        if (localesEnumeration == null) {
+            return Collections.emptyList();
+        }
+        while (localesEnumeration.hasMoreElements()) {
+            Object locale = localesEnumeration.nextElement();
+            if (locale instanceof Locale) {
+                locales.add((Locale) locale);
+            } else if (locale instanceof String) {
+                locales.add(new Locale((String) locale));
+            }
+        }
+        return locales;
     }
 
     @Override
