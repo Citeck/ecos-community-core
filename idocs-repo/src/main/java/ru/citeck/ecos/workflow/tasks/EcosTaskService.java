@@ -143,8 +143,8 @@ public class EcosTaskService {
                     return null;
                 }, true, true);
             } catch (Throwable e) {
-                log.error("Failed to emit error event: {} - {} \non cause error {} - {}",
-                    e.getMessage(), e, exception.getMessage(), exception);
+                log.error("Failed to emit error event: {} - {} \n{}",
+                    e.getMessage(), exception.getMessage(), e);
             }
 
             unwrapJsExceptionAndThrow(exception);
