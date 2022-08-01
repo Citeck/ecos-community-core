@@ -33,7 +33,6 @@ import ru.citeck.ecos.model.lib.role.dto.RoleDef;
 import ru.citeck.ecos.model.lib.role.service.RoleService;
 import ru.citeck.ecos.model.lib.type.dto.TypeModelDef;
 import ru.citeck.ecos.node.EcosTypeService;
-import ru.citeck.ecos.records.type.TypeDto;
 import ru.citeck.ecos.records2.RecordRef;
 import ru.citeck.ecos.records3.RecordsServiceFactory;
 import ru.citeck.ecos.records3.record.request.RequestContext;
@@ -45,6 +44,7 @@ import ru.citeck.ecos.role.dao.RoleDAO;
 import ru.citeck.ecos.utils.AuthorityUtils;
 import ru.citeck.ecos.utils.DictionaryUtils;
 import ru.citeck.ecos.utils.RepoUtils;
+import ru.citeck.ecos.webapp.lib.model.type.dto.TypeDef;
 
 import java.io.Serializable;
 import java.util.*;
@@ -137,10 +137,10 @@ public class CaseRoleServiceImpl implements CaseRoleService {
     private Map<String, NodeRef> getEcosTypeRolesForCase(RecordRef ecosType, NodeRef caseRef) {
 
         Map<String, NodeRef> result = new HashMap<>();
-        TypeDto typeDef = ecosTypeService.getTypeDef(ecosType);
+        TypeDef typeDef = ecosTypeService.getTypeDef(ecosType);
 
         if (typeDef != null) {
-            TypeModelDef resolvedModel = typeDef.getResolvedModel();
+            TypeModelDef resolvedModel = typeDef.getModel();
             if (resolvedModel != null) {
                 resolvedModel.getRoles().forEach(role ->
                     result.put(role.getId(), ecosRoleToNodeRef(caseRef, role.getId()))

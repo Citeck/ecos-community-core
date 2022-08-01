@@ -29,9 +29,9 @@ import ru.citeck.ecos.behavior.OrderedBehaviour;
 import org.alfresco.repo.policy.Behaviour.NotificationFrequency;
 import org.springframework.extensions.surf.util.I18NUtil;
 import ru.citeck.ecos.node.EcosTypeService;
-import ru.citeck.ecos.records.type.TypeDto;
 import ru.citeck.ecos.records2.RecordRef;
 import ru.citeck.ecos.records2.meta.RecordsTemplateService;
+import ru.citeck.ecos.webapp.lib.model.type.dto.TypeDef;
 
 import java.io.Serializable;
 import java.util.*;
@@ -94,19 +94,19 @@ public class TitleGenerationBehaviour implements NodeServicePolicies.OnUpdatePro
         }
 
         RecordRef ecosTypeRef = ecosTypeService.getEcosType(nodeRef);
-        TypeDto typeDef = ecosTypeService.getTypeDef(ecosTypeRef);
+        TypeDef typeDef = ecosTypeService.getTypeDef(ecosTypeRef);
         boolean titleGenerated = false;
 
-        if (typeDef != null && !ru.citeck.ecos.commons.data.MLText.isEmpty(typeDef.getInhDispNameTemplate())) {
+        if (typeDef != null && !ru.citeck.ecos.commons.data.MLText.isEmpty(typeDef.getDispNameTemplate())) {
 
             ru.citeck.ecos.commons.data.MLText title = recordsTemplateService.resolve(
-                typeDef.getInhDispNameTemplate(),
+                typeDef.getDispNameTemplate(),
                 RecordRef.create("", nodeRef.toString())
             );
 
             if (!ru.citeck.ecos.commons.data.MLText.isEmpty(title)) {
                 MLText alfMLText = new MLText();
-                title.getValues().forEach(alfMLText::put);
+                alfMLText.putAll(title.getValues());
                 nodeService.setProperty(nodeRef, ContentModel.PROP_TITLE, alfMLText);
                 titleGenerated = true;
             }

@@ -39,7 +39,6 @@ import ru.citeck.ecos.records.source.alf.file.AlfNodeContentFileHelper;
 import ru.citeck.ecos.records.source.alf.meta.AlfNodeRecord;
 import ru.citeck.ecos.records.source.alf.search.AlfNodesSearch;
 import ru.citeck.ecos.records.source.dao.RecordsActionExecutor;
-import ru.citeck.ecos.records.type.TypeDto;
 import ru.citeck.ecos.records.type.TypesManager;
 import ru.citeck.ecos.records2.RecordConstants;
 import ru.citeck.ecos.records2.RecordMeta;
@@ -61,10 +60,11 @@ import ru.citeck.ecos.records2.source.dao.RecordsQueryDao;
 import ru.citeck.ecos.records2.source.dao.local.LocalRecordsDao;
 import ru.citeck.ecos.records2.source.dao.local.v2.LocalRecordsMetaDao;
 import ru.citeck.ecos.records2.source.dao.local.v2.LocalRecordsQueryWithMetaDao;
-import ru.citeck.ecos.records3.RecordsProperties;
 import ru.citeck.ecos.security.EcosPermissionService;
 import ru.citeck.ecos.utils.AuthorityUtils;
 import ru.citeck.ecos.utils.NodeUtils;
+import ru.citeck.ecos.webapp.api.properties.EcosWebAppProperties;
+import ru.citeck.ecos.webapp.lib.model.type.dto.TypeDef;
 
 import java.io.Serializable;
 import java.util.*;
@@ -100,7 +100,7 @@ public class AlfNodesRecordsDAO extends LocalRecordsDao
     private final Map<String, AlfNodesSearch> searchByLanguage = new ConcurrentHashMap<>();
 
     private AuthorityUtils authorityUtils;
-    private RecordsProperties recordsProperties;
+    private EcosWebAppProperties webAppProperties;
     private NodeUtils nodeUtils;
     private NodeService nodeService;
     private SearchService searchService;
@@ -226,7 +226,7 @@ public class AlfNodesRecordsDAO extends LocalRecordsDao
                 recordsService.getAtt(record.getId(), RecordConstants.ATT_TYPE + "?id").asText());
         }
 
-        TypeDto typeDto = ecosTypeRef != null ? typeInfoProvider.getType(ecosTypeRef) : null;
+        TypeDef typeDto = ecosTypeRef != null ? typeInfoProvider.getType(ecosTypeRef) : null;
         Map<String, String> propsMapping = Collections.emptyMap();
 
         if (ecosTypeRef != null && alfAutoModelService != null) {
@@ -241,7 +241,7 @@ public class AlfNodesRecordsDAO extends LocalRecordsDao
         if (parentValue.isTextual()) {
             RecordRef parentRef = RecordRef.valueOf(parentValue.asText());
             if (StringUtils.isNotBlank(parentRef.getAppName())
-                    && !recordsProperties.getAppName().equals(parentRef.getAppName())) {
+                    && !webAppProperties.getAppName().equals(parentRef.getAppName())) {
 
                 attributes.set(EcosModel.PROP_REMOTE_PARENT_REF.toPrefixString(namespaceService), parentValue);
                 attributes.remove(RecordConstants.ATT_PARENT);
@@ -417,7 +417,7 @@ public class AlfNodesRecordsDAO extends LocalRecordsDao
                         }
                     }
                 }
-                if (StringUtils.isBlank(name) && typeDto != null && typeDto.getName() != null) {
+                if (StringUtils.isBlank(name) && typeDto != null) {
                     name = typeDto.getName().get(Locale.ENGLISH);
                 }
                 if (StringUtils.isBlank(name)) {
@@ -499,6 +499,11 @@ public class AlfNodesRecordsDAO extends LocalRecordsDao
         ObjectData attsToStore = computedAttsService.computeAttsToStore(metaValue, isNewRecord, typeRef);
 
         if (attsToStore.size() > 0) {
+            if (attsToStore.has(RecordConstants.ATT_DOC_NUM)) {
+                String ecosDocNumProp = EcosModel.PROP_DOC_NUM.toPrefixString(namespaceService);
+                attsToStore.set(ecosDocNumProp, attsToStore.get(RecordConstants.ATT_DOC_NUM));
+                attsToStore.remove(RecordConstants.ATT_DOC_NUM);
+            }
             processSingleRecord(new RecordMeta(recordRef, attsToStore), false);
         }
 
@@ -623,12 +628,12 @@ public class AlfNodesRecordsDAO extends LocalRecordsDao
             return false;
         }
 
-        TypeDto typeDto = typeInfoProvider.getType(ecosType);
+        TypeDef typeDto = typeInfoProvider.getType(ecosType);
         if (typeDto == null) {
             return false;
         }
 
-        Map<Locale, String> dispName = typeDto.getInhDispNameTemplate().toMutableMap();
+        Map<Locale, String> dispName = typeDto.getDispNameTemplate().toMutableMap();
         if (dispName.isEmpty()) {
             return false;
         }
@@ -650,7 +655,7 @@ public class AlfNodesRecordsDAO extends LocalRecordsDao
 
         if (name == null) {
 
-            if (dispName.isEmpty() && typeDto.getName() != null) {
+            if (dispName.isEmpty()) {
                 dispName = typeDto.getName().getValues();
             }
 
@@ -685,7 +690,7 @@ public class AlfNodesRecordsDAO extends LocalRecordsDao
         if (parent.contains("@")) {
             RecordRef parentRef = RecordRef.valueOf(parent);
             if (!parentRef.getAppName().isEmpty() &&
-                !parentRef.getAppName().equals(recordsProperties.getAppName())) {
+                !parentRef.getAppName().equals(webAppProperties.getAppName())) {
 
                 parent = "";
             }
@@ -942,13 +947,13 @@ public class AlfNodesRecordsDAO extends LocalRecordsDao
         this.authorityUtils = authorityUtils;
     }
 
-    @Autowired
-    public void setRecordsProperties(RecordsProperties recordsProperties) {
-        this.recordsProperties = recordsProperties;
-    }
-
     @Autowired(required = false)
     public void setCaseStatusService(@Nullable CaseStatusService caseStatusService) {
         this.caseStatusService = caseStatusService;
+    }
+
+    @Autowired
+    public void setWebAppProperties(EcosWebAppProperties webAppProperties) {
+        this.webAppProperties = webAppProperties;
     }
 }

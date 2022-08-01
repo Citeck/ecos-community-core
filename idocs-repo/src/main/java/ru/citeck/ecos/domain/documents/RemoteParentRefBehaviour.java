@@ -12,10 +12,10 @@ import ru.citeck.ecos.behavior.base.AbstractBehaviour;
 import ru.citeck.ecos.behavior.base.PolicyMethod;
 import ru.citeck.ecos.model.EcosModel;
 import ru.citeck.ecos.records2.RecordRef;
-import ru.citeck.ecos.records3.RecordsProperties;
 import ru.citeck.ecos.records3.RecordsService;
 import ru.citeck.ecos.records3.record.request.RequestContext;
 import ru.citeck.ecos.utils.TransactionUtils;
+import ru.citeck.ecos.webapp.api.properties.EcosWebAppProperties;
 
 import java.util.HashSet;
 import java.util.Map;
@@ -28,7 +28,7 @@ public class RemoteParentRefBehaviour extends AbstractBehaviour implements NodeS
     private static final String TXN_KEY = RemoteParentRefBehaviour.class.getName() + ".txn-key";
 
     private final RecordsService recordsService;
-    private final RecordsProperties recordsProperties;
+    private final EcosWebAppProperties webAppProperties;
 
     @Override
     protected void beforeInit() {
@@ -54,7 +54,7 @@ public class RemoteParentRefBehaviour extends AbstractBehaviour implements NodeS
             return;
         }
 
-        RecordRef docRef = RecordRef.create(recordsProperties.getAppName(), "", nodeRef.toString());
+        RecordRef docRef = RecordRef.create(webAppProperties.getAppName(), "", nodeRef.toString());
 
         Map<RecordRef, Set<RecordRef>> docsByRemoteRef = TransactionalResourceHelper.getMap(TXN_KEY);
         boolean isFirstRef = docsByRemoteRef.isEmpty();

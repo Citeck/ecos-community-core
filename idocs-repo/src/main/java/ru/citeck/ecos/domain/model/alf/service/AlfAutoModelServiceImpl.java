@@ -19,8 +19,8 @@ import ru.citeck.ecos.model.lib.type.dto.TypeModelDef;
 import ru.citeck.ecos.model.lib.type.service.TypeRefService;
 import ru.citeck.ecos.model.lib.type.service.utils.TypeUtils;
 import ru.citeck.ecos.node.EcosTypeService;
-import ru.citeck.ecos.records.type.TypeDto;
 import ru.citeck.ecos.records2.RecordRef;
+import ru.citeck.ecos.webapp.lib.model.type.dto.TypeDef;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -59,12 +59,10 @@ public class AlfAutoModelServiceImpl implements AlfAutoModelService {
         }
 
         List<AttributeDef> fullAttributes = new ArrayList<>();
-        TypeDto typeDef = ecosTypeService.getTypeDef(typeRef);
+        TypeDef typeDef = ecosTypeService.getTypeDef(typeRef);
         if (typeDef != null) {
-            TypeModelDef model = typeDef.getResolvedModel();
-            if (model != null) {
-                fullAttributes.addAll(model.getAttributes());
-            }
+            TypeModelDef model = typeDef.getModel();
+            fullAttributes.addAll(model.getAttributes());
         }
 
         return getPropsMapping(typeRef, fullAttributes
@@ -85,8 +83,8 @@ public class AlfAutoModelServiceImpl implements AlfAutoModelService {
 
         typeRefService.forEachAsc(typeRef, ref -> {
 
-            TypeDto typeDef = ecosTypeService.getTypeDef(ref);
-            if (typeDef == null || typeDef.getModel() == null) {
+            TypeDef typeDef = ecosTypeService.getTypeDef(ref);
+            if (typeDef == null) {
                 return null;
             }
 

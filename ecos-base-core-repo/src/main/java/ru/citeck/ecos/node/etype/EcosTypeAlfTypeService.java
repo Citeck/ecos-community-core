@@ -10,9 +10,9 @@ import org.springframework.stereotype.Service;
 import ru.citeck.ecos.commons.data.ObjectData;
 import ru.citeck.ecos.node.EcosTypeService;
 import ru.citeck.ecos.records.source.alf.meta.AlfNodeRecord;
-import ru.citeck.ecos.records.type.TypeDto;
 import ru.citeck.ecos.records2.RecordRef;
 import ru.citeck.ecos.records3.RecordsService;
+import ru.citeck.ecos.webapp.lib.model.type.dto.TypeDef;
 
 @Service
 public class EcosTypeAlfTypeService {
@@ -70,14 +70,11 @@ public class EcosTypeAlfTypeService {
 
     private String getExactAlfTypeFromProps(@Nullable RecordRef typeRef) {
 
-        TypeDto typeDef = ecosTypeService.getTypeDef(typeRef);
+        TypeDef typeDef = ecosTypeService.getTypeDef(typeRef);
         if (typeDef == null) {
             return null;
         }
         ObjectData properties = typeDef.getProperties();
-        if (properties == null) {
-            return null;
-        }
         String alfType = properties.get(PROP_ALF_TYPE).asText();
         return StringUtils.isNotBlank(alfType) ? alfType : null;
     }

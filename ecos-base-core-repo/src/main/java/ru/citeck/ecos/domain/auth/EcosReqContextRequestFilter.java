@@ -5,8 +5,10 @@ import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.StringUtils;
+import org.springframework.web.context.WebApplicationContext;
 import org.springframework.web.context.support.WebApplicationContextUtils;
 import ru.citeck.ecos.context.lib.auth.AuthConstants;
+import ru.citeck.ecos.context.lib.auth.AuthUser;
 import ru.citeck.ecos.context.lib.time.TimeZoneContext;
 
 import javax.crypto.SecretKey;
@@ -17,6 +19,7 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.Base64;
+import java.util.Map;
 import java.util.Properties;
 
 @Slf4j
@@ -24,16 +27,17 @@ import java.util.Properties;
 public class EcosReqContextRequestFilter implements Filter {
 
     private static final String JWT_TOKEN_PREFIX = "Bearer ";
-    private static final String JWT_SECRET_PROP_KEY = "ecos.security.authentication.jwt.secret";
+    private static final String JWT_SECRET_PROP_KEY = "ecos.webapp.web.authenticators.jwt.secret";
 
     private SecretKey jwtSecretKey;
 
     @Override
     public void init(FilterConfig filterConfig) throws ServletException {
 
-        Properties properties = (Properties) WebApplicationContextUtils
-            .getRequiredWebApplicationContext(filterConfig.getServletContext())
-            .getBean("global-properties");
+        WebApplicationContext appContext = WebApplicationContextUtils
+            .getRequiredWebApplicationContext(filterConfig.getServletContext());
+
+        Properties properties = (Properties) appContext.getBean("global-properties");
 
         String jwtSecret = properties.getProperty(JWT_SECRET_PROP_KEY, "");
         if (StringUtils.isNotBlank(jwtSecret)) {
@@ -53,6 +57,10 @@ public class EcosReqContextRequestFilter implements Filter {
                 "service can supply authorities. " +
                 "Please set " + JWT_SECRET_PROP_KEY + " to secure your app");
         }
+
+        Map<String, EcosReqContextRequestFilterListener> beansOfType =
+            appContext.getBeansOfType(EcosReqContextRequestFilterListener.class);
+        beansOfType.values().forEach(EcosReqContextRequestFilterListener::onFilterInitialized);
     }
 
     @Override
@@ -114,7 +122,7 @@ public class EcosReqContextRequestFilter implements Filter {
                     .parseClaimsJwt(token)
                     .getBody();
             }
-            if (AuthConstants.SYSTEM_USER.equals(claims.getSubject())) {
+            if (AuthUser.SYSTEM.equals(claims.getSubject())) {
                 isSystemRequest = true;
             }
         }

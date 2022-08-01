@@ -9,11 +9,10 @@ import ru.citeck.ecos.config.lib.artifact.provider.ArtifactsConfigProvider;
 import ru.citeck.ecos.config.lib.consumer.bean.BeanConsumerService;
 import ru.citeck.ecos.config.lib.dto.EcosConfigProperties;
 import ru.citeck.ecos.config.lib.provider.EcosConfigProvider;
-import ru.citeck.ecos.config.lib.provider.NullConfigProvider;
 import ru.citeck.ecos.config.lib.service.EcosConfigService;
 import ru.citeck.ecos.config.lib.service.EcosConfigServiceFactory;
-import ru.citeck.ecos.config.lib.zookeeper.ZkConfigService;
-import ru.citeck.ecos.records3.RecordsProperties;
+import ru.citeck.ecos.config.lib.zookeeper.ZkConfigProvider;
+import ru.citeck.ecos.webapp.api.properties.EcosWebAppProperties;
 import ru.citeck.ecos.zookeeper.EcosZooKeeper;
 
 import java.util.Arrays;
@@ -25,7 +24,7 @@ public class EcosConfigServiceFactoryConfig extends EcosConfigServiceFactory {
     @Autowired
     private LocalAppService localAppService;
     @Autowired
-    private RecordsProperties recordsProperties;
+    private EcosWebAppProperties webAppProperties;
     @Autowired
     private EcosZooKeeper ecosZooKeeper;
 
@@ -40,9 +39,8 @@ public class EcosConfigServiceFactoryConfig extends EcosConfigServiceFactory {
     @Override
     protected List<EcosConfigProvider> createEcosConfigProviders() {
         return Arrays.asList(
-            new ZkConfigService(ecosZooKeeper),
-            new ArtifactsConfigProvider(this, localAppService),
-            new NullConfigProvider()
+            new ZkConfigProvider(ecosZooKeeper, this),
+            new ArtifactsConfigProvider(this, localAppService)
         );
     }
 
@@ -57,7 +55,7 @@ public class EcosConfigServiceFactoryConfig extends EcosConfigServiceFactory {
     @Override
     protected EcosConfigProperties createProperties() {
         EcosConfigProperties props = new EcosConfigProperties();
-        String appName = recordsProperties.getAppName();
+        String appName = webAppProperties.getAppName();
         props.setDefaultScope("app/" + appName);
         return props;
     }

@@ -4,6 +4,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.alfresco.util.GUID;
 import org.apache.commons.lang.StringUtils;
 import ru.citeck.ecos.utils.InetUtils;
+import ru.citeck.ecos.webapp.api.properties.EcosWebAppProperties;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -21,8 +22,10 @@ public class EurekaAlfShareInstanceConfig extends EurekaAlfInstanceConfig {
 
     private static final String UUID = GUID.generate();
 
-    public EurekaAlfShareInstanceConfig(Properties globalProperties, InetUtils inetUtils) {
-        super(globalProperties, inetUtils);
+    public EurekaAlfShareInstanceConfig(Properties globalProperties,
+                                        InetUtils inetUtils,
+                                        EcosWebAppProperties webAppProperties) {
+        super(globalProperties, inetUtils, webAppProperties);
     }
 
     @Override

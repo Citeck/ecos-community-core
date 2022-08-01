@@ -43,7 +43,6 @@ import ru.citeck.ecos.records.meta.MetaUtils;
 import ru.citeck.ecos.records.source.alf.AlfNodeMetaEdge;
 import ru.citeck.ecos.records.source.alf.file.FileRepresentation;
 import ru.citeck.ecos.records.source.common.MLTextValue;
-import ru.citeck.ecos.records.type.TypeDto;
 import ru.citeck.ecos.records2.*;
 import ru.citeck.ecos.records2.graphql.meta.annotation.MetaAtt;
 import ru.citeck.ecos.records2.graphql.meta.value.MetaEdge;
@@ -52,6 +51,7 @@ import ru.citeck.ecos.records2.graphql.meta.value.MetaValue;
 import ru.citeck.ecos.state.ItemsUpdateState;
 import ru.citeck.ecos.utils.NewUIUtils;
 import ru.citeck.ecos.utils.NodeUtils;
+import ru.citeck.ecos.webapp.lib.model.type.dto.TypeDef;
 
 import java.io.Serializable;
 import java.util.*;
@@ -130,13 +130,11 @@ public class AlfNodeRecord implements MetaValue {
             attributesMapping = autoModelService.getPropsMapping(typeRef);
 
             EcosTypeService typeService = alfContext.getService(EcosTypeService.QNAME);
-            TypeDto typeDef = typeService.getTypeDef(typeRef);
+            TypeDef typeDef = typeService.getTypeDef(typeRef);
             if (typeDef != null) {
                 TypeModelDef model = typeDef.getModel();
-                if (model != null) {
-                    List<AttributeDef> attributes = model.getAttributes();
-                    attributes.forEach(att -> attributesDef.put(att.getId(), att));
-                }
+                List<AttributeDef> attributes = model.getAttributes();
+                attributes.forEach(att -> attributesDef.put(att.getId(), att));
             }
         }
     }

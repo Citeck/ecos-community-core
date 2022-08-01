@@ -13,10 +13,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import ru.citeck.ecos.commons.data.ObjectData;
 import ru.citeck.ecos.model.ClassificationModel;
+import ru.citeck.ecos.model.lib.num.dto.NumTemplateDef;
 import ru.citeck.ecos.model.lib.type.dto.DocLibDef;
 import ru.citeck.ecos.model.lib.type.service.utils.TypeUtils;
-import ru.citeck.ecos.records.type.NumTemplateDto;
-import ru.citeck.ecos.records.type.TypeDto;
 import ru.citeck.ecos.records.type.TypesManager;
 import ru.citeck.ecos.records2.RecordRef;
 import ru.citeck.ecos.records2.RecordsService;
@@ -25,6 +24,7 @@ import ru.citeck.ecos.records2.predicate.PredicateService;
 import ru.citeck.ecos.records2.predicate.model.Predicates;
 import ru.citeck.ecos.records2.request.query.RecordsQuery;
 import ru.citeck.ecos.utils.DictUtils;
+import ru.citeck.ecos.webapp.lib.model.type.dto.TypeDef;
 
 import java.util.*;
 import java.util.function.Function;
@@ -72,29 +72,20 @@ public class EcosTypeService {
 
     @NotNull
     public DocLibDef getDocLib(RecordRef typeRef) {
-        TypeDto typeDef = getTypeDef(typeRef);
+        TypeDef typeDef = getTypeDef(typeRef);
         if (typeDef == null) {
             return DocLibDef.EMPTY;
         }
-        DocLibDef docLib = typeDef.getResolvedDocLib();
-        if (docLib == null) {
-            return DocLibDef.EMPTY;
-        }
-        return docLib;
+        return typeDef.getDocLib();
     }
 
     @NotNull
     public ObjectData getResolvedProperties(RecordRef typeRef) {
-        TypeDto typeDef = getTypeDef(typeRef);
-        if (typeDef == null) {
-            return ObjectData.create();
-        }
-        ObjectData inhAttributes = typeDef.getInhAttributes();
-        return inhAttributes == null ? ObjectData.create() : inhAttributes;
+        return recordsService.getAttribute(typeRef, "inhProperties?json").asObjectData();
     }
 
     @Nullable
-    public TypeDto getTypeDef(@Nullable RecordRef typeRef) {
+    public TypeDef getTypeDef(@Nullable RecordRef typeRef) {
         if (typesManager == null || RecordRef.isEmpty(typeRef)) {
             return null;
         }
@@ -164,17 +155,12 @@ public class EcosTypeService {
             throw new IllegalStateException("typesManager is null");
         }
 
-        NumTemplateDto numTemplate = typesManager.getNumTemplate(numTemplateRef);
+        NumTemplateDef numTemplate = typesManager.getNumTemplate(numTemplateRef);
         if (numTemplate == null) {
             throw new IllegalStateException("Number template is not found for ref: '" + numTemplateRef + "'");
         }
 
-        ObjectData model;
-        if (numTemplate.getModelAttributes() != null) {
-            model = recordsService.getAttributes(docRef, numTemplate.getModelAttributes()).getAttributes();
-        } else {
-            model = ObjectData.create();
-        }
+        ObjectData model = recordsService.getAttributes(docRef, numTemplate.getModelAttributes()).getAttributes();
 
         return typesManager.getNextNumber(numTemplateRef, model);
     }
@@ -184,8 +170,8 @@ public class EcosTypeService {
         if (typeRef == null || RecordRef.isEmpty(typeRef)) {
             return null;
         }
-        TypeDto typeDef = getTypeDef(typeRef);
-        return typeDef != null ? typeDef.getInhNumTemplateRef() : null;
+        TypeDef typeDef = getTypeDef(typeRef);
+        return typeDef != null ? typeDef.getNumTemplateRef() : null;
     }
 
     @Nullable
@@ -197,7 +183,7 @@ public class EcosTypeService {
         return getNumTemplateByTypeRef(typeRef);
     }
 
-    public void forEachDesc(RecordRef typeRef, Function<TypeDto, Boolean> action) {
+    public void forEachDesc(RecordRef typeRef, Function<TypeDef, Boolean> action) {
 
         if (RecordRef.isEmpty(typeRef) || typesManager == null) {
             return;
@@ -222,7 +208,7 @@ public class EcosTypeService {
         return recordsService.queryRecords(query).getRecords();
     }
 
-    private void forEachDesc(List<RecordRef> types, Function<TypeDto, Boolean> action) {
+    private void forEachDesc(List<RecordRef> types, Function<TypeDef, Boolean> action) {
 
         for (RecordRef type : types) {
 
@@ -230,7 +216,7 @@ public class EcosTypeService {
                 continue;
             }
 
-            TypeDto typeDto = typesManager.getType(type);
+            TypeDef typeDto = typesManager.getType(type);
             if (typeDto != null && action.apply(typeDto)) {
                 return;
             }
@@ -239,20 +225,21 @@ public class EcosTypeService {
         }
     }
 
-    public void forEachAsc(RecordRef typeRef, Function<TypeDto, Boolean> action) {
+    public void forEachAsc(RecordRef typeRef, Function<TypeDef, Boolean> action) {
 
         if (RecordRef.isEmpty(typeRef) || typesManager == null) {
             return;
         }
 
-        TypeDto typeDto = typesManager.getType(typeRef);
+        TypeDef typeDto = typesManager.getType(typeRef);
 
         if (typeDto == null) {
             return;
         }
 
         while (typeDto != null && !action.apply(typeDto)) {
-            typeDto = typeDto.getParentRef() != null ? typesManager.getType(typeDto.getParentRef()) : null;
+            typeDto = RecordRef.isNotEmpty(typeDto.getParentRef()) ?
+                typesManager.getType(typeDto.getParentRef()) : null;
         }
     }
 

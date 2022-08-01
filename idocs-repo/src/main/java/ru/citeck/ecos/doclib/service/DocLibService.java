@@ -25,7 +25,6 @@ import ru.citeck.ecos.node.EcosTypeService;
 import ru.citeck.ecos.node.etype.EcosTypeRootService;
 import ru.citeck.ecos.records.source.alf.AlfNodesRecordsDAO;
 import ru.citeck.ecos.records.source.alf.meta.AlfNodeRecord;
-import ru.citeck.ecos.records.type.TypeDto;
 import ru.citeck.ecos.records2.RecordConstants;
 import ru.citeck.ecos.records2.RecordMeta;
 import ru.citeck.ecos.records2.RecordRef;
@@ -45,6 +44,7 @@ import ru.citeck.ecos.records3.record.dao.query.dto.query.QueryPage;
 import ru.citeck.ecos.records3.record.dao.query.dto.query.RecordsQuery;
 import ru.citeck.ecos.records3.record.dao.query.dto.res.RecsQueryRes;
 import ru.citeck.ecos.utils.NodeUtils;
+import ru.citeck.ecos.webapp.lib.model.type.dto.TypeDef;
 
 import java.util.*;
 import java.util.function.Supplier;
@@ -239,7 +239,7 @@ public class DocLibService {
 
         if (entityId.getLocalId().isEmpty()) {
 
-            TypeDto typeDef = ecosTypeService.getTypeDef(entityId.getTypeRef());
+            TypeDef typeDef = ecosTypeService.getTypeDef(entityId.getTypeRef());
             if (typeDef == null) {
                 return EMPTY_NODE;
             }

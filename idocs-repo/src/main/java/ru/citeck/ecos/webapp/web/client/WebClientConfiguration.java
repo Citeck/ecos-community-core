@@ -1,4 +1,4 @@
-package ru.citeck.ecos.eureka;
+package ru.citeck.ecos.webapp.web.client;
 
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
@@ -10,7 +10,6 @@ import org.apache.http.impl.client.HttpClients;
 import org.apache.http.ssl.SSLContextBuilder;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.client.ClientHttpRequestInterceptor;
@@ -18,7 +17,12 @@ import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.util.ResourceUtils;
 import org.springframework.web.client.RestTemplate;
 import ru.citeck.ecos.http.SkipSslVerificationHttpRequestFactory;
-import ru.citeck.ecos.records3.RecordsProperties;
+import ru.citeck.ecos.webapp.lib.web.authenticator.WebAuthenticator;
+import ru.citeck.ecos.webapp.lib.web.authenticator.WebAuthenticatorsManager;
+import ru.citeck.ecos.webapp.lib.web.client.interceptor.EcosHttpRequestInterceptor;
+import ru.citeck.ecos.webapp.lib.web.client.interceptor.WebClientRequestInterceptor;
+import ru.citeck.ecos.webapp.lib.web.client.props.EcosWebClientProps;
+import ru.citeck.ecos.webapp.lib.web.client.props.EcosWebClientTlsProps;
 
 import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.SSLContext;
@@ -27,37 +31,25 @@ import java.net.URL;
 import java.security.KeyStore;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Properties;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Configuration
-public class EurekaContextConfig {
-
-    private static final String TRUST_STORE_NAME = "TrustStore";
+public class WebClientConfiguration {
 
     public static final String REST_TEMPLATE_ID = "eurekaRestTemplate";
     public static final String SECURED_REST_TEMPLATE_ID = "eurekaSecuredRestTemplate";
 
-    @Autowired
-    @Qualifier("global-properties")
-    private Properties properties;
+    public static final String TRUST_STORE_NAME = "TrustStore";
 
     @Autowired
-    private RecordsProperties recordsProperties;
-
-    private boolean isDevEnv() {
-        String isDevEnv = properties.getProperty("ecos.environment.dev", "false");
-        if (Boolean.TRUE.toString().equals(isDevEnv)) {
-            log.info("DEV ENV enabled for EurekaConfig");
-            return true;
-        }
-        log.info("PROD ENV enabled for EurekaConfig");
-        return false;
-    }
+    private EcosWebClientProps webClientProperties;
+    @Autowired
+    private WebAuthenticatorsManager authenticatorsManager;
 
     @Bean(name = REST_TEMPLATE_ID)
-    public RestTemplate createRestTemplate(EcosServiceDiscovery serviceDiscovery) {
-        return createNonSecuredRestTemplate(serviceDiscovery);
+    public RestTemplate createRestTemplate() {
+        return createNonSecuredRestTemplate();
     }
 
     private void logTlsInfo(String msg) {
@@ -65,12 +57,12 @@ public class EurekaContextConfig {
     }
 
     @Bean(name = SECURED_REST_TEMPLATE_ID)
-    public RestTemplate createSecuredRestTemplate(EcosServiceDiscovery serviceDiscovery) throws Exception {
+    public RestTemplate createSecuredRestTemplate() throws Exception {
 
-        RecordsProperties.Tls tlsProps = recordsProperties.getTls();
+        EcosWebClientTlsProps tlsProps = webClientProperties.getTls();
         if (!tlsProps.getEnabled()) {
             logTlsInfo("TLS disabled. Secure SecureRestTemplate will be replaced by insecure.");
-            return createNonSecuredRestTemplate(serviceDiscovery);
+            return createNonSecuredRestTemplate();
         }
         logTlsInfo("TLS enabled. SecureRestTemplate initialization started.");
 
@@ -111,7 +103,7 @@ public class EurekaContextConfig {
         HttpComponentsClientHttpRequestFactory factory = new HttpComponentsClientHttpRequestFactory(httpClient);
 
         RestTemplate template = new RestTemplate(factory);
-        addEurekaRequestInterceptor(serviceDiscovery, template);
+        setupRestTemplate(template);
 
         return template;
     }
@@ -132,21 +124,28 @@ public class EurekaContextConfig {
     }
 
     @NotNull
-    private RestTemplate createNonSecuredRestTemplate(EcosServiceDiscovery serviceDiscovery) {
+    private RestTemplate createNonSecuredRestTemplate() {
         RestTemplate template = new RestTemplate(new SkipSslVerificationHttpRequestFactory());
-        addEurekaRequestInterceptor(serviceDiscovery, template);
+        setupRestTemplate(template);
         return template;
     }
 
-    private void addEurekaRequestInterceptor(EcosServiceDiscovery serviceDiscovery, RestTemplate template) {
-        List<ClientHttpRequestInterceptor> interceptors = template.getInterceptors();
-        if (interceptors == null) {
-            interceptors = new ArrayList<>();
-        } else {
-            interceptors = new ArrayList<>(interceptors);
+    private void setupRestTemplate(RestTemplate template) {
+
+        List<EcosHttpRequestInterceptor> interceptors = new ArrayList<>();
+
+        WebAuthenticator authenticator = null;
+        if (StringUtils.isNotBlank(webClientProperties.getAuthenticator())) {
+            authenticator = authenticatorsManager.getAuthenticator(webClientProperties.getAuthenticator());
         }
 
-        interceptors.add(new EurekaRequestInterceptor(serviceDiscovery, isDevEnv()));
-        template.setInterceptors(interceptors);
+        interceptors.add(new WebClientRequestInterceptor(authenticator));
+
+        List<ClientHttpRequestInterceptor> restInterceptors = new ArrayList<>(template.getInterceptors());
+        restInterceptors.addAll(interceptors.stream()
+            .map(EcosHttpRequestInterceptorSpringAdapter::new)
+            .collect(Collectors.toList()));
+
+        template.setInterceptors(restInterceptors);
     }
 }

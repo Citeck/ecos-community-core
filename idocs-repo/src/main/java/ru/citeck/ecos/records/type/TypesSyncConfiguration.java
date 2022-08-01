@@ -14,11 +14,14 @@ import org.springframework.context.annotation.Configuration;
 import ru.citeck.ecos.commands.CommandsService;
 import ru.citeck.ecos.commands.dto.CommandResult;
 import ru.citeck.ecos.commons.data.ObjectData;
-import ru.citeck.ecos.model.lib.type.dto.TypePermsDef;
+import ru.citeck.ecos.commons.data.entity.EntityWithMeta;
+import ru.citeck.ecos.model.lib.num.dto.NumTemplateDef;
 import ru.citeck.ecos.model.lib.type.service.utils.TypeUtils;
 import ru.citeck.ecos.node.etype.EcosTypeAlfTypeService;
 import ru.citeck.ecos.records2.RecordRef;
-import ru.citeck.ecos.records2.source.dao.local.RemoteSyncRecordsDao;
+import ru.citeck.ecos.webapp.lib.model.num.registry.NumTemplatesRegistry;
+import ru.citeck.ecos.webapp.lib.model.type.dto.TypeDef;
+import ru.citeck.ecos.webapp.lib.model.type.registry.EcosTypesRegistry;
 
 import java.util.concurrent.TimeUnit;
 
@@ -28,30 +31,15 @@ public class TypesSyncConfiguration {
 
     @Autowired
     private CommandsService commandsService;
-
     @Autowired
     private NamespaceService namespaceService;
-
-    @Bean(name = "remoteTypesSyncRecordsDao")
-    public RemoteSyncRecordsDao<TypeDto> createRemoteTypesSyncRecordsDao() {
-        return new RemoteSyncRecordsDao<>("emodel/type", TypeDto.class);
-    }
-
-    @Bean(name = "remoteTypePermsSyncRecordsDao")
-    public RemoteSyncRecordsDao<TypePermsDef> createRemoteTypePermsSyncRecordsDao() {
-        return new RemoteSyncRecordsDao<>("emodel/perms", TypePermsDef.class);
-    }
-
-    @Bean(name = "remoteNumTemplatesSyncRecordsDao")
-    public RemoteSyncRecordsDao<NumTemplateDto> createRemoteNumTemplatesSyncRecordsDao() {
-        return new RemoteSyncRecordsDao<>("emodel/num-template", NumTemplateDto.class);
-    }
+    @Autowired
+    private EcosTypesRegistry ecosTypesRegistry;
+    @Autowired
+    private NumTemplatesRegistry numTemplatesRegistry;
 
     @Bean
     public TypesManager createInfoProvider() {
-
-        RemoteSyncRecordsDao<TypeDto> typesDao = createRemoteTypesSyncRecordsDao();
-        RemoteSyncRecordsDao<NumTemplateDto> numTemplatesDao = createRemoteNumTemplatesSyncRecordsDao();
 
         return new TypesManager() {
 
@@ -61,13 +49,13 @@ public class TypesSyncConfiguration {
                 .build(CacheLoader.from(this::getEcosTypeImpl));
 
             @Override
-            public TypeDto getType(RecordRef typeRef) {
-                return typesDao.getRecord(typeRef.getId()).orElse(null);
+            public TypeDef getType(RecordRef typeRef) {
+                return ecosTypesRegistry.getValue(typeRef.getId());
             }
 
             @Override
-            public NumTemplateDto getNumTemplate(RecordRef templateRef) {
-                return numTemplatesDao.getRecord(templateRef.getId()).orElse(null);
+            public NumTemplateDef getNumTemplate(RecordRef templateRef) {
+                return numTemplatesRegistry.getValue(templateRef.getId());
             }
 
             @Override
@@ -113,11 +101,9 @@ public class TypesSyncConfiguration {
 
                 String typeShortName = alfType.toPrefixString(namespaceService);
 
-                for (TypeDto typeDto : typesDao.getRecords().values()) {
+                for (EntityWithMeta<TypeDef> typeEntity : ecosTypesRegistry.getAllValues().values()) {
+                    TypeDef typeDto = typeEntity.getEntity();
                     ObjectData properties = typeDto.getProperties();
-                    if (properties == null) {
-                        continue;
-                    }
                     String alfTypeProp = properties.get(EcosTypeAlfTypeService.PROP_ALF_TYPE).asText();
                     if (alfTypeProp.equals(typeShortName)) {
                         return TypeUtils.getTypeRef(typeDto.getId());

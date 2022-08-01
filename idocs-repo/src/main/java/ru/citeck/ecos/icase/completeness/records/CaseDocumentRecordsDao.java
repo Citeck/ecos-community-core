@@ -35,6 +35,7 @@ import ru.citeck.ecos.search.ftsquery.FTSQuery;
 import ru.citeck.ecos.utils.AuthorityUtils;
 import ru.citeck.ecos.utils.DictUtils;
 import ru.citeck.ecos.utils.NodeUtils;
+import ru.citeck.ecos.webapp.api.properties.EcosWebAppProperties;
 
 import java.io.Serializable;
 import java.util.*;
@@ -60,6 +61,7 @@ public class CaseDocumentRecordsDao extends LocalRecordsDao implements LocalReco
     private final EcosTypeService ecosTypeService;
     private final AuthorityUtils authorityUtils;
     private final RecordsProperties recordsProperties;
+    private final EcosWebAppProperties ecosWebAppProperties;
 
     private final Map<QName, Map<RecordRef, QName>> assocTypesRegistry = new ConcurrentHashMap<>();
     private final LoadingCache<QName, Map<RecordRef, QName>> assocTypesByCaseAlfTypeCache;
@@ -73,7 +75,8 @@ public class CaseDocumentRecordsDao extends LocalRecordsDao implements LocalReco
                                   NodeService nodeService,
                                   NodeUtils nodeUtils,
                                   DictUtils dictUtils,
-                                  RecordsProperties recordsProperties) {
+                                  RecordsProperties recordsProperties,
+                                  EcosWebAppProperties ecosWebAppProperties) {
         setId(ID);
         this.caseCompletenessService = caseCompletenessService;
         this.ecosTypeService = ecosTypeService;
@@ -83,6 +86,7 @@ public class CaseDocumentRecordsDao extends LocalRecordsDao implements LocalReco
         this.nodeUtils = nodeUtils;
         this.dictUtils = dictUtils;
         this.recordsProperties = recordsProperties;
+        this.ecosWebAppProperties = ecosWebAppProperties;
 
         assocTypesByCaseAlfTypeCache = CacheBuilder.newBuilder()
             .expireAfterAccess(30, TimeUnit.SECONDS)
@@ -365,7 +369,7 @@ public class CaseDocumentRecordsDao extends LocalRecordsDao implements LocalReco
                 case "type":
                     return typeRef.toString();
                 case "documents":
-                    String appName = recordsProperties.getAppName();
+                    String appName = ecosWebAppProperties.getAppName();
                     return documents.stream()
                         .map(doc -> RecordRef.create(appName, "", doc.getId()))
                         .collect(Collectors.toList());

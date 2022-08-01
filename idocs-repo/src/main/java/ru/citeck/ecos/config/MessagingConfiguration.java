@@ -86,18 +86,18 @@ public class MessagingConfiguration {
     @Bean
     public RabbitMqConnProps getConnProperties() {
 
-        RabbitMqConnProps props = new RabbitMqConnProps();
-        props.setHost(properties.getProperty(RABBIT_MQ_HOST));
-        props.setPort(Integer.parseInt(properties.getProperty(RABBIT_MQ_PORT)));
-        props.setUsername(properties.getProperty(RABBIT_MQ_USERNAME));
-        props.setPassword(properties.getProperty(RABBIT_MQ_PASSWORD));
-
-        String threadPoolSizeStr = properties.getProperty(RABBIT_MQ_THREAD_POOL_SIZE);
+        /*String threadPoolSizeStr = properties.getProperty(RABBIT_MQ_THREAD_POOL_SIZE);
         if (StringUtils.isNotBlank(threadPoolSizeStr)) {
             props.setThreadPoolSize(Integer.parseInt(threadPoolSizeStr));
-        }
+        }*/
 
-        return props;
+        return new RabbitMqConnProps(
+            properties.getProperty(RABBIT_MQ_HOST),
+            properties.getProperty(RABBIT_MQ_USERNAME),
+            properties.getProperty(RABBIT_MQ_PASSWORD),
+            "/",
+            Integer.parseInt(properties.getProperty(RABBIT_MQ_PORT))
+        );
     }
 
     @PreDestroy

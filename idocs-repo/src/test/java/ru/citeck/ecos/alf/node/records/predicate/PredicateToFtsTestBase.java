@@ -8,9 +8,7 @@ import org.alfresco.service.namespace.NamespaceService;
 import org.alfresco.service.namespace.QName;
 import org.apache.commons.lang.StringUtils;
 import org.junit.Before;
-import org.mockito.Mock;
 import org.mockito.Mockito;
-import ru.citeck.ecos.commons.data.DataValue;
 import ru.citeck.ecos.commons.data.ObjectData;
 import ru.citeck.ecos.config.EcosConfigService;
 import ru.citeck.ecos.domain.model.alf.service.AlfAutoModelService;
@@ -23,12 +21,12 @@ import ru.citeck.ecos.records.language.predicate.converters.impl.ComposedPredica
 import ru.citeck.ecos.records.language.predicate.converters.impl.EmptyPredicateToFtsConverter;
 import ru.citeck.ecos.records.language.predicate.converters.impl.NotPredicateToFtsConverter;
 import ru.citeck.ecos.records.language.predicate.converters.impl.ValuePredicateToFtsConverter;
-import ru.citeck.ecos.records.type.TypeDto;
 import ru.citeck.ecos.records2.RecordRef;
 import ru.citeck.ecos.records2.querylang.QueryLangService;
 import ru.citeck.ecos.search.AssociationIndexPropertyRegistry;
 import ru.citeck.ecos.utils.AuthorityUtils;
 import ru.citeck.ecos.utils.DictUtils;
+import ru.citeck.ecos.webapp.lib.model.type.dto.TypeDef;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -40,7 +38,7 @@ public abstract class PredicateToFtsTestBase {
 
     protected PredicateToFtsAlfrescoConverter converter;
 
-    private final Map<RecordRef, TypeDto> ecosTypes = new LinkedHashMap<>();
+    private final Map<RecordRef, TypeDef> ecosTypes = new LinkedHashMap<>();
     private final Map<String, String> namespaceUri = new LinkedHashMap<>();
 
     private NamespaceService namespaceService;
@@ -119,14 +117,11 @@ public abstract class PredicateToFtsTestBase {
 
         when(ecosTypeAlfTypeService.getAlfTypeToSearch(Mockito.any())).thenAnswer(a -> {
             val typeRef = (RecordRef) a.getArguments()[0];
-            TypeDto typeDto = ecosTypes.get(typeRef);
+            TypeDef typeDto = ecosTypes.get(typeRef);
             if (typeDto == null) {
                 return null;
             }
-            ObjectData inhAttributes = typeDto.getInhAttributes();
-            if (inhAttributes == null) {
-                return null;
-            }
+            ObjectData inhAttributes = typeDto.getProperties();
             String result = inhAttributes.get("alfType").asText();
             return StringUtils.isBlank(result) ? null : result;
         });
@@ -171,7 +166,7 @@ public abstract class PredicateToFtsTestBase {
         namespaceUri.put(prefix, uri);
     }
 
-    protected void registerType(TypeDto typeDto) {
+    protected void registerType(TypeDef typeDto) {
         this.ecosTypes.put(TypeUtils.getTypeRef(typeDto.getId()), typeDto);
     }
 }

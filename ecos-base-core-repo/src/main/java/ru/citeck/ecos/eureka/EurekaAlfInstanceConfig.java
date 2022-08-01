@@ -3,9 +3,9 @@ package ru.citeck.ecos.eureka;
 import com.netflix.appinfo.DataCenterInfo;
 import com.netflix.appinfo.EurekaInstanceConfig;
 import lombok.extern.slf4j.Slf4j;
-import org.alfresco.util.GUID;
 import org.apache.commons.lang.StringUtils;
 import ru.citeck.ecos.utils.InetUtils;
+import ru.citeck.ecos.webapp.api.properties.EcosWebAppProperties;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -25,23 +25,25 @@ public class EurekaAlfInstanceConfig extends AbstractEurekaConfig implements Eur
 
     private static final String HEALTH_URL = "/alfresco/service/citeck/ecos/eureka-status";
 
-    private static final String UUID = GUID.generate();
+    private final InetUtils.HostInfo hostInfo;
+    private final EcosWebAppProperties webAppProperties;
 
-    private InetUtils.HostInfo hostInfo;
-
-    public EurekaAlfInstanceConfig(Properties globalProperties, InetUtils inetUtils) {
+    public EurekaAlfInstanceConfig(Properties globalProperties,
+                                   InetUtils inetUtils,
+                                   EcosWebAppProperties webAppProperties) {
         super(globalProperties);
         hostInfo = inetUtils.findFirstNonLoopbackHostInfo();
+        this.webAppProperties = webAppProperties;
     }
 
     @Override
     public String getInstanceId() {
-        return getAppname() + ":" + UUID;
+        return getAppname() + ":" + webAppProperties.getAppInstanceId();
     }
 
     @Override
     public String getAppname() {
-        return getStrParam("instance.appname", () -> "alfresco");
+        return webAppProperties.getAppName();
     }
 
     @Override

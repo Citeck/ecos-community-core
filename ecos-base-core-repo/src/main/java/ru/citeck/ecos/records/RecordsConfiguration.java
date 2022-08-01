@@ -1,29 +1,13 @@
 package ru.citeck.ecos.records;
 
-import kotlin.Unit;
 import kotlin.jvm.functions.Function0;
 import org.alfresco.service.ServiceRegistry;
 import org.alfresco.service.transaction.TransactionService;
-import org.apache.commons.lang.StringUtils;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.context.ApplicationEvent;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.extensions.surf.util.AbstractLifecycleBean;
-import org.springframework.extensions.surf.util.I18NUtil;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Component;
-import org.springframework.web.client.RestTemplate;
-import ru.citeck.ecos.domain.auth.EcosReqContext;
-import ru.citeck.ecos.domain.auth.EcosReqContextData;
-import ru.citeck.ecos.eureka.EcosServiceDiscovery;
-import ru.citeck.ecos.eureka.EcosServiceInstanceInfo;
-import ru.citeck.ecos.eureka.EurekaContextConfig;
 import ru.citeck.ecos.graphql.AlfGqlContext;
 import ru.citeck.ecos.records3.RecordsProperties;
 import ru.citeck.ecos.records2.evaluator.RecordEvaluatorService;
@@ -37,51 +21,30 @@ import ru.citeck.ecos.records2.graphql.meta.value.MetaValuesConverter;
 import ru.citeck.ecos.records2.request.rest.RestHandler;
 import ru.citeck.ecos.records3.record.request.RequestContext;
 import ru.citeck.ecos.records3.record.resolver.LocalRecordsResolver;
-import ru.citeck.ecos.records3.record.resolver.RemoteRecordsResolver;
-import ru.citeck.ecos.records2.rest.*;
 import ru.citeck.ecos.records2.source.dao.local.meta.MetaRecordsDaoAttsProvider;
 import ru.citeck.ecos.records3.rest.RestHandlerAdapter;
 import ru.citeck.ecos.records3.txn.RecordsTxnService;
+import ru.citeck.ecos.webapp.api.context.EcosWebAppContext;
 
 import javax.annotation.PostConstruct;
-import java.util.*;
 import java.util.function.Supplier;
 
 @Configuration
 public class RecordsConfiguration extends RecordsServiceFactory {
 
-    private static final String HEADER_ACCEPT_LANG = "Accept-Language";
-    private static final String HEADER_AUTH = "Authorization";
-    private static final String HEADER_ECOS_USER = "X-ECOS-User";
-    private static final String HEADER_ALFRESCO_REMOTE_USER = "X-Alfresco-Remote-User";
-
     @Autowired
     private ServiceRegistry serviceRegistry;
-    @Autowired
-    private EcosServiceDiscovery ecosServiceDiscovery;
     @Autowired
     private RecordsProperties properties;
     @Autowired
     private TransactionService transactionService;
 
-    @Autowired
-    @Qualifier(EurekaContextConfig.REST_TEMPLATE_ID)
-    private RestTemplate eurekaRestTemplate;
-
-    @Autowired
-    @Qualifier(EurekaContextConfig.SECURED_REST_TEMPLATE_ID)
-    private RestTemplate eurekaSecuredRestTemplate;
+    @Autowired(required = false)
+    private EcosWebAppContext webAppContext;
 
     @PostConstruct
     public void init() {
         RequestContext.Companion.setDefaultServices(this);
-    }
-
-
-    @NotNull
-    @Override
-    protected Function0<Locale> createLocaleSupplier() {
-        return I18NUtil::getLocale;
     }
 
     @Bean
@@ -121,71 +84,10 @@ public class RecordsConfiguration extends RecordsServiceFactory {
         return super.createRecordEvaluatorService();
     }
 
+    @Nullable
     @Override
-    protected RemoteRecordsResolver createRemoteRecordsResolver() {
-        RemoteRecordsRestApi restApi = new RemoteRecordsRestApiImpl(
-            this::jsonPost,
-            remoteAppInfoProvider(),
-            properties
-        );
-        return new RemoteRecordsResolver(this, restApi);
-    }
-
-    private RestResponseEntity jsonPost(String url, RestRequestEntity request) {
-
-        org.springframework.http.HttpHeaders headers = new HttpHeaders();
-        request.getHeaders().forEach(headers::put);
-
-        EcosReqContextData authContextData = EcosReqContext.getCurrent();
-        if (authContextData != null) {
-            if (StringUtils.isNotBlank(authContextData.getAuthHeader())) {
-                headers.set(HEADER_AUTH, authContextData.getAuthHeader());
-            }
-            if (StringUtils.isNotBlank(authContextData.getEcosUserHeader())) {
-                headers.set(HEADER_ECOS_USER, authContextData.getEcosUserHeader());
-                headers.set(HEADER_ALFRESCO_REMOTE_USER, authContextData.getEcosUserHeader());
-            }
-            if (StringUtils.isNotBlank(authContextData.getAcceptLangHeader())) {
-                headers.set(HEADER_ACCEPT_LANG, authContextData.getAcceptLangHeader());
-            }
-        }
-
-        HttpEntity<byte[]> httpEntity = new HttpEntity<>(request.getBody(), headers);
-        RestTemplate restTemplate;
-        if (url.startsWith("https")) {
-            restTemplate = this.eurekaSecuredRestTemplate;
-        } else {
-            restTemplate = this.eurekaRestTemplate;
-        }
-        ResponseEntity<byte[]> result = restTemplate.exchange(url, HttpMethod.POST, httpEntity, byte[].class);
-
-        RestResponseEntity resultEntity = new RestResponseEntity();
-        resultEntity.setBody(result.getBody());
-        resultEntity.setStatus(result.getStatusCode().value());
-        result.getHeaders().forEach((k, v) -> resultEntity.getHeaders().put(k, v));
-
-        return resultEntity;
-    }
-
-    private RemoteAppInfoProvider remoteAppInfoProvider() {
-
-        return appName -> {
-
-            EcosServiceInstanceInfo instanceInfo = ecosServiceDiscovery.getInstanceInfo(appName);
-            if (instanceInfo == null || StringUtils.isBlank(instanceInfo.getHost())) {
-                return null;
-            }
-
-            return RemoteAppInfo.create(b -> {
-                b.withIp(instanceInfo.getIp());
-                b.withHost(instanceInfo.getHost());
-                b.withPort(instanceInfo.getPort());
-                b.withRecordsBaseUrl(instanceInfo.getMetadata().get(RestConstants.RECS_BASE_URL_META_KEY));
-                b.withRecordsUserBaseUrl(instanceInfo.getMetadata().get(RestConstants.RECS_USER_BASE_URL_META_KEY));
-                b.withSecurePortEnabled(instanceInfo.getSecurePortEnabled());
-                return Unit.INSTANCE;
-            });
-        };
+    public EcosWebAppContext getEcosWebAppContext() {
+        return webAppContext;
     }
 
     @Override
@@ -242,25 +144,5 @@ public class RecordsConfiguration extends RecordsServiceFactory {
     @Override
     protected RestHandlerAdapter createRestHandlerAdapter() {
         return super.createRestHandlerAdapter();
-    }
-
-    @Component
-    public static class JobsInitializer extends AbstractLifecycleBean {
-
-        @Autowired
-        private RecordsServiceFactory serviceFactory;
-
-        @Override
-        protected void onBootstrap(ApplicationEvent event) {
-            try {
-                serviceFactory.getJobExecutor().init();
-            } catch (Exception e) {
-                log.error("JobsInitializer initialization failed", e);
-            }
-        }
-
-        @Override
-        protected void onShutdown(ApplicationEvent applicationEvent) {
-        }
     }
 }

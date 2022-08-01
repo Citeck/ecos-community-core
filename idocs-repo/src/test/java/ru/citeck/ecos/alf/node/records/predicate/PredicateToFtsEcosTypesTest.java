@@ -5,8 +5,8 @@ import org.junit.Test;
 import ru.citeck.ecos.commons.data.ObjectData;
 import ru.citeck.ecos.model.EcosTypeModel;
 import ru.citeck.ecos.model.lib.type.service.utils.TypeUtils;
-import ru.citeck.ecos.records.type.TypeDto;
 import ru.citeck.ecos.records2.predicate.model.Predicates;
+import ru.citeck.ecos.webapp.lib.model.type.dto.TypeDef;
 
 import static org.junit.Assert.assertEquals;
 
@@ -65,30 +65,30 @@ public class PredicateToFtsEcosTypesTest extends PredicateToFtsTestBase {
 
     private void registerTypes() {
 
-        TypeDto base = new TypeDto();
-        base.setId(baseTypeId);
-        base.setParentRef(null);
+        TypeDef.Builder base = TypeDef.create();
+        base.withId(baseTypeId);
+        base.withParentRef(null);
 
-        registerType(base);
+        registerType(base.build());
 
-        TypeDto child = new TypeDto();
-        child.setId(childTypeId);
-        child.setParentRef(TypeUtils.getTypeRef(base.getId()));
+        TypeDef.Builder child = TypeDef.create();
+        child.withId(childTypeId);
+        child.withParentRef(TypeUtils.getTypeRef(base.getId()));
 
-        registerType(child);
+        registerType(child.build());
 
-        TypeDto caseType = new TypeDto();
-        caseType.setId(caseTypeId);
-        caseType.setParentRef(TypeUtils.getTypeRef(base.getId()));
-        caseType.setInhAttributes(ObjectData.create("{\"alfType\":\"ecos:case\"}"));
+        TypeDef.Builder caseType = TypeDef.create();
+        caseType.withId(caseTypeId);
+        caseType.withParentRef(TypeUtils.getTypeRef(base.getId()));
+        caseType.withProperties(ObjectData.create("{\"alfType\":\"ecos:case\"}"));
 
-        registerType(caseType);
+        registerType(caseType.build());
 
-        TypeDto childWithAlfType = new TypeDto();
-        childWithAlfType.setId(childWithAlfTypeTypeId);
-        childWithAlfType.setParentRef(TypeUtils.getTypeRef(caseType.getId()));
-        childWithAlfType.setInhAttributes(ObjectData.create("{\"alfType\":\"ecos:test-type\"}"));
+        TypeDef.Builder childWithAlfType = TypeDef.create();
+        childWithAlfType.withId(childWithAlfTypeTypeId);
+        childWithAlfType.withParentRef(TypeUtils.getTypeRef(caseType.getId()));
+        childWithAlfType.withProperties(ObjectData.create("{\"alfType\":\"ecos:test-type\"}"));
 
-        registerType(childWithAlfType);
+        registerType(childWithAlfType.build());
     }
 }
