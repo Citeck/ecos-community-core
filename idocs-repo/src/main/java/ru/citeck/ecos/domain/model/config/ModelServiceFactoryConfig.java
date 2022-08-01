@@ -41,9 +41,8 @@ public class ModelServiceFactoryConfig extends ModelServiceFactory {
 
     @Bean
     @NotNull
-    @Override
-    protected ComputedAttsService createComputedAttsToStoreService() {
-        return super.createComputedAttsToStoreService();
+    public ComputedAttsService computedAttsToStoreService() {
+        return getComputedAttsService();
     }
 
     @NotNull
@@ -68,30 +67,26 @@ public class ModelServiceFactoryConfig extends ModelServiceFactory {
 
     @Bean
     @NotNull
-    @Override
-    protected PermsEvaluator createPermsEvaluator() {
-        return super.createPermsEvaluator();
+    public PermsEvaluator permsEvaluator() {
+        return getPermsEvaluator();
     }
 
     @Bean
     @NotNull
-    @Override
-    protected TypeRefService createTypeRefService() {
-        return super.createTypeRefService();
+    public TypeRefService typeRefService() {
+        return getTypeRefService();
     }
 
     @Bean
     @NotNull
-    @Override
-    protected RoleService createRoleService() {
-        return super.createRoleService();
+    public RoleService roleService() {
+        return getRoleService();
     }
 
     @Bean(name = CiteckServices.STATUS_SERVICE_BEAN_NAME)
     @NotNull
-    @Override
-    protected StatusService createStatusService() {
-        return super.createStatusService();
+    public StatusService statusService() {
+        return getStatusService();
     }
 
     @NotNull
@@ -125,9 +120,8 @@ public class ModelServiceFactoryConfig extends ModelServiceFactory {
 
     @Bean
     @NotNull
-    @Override
-    protected RecordPermsService createRecordPermsService() {
-        return super.createRecordPermsService();
+    public RecordPermsService recordPermsService() {
+        return getRecordPermsService();
     }
 
     @Autowired

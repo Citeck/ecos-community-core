@@ -48,16 +48,14 @@ public class RecordsConfiguration extends RecordsServiceFactory {
     }
 
     @Bean
-    @Override
-    protected RecordsService createRecordsService() {
-        return super.createRecordsService();
+    public RecordsService recordsService() {
+        return getRecordsService();
     }
 
     @Bean
     @NotNull
-    @Override
-    protected ru.citeck.ecos.records3.RecordsService createRecordsServiceV1() {
-        return super.createRecordsServiceV1();
+    public ru.citeck.ecos.records3.RecordsService recordsServiceV1() {
+        return getRecordsServiceV1();
     }
 
     @NotNull
@@ -73,15 +71,13 @@ public class RecordsConfiguration extends RecordsServiceFactory {
     }
 
     @Bean
-    @Override
-    protected LocalRecordsResolver createLocalRecordsResolver() {
-        return super.createLocalRecordsResolver();
+    public LocalRecordsResolver localRecordsResolver() {
+        return getLocalRecordsResolver();
     }
 
     @Bean
-    @Override
-    protected RecordEvaluatorService createRecordEvaluatorService() {
-        return super.createRecordEvaluatorService();
+    public RecordEvaluatorService recordEvaluatorService() {
+        return getRecordEvaluatorService();
     }
 
     @Nullable
@@ -96,15 +92,13 @@ public class RecordsConfiguration extends RecordsServiceFactory {
     }
 
     @Bean
-    @Override
-    protected QueryLangService createQueryLangService() {
-        return super.createQueryLangService();
+    public QueryLangService queryLangService() {
+        return getQueryLangService();
     }
 
     @Bean
-    @Override
-    protected PredicateService createPredicateService() {
-        return super.createPredicateService();
+    public PredicateService predicateService() {
+        return getPredicateService();
     }
 
     @Bean
@@ -114,9 +108,8 @@ public class RecordsConfiguration extends RecordsServiceFactory {
     }
 
     @Bean
-    @Override
-    protected MetaValuesConverter createMetaValuesConverter() {
-        return super.createMetaValuesConverter();
+    public MetaValuesConverter metaValuesConverter() {
+        return getMetaValuesConverter();
     }
 
     @NotNull
@@ -127,22 +120,19 @@ public class RecordsConfiguration extends RecordsServiceFactory {
 
     @Bean
     @NotNull
-    @Override
-    protected MetaRecordsDaoAttsProvider createMetaRecordsDaoAttsProvider() {
-        return super.createMetaRecordsDaoAttsProvider();
+    public MetaRecordsDaoAttsProvider metaRecordsDaoAttsProvider() {
+        return getMetaRecordsDaoAttsProvider();
     }
 
     @Bean
     @NotNull
-    @Override
-    protected RecordsTemplateService createRecordsTemplateService() {
-        return super.createRecordsTemplateService();
+    public RecordsTemplateService recordsTemplateService() {
+        return getRecordsTemplateService();
     }
 
     @Bean
     @NotNull
-    @Override
-    protected RestHandlerAdapter createRestHandlerAdapter() {
-        return super.createRestHandlerAdapter();
+    public RestHandlerAdapter restHandlerAdapter() {
+        return getRestHandlerAdapter();
     }
 }
