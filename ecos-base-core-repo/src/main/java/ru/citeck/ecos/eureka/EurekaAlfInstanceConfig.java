@@ -6,6 +6,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.StringUtils;
 import ru.citeck.ecos.utils.InetUtils;
 import ru.citeck.ecos.webapp.api.properties.EcosWebAppProperties;
+import ru.citeck.ecos.webapp.lib.utils.EcosEnvUtils;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -159,8 +160,7 @@ public class EurekaAlfInstanceConfig extends AbstractEurekaConfig implements Eur
 
             Boolean isDev = getGlobalBoolParam("ecos.environment.dev", () -> false);
             if (isDev) {
-                String osName = StringUtils.defaultString(System.getProperty("os.name"));
-                if (osName.contains("Windows")) {
+                if (EcosEnvUtils.isOsMac() || EcosEnvUtils.isOsWindows()) {
                     return "host.docker.internal";
                 }
             }

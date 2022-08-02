@@ -17,6 +17,7 @@ import ru.citeck.ecos.webapp.api.properties.EcosWebAppProperties;
 import ru.citeck.ecos.webapp.api.task.EcosTasksApi;
 import ru.citeck.ecos.webapp.api.web.EcosWebClient;
 import ru.citeck.ecos.webapp.api.web.EcosWebController;
+import ru.citeck.ecos.webapp.lib.lock.EcosAppLockService;
 
 import java.util.Collections;
 import java.util.Set;
@@ -36,7 +37,7 @@ public class EcosWebAppContextImpl implements EcosWebAppContext {
     private final EcosWebAppProperties properties;
     private final EcosWebAppsApi ecosWebAppsApi;
     private final EcosAuditService ecosAuditService;
-    private final EcosLockService ecosLockService;
+    private final EcosAppLockService ecosLockService;
     private final EcosWebClient webClient;
     private final EcosTasksApi ecosTasksApi;
 

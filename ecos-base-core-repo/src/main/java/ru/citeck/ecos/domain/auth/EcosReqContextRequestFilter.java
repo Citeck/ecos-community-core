@@ -52,8 +52,6 @@ public class EcosReqContextRequestFilter implements Filter {
             jwtSecretKey = Keys.hmacShaKeyFor(jwtSecretBytes);
         }
 
-        String secretEmptyMsg = jwtSecretKey != null ? "non-empty" : "empty";
-        log.info("Filter initialized with " + secretEmptyMsg + " jwt secret");
         if (jwtSecretKey == null) {
             log.warn("WARNING: JWT token is undefined and any unauthorized " +
                 "service can supply authorities. " +

@@ -4,6 +4,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Primary;
 import ru.citeck.ecos.utils.InetUtils;
 import ru.citeck.ecos.webapp.api.properties.EcosWebAppProperties;
 
@@ -23,6 +24,7 @@ public class EcosEurekaConfiguration {
     @Autowired
     private EcosWebAppProperties ecosWebAppProperties;
 
+    @Primary
     @Bean(name = ALF_INSTANCE_CONFIG)
     public EurekaAlfInstanceConfig getEurekaInstanceConfig() {
         return new EurekaAlfInstanceConfig(properties, inetUtils, ecosWebAppProperties);
