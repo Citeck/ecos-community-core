@@ -82,6 +82,7 @@ public class AlfNodeRecord implements MetaValue {
     private static final String ASSOC_SRC_ATTR_PREFIX = "assoc_src_";
     private static final String CONTENT_ATTRIBUTE_NAME = "_content";
     private static final String CM_CONTENT_ATTRIBUTE_NAME = "cm:content";
+    private static final String ATTR_DEFINITION = "definition";
     private static final String PEOPLE_SOURCE_ID = "people";
     private static final String VIRTUAL_SCRIPT_ATTS_ID = "virtualScriptAttributesProvider";
     private static final String DEFAULT_VERSION_LABEL = "1.0";
@@ -252,7 +253,7 @@ public class AlfNodeRecord implements MetaValue {
 
         List<? extends MetaValue> attribute = null;
 
-        if (StringUtils.equals(name, CONTENT_ATTRIBUTE_NAME)) {
+        if (StringUtils.equals(name, CONTENT_ATTRIBUTE_NAME) || StringUtils.equals(name, ATTR_DEFINITION)) {
 
             name = CM_CONTENT_ATTRIBUTE_NAME;
 
