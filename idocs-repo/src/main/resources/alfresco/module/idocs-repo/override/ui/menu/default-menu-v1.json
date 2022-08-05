@@ -140,6 +140,45 @@
           ]
         },
         {
+          "id": "66aff4bf-b5c8-4114-846f-58bffa8927e7",
+          "label": {
+            "ru": "Задачи Camunda",
+            "en": "Camunda Tasks"
+          },
+          "icon": "",
+          "hidden": false,
+          "type": "SECTION",
+          "config": {},
+          "action": {
+            "type": "",
+            "config": {}
+          },
+          "items": [
+            {
+              "id": "885b4f0c-34a1-4362-80d2-7a34281175cf",
+              "label": {
+                "en": "Активные задачи"
+              },
+              "icon": "ui/icon@i-leftmenu-current-tasks",
+              "hidden": false,
+              "type": "JOURNAL",
+              "config": {
+                "recordRef": "uiserv/journal@bpmn-active-tasks",
+                "displayCount": true
+              },
+              "action": {
+                "type": "",
+                "config": {}
+              },
+              "items": [],
+              "allowedFor": []
+            }
+          ],
+          "allowedFor": [
+            "GROUP_ALFRESCO_ADMINISTRATORS"
+          ]
+        },
+        {
           "id": "912d7e77-c96d-4df6-af3e-bacf279fa1a4",
           "label": {
             "ru": "Разделы"
