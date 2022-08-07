@@ -33,13 +33,14 @@ import java.io.Serializable;
 import java.util.*;
 
 public class WorkflowSecurityInterceptor extends SimpleMethodInterceptor {
-    
+
     private PersonService personService;
     private AuthorityService authorityService;
     private NodeService nodeService;
     private Properties globalProperties;
     private String propertyFormat;
-    
+    private String allowedGroup;
+
     private Map<WorkflowPermission, Set<WorkflowUserStatus>> allowedPermissions;
 
     public boolean isTaskEditable(WorkflowTask task, String username) {
@@ -58,7 +59,7 @@ public class WorkflowSecurityInterceptor extends SimpleMethodInterceptor {
         if (Boolean.FALSE.equals(reassignable)) {
             return false;
         }
-        
+
         return hasTaskPermission(task, username, WorkflowPermission.TASK_REASSIGN);
     }
 
@@ -85,16 +86,24 @@ public class WorkflowSecurityInterceptor extends SimpleMethodInterceptor {
     {
         return isTaskReleasable(task, username);
     }
-    
+
     private boolean hasTaskPermission(WorkflowTask task, String username, WorkflowPermission permission) {
         if (task.getState() == WorkflowTaskState.COMPLETED) {
             return false;
         }
-        
+
+        if (allowedGroup != null && checkAllowedGroup(username)) {
+            return true;
+        }
+
         Set<WorkflowUserStatus> allowedStatuses = allowedPermissions.get(permission);
         return hasUserAnyStatus(username, task, allowedStatuses);
     }
-    
+
+    private boolean checkAllowedGroup(String username) {
+        return authorityService.getAuthoritiesForUser(username).contains(allowedGroup);
+    }
+
     private boolean hasUserAnyStatus(String username, WorkflowTask task, Set<WorkflowUserStatus> statuses) {
         Map<QName, Serializable> taskProperties = task.getProperties();
         String ownerName = (String) taskProperties.get(ContentModel.PROP_OWNER);
@@ -102,7 +111,7 @@ public class WorkflowSecurityInterceptor extends SimpleMethodInterceptor {
         if (statuses.contains(WorkflowUserStatus.OWNER) && username.equals(ownerName)) {
             return true;
         }
-        
+
         if (statuses.contains(WorkflowUserStatus.ADMIN) && authorityService.isAdminAuthority(username)) {
             return true;
         }
@@ -114,8 +123,8 @@ public class WorkflowSecurityInterceptor extends SimpleMethodInterceptor {
                 return true;
             }
         }
-        
-        if(statuses.contains(WorkflowUserStatus.POOL_WITH_OWNER) && ownerName != null 
+
+        if(statuses.contains(WorkflowUserStatus.POOL_WITH_OWNER) && ownerName != null
         || statuses.contains(WorkflowUserStatus.POOL_WITHOUT_OWNER) && ownerName == null)
         {
             if(userNodeRef == null) userNodeRef = personService.getPerson(username);
@@ -138,7 +147,7 @@ public class WorkflowSecurityInterceptor extends SimpleMethodInterceptor {
                 }
             }
         }
-        
+
         return false;
     }
 
@@ -161,19 +170,21 @@ public class WorkflowSecurityInterceptor extends SimpleMethodInterceptor {
     public void setPropertyFormat(String propertyFormat) {
         this.propertyFormat = propertyFormat;
     }
-    
+
     public void init() {
         allowedPermissions = new EnumMap<>(WorkflowPermission.class);
         for(WorkflowPermission permission : WorkflowPermission.values()) {
             String propertyKey = String.format(propertyFormat, permission.toString().toLowerCase());
             String propertyValue = globalProperties.getProperty(propertyKey);
-            
+
             EnumSet<WorkflowUserStatus> allowedStatuses = EnumSet.noneOf(WorkflowUserStatus.class);
             for(String statusString : propertyValue.split("[,]")) {
                 allowedStatuses.add(WorkflowUserStatus.valueOf(statusString));
             }
             allowedPermissions.put(permission, allowedStatuses);
         }
+        String propertyKey = String.format(propertyFormat, "group");
+        allowedGroup = globalProperties.getProperty(propertyKey);
     }
 
 }

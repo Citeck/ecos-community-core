@@ -16,4 +16,18 @@
     </#if>
 </#assign>
 
-<input id="${fieldId}" type="text" data-bind="textInput: ${textValueInput?trim}, disable: ${disabled?trim}" ${maxlength}/>
+<#assign customStyle>
+    <#if params.showClearButton?? && params.showClearButton == 'true'>
+        style="width: calc(100% - 16px);"
+    </#if>
+</#assign>
+
+<input id="${fieldId}" type="text" data-bind="textInput: ${textValueInput?trim}, disable: ${disabled?trim}" ${maxlength} ${customStyle}/>
+
+<#if params.showClearButton?? && params.showClearButton == 'true'>
+    <span class="value-item-actions">
+        <a class="delete-value-item"
+           data-bind="click: function() { if (!protected()) {value(null);} }, css: { 'delete-value-item-disabled': protected() }">
+        </a>
+    </span>
+</#if>
