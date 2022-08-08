@@ -31,16 +31,22 @@ public class ReportColumnDef {
     private String name;
     private String attribute;
     private AttributeType type;
+    private boolean multiple = false;
 
-    public ReportColumnDef(){}
+    public ReportColumnDef() {}
 
     public ReportColumnDef(String name, String attribute) {
-        this(name, attribute, AttributeType.TEXT);
+        this(name, attribute, AttributeType.TEXT, false);
     }
 
-    public ReportColumnDef(String name, String attribute, AttributeType type) {
+    public ReportColumnDef(String name, String attribute, AttributeType type, Boolean multiple) {
         this.name = name;
         this.type = type;
         this.attribute = attribute;
+        setMultiple(multiple);
+    }
+
+    public void setMultiple(Boolean multiple) {
+        this.multiple = Boolean.TRUE.equals(multiple);
     }
 }

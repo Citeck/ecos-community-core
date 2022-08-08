@@ -1,7 +1,7 @@
 package ru.citeck.ecos.records.models;
 
 import lombok.Data;
-import ru.citeck.ecos.records2.graphql.meta.annotation.MetaAtt;
+import ru.citeck.ecos.records3.record.atts.schema.annotation.AttName;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -14,24 +14,23 @@ public class AuthorityDTO {
 
     private String id;
 
-    @MetaAtt("cm:authorityName")
+    @AttName("cm:authorityName")
     private String authorityName;
 
-    @MetaAtt("cm:userName")
+    @AttName("cm:userName")
     private String userName;
 
-    @MetaAtt("cm:firstName")
+    @AttName("cm:firstName")
     private String firstName;
 
-    @MetaAtt("cm:lastName")
+    @AttName("cm:lastName")
     private String lastName;
 
-    @MetaAtt("cm:middleName")
+    @AttName("cm:middleName")
     private String middleName;
 
-    @MetaAtt(".disp")
+    @AttName(".disp")
     private String displayName;
 
     private List<UserDTO> containedUsers = new ArrayList<>();
-
 }

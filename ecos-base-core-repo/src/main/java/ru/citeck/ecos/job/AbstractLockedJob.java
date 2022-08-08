@@ -5,8 +5,8 @@ import org.alfresco.repo.lock.LockAcquisitionException;
 import org.alfresco.service.namespace.QName;
 import org.alfresco.util.VmShutdownListener;
 import org.apache.commons.lang.StringUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.quartz.JobDataMap;
 import org.quartz.JobExecutionContext;
 import org.quartz.JobExecutionException;
@@ -15,10 +15,12 @@ import org.springframework.scheduling.quartz.QuartzJobBean;
 import ru.citeck.ecos.model.EcosModel;
 
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicReference;
 
 public abstract class AbstractLockedJob extends QuartzJobBean implements StatefulJob {
 
-    private static final long DEFAULT_LOCK_TTL = TimeUnit.HOURS.toMillis(2);
+    private static final long DEFAULT_LOCK_TTL = TimeUnit.MINUTES.toMillis(10);
 
     private static final String LOG_MSG = "[%s]{%s} %s";
 
@@ -26,7 +28,7 @@ public abstract class AbstractLockedJob extends QuartzJobBean implements Statefu
     private static final String PARAM_LOCK_TTL = "lockTTL";
     private static final String PARAM_NAME = "name";
 
-    private static final Log logger = LogFactory.getLog(AbstractLockedJob.class);
+    private final Logger log = LoggerFactory.getLogger(getClass());
 
     private JobLockService jobLockService;
 
@@ -34,6 +36,7 @@ public abstract class AbstractLockedJob extends QuartzJobBean implements Statefu
     private long lockTTL;
 
     private boolean initialized = false;
+    private volatile boolean interrupted = false;
 
     @Override
     protected final synchronized void executeInternal(final JobExecutionContext jobContext)
@@ -65,12 +68,41 @@ public abstract class AbstractLockedJob extends QuartzJobBean implements Statefu
      * @throws JobExecutionException thrown if the job fails to execute
      */
     private void executeJobWithLock(JobExecutionContext jobContext) throws JobExecutionException {
-        String lockToken = null;
+        AtomicReference<String> lockToken = new AtomicReference<>();
         try {
             debugMsg("Job started");
 
-            lockToken = jobLockService.getLock(lockQName, lockTTL);
+            AtomicBoolean isActive = new AtomicBoolean(true);
+            String threadName = Thread.currentThread().getName();
+            interrupted = false;
+
+            String lockTokenStr = jobLockService.getLock(
+                lockQName,
+                lockTTL,
+                new JobLockService.JobLockRefreshCallback() {
+                    @Override
+                    public boolean isActive() {
+                        return isActive.get();
+                    }
+                    @Override
+                    public void lockReleased() {
+                        if (!isActive()) {
+                            return;
+                        }
+                        interrupted = true;
+                        log.error("Lock unexpectedly released. QName: " + lockQName +
+                            " lockToken: " + lockToken.get() +
+                            " lockTTL: " + lockTTL +
+                            " threadName: " + threadName);
+                        AbstractLockedJob.this.lockUnexpectedlyReleased();
+                    }
+                }
+            );
+            lockToken.set(lockTokenStr);
+
             executeJob(jobContext);
+
+            isActive.set(false);
 
             debugMsg("Job completed");
         } catch (LockAcquisitionException e) {
@@ -79,15 +111,16 @@ public abstract class AbstractLockedJob extends QuartzJobBean implements Statefu
         } catch (VmShutdownListener.VmShutdownException e) {
             debugMsg("Job aborted");
         } finally {
-            if (lockToken != null) {
-                jobLockService.releaseLock(lockToken, lockQName);
+            String lockTokenStr = lockToken.get();
+            if (lockTokenStr != null) {
+                jobLockService.releaseLock(lockTokenStr, lockQName);
             }
         }
     }
 
     private void debugMsg(String msg) {
-        if (logger.isDebugEnabled()) {
-            logger.debug(String.format(LOG_MSG, getClass(), lockQName.getLocalName(), msg));
+        if (log.isDebugEnabled()) {
+            log.debug(String.format(LOG_MSG, getClass(), lockQName.getLocalName(), msg));
         }
     }
 
@@ -100,6 +133,16 @@ public abstract class AbstractLockedJob extends QuartzJobBean implements Statefu
      * @throws JobExecutionException if a job fails to execute
      */
     public abstract void executeJob(JobExecutionContext jobContext) throws JobExecutionException;
+
+    /**
+     * @see JobLockService.JobLockRefreshCallback#lockReleased()
+     */
+    protected void lockUnexpectedlyReleased() {
+    }
+
+    public boolean isInterrupted() {
+       return interrupted;
+    }
 
     protected String getJobName(JobExecutionContext jobContext) {
         String name = (String) jobContext.getJobDetail().getJobDataMap().get(PARAM_NAME);

@@ -1,0 +1,20 @@
+---
+ecos:
+  webapp:
+    web:
+      authenticators:
+        jwt:
+          type: jwt
+          secret: my-secret-key-which-should-be-changed-in-production-and-be-base64-encoded
+          tokenValidityDuration: 30s
+    task:
+      schedulers:
+        main:
+          corePoolSize: 10
+        records:
+          corePoolSize: 10
+      executors:
+        main:
+          corePoolSize: 10
+        rabbitmq:
+          corePoolSize: 16

@@ -43,7 +43,6 @@ import ru.citeck.ecos.records.meta.MetaUtils;
 import ru.citeck.ecos.records.source.alf.AlfNodeMetaEdge;
 import ru.citeck.ecos.records.source.alf.file.FileRepresentation;
 import ru.citeck.ecos.records.source.common.MLTextValue;
-import ru.citeck.ecos.records.type.TypeDto;
 import ru.citeck.ecos.records2.*;
 import ru.citeck.ecos.records2.graphql.meta.annotation.MetaAtt;
 import ru.citeck.ecos.records2.graphql.meta.value.MetaEdge;
@@ -52,6 +51,7 @@ import ru.citeck.ecos.records2.graphql.meta.value.MetaValue;
 import ru.citeck.ecos.state.ItemsUpdateState;
 import ru.citeck.ecos.utils.NewUIUtils;
 import ru.citeck.ecos.utils.NodeUtils;
+import ru.citeck.ecos.webapp.lib.model.type.dto.TypeDef;
 
 import java.io.Serializable;
 import java.util.*;
@@ -60,7 +60,10 @@ import java.util.stream.Collectors;
 
 public class AlfNodeRecord implements MetaValue {
 
+    public static final String NODE_REF_SOURCE_ID_PREFIX = "alfresco/@";
+
     public static final String ATTR_DOC_SUM = "docSum";
+    public static final String ATTR_NODE_REF = "nodeRef";
     public static final String ATTR_TYPE = "type";
     public static final String ATTR_TYPE_UPPER = "TYPE";
 
@@ -79,6 +82,7 @@ public class AlfNodeRecord implements MetaValue {
     private static final String ASSOC_SRC_ATTR_PREFIX = "assoc_src_";
     private static final String CONTENT_ATTRIBUTE_NAME = "_content";
     private static final String CM_CONTENT_ATTRIBUTE_NAME = "cm:content";
+    private static final String ATTR_DEFINITION = "definition";
     private static final String PEOPLE_SOURCE_ID = "people";
     private static final String VIRTUAL_SCRIPT_ATTS_ID = "virtualScriptAttributesProvider";
     private static final String DEFAULT_VERSION_LABEL = "1.0";
@@ -101,6 +105,7 @@ public class AlfNodeRecord implements MetaValue {
 
     @Getter(lazy = true)
     private final Permissions permissions = new Permissions();
+    private boolean isValidNode = true;
 
     public AlfNodeRecord(RecordRef recordRef) {
         this.recordRef = recordRef;
@@ -111,6 +116,10 @@ public class AlfNodeRecord implements MetaValue {
 
         this.context = (AlfGqlContext) context;
         this.nodeRef = RecordsUtils.toNodeRef(recordRef);
+        isValidNode = this.context.getNodeUtils().isValidNode(nodeRef);
+        if (!isValidNode) {
+            return;
+        }
         this.node = this.context.getNode(nodeRef).orElse(null);
 
         RecordRef typeRef = getRecordType();
@@ -122,13 +131,11 @@ public class AlfNodeRecord implements MetaValue {
             attributesMapping = autoModelService.getPropsMapping(typeRef);
 
             EcosTypeService typeService = alfContext.getService(EcosTypeService.QNAME);
-            TypeDto typeDef = typeService.getTypeDef(typeRef);
+            TypeDef typeDef = typeService.getTypeDef(typeRef);
             if (typeDef != null) {
                 TypeModelDef model = typeDef.getModel();
-                if (model != null) {
-                    List<AttributeDef> attributes = model.getAttributes();
-                    attributes.forEach(att -> attributesDef.put(att.getId(), att));
-                }
+                List<AttributeDef> attributes = model.getAttributes();
+                attributes.forEach(att -> attributesDef.put(att.getId(), att));
             }
         }
     }
@@ -136,7 +143,7 @@ public class AlfNodeRecord implements MetaValue {
     @Override
     public String getId() {
         if (recordRef.getAppName().isEmpty() && recordRef.getSourceId().isEmpty()) {
-            return "alfresco/@" + recordRef.toString();
+            return NODE_REF_SOURCE_ID_PREFIX + recordRef;
         }
         return recordRef.toString();
     }
@@ -148,12 +155,19 @@ public class AlfNodeRecord implements MetaValue {
 
     @Override
     public String getDisplayName() {
+        if (!isValidNode) {
+            return null;
+        }
         DisplayNameService displayNameService = context.getService(DisplayNameService.QNAME);
         return displayNameService.getDisplayName(new NodeInfo());
     }
 
     @Override
     public boolean has(String name) {
+
+        if (!isValidNode) {
+            return false;
+        }
 
         if (!context.getEcosPermissionService().isAttVisible(new NodeInfo(), name)) {
             return false;
@@ -203,6 +217,9 @@ public class AlfNodeRecord implements MetaValue {
 
     @Override
     public RecordRef getRecordType() {
+        if (!isValidNode) {
+            return RecordRef.EMPTY;
+        }
         NodeRef nodeRef = new NodeRef(node.nodeRef());
         EcosTypeService ecosTypeService = context.getService(EcosTypeService.QNAME);
         return ecosTypeService.getEcosType(nodeRef);
@@ -210,6 +227,13 @@ public class AlfNodeRecord implements MetaValue {
 
     @Override
     public List<? extends MetaValue> getAttribute(String name, MetaField field) {
+
+        if (RecordConstants.ATT_NOT_EXISTS.equals(name)) {
+            return Collections.singletonList(toMetaValue(null, !isValidNode, field));
+        }
+        if (!isValidNode) {
+            return null;
+        }
 
         if (node == null) {
             return Collections.emptyList();
@@ -229,7 +253,7 @@ public class AlfNodeRecord implements MetaValue {
 
         List<? extends MetaValue> attribute = null;
 
-        if (StringUtils.equals(name, CONTENT_ATTRIBUTE_NAME)) {
+        if (StringUtils.equals(name, CONTENT_ATTRIBUTE_NAME) || StringUtils.equals(name, ATTR_DEFINITION)) {
 
             name = CM_CONTENT_ATTRIBUTE_NAME;
 
@@ -247,6 +271,11 @@ public class AlfNodeRecord implements MetaValue {
         }
 
         switch (name) {
+
+            case ATTR_NODE_REF:
+
+                attribute = Collections.singletonList(new AlfNodeAttValue(node.nodeRef()));
+                break;
 
             case ATTR_UI_TYPE:
 
@@ -416,6 +445,7 @@ public class AlfNodeRecord implements MetaValue {
                         AttributeType finalAttType = attType;
                         attribute = values.stream()
                             .map(v -> toMetaValue(nodeAtt, v, field, finalAttType))
+                            .filter(v -> !(v instanceof AlfNodeRecord) || ((AlfNodeRecord) v).isValidNode)
                             .collect(Collectors.toList());
                     }
                 }

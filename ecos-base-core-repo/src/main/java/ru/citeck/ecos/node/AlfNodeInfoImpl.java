@@ -4,6 +4,8 @@ import org.alfresco.repo.security.permissions.AccessDeniedException;
 import org.alfresco.service.ServiceRegistry;
 import org.alfresco.service.cmr.repository.NodeRef;
 import org.alfresco.service.cmr.repository.NodeService;
+import org.alfresco.service.cmr.security.AccessStatus;
+import org.alfresco.service.cmr.security.PermissionService;
 import org.alfresco.service.namespace.QName;
 
 import java.io.Serializable;
@@ -13,12 +15,14 @@ import java.util.Map;
 public class AlfNodeInfoImpl implements AlfNodeInfo {
 
     private final NodeService nodeService;
+    private final PermissionService permissionService;
 
     private final NodeRef nodeRef;
 
     public AlfNodeInfoImpl(NodeRef nodeRef, ServiceRegistry serviceRegistry) {
         this.nodeRef = nodeRef;
         this.nodeService = serviceRegistry.getNodeService();
+        this.permissionService = serviceRegistry.getPermissionService();
     }
 
     @Override
@@ -33,10 +37,9 @@ public class AlfNodeInfoImpl implements AlfNodeInfo {
 
     @Override
     public Map<QName, Serializable> getProperties() {
-        try {
+        if (AccessStatus.ALLOWED.equals(permissionService.hasPermission(nodeRef, PermissionService.READ))) {
             return nodeService.getProperties(nodeRef);
-        } catch (AccessDeniedException e) {
-            return Collections.emptyMap();
         }
+        return Collections.emptyMap();
     }
 }

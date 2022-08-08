@@ -25,7 +25,7 @@ import ru.citeck.ecos.journals.xml.Formatter;
 import ru.citeck.ecos.journals.xml.*;
 import ru.citeck.ecos.records2.RecordRef;
 import ru.citeck.ecos.search.SearchCriteriaSettingsRegistry;
-import ru.citeck.ecos.utils.EcosU18NUtils;
+import ru.citeck.ecos.utils.EcosI18NUtils;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -163,7 +163,7 @@ class JournalTypeImpl implements JournalType {
             variantsList.forEach(v -> {
 
                 CreateVariant resultVariant = new CreateVariant();
-                resultVariant.setTitle(EcosU18NUtils.getMLText(v.getTitle()));
+                resultVariant.setTitle(EcosI18NUtils.getMLText(v.getTitle()));
                 resultVariant.setFormKey(v.getFormKey());
                 resultVariant.setRecordRef(v.getRecordRef());
 

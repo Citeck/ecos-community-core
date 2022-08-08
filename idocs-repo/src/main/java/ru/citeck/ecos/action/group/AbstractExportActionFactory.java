@@ -14,6 +14,7 @@ import org.alfresco.util.Pair;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang3.time.FastDateFormat;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import ru.citeck.ecos.action.group.impl.BaseGroupAction;
@@ -25,6 +26,7 @@ import ru.citeck.ecos.model.lib.attributes.dto.AttributeType;
 import ru.citeck.ecos.records2.RecordRef;
 import ru.citeck.ecos.records3.RecordsService;
 import ru.citeck.ecos.records3.record.atts.dto.RecordAtts;
+import ru.citeck.ecos.utils.EcosI18NUtils;
 import ru.citeck.ecos.utils.RepoUtils;
 
 import javax.annotation.PostConstruct;
@@ -32,6 +34,7 @@ import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * AbstractExportActionFactory is the abstract base class for group export factories which produce group actions.
@@ -121,25 +124,23 @@ public abstract class AbstractExportActionFactory<T> implements GroupActionFacto
     /**
      * Create environment object specific for certain export
      *
-     * @param config              configuration for current action
-     * @param requestedAttributes attributes requested by action settings for export @see ReportColumnDef
-     * @param columnTitles        Column titles which export file must provide @see ReportColumnDef
+     * @param config   configuration for current action
+     * @param columns  columns for export
      * @return environment object with default settings
      * @throws Exception which can occur during the environment initialization
      */
-    protected abstract T createEnvironment(GroupActionConfig config, List<String> requestedAttributes, List<String> columnTitles) throws Exception;
+    protected abstract T createEnvironment(GroupActionConfig config, List<ReportColumnDef> columns) throws Exception;
 
     /**
      * Writes nodes data according to the PARAM_REPORT_COLUMNS configuration.
      * Calls for each batch of nodes. Batch size is defined at GroupActionConfig.
      *
-     * @param nodesAttributes     data source for export
+     * @param lines               lines for export
      * @param nextRowIndex        start index where to write data
-     * @param requestedAttributes attributes requested by action settings for export @see ReportColumnDef
      * @param environment         fields and settings for export
      * @return next row index after data was written
      */
-    protected abstract int writeData(List<RecordAtts> nodesAttributes, int nextRowIndex, List<String> requestedAttributes, T environment);
+    protected abstract int writeData(List<List<DataValue>> lines, int nextRowIndex, T environment);
 
     /**
      * Writes collected data to output stream at the end of the export
@@ -178,51 +179,55 @@ public abstract class AbstractExportActionFactory<T> implements GroupActionFacto
     }
 
     class ExportAction extends BaseGroupAction<RecordRef> {
-        /**
-         * Attributes requested by action settings for export
-         *
-         * @see ReportColumnDef
-         */
-        protected List<String> requestedAttributes = new ArrayList<>();
 
-        private Map<String, AttributeType> typeByAttribute = new HashMap<>();
-        /**
-         * Column titles which export file must provide
-         *
-         * @see ReportColumnDef
-         */
-        protected List<String> columnTitles = new ArrayList<>();
+        private final List<ReportColumnDef> columns;
+        private final Map<String, String> attributesToRequest;
 
         private final T environment;
         private int nodesRowIdx = 1;
 
         @Nullable
-        private OutputConfig outputConfig;
+        private final OutputConfig outputConfig;
 
-        public ExportAction(GroupActionConfig config, OutputConfig outputConfig) {
+        public ExportAction(GroupActionConfig config, @Nullable OutputConfig outputConfig) {
             super(config);
 
             this.outputConfig = outputConfig;
 
             JsonNode columnsParam = config.getParams().get(PARAM_REPORT_COLUMNS);
-            List<ReportColumnDef> columns = DataValue.create(columnsParam).asList(ReportColumnDef.class);
+            List<ReportColumnDef> columnsFromParam = DataValue.create(columnsParam).asList(ReportColumnDef.class);
+            columns = normalizeReportColumns(columnsFromParam);
+            attributesToRequest = new HashMap<>();
+
             for (ReportColumnDef columnDef : columns) {
-                String attributeName = columnDef.getAttribute();
-                if (StringUtils.isNotBlank(attributeName)) {
-                    requestedAttributes.add(attributeName);
-                    typeByAttribute.put(attributeName, columnDef.getType());
-                } else {
-                    log.warn("Attribute name was not defined {} \n{}", columnDef.getName(), config);
-                    continue;
+                String attributeToRequest = columnDef.getAttribute();
+                if (columnDef.isMultiple()) {
+                    attributeToRequest += "[]";
                 }
-                columnTitles.add(StringUtils.isNotBlank(columnDef.getName()) ? columnDef.getName() :
-                    attributeName);
+                attributesToRequest.put(columnDef.getAttribute(), attributeToRequest);
             }
             try {
-                environment = createEnvironment(config, requestedAttributes, columnTitles);
+                environment = createEnvironment(config, columns);
             } catch (Exception e) {
                 throw new IllegalStateException("Failed to create environment", e);
             }
+        }
+
+        private List<ReportColumnDef> normalizeReportColumns(List<ReportColumnDef> columns) {
+
+            List<ReportColumnDef> filteredColumns = columns.stream()
+                .filter(it -> StringUtils.isNotBlank(it.getAttribute()))
+                .collect(Collectors.toList());
+
+            for (ReportColumnDef columnDef : filteredColumns) {
+                if (StringUtils.isBlank(columnDef.getName())) {
+                    columnDef.setName(columnDef.getAttribute());
+                }
+                if (columnDef.getType() == null) {
+                    columnDef.setType(AttributeType.TEXT);
+                }
+            }
+            return filteredColumns;
         }
 
         @Override
@@ -235,38 +240,77 @@ public abstract class AbstractExportActionFactory<T> implements GroupActionFacto
                 log.warn("Process nodes was not defined");
                 return;
             }
-            if (requestedAttributes.isEmpty()) {
+            if (attributesToRequest.isEmpty()) {
                 log.warn("Requested attribute list is empty");
                 return;
             }
 
-            List<RecordAtts> nodesAttributes = recordsService.getAtts(nodes, requestedAttributes);
+            List<RecordAtts> nodesAttributes = recordsService.getAtts(nodes, attributesToRequest);
 
-            // date format. todo: refactor
-            typeByAttribute.forEach((att, type) -> {
-                FastDateFormat format = null;
-                if (AttributeType.DATE.equals(type)) {
-                    format = DATE_FORMAT;
-                } else if (AttributeType.DATETIME.equals(type)) {
-                    format = DATE_TIME_FORMAT;
+            List<List<DataValue>> lines = new ArrayList<>();
+            for (RecordAtts atts : nodesAttributes) {
+                List<DataValue> line = new ArrayList<>();
+                for (ReportColumnDef column : columns) {
+                    DataValue value = atts.getAtt(column.getAttribute());
+                    line.add(formatCell(column, value));
                 }
-                if (format != null) {
-                    for (RecordAtts atts : nodesAttributes) {
-                        DataValue value = atts.getAtt(att);
-                        if (value.isTextual()) {
-                            String valueStr = value.asText();
-                            if (StringUtils.isNotBlank(valueStr)) {
-                                Instant instant = Json.getMapper().convert(valueStr, Instant.class);
-                                if (instant != null) {
-                                    atts.setAtt(att, format.format(Date.from(instant)));
-                                }
-                            }
-                        }
+                lines.add(line);
+            }
+
+            nodesRowIdx = writeData(lines, nodesRowIdx, environment);
+        }
+
+        @NotNull
+        private DataValue formatCell(@NotNull ReportColumnDef columnDef, @NotNull DataValue value) {
+
+            if (value.isArray()) {
+                if (value.size() == 0) {
+                    return DataValue.createStr("");
+                }
+                StringBuilder sb = new StringBuilder();
+                for (DataValue arrValue : value) {
+                    sb.append(formatCell(columnDef, arrValue).asText()).append(", ");
+                }
+                sb.setLength(sb.length() - 2);
+                return DataValue.createStr(sb.toString());
+            }
+
+            AttributeType type = columnDef.getType();
+
+            FastDateFormat dateFormat = null;
+            if (AttributeType.DATE.equals(type)) {
+                dateFormat = DATE_FORMAT;
+            } else if (AttributeType.DATETIME.equals(type)) {
+                dateFormat = DATE_TIME_FORMAT;
+            }
+            if (dateFormat != null) {
+                if (!value.isTextual()) {
+                    return value;
+                }
+                String valueStr = value.asText();
+                if (StringUtils.isBlank(valueStr) || !valueStr.endsWith("Z") || !valueStr.contains("T")) {
+                    return value;
+                }
+                Instant instant = Json.getMapper().convert(valueStr, Instant.class);
+                if (instant == null) {
+                    return value;
+                }
+                return DataValue.createStr(dateFormat.format(Date.from(instant)));
+            }
+            if (AttributeType.BOOLEAN.equals(type)) {
+                String text = value.asText();
+                String valueRes = "";
+                if (!text.isEmpty()) {
+                    if (Boolean.TRUE.toString().equals(text)) {
+                        valueRes = EcosI18NUtils.getMessage("label.yes");
+                    } else {
+                        valueRes = EcosI18NUtils.getMessage("label.no");
                     }
                 }
-            });
+                return DataValue.createStr(valueRes);
+            }
 
-            nodesRowIdx = writeData(nodesAttributes, nodesRowIdx, requestedAttributes, environment);
+            return value;
         }
 
         @Override

@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+import javax.annotation.PreDestroy;
 import java.util.Properties;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
@@ -21,13 +22,15 @@ public class EcosScheduledExecutorConfiguration {
     @Qualifier("global-properties")
     private Properties properties;
 
+    private ScheduledThreadPoolExecutor executor;
+
     @Bean(name = "ecosScheduledExecutor")
     public ScheduledExecutorService getEcosScheduledExecutor() {
 
         int corePoolSize = Integer.parseInt(properties.getProperty(PROP_CORE_POOL_SIZE, "5"));
         int maxPoolSize = Integer.parseInt(properties.getProperty(PROP_MAX_POOL_SIZE, "10"));
 
-        ScheduledThreadPoolExecutor executor = new ScheduledThreadPoolExecutor(corePoolSize);
+        executor = new ScheduledThreadPoolExecutor(corePoolSize);
         executor.setMaximumPoolSize(maxPoolSize);
 
         String msg = "Create async task executor with parameters:\n" +
@@ -37,5 +40,11 @@ public class EcosScheduledExecutorConfiguration {
         log.info(msg);
 
         return executor;
+    }
+
+    @PreDestroy
+    public void destroy() {
+        log.info("Destroy...");
+        executor.shutdown();
     }
 }

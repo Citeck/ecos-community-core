@@ -1,12 +1,16 @@
 package ru.citeck.ecos.records;
 
 import kotlin.Unit;
+import lombok.Data;
 import org.alfresco.util.ParameterCheck;
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.collections.IteratorUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import ru.citeck.ecos.action.group.ActionResult;
 import ru.citeck.ecos.action.group.ActionResults;
 import ru.citeck.ecos.action.group.GroupActionConfig;
+import ru.citeck.ecos.commons.json.Json;
 import ru.citeck.ecos.records2.RecordRef;
 import ru.citeck.ecos.records2.request.rest.QueryBody;
 import ru.citeck.ecos.records2.request.rest.RestHandler;
@@ -112,7 +116,7 @@ public class RecordsServiceJS extends AlfrescoScopableProcessorExtension {
     }
 
     public Iterable<RecordRef> getIterableRecordsForGroupAction(Object recordsQuery, Object groupActionConfig) {
-        
+
         GroupActionConfig config = jsUtils.toJava(groupActionConfig, GroupActionConfig.class);
 
         IterableRecordsConfig iterRecsConfig = IterableRecordsConfig.create(b -> {
@@ -125,6 +129,32 @@ public class RecordsServiceJS extends AlfrescoScopableProcessorExtension {
 
         RecordsQuery query = jsUtils.toJava(recordsQuery, RecordsQuery.class);
         return new IterableRecordRefs(query, iterRecsConfig, recordsServiceV1);
+    }
+
+    public Iterable<RecordRef> getIterableRecordsForGroupAction(Object recordsQuery,
+                                                                Object groupActionConfig,
+                                                                Object options) {
+        Iterable<RecordRef> recordRefs = getIterableRecordsForGroupAction(recordsQuery, groupActionConfig);
+        return filteredOptions(recordRefs, options);
+    }
+
+    public Iterable<RecordRef> getIterableRecords(Object recordsQuery, Object options) {
+        Iterable<RecordRef> recordRefs = getIterableRecords(recordsQuery);
+        return filteredOptions(recordRefs, options);
+    }
+
+    @SuppressWarnings("unchecked")
+    private Iterable<RecordRef> filteredOptions(Iterable<RecordRef> recordRefs, Object options) {
+        if (options == null) {
+            return recordRefs;
+        }
+        IterableRecordsOptions convertedOptions = Json.getMapper().convert(jsUtils.toJava(options), IterableRecordsOptions.class);
+        if (convertedOptions == null || CollectionUtils.isEmpty(convertedOptions.getExcludedRecords())) {
+            return recordRefs;
+        }
+        return () -> IteratorUtils.filteredIterator(
+            recordRefs.iterator(),
+            recordRef -> !convertedOptions.getExcludedRecords().contains((RecordRef) recordRef));
     }
 
     private static <T> ActionResult<T>[] toArray(ActionResults<T> results) {
@@ -156,5 +186,10 @@ public class RecordsServiceJS extends AlfrescoScopableProcessorExtension {
     @Autowired
     public void setRecordsServiceV0(ru.citeck.ecos.records2.RecordsService recordsServiceV0) {
         this.recordsServiceV0 = recordsServiceV0;
+    }
+
+    @Data
+    public static class IterableRecordsOptions {
+        private Set<RecordRef> excludedRecords;
     }
 }

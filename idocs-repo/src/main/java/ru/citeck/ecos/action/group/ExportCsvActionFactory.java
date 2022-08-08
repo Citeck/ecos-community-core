@@ -4,13 +4,16 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.io.output.StringBuilderWriter;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.stereotype.Component;
+import org.supercsv.io.CsvListWriter;
+import org.supercsv.prefs.CsvPreference;
 import ru.citeck.ecos.commons.data.DataValue;
-import ru.citeck.ecos.processor.report.ReportProducer;
-import ru.citeck.ecos.records3.record.atts.dto.RecordAtts;
+import ru.citeck.ecos.commons.utils.ExceptionUtils;
 
 import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -27,7 +30,7 @@ public class ExportCsvActionFactory extends AbstractExportActionFactory<ExportCs
     private static final String MIMETYPE = "text/csv";
 
     private static final String CONFIG_DELIMITER = "delimiter";
-    public static final String DEFAULT_DELIMITER = "\t";
+    public static final char DEFAULT_DELIMITER = '\t';
     private static final String DEFAULT_SEPARATOR = "\r\n";
 
     @Override
@@ -36,61 +39,55 @@ public class ExportCsvActionFactory extends AbstractExportActionFactory<ExportCs
     }
 
     @Override
-    protected CsvEnvironment createEnvironment(GroupActionConfig config, List<String> requestedAttributes, List<String> columnTitles) {
-        mimeType = MIMETYPE;
-        String configDelimiter = config.getStrParam(CONFIG_DELIMITER);
-        CsvEnvironment environment = new CsvEnvironment(
-            StringUtils.isNotBlank(configDelimiter) ? configDelimiter : DEFAULT_DELIMITER,
-            new StringBuilder());
+    protected CsvEnvironment createEnvironment(GroupActionConfig config, List<ReportColumnDef> columns) throws Exception {
 
-        createColumnTitlesRow(columnTitles, environment);
+        mimeType = MIMETYPE;
+
+        String configDelimiter = config.getStrParam(CONFIG_DELIMITER);
+        char delimiter = DEFAULT_DELIMITER;
+        if (StringUtils.isNotBlank(configDelimiter)) {
+            delimiter = configDelimiter.charAt(0);
+        }
+
+        StringBuilder stringBuilder = new StringBuilder();
+        StringBuilderWriter sbWriter = new StringBuilderWriter(stringBuilder);
+        CsvPreference preference = new CsvPreference.Builder('"', delimiter, DEFAULT_SEPARATOR).build();
+        CsvListWriter writer = new CsvListWriter(sbWriter, preference);
+
+        CsvEnvironment environment = new CsvEnvironment(stringBuilder, writer);
+
+        createColumnTitlesRow(columns, environment);
         return environment;
     }
 
     @Override
-    protected int writeData(List<RecordAtts> nodesAttributes, int nextRowIndex, List<String> requestedAttributes, CsvEnvironment csvEnvironment) {
-        for (RecordAtts attributes : nodesAttributes) {
-            csvEnvironment.getReportBuilder().append(requestedAttributes.stream()
-                    .map(attributeName -> {
-                        DataValue attributeValue = attributes.getAtt(attributeName);
-                        String url = attributeValue.get(ReportProducer.DATA_TYPE_HYPERLINK) != null ?
-                            attributeValue.get(ReportProducer.DATA_TYPE_HYPERLINK).asText() :
-                            null;
-                        return StringUtils.isNotBlank(url) ?
-                            clean(attributeValue.asText() + " (" + url + ")") :
-                            clean(attributeValue.asText());
-                    })
-                    .collect(Collectors.joining(csvEnvironment.getCellDelimiter())))
-                .append(DEFAULT_SEPARATOR);
+    protected int writeData(List<List<DataValue>> lines, int nextRowIndex, CsvEnvironment csvEnvironment) {
+        for (List<DataValue> line : lines) {
+            try {
+                csvEnvironment.writer.write(line.stream().map(DataValue::asText).toArray(String[]::new));
+            } catch (Exception e) {
+                ExceptionUtils.throwException(e);
+            }
         }
-        return nextRowIndex + nodesAttributes.size();
+        return nextRowIndex + lines.size();
     }
 
     @Override
     protected void writeToStream(ByteArrayOutputStream outputStream, CsvEnvironment csvEnvironment) throws Exception {
-        outputStream.write(csvEnvironment.getReportBuilder().toString().getBytes(encoding));
+        csvEnvironment.writer.flush();
+        outputStream.write(csvEnvironment.getReportStringBuilder().toString().getBytes(encoding));
     }
 
-    private void createColumnTitlesRow(List<String> columnTitles, CsvEnvironment csvEnvironment) {
-        if (CollectionUtils.isEmpty(columnTitles)) {
+    private void createColumnTitlesRow(List<ReportColumnDef> columns, CsvEnvironment csvEnvironment) throws IOException {
+        if (CollectionUtils.isEmpty(columns)) {
             log.warn(EMPTY_REPORT_MSG);
             return;
         }
-        csvEnvironment.getReportBuilder().append(columnTitles.stream()
-                .map(title -> clean(title))
-                .collect(Collectors.joining(csvEnvironment.getCellDelimiter())))
-            .append(DEFAULT_SEPARATOR);
-    }
+        String[] titles = columns.stream()
+            .map(ReportColumnDef::getName)
+            .toArray(String[]::new);
 
-    /**
-     * Clear original data from newline symbols. Prevents distortion of
-     * csv-file structure.
-     */
-    private String clean(String source) {
-        if (source != null) {
-            return source.replaceAll("[\r\n]", " ").trim();
-        }
-        return null;
+        csvEnvironment.writer.writeHeader(titles);
     }
 
     /**
@@ -98,8 +95,8 @@ public class ExportCsvActionFactory extends AbstractExportActionFactory<ExportCs
      */
     @Data
     @AllArgsConstructor
-    public class CsvEnvironment {
-        private final String cellDelimiter;
-        private StringBuilder reportBuilder;
+    public static class CsvEnvironment {
+        private StringBuilder reportStringBuilder;
+        private CsvListWriter writer;
     }
 }

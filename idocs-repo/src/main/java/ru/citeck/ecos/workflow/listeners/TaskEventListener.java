@@ -53,6 +53,7 @@ public class TaskEventListener extends AbstractTaskListener {
         }
     }
 
+    @SuppressWarnings("Duplicates")
     private boolean emitRequired(DelegateTask task) {
         String eventName = task.getEventName();
         switch (eventName) {
@@ -62,7 +63,7 @@ public class TaskEventListener extends AbstractTaskListener {
                 return eventTaskAssignEnabled;
             case TaskListener.EVENTNAME_COMPLETE:
                 return eventTaskCompleteEnabled;
-            case TaskEventListener.EVENTNAME_DELETE:
+            case TaskListener.EVENTNAME_DELETE:
                 return eventTaskDeleteEnabled;
             default:
                 return false;

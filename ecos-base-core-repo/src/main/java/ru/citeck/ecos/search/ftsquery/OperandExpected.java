@@ -21,6 +21,8 @@ public interface OperandExpected {
      */
     OperatorExpected any(QName field, Iterable<Serializable> values);
 
+    OperatorExpected any(QName field, Iterable<Serializable> values, boolean exact);
+
     /**
      * Add multiple @key:"value" pairs to query
      * @param values values which would be added to query
@@ -171,6 +173,11 @@ public interface OperandExpected {
     OperatorExpected isNotNull(QName field);
 
     /**
+     * Field exists
+     */
+    OperatorExpected exists(QName field);
+
+    /**
      * Field is null or unset
      * @param field field to check
      */
@@ -200,6 +207,16 @@ public interface OperandExpected {
      * Operator NOT
      */
     OperandExpected not();
+
+    /**
+     * Operator TRUE
+     */
+    OperatorExpected alwaysTrue();
+
+    /**
+     * Operator FALSE
+     */
+    OperatorExpected alwaysFalse();
 
     /**
      * Open bracket

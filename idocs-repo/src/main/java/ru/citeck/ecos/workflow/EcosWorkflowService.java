@@ -17,6 +17,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import ru.citeck.ecos.model.CiteckWorkflowModel;
+import ru.citeck.ecos.utils.AuthorityUtils;
 import ru.citeck.ecos.utils.NodeUtils;
 
 import java.io.Serializable;
@@ -30,21 +31,24 @@ public class EcosWorkflowService {
 
     private Map<String, EngineWorkflowService> serviceByEngine = new ConcurrentHashMap<>();
 
-    private WorkflowService workflowService;
-    private DictionaryService dictionaryService;
-    private NamespaceService namespaceService;
-    private NodeService nodeService;
-    private NodeUtils nodeUtils;
+    private final WorkflowService workflowService;
+    private final DictionaryService dictionaryService;
+    private final NamespaceService namespaceService;
+    private final AuthorityUtils authorityUtils;
+    private final NodeService nodeService;
+    private final NodeUtils nodeUtils;
 
     @Autowired
     public EcosWorkflowService(@Qualifier("WorkflowService") WorkflowService workflowService,
                                DictionaryService dictionaryService,
                                NamespaceService namespaceService,
+                               AuthorityUtils authorityUtils,
                                NodeService nodeService,
                                NodeUtils nodeUtils) {
         this.workflowService = workflowService;
         this.dictionaryService = dictionaryService;
         this.namespaceService = namespaceService;
+        this.authorityUtils = authorityUtils;
         this.nodeService = nodeService;
         this.nodeUtils = nodeUtils;
     }
@@ -151,7 +155,7 @@ public class EcosWorkflowService {
             if (items instanceof NodeRef) {
                 itemsRefs.add((NodeRef) items);
             } else if (items instanceof Collection) {
-                for (Object item : (Collection) items) {
+                for (Object item : (Collection<?>) items) {
                     if (item instanceof NodeRef) {
                         itemsRefs.add((NodeRef) item);
                     }
@@ -188,8 +192,12 @@ public class EcosWorkflowService {
             }
             return values;
         }
-        if (value instanceof String && NodeRef.isNodeRef((String) value)) {
-            return nodeUtils.getNodeRefOrNull(value);
+        if (value instanceof String) {
+            if (authorityUtils.isAuthorityRef(value)) {
+                return authorityUtils.getNodeRefNotNull(value);
+            } else if (nodeUtils.isNodeRef(value)) {
+                return nodeUtils.getNodeRefOrNull(value);
+            }
         }
         return (Serializable) value;
     }

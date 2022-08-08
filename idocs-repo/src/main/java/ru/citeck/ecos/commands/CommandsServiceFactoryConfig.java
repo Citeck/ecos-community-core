@@ -6,6 +6,7 @@ import org.alfresco.repo.transaction.RetryingTransactionHelper;
 import org.alfresco.service.ServiceRegistry;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
@@ -15,9 +16,9 @@ import ru.citeck.ecos.commands.context.CommandCtxManager;
 import ru.citeck.ecos.commands.rabbit.RabbitCommandsService;
 import ru.citeck.ecos.commands.remote.RemoteCommandsService;
 import ru.citeck.ecos.commands.transaction.TransactionManager;
-import ru.citeck.ecos.eureka.EurekaAlfInstanceConfig;
 import ru.citeck.ecos.rabbitmq.RabbitMqConn;
 import ru.citeck.ecos.rabbitmq.RabbitMqConnProvider;
+import ru.citeck.ecos.webapp.api.context.EcosWebAppContext;
 
 import java.util.Properties;
 import java.util.concurrent.Callable;
@@ -26,6 +27,8 @@ import java.util.concurrent.Callable;
 @Configuration
 public class CommandsServiceFactoryConfig extends CommandsServiceFactory {
 
+    private static final String CONCURRENT_TIMEOUT_MS = "commands.timeoutMs";
+    private static final String CONCURRENT_CHANNEL_QOS = "commands.channelQos";
     private static final String CONCURRENT_COMMAND_CONSUMERS = "commands.concurrentCommandConsumers";
 
     @Autowired
@@ -35,10 +38,10 @@ public class CommandsServiceFactoryConfig extends CommandsServiceFactory {
     private RetryingTransactionHelper retryHelper;
 
     @Autowired
-    private EurekaAlfInstanceConfig instanceConfig;
+    private RabbitMqConnProvider connProvider;
 
     @Autowired
-    private RabbitMqConnProvider connProvider;
+    private EcosWebAppContext ecosWebAppContext;
 
     @Bean
     @Override
@@ -50,14 +53,28 @@ public class CommandsServiceFactoryConfig extends CommandsServiceFactory {
     @Override
     public CommandsProperties createProperties() {
 
-        CommandsProperties props = new CommandsProperties();
-        props.setAppInstanceId(instanceConfig.getInstanceId());
-        props.setAppName(instanceConfig.getAppname());
+        CommandsProperties.Builder props = CommandsProperties.create();
 
         int concurrentCommandConsumers = Integer.parseInt(properties.getProperty(CONCURRENT_COMMAND_CONSUMERS, "4"));
-        props.setConcurrentCommandConsumers(concurrentCommandConsumers);
+        props.withConcurrentCommandConsumers(concurrentCommandConsumers);
+        String commandTimeoutMsStr = properties.getProperty(CONCURRENT_TIMEOUT_MS);
 
-        return props;
+        if (StringUtils.isNotBlank(commandTimeoutMsStr)) {
+            props.withCommandTimeoutMs(Long.parseLong(commandTimeoutMsStr));
+        }
+
+        String commandChannelQos = properties.getProperty(CONCURRENT_CHANNEL_QOS);
+        if (StringUtils.isNotBlank(commandChannelQos)) {
+            props.withChannelsQos(Integer.parseInt(commandChannelQos));
+        }
+
+        return props.build();
+    }
+
+    @Nullable
+    @Override
+    public EcosWebAppContext getEcosWebAppContext() {
+        return ecosWebAppContext;
     }
 
     @Bean
@@ -130,5 +147,10 @@ public class CommandsServiceFactoryConfig extends CommandsServiceFactory {
     @Autowired
     public void setServiceRegistry(ServiceRegistry serviceRegistry) {
         retryHelper = serviceRegistry.getRetryingTransactionHelper();
+    }
+
+    @Autowired
+    public void setEcosWebAppContext(EcosWebAppContext ecosWebAppContext) {
+        this.ecosWebAppContext = ecosWebAppContext;
     }
 }

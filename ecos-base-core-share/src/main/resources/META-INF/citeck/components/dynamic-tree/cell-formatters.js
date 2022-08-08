@@ -2077,6 +2077,29 @@ define([
             };
         },
 
+        dueDateTime: function () {
+            var date = this.date('dd.MM.yyyy HH:mm');
+            var dateOrDateTime = this.dateOrDateTime();
+
+            return function(elCell, oRecord, oColumn, sData) {
+                var dueDateTime = oRecord.getData('attributes["cwf:dueDateTime"]') || (oRecord.getData('attributes[\'cwf:dueDateTime\']') || [])[0];
+                if (dueDateTime) {
+                    sData = dueDateTime.str || dueDateTime;
+                    date.call(this, elCell, oRecord, oColumn, sData);
+                    return;
+                }
+
+                dueDateTime = oRecord.getData('attributes["bpm:dueDate"]') || (oRecord.getData('attributes[\'bpm:dueDate\']') || [])[0];
+                if (dueDateTime) {
+                    sData = dueDateTime.str || dueDateTime;
+                    dateOrDateTime.call(this, elCell, oRecord, oColumn, sData);
+                    return;
+                }
+
+                elCell.innerHTML = '';
+            };
+        },
+
         formatterFromString: function (expression) {
             return function (elCell, oRecord, oColumn, sData) {
                 eval(expression);

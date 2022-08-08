@@ -3,7 +3,7 @@ package ru.citeck.ecos.records.birthday;
 import org.alfresco.service.cmr.repository.NodeRef;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import ru.citeck.ecos.records.models.UserDTO;
+import ru.citeck.ecos.records.models.UserWithAvatarDto;
 import ru.citeck.ecos.records2.RecordRef;
 import ru.citeck.ecos.records2.RecordsService;
 import ru.citeck.ecos.records2.graphql.meta.value.MetaField;
@@ -21,7 +21,7 @@ import java.util.stream.Collectors;
  * @author Roman Makarskiy
  */
 @Component
-public class BirthdaysRecords extends LocalRecordsCrudDao<UserDTO> {
+public class BirthdaysRecords extends LocalRecordsCrudDao<UserWithAvatarDto> {
 
     private static final String ID = "birthdays";
     private static final String ERROR_UNSUPPORTED_OPERATION = "This operation not supported";
@@ -40,10 +40,10 @@ public class BirthdaysRecords extends LocalRecordsCrudDao<UserDTO> {
     }
 
     @Override
-    public RecordsQueryResult<UserDTO> queryLocalRecords(RecordsQuery recordsQuery, MetaField metaField) {
-        RecordsQueryResult<UserDTO> result = new RecordsQueryResult<>();
+    public RecordsQueryResult<UserWithAvatarDto> queryLocalRecords(RecordsQuery recordsQuery, MetaField metaField) {
+        RecordsQueryResult<UserWithAvatarDto> result = new RecordsQueryResult<>();
 
-        List<UserDTO> birthdays = getBirthdays();
+        List<UserWithAvatarDto> birthdays = getBirthdays();
         result.addRecords(birthdays);
         result.setTotalCount(birthdays.size());
         result.setHasMore(false);
@@ -51,19 +51,19 @@ public class BirthdaysRecords extends LocalRecordsCrudDao<UserDTO> {
         return result;
     }
 
-    private List<UserDTO> getBirthdays() {
+    private List<UserWithAvatarDto> getBirthdays() {
         return birthdaysUtils.search()
                 .stream()
                 .map(this::toUserDTO)
                 .collect(Collectors.toList());
     }
 
-    private UserDTO toUserDTO(NodeRef user) {
-        return recordsService.getMeta(RecordRef.create("", user.toString()), UserDTO.class);
+    private UserWithAvatarDto toUserDTO(NodeRef user) {
+        return recordsService.getMeta(RecordRef.create("", user.toString()), UserWithAvatarDto.class);
     }
 
     @Override
-    public RecordsMutResult save(List<UserDTO> list) {
+    public RecordsMutResult save(List<UserWithAvatarDto> list) {
         throw new IllegalArgumentException(ERROR_UNSUPPORTED_OPERATION);
     }
 
@@ -73,12 +73,12 @@ public class BirthdaysRecords extends LocalRecordsCrudDao<UserDTO> {
     }
 
     @Override
-    public List<UserDTO> getValuesToMutate(List<RecordRef> list) {
+    public List<UserWithAvatarDto> getValuesToMutate(List<RecordRef> list) {
         throw new IllegalArgumentException(ERROR_UNSUPPORTED_OPERATION);
     }
 
     @Override
-    public List<UserDTO> getLocalRecordsMeta(List<RecordRef> list, MetaField metaField) {
+    public List<UserWithAvatarDto> getLocalRecordsMeta(List<RecordRef> list, MetaField metaField) {
         throw new IllegalArgumentException(ERROR_UNSUPPORTED_OPERATION);
     }
 }

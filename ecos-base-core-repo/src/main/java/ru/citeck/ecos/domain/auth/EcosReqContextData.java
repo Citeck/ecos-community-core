@@ -13,8 +13,8 @@ public class EcosReqContextData {
     private final String authHeader;
     @Nullable
     private final String timezoneHeader;
+    @Nullable
+    private final String acceptLangHeader;
 
     private final boolean isSystemRequest;
-
-    private final float utcOffset;
 }

@@ -1,0 +1,137 @@
+id: active-tasks-aggregation
+name: { ru: Активные задачи, en: Active tasks }
+
+sourceId: eproc/proc-task
+
+predicate:
+  t: and
+  val:
+    - { t: eq, att: _actors, val: $CURRENT }
+    - { t: or, val: [ #todo: replace with 'empty' predicate
+      { t: like, att: ISNULL, val: bpm:completionDate },
+      { t: like, att: ISUNSET, val: bpm:completionDate }
+    ] }
+    - { t: not-eq, att: samwf:processingStatus, val: FULLY_PROCESSED }
+
+actions:
+  - uiserv/action@view-task
+  - uiserv/action@view-task-in-background
+
+columns:
+
+  - id: bpm:priority
+    name:
+      en: Priority
+      ru: Приоритет
+    formatter:
+      type: workflowPriority
+
+  - id: cm:title
+    name:
+      en: Task name
+      ru: Название задачи
+    sortable: false
+    formatter:
+      type: action
+      config:
+        actionId: view-task
+
+  - id: wfm:document
+    name:
+      en: Document
+      ru: Документ
+
+  - id: wfm:counterparty
+    name:
+      en: Counterparty
+      ru: Контрагент
+    searhable: false
+
+  - id: wfm:documentTypeTitle
+    name:
+      en: Document type
+      ru: Тип документа
+
+  - id: wfm:documentKindTitle
+    name:
+      en: Document kind
+      ru: Вид документа
+
+  - id: bpm:dueDate
+    name:
+      en: Due date
+      ru: Срок
+    type: DATETIME
+
+  - id: cwf:senderName
+    name:
+      en: Sender name
+      ru: Имя отправителя
+    searchable: false
+    visible: false
+
+  - id: cwf:sender
+    name:
+      en: Sender
+      ru: Отправитель
+    visible: false
+
+  - id: wfm:assignee
+    name:
+      en: Assignee
+      ru: Исполнитель
+    visible: false
+    editor:
+      type: orgstruct
+      config:
+        allowedAuthorityTypes: USER
+
+  - id: bpm:status
+    name:
+      en: Status
+      ru: Статус
+    visible: false
+
+  - id: bpm:pooledActors
+    name:
+      en: Roles and users
+      ru: Роли и пользователи
+    sortable: false
+    visible: false
+    editor:
+      type: orgstruct
+      config:
+        allowedAuthorityTypes: USER,GROUP
+
+  - id: bpm:startDate
+    name:
+      en: Start date
+      ru: Дата начала
+    visible: false
+    type: DATETIME
+
+  - id: bpm:comment
+    name:
+      en: Comment
+      ru: Комментарий
+    visible: false
+
+  - id: cwf:taskTitle
+    name:
+      en: Task title
+      ru: Заголовок задачи
+    visible: false
+
+  - id: cm:name
+    name:
+      en: Name
+      ru: Имя
+    visible: false
+    searchable: false
+
+  - id: wfm:taskType
+    name:
+      en: Task type
+      ru: Тип задачи
+    visible: false
+    searchable: false

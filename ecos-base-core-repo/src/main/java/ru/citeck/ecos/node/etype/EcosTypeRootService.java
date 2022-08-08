@@ -1,5 +1,6 @@
 package ru.citeck.ecos.node.etype;
 
+import lombok.extern.slf4j.Slf4j;
 import org.alfresco.model.ContentModel;
 import org.alfresco.repo.security.authentication.AuthenticationUtil;
 import org.alfresco.service.cmr.repository.NodeRef;
@@ -16,7 +17,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import ru.citeck.ecos.commons.data.ObjectData;
 import ru.citeck.ecos.model.EcosTypeModel;
-import ru.citeck.ecos.model.lib.type.service.TypeRefService;
 import ru.citeck.ecos.node.EcosTypeService;
 import ru.citeck.ecos.records2.RecordRef;
 import ru.citeck.ecos.search.ftsquery.FTSQuery;
@@ -29,6 +29,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 
+@Slf4j
 @Service
 public class EcosTypeRootService {
 
@@ -107,6 +108,7 @@ public class EcosTypeRootService {
 
         SiteInfo site = siteService.getSite(tenantSiteName);
         if (site == null) {
+            log.info("Create new site for tenant: '" + currentTenant + "'");
             String title = "Site for tenant '" + currentTenant + "'";
             site = siteService.createSite(
                 "document-site-dashboard",
@@ -118,7 +120,9 @@ public class EcosTypeRootService {
         }
 
         NodeRef siteRoot = site.getNodeRef();
-        nodeService.addAspect(siteRoot, EcosTypeModel.ASPECT_TENANT_SITE, new HashMap<>());
+        if (!nodeService.hasAspect(siteRoot, EcosTypeModel.ASPECT_TENANT_SITE)) {
+            nodeService.addAspect(siteRoot, EcosTypeModel.ASPECT_TENANT_SITE, new HashMap<>());
+        }
 
         NodeRef typesFolder = findOrCreateFolder(
             siteRoot,

@@ -8,10 +8,10 @@ import org.mozilla.javascript.Context;
 import org.mozilla.javascript.Scriptable;
 import ru.citeck.ecos.model.lib.attributes.dto.AttributeDef;
 import ru.citeck.ecos.node.etype.EcosTypeRootService;
-import ru.citeck.ecos.records.type.TypeDto;
 import ru.citeck.ecos.records2.RecordRef;
 import ru.citeck.ecos.utils.AlfrescoScopableProcessorExtension;
 import ru.citeck.ecos.utils.JavaScriptImplUtils;
+import ru.citeck.ecos.webapp.lib.model.type.dto.TypeDef;
 
 import java.util.Collections;
 import java.util.List;
@@ -44,12 +44,12 @@ public class EcosTypeServiceJS extends AlfrescoScopableProcessorExtension {
 
     private List<String> getAttsIdListByTypeImpl(String type) {
 
-        TypeDto typeDef = ecosTypeService.getTypeDef(getTypeRef(type));
-        if (typeDef == null || typeDef.getResolvedModel() == null) {
+        TypeDef typeDef = ecosTypeService.getTypeDef(getTypeRef(type));
+        if (typeDef == null) {
             return Collections.emptyList();
         }
 
-        List<AttributeDef> attributes = typeDef.getResolvedModel().getAttributes();
+        List<AttributeDef> attributes = typeDef.getModel().getAttributes();
 
         return attributes.stream()
             .map(AttributeDef::getId)

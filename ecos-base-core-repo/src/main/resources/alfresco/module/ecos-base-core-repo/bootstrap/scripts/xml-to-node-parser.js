@@ -47,7 +47,10 @@ var parser = {
             this.parserData.ecosType = null;
         }
 
-        var root = this.helper.getRootNodeByPath(this.parserData.path, this.parserData.ecosType);
+        // WARNING: when createRootIfNotExists == true root node could exists, but it is not available
+        // in current transaction. In this case you should use doInSeparateTxn(function(){...}) to work with it.
+        var createRootIfNotExists = (method + "") === METHOD_SAVE;
+        var root = this.helper.getRootNodeByPath(this.parserData.path, this.parserData.ecosType, createRootIfNotExists);
         if (!root) {
             return false;
         }
@@ -92,7 +95,7 @@ var parser = {
     saveNodes: function (root, objects) {
         batchExecuter.processArray({
             items: objects,
-            batchSize: 200,
+            batchSize: 10,
             //TODO: Fix multi threads import. In Alfresco 5 multithreaded javascript batch processor does not work correctly - SQL Duplicate key exception.
             threads: 1,
             onNode: function (row) {
@@ -160,7 +163,9 @@ var parser = {
             if (root) {
                 rec.att("_parent", '' + root.nodeRef);
             }
-            createdNode = search.findNode(rec.save().getLocalId());
+            Packages.ru.citeck.ecos.behavior.CaseTemplateBehavior.runInCurrentThread(function() {
+                createdNode = search.findNode(rec.save().getLocalId());
+            });
         } else {
             createdNode = root.createNode(null, type, props, assocType);
         }
@@ -493,13 +498,20 @@ var parser = {
             }
             return null;
         },
-        getRootNodeByPath: function (path, ecosType) {
+        getRootNodeByPath: function (path, ecosType, createIfNotExists) {
             var rootNode = null;
             if (path) {
                 rootNode = (search.selectNodes(path) || [])[0];
             }
             if (!rootNode && ecosType) {
-                rootNode = ecosTypeService.getRootForType(ecosType, true);
+                if (createIfNotExists) {
+                    // create root if not exists in separate transaction to allow use it in batchExecutor
+                    rootNode = doInSeparateTxn(function() {
+                        return ecosTypeService.getRootForType(ecosType, true);
+                    });
+                } else {
+                    rootNode = ecosTypeService.getRootForType(ecosType, false);
+                }
             }
             if (!rootNode) {
                 logger.error(this.parserScriptName + " cannot find root node by path: " + path + " ecosType: " + ecosType);
@@ -565,4 +577,9 @@ function setStatusAsync(node, status) {
             row.save();
         }
     });
+}
+
+function doInSeparateTxn(action) {
+    var rts = services.get('transactionService').getRetryingTransactionHelper();
+    return rts.doInTransaction(action, false, true);
 }

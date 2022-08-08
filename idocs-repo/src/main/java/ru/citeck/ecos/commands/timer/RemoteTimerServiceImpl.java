@@ -1,11 +1,11 @@
 package ru.citeck.ecos.commands.timer;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import ru.citeck.ecos.commands.CommandsProperties;
 import ru.citeck.ecos.commands.CommandsService;
 import ru.citeck.ecos.commands.dto.CommandResult;
 import ru.citeck.ecos.commands.timer.dto.request.CancelTimerCommand;
@@ -15,28 +15,24 @@ import ru.citeck.ecos.commands.timer.dto.result.CancelTimerCommandRes;
 import ru.citeck.ecos.commands.timer.dto.result.CreateTimerCommandRes;
 import ru.citeck.ecos.commons.data.ObjectData;
 import ru.citeck.ecos.utils.TransactionUtils;
+import ru.citeck.ecos.webapp.api.properties.EcosWebAppProperties;
 
 import java.time.Instant;
 import java.util.UUID;
 
 @Slf4j
 @Service
+@RequiredArgsConstructor(onConstructor_={@Autowired})
 public class RemoteTimerServiceImpl implements RemoteTimerService {
 
     private static final String EPROC_TARGET_APP_NAME = "eproc";
 
-    private final CommandsProperties commandsProperties;
     private final CommandsService commandsService;
-
-    @Autowired
-    public RemoteTimerServiceImpl(CommandsProperties commandsProperties, CommandsService commandsService) {
-        this.commandsProperties = commandsProperties;
-        this.commandsService = commandsService;
-    }
+    private final EcosWebAppProperties webAppProperties;
 
     @Override
     public <T> String scheduleTimer(Instant triggerTime, String commandType, T callbackData) {
-        String currentApp = commandsProperties.getAppName();
+        String currentApp = webAppProperties.getAppName();
         return scheduleTimer(triggerTime, commandType, currentApp, callbackData);
     }
 

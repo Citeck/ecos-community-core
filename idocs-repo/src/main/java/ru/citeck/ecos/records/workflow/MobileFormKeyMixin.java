@@ -7,13 +7,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import ru.citeck.ecos.model.lib.type.service.utils.TypeUtils;
 import ru.citeck.ecos.node.EcosTypeService;
-import ru.citeck.ecos.records.type.TypeDto;
 import ru.citeck.ecos.records2.RecordConstants;
 import ru.citeck.ecos.records2.RecordRef;
-import ru.citeck.ecos.records3.RecordsService;
 import ru.citeck.ecos.records3.record.atts.schema.annotation.AttName;
 import ru.citeck.ecos.records3.record.atts.value.AttValueCtx;
 import ru.citeck.ecos.records3.record.mixin.AttMixin;
+import ru.citeck.ecos.webapp.lib.model.type.dto.TypeDef;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -47,7 +46,7 @@ public class MobileFormKeyMixin implements AttMixin {
         types.add(documentType);
 
         RecordRef typeRef = TypeUtils.getTypeRef(documentType);
-        TypeDto typeDef = ecosTypeService.getTypeDef(typeRef);
+        TypeDef typeDef = ecosTypeService.getTypeDef(typeRef);
         int counter = 0;
         while (++counter < 3 && typeDef != null && RecordRef.isNotEmpty(typeDef.getParentRef())) {
             types.add(typeDef.getParentRef().getId());

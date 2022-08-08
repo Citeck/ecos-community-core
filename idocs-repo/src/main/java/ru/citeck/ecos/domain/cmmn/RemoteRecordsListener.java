@@ -13,7 +13,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import ru.citeck.ecos.events2.EventsService;
 import ru.citeck.ecos.events2.listener.ListenerConfig;
-import ru.citeck.ecos.events2.type.RecordMutatedEvent;
+import ru.citeck.ecos.events2.type.RecordChangedEvent;
+import ru.citeck.ecos.events2.type.RecordCreatedEvent;
+import ru.citeck.ecos.events2.type.RecordDraftStatusChangedEvent;
 import ru.citeck.ecos.icase.activity.dto.ActivityRef;
 import ru.citeck.ecos.icase.activity.dto.CaseServiceType;
 import ru.citeck.ecos.icase.activity.service.CaseActivityEventService;
@@ -21,6 +23,7 @@ import ru.citeck.ecos.icase.activity.service.eproc.importer.EProcCaseImporter;
 import ru.citeck.ecos.model.ICaseEventModel;
 import ru.citeck.ecos.node.EcosTypeService;
 import ru.citeck.ecos.records2.RecordRef;
+import ru.citeck.ecos.records2.predicate.model.Predicates;
 import ru.citeck.ecos.records3.record.atts.schema.annotation.AttName;
 import ru.citeck.ecos.records3.record.request.RequestContext;
 import ru.citeck.ecos.utils.TransactionUtils;
@@ -53,42 +56,55 @@ public class RemoteRecordsListener {
             .build(CacheLoader.from(this::isTypeCase));
 
         eventsService.addListener(ListenerConfig.<EventData>create()
-            .withEventType(RecordMutatedEvent.TYPE)
+            .withEventType(RecordCreatedEvent.TYPE)
             .withDataClass(EventData.class)
-            .withActionJ(this::onEvent)
+            .withActionJ(event -> onEvent(event, true))
+            .build()
+        );
+        eventsService.addListener(ListenerConfig.<EventData>create()
+            .withEventType(RecordChangedEvent.TYPE)
+            .withDataClass(EventData.class)
+            .withActionJ(event -> onEvent(event, false))
+            .build()
+        );
+        eventsService.addListener(ListenerConfig.<EventData>create()
+            .withEventType(RecordDraftStatusChangedEvent.TYPE)
+            .withDataClass(EventData.class)
+            .withActionJ(event -> onEvent(event, false))
+            .withFilter(Predicates.eq("after?bool", false))
             .build()
         );
     }
 
-    private void onEvent(EventData event) {
+    private void onEvent(EventData event, boolean isNewRec) {
         RequestContext.doWithTxnJ(() ->
             transactionService.getRetryingTransactionHelper().doInTransaction(() -> {
-                onEventImpl(event);
+                onEventImpl(event, isNewRec);
                 return null;
             }, false)
         );
     }
 
-    private void onEventImpl(EventData event) {
+    private void onEventImpl(EventData event, boolean isNewRec) {
 
-        log.info(
+        log.debug(
             "Record mutated: " + event.recordRef
                 + " type: " + event.typeRef
-                + " new record: " + event.newRecord
+                + " new record: " + isNewRec
         );
         if (RecordRef.isEmpty(event.recordRef) || RecordRef.isEmpty(event.typeRef)) {
             return;
         }
 
         if (!isTypeCase.getUnchecked(event.typeRef)) {
-            log.info("Record is not a case");
+            log.debug("Record is not a case");
             return;
         }
 
         ActivityRef activityRef = ActivityRef.of(CaseServiceType.EPROC, event.recordRef, ActivityRef.ROOT_ID);
         Set<RecordRef> newRecordsSet = TransactionalResourceHelper.getSet(EVENT_NEW_RECORDS_TXN_KEY);
 
-        if (event.newRecord && newRecordsSet.add(event.recordRef)) {
+        if (isNewRec && newRecordsSet.add(event.recordRef)) {
             eProcCaseImporter.importCase(event.recordRef);
             caseActivityEventService.fireEvent(activityRef, ICaseEventModel.CONSTR_CASE_CREATED);
         }
@@ -111,10 +127,9 @@ public class RemoteRecordsListener {
 
     @Data
     public static class EventData {
-        @AttName("after?id")
+        @AttName("record?id")
         private RecordRef recordRef;
-        @AttName("after._type?id")
+        @AttName("record._type?id")
         private RecordRef typeRef;
-        private Boolean newRecord;
     }
 }

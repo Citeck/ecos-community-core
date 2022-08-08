@@ -20,9 +20,10 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import ru.citeck.ecos.commons.data.DataValue;
 import ru.citeck.ecos.config.EcosConfigService;
-import ru.citeck.ecos.domain.auth.EcosReqContext;
+import ru.citeck.ecos.context.lib.time.TimeZoneContext;
 import ru.citeck.ecos.model.EcosTypeModel;
 import ru.citeck.ecos.node.EcosTypeService;
+import ru.citeck.ecos.records.language.predicate.converters.AssocToCustomSearchFieldsConfig;
 import ru.citeck.ecos.records.language.predicate.converters.PredToFtsContext;
 import ru.citeck.ecos.records.language.predicate.converters.PredicateToFtsConverter;
 import ru.citeck.ecos.records.language.predicate.converters.delegators.ConvertersDelegator;
@@ -37,11 +38,12 @@ import ru.citeck.ecos.utils.AuthorityUtils;
 import ru.citeck.ecos.utils.DictUtils;
 
 import javax.annotation.PostConstruct;
-import javax.xml.datatype.Duration;
 import java.io.Serializable;
+import java.time.Duration;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -52,8 +54,8 @@ import static ru.citeck.ecos.records.language.predicate.converters.impl.constant
 import static ru.citeck.ecos.records.language.predicate.converters.impl.utils.ValuePredicateToFtsConverterUtils.*;
 import static ru.citeck.ecos.records2.predicate.model.ValuePredicate.Type.*;
 
-@Component
 @Slf4j
+@Component
 public class ValuePredicateToFtsConverter implements PredicateToFtsConverter {
 
     private ConvertersDelegator delegator;
@@ -65,19 +67,34 @@ public class ValuePredicateToFtsConverter implements PredicateToFtsConverter {
     private NamespaceService namespaceService;
     private EcosConfigService ecosConfigService;
     private AssociationIndexPropertyRegistry associationIndexPropertyRegistry;
+    private final Map<QName, List<QName>> assocToCustomSearchFieldsRegistry = new ConcurrentHashMap<>();
 
     private DictUtils dictUtils;
     private AuthorityUtils authorityUtils;
 
     @Value("${value.predicate.to.fts.inner.query.max.items}")
     private String innerQueryMaxItemsStr;
-    private int innerQueryMaxItems = 20;
+    private int innerQueryMaxItems = INNER_QUERY_MAX_ITEMS;
 
     @PostConstruct
     void init() {
         if (StringUtils.isNotBlank(innerQueryMaxItemsStr) && innerQueryMaxItemsStr.charAt(0) != '$') {
             innerQueryMaxItems = Integer.parseInt(innerQueryMaxItemsStr);
         }
+    }
+
+    public void registerAssocToCustomSearchFields(QName assocQName, List<QName> searchFields) {
+        if (assocQName == null) {
+            log.warn("Registration of custom search fields are failed, assocQName is null");
+            return;
+        }
+
+        if (searchFields == null) {
+            searchFields = Collections.emptyList();
+        }
+
+        assocToCustomSearchFieldsRegistry.put(assocQName, searchFields);
+        log.info("Registered custom search fields '{}' for assoc '{}'", searchFields, assocQName);
     }
 
     @Override
@@ -90,62 +107,60 @@ public class ValuePredicateToFtsConverter implements PredicateToFtsConverter {
         ValuePredicate.Type predicateType = valuePredicate.getType();
 
         switch (attribute) {
-            case ALL: {
+            case ALL:
                 processAllAttribute(query, predicateValue);
                 break;
-            }
-            case ECOS_STATUS: {
+            case ECOS_STATUS:
                 processEcosStatusAttribute(query, predicateValue);
                 break;
-            }
-            case PATH: {
+            case PATH:
                 query.path(predicateValue);
                 break;
-            }
             case PARENT:
-            case _PARENT: {
+            case _PARENT:
                 query.parent(new NodeRef(toValidNodeRef(predicateValue)));
                 break;
-            }
             case TYPE:
-            case S_TYPE: {
+            case S_TYPE:
                 consumeQName(predicateValue, query::type);
                 break;
-            }
             case _TYPE:
-            case _ETYPE: {
+            case _ETYPE:
                 handleETypeAttribute(query, predicateType, predicateValue);
                 break;
-            }
             case ASPECT:
-            case S_ASPECT: {
+            case S_ASPECT:
                 consumeQName(predicateValue, query::aspect);
                 break;
-            }
-            case IS_NULL: {
+            case IS_NULL:
                 consumeQName(predicateValue, query::isNull);
                 break;
-            }
-            case IS_NOT_NULL: {
+            case IS_NOT_NULL:
                 consumeQueryField(predicateValue, query::isNotNull);
                 break;
-            }
-            case IS_UNSET: {
+            case IS_UNSET:
                 consumeQueryField(predicateValue, query::isUnset);
                 break;
-            }
             case RecordConstants.ATT_MODIFIER:
             case RecordConstants.ATT_MODIFIED:
             case RecordConstants.ATT_CREATOR:
             case RecordConstants.ATT_CREATED:
-            {
                 QName attQName;
                 switch (attribute) {
-                    case RecordConstants.ATT_MODIFIER: attQName = ContentModel.PROP_MODIFIER; break;
-                    case RecordConstants.ATT_MODIFIED: attQName = ContentModel.PROP_MODIFIED; break;
-                    case RecordConstants.ATT_CREATOR: attQName = ContentModel.PROP_CREATOR; break;
-                    case RecordConstants.ATT_CREATED: attQName = ContentModel.PROP_CREATED; break;
-                    default: throw new IllegalStateException("Incorrect audit attribute: " + attribute);
+                    case RecordConstants.ATT_MODIFIER:
+                        attQName = ContentModel.PROP_MODIFIER;
+                        break;
+                    case RecordConstants.ATT_MODIFIED:
+                        attQName = ContentModel.PROP_MODIFIED;
+                        break;
+                    case RecordConstants.ATT_CREATOR:
+                        attQName = ContentModel.PROP_CREATOR;
+                        break;
+                    case RecordConstants.ATT_CREATED:
+                        attQName = ContentModel.PROP_CREATED;
+                        break;
+                    default:
+                        throw new IllegalStateException("Incorrect audit attribute: " + attribute);
                 }
                 convertValuePredicateCopyForAttr(
                     valuePredicate,
@@ -154,20 +169,17 @@ public class ValuePredicateToFtsConverter implements PredicateToFtsConverter {
                     context
                 );
                 break;
-            }
-            case ACTORS: {
+            case ACTORS:
                 String actor = getActorByValue(predicateValue);
                 delegator.delegate(getOrPredicateForActors(actor), query, context);
                 break;
-            }
-            default: {
+            default:
                 if (IN.equals(valuePredicate.getType())) {
                     processInAttribute(query, valuePredicate, context);
                 } else {
                     processDefaultAttribute(query, valuePredicate, context);
                 }
                 break;
-            }
         }
     }
 
@@ -261,46 +273,6 @@ public class ValuePredicateToFtsConverter implements PredicateToFtsConverter {
         query.close();
     }
 
-
-    private void convertContainsTextPredicate(PropertyDefinition propertyDefinition, FTSQuery query, QName field, String value) {
-        QName container = propertyDefinition.getContainerClass().getName();
-
-        List<Serializable> values = getPropertyValuesByConstraintsFromField(container, field, value);
-        if (values.isEmpty()) {
-            query.contains(field, value);
-            return;
-        }
-
-        query.any(field, values);
-    }
-
-    private List<Serializable> getPropertyValuesByConstraintsFromField(QName container, QName field, String inputValue) {
-        Map<String, String> mapping = dictUtils.getPropertyDisplayNameMappingWithChildren(container, field);
-
-        return mapping.entrySet().stream().filter(e -> checkValueEqualsToKeyOrValue(e, inputValue))
-            .map(Map.Entry::getKey).collect(Collectors.toList());
-    }
-
-    private String getPredicateValue(DataValue value, String valueStr, ClassAttributeDefinition classAttributeDefinition) {
-        if (!value.isTextual()) {
-            return valueStr;
-        }
-
-        if (!(classAttributeDefinition instanceof PropertyDefinition)) {
-            return String.format(QUOTES_STRING_TEMPLATE, valueStr);
-        }
-
-        String predicateValue;
-        DataTypeDefinition dataTypeDefinition = ((PropertyDefinition) classAttributeDefinition).getDataType();
-        if (DataTypeDefinition.DATETIME.equals(dataTypeDefinition.getName())) {
-            predicateValue = TimeUtils.convertTime(valueStr, log);
-        } else {
-            predicateValue = valueStr;
-        }
-
-        return String.format(QUOTES_STRING_TEMPLATE, predicateValue);
-    }
-
     private OrPredicate getOrPredicateForActors(String actor) {
         Set<String> actorRefs = getActorsRef(actor);
 
@@ -377,58 +349,6 @@ public class ValuePredicateToFtsConverter implements PredicateToFtsConverter {
         query.close();
     }
 
-    private void addNodeRefSearchTerms(FTSQuery query, QName field, QName targetTypeName, String value) {
-        if (NodeRef.isNodeRef(value)) {
-            query.value(field, value);
-            return;
-        }
-
-        if (field == null) {
-            return;
-        }
-
-        String assocVal = String.format(CONTAINS_STRING_TEMPLATE, value);
-
-        Map<QName, Serializable> attributes = new HashMap<>();
-
-        getQNameConfigValueDelimitedByComma(SEARCH_PROPS)
-            .forEach(attribute -> attributes.put(attribute, assocVal));
-
-        FTSQuery innerQuery = FTSQuery.createRaw();
-        innerQuery.maxItems(innerQueryMaxItems);
-
-        if (targetTypeName != null) {
-
-            innerQuery.type(targetTypeName);
-
-            if (targetTypeName.equals(ContentModel.TYPE_PERSON)) {
-                attributes.put(ContentModel.PROP_USERNAME, assocVal);
-                attributes.put(ContentModel.PROP_USER_USERNAME, assocVal);
-                attributes.put(ContentModel.PROP_FIRSTNAME, assocVal);
-                attributes.put(ContentModel.PROP_LASTNAME, assocVal);
-            }
-
-            if (targetTypeName.equals(ContentModel.TYPE_AUTHORITY_CONTAINER)) {
-                attributes.put(ContentModel.PROP_AUTHORITY_DISPLAY_NAME, assocVal);
-            }
-
-            TypeDefinition targetType = dictUtils.getTypeDefinition(targetTypeName);
-            if (targetType != null) {
-                attributes.putAll(getTargetTypeAttributes(targetType, assocVal));
-            }
-        }
-
-        List<NodeRef> assocs = innerQuery
-            .and().values(attributes, BinOperator.OR, false)
-            .query(searchService);
-        if (assocs.size() > 0) {
-            query.any(field, new ArrayList<>(assocs));
-            return;
-        }
-
-        query.value(field, value);
-    }
-
     private void consumeQueryField(String fieldQName, Consumer<QName> consumer) {
         QName qName = getQueryField(dictUtils.getAttDefinition(fieldQName));
         consumeQName(qName, consumer);
@@ -444,18 +364,6 @@ public class ValuePredicateToFtsConverter implements PredicateToFtsConverter {
         }
 
         consumer.accept(qName);
-    }
-
-    private QName getQueryField(ClassAttributeDefinition def) {
-        if (def == null) {
-            return null;
-        }
-
-        QName definitionName = def.getName();
-        if (def instanceof AssociationDefinition) {
-            return associationIndexPropertyRegistry.getAssociationIndexProperty(definitionName);
-        }
-        return definitionName;
     }
 
     private List<QName> getQNameConfigValueDelimitedByComma(String key) {
@@ -509,33 +417,27 @@ public class ValuePredicateToFtsConverter implements PredicateToFtsConverter {
         predicateValue = evalPredicateValue(predicateValue, attDef);
         String predValue = getPredicateValue(objectPredicateValue, predicateValue, attDef);
         switch (valuePredType) {
-            case EQ: {
-                query.exact(field, predicateValue);
+            case EQ:
+                processExactValuePredicate(query, predicateValue, field, attDef);
                 return;
-            }
-            case LIKE: {
-                query.value(field, predicateValue.replaceAll(PERCENT, STAR));
+            case LIKE:
+                processLikeValuePredicate(query, predicateValue, field, attDef);
                 return;
-            }
             case CONTAINS:
-                processValuePredContains(query, predicateValue, field, attDef);
+                processContainsValuePredicate(query, predicateValue, field, attDef);
                 return;
-            case GE: {
+            case GE:
                 query.range(field, predValue, true, null, false);
                 return;
-            }
-            case GT: {
+            case GT:
                 query.range(field, predValue, false, null, false);
                 return;
-            }
-            case LE: {
+            case LE:
                 query.range(field, null, false, predValue, true);
                 return;
-            }
-            case LT: {
+            case LT:
                 query.range(field, null, false, predValue, false);
                 return;
-            }
         }
         throw new RuntimeException(String.format(UNKNOWN_VALUE_PREDICATE_TYPE, valuePredType));
     }
@@ -556,11 +458,11 @@ public class ValuePredicateToFtsConverter implements PredicateToFtsConverter {
         }
 
         if (TODAY.equals(predicateValue) && Boolean.TRUE.equals(isDateWithTimeAtt(attDef))) {
-            int utcOffset = (int)(EcosReqContext.getUtcOffset() * 60);
+            Duration utcOffset = TimeZoneContext.getUtcOffset();
             predicateValue = Instant.now()
-                .plus(utcOffset, ChronoUnit.MINUTES)
+                .plus(utcOffset)
                 .truncatedTo(ChronoUnit.DAYS)
-                .minus(utcOffset, ChronoUnit.MINUTES).toString() + "/P1D";
+                .minus(utcOffset).toString() + "/P1D";
         }
 
         boolean valueContainsSlash = predicateValue.contains(SLASH_DELIMITER);
@@ -669,7 +571,7 @@ public class ValuePredicateToFtsConverter implements PredicateToFtsConverter {
 
     private Date calcDateByBoundary(String intervalBoundary, Date date) {
         Date newDate;
-        Duration duration = TimeUtils.parseIsoDuration(intervalBoundary);
+        javax.xml.datatype.Duration duration = TimeUtils.parseIsoDuration(intervalBoundary);
         if (duration != null) {
             newDate = new Date(date.getTime());
             duration.addTo(newDate);
@@ -680,49 +582,53 @@ public class ValuePredicateToFtsConverter implements PredicateToFtsConverter {
         return newDate;
     }
 
-    private String evalPredicateValue(String predicateValue, ClassAttributeDefinition attDef) {
+    private void processExactValuePredicate(FTSQuery query, String predicateValue, QName field,
+                                            ClassAttributeDefinition attDef) {
 
-        if (!(attDef instanceof PropertyDefinition)) {
-            return predicateValue;
-        }
+        if (attDef instanceof AssociationDefinition) {
+            if (NodeRef.isNodeRef(predicateValue)) {
+                processNodeRefAssocTerm(query, predicateValue, field, attDef);
+                return;
+            }
 
-        DataTypeDefinition dataTypeDefinition = ((PropertyDefinition) attDef).getDataType();
-        boolean isDateTime = DataTypeDefinition.DATETIME.equals(dataTypeDefinition.getName());
-        boolean isDate = DataTypeDefinition.DATE.equals(dataTypeDefinition.getName());
-
-        if (isDateTime || isDate) {
-            predicateValue = evalConstants(predicateValue);
-            predicateValue = evalDuration(predicateValue);
-        }
-
-        return predicateValue;
-    }
-
-    private String evalConstants(String predicateValue) {
-        switch (predicateValue) {
-            case TODAY:
-                int utcOffset = (int)(EcosReqContext.getUtcOffset() * 60);
-                return TimeUtils.formatIsoDate(Date.from(Instant.now().plus(utcOffset, ChronoUnit.MINUTES)));
-            case "$NOW":
-                return TimeUtils.formatIsoDateTime(new Date());
-            default:
-                return predicateValue;
+            ClassDefinition targetType = ((AssociationDefinition) attDef).getTargetClass();
+            List<NodeRef> innerValues = searchInnerValues(field, targetType.getName(), predicateValue, true);
+            if (innerValues.size() > 0) {
+                query.any(field, new ArrayList<>(innerValues));
+            } else {
+                query.alwaysFalse();
+            }
+        } else {
+            query.exact(field, predicateValue);
         }
     }
 
-    private String evalDuration(String predicateValue) {
-        Duration duration = TimeUtils.parseIsoDuration(predicateValue);
-        if (duration != null) {
-            Date date = new Date();
-            duration.addTo(date);
-            return TimeUtils.formatIsoDateTime(date);
-        }
+    private void processLikeValuePredicate(FTSQuery query, String predicateValue, QName field,
+                                           ClassAttributeDefinition attDef) {
 
-        return predicateValue;
+        predicateValue = predicateValue.replaceAll(PERCENT, STAR);
+
+        if (attDef instanceof AssociationDefinition) {
+            if (NodeRef.isNodeRef(predicateValue)) {
+                processNodeRefAssocTerm(query, predicateValue, field, attDef);
+                return;
+            }
+
+            ClassDefinition targetType = ((AssociationDefinition) attDef).getTargetClass();
+            List<NodeRef> innerValues = searchInnerValues(field, targetType.getName(), predicateValue, false);
+            if (innerValues.size() > 0) {
+                query.any(field, new ArrayList<>(innerValues));
+            } else {
+                query.alwaysFalse();
+            }
+        } else {
+            query.value(field, predicateValue);
+        }
     }
 
-    private void processValuePredContains(FTSQuery query, String predicateValue, QName field,
-                                          ClassAttributeDefinition attDef) {
+    private void processContainsValuePredicate(FTSQuery query, String predicateValue, QName field,
+                                               ClassAttributeDefinition attDef) {
+
         if (StringUtils.isEmpty(predicateValue)) {
             return;
         }
@@ -741,11 +647,11 @@ public class ValuePredicateToFtsConverter implements PredicateToFtsConverter {
                 return;
             }
             if (DataTypeDefinition.CATEGORY.equals(typeName)) {
-                addNodeRefSearchTerms(query, field, ContentModel.TYPE_CATEGORY, predicateValue);
+                addContainsNodeRefSearchTerms(query, field, ContentModel.TYPE_CATEGORY, predicateValue);
                 return;
             }
             if (DataTypeDefinition.NODE_REF.equals(typeName)) {
-                addNodeRefSearchTerms(query, field, null, predicateValue);
+                addContainsNodeRefSearchTerms(query, field, null, predicateValue);
                 return;
             }
 
@@ -756,28 +662,180 @@ public class ValuePredicateToFtsConverter implements PredicateToFtsConverter {
         if (attDef instanceof AssociationDefinition) {
 
             if (NodeRef.isNodeRef(predicateValue)) {
-                QName qName = attDef.getName();
-                if (qName.equals(ASSOC_CASE_STATUS)) {
-                    queryCaseStatus(query, predicateValue, field);
-                } else {
-                    query.value(field, predicateValue);
-                }
+                processNodeRefAssocTerm(query, predicateValue, field, attDef);
                 return;
             }
 
             ClassDefinition targetType = ((AssociationDefinition) attDef).getTargetClass();
-            addNodeRefSearchTerms(query, field, targetType.getName(), predicateValue);
+            addContainsNodeRefSearchTerms(query, field, targetType.getName(), predicateValue);
         }
+    }
+
+    private void processNodeRefAssocTerm(FTSQuery query, String predicateValue, QName field, ClassAttributeDefinition attDef) {
+        QName qName = attDef.getName();
+        if (qName.equals(ASSOC_CASE_STATUS)) {
+            queryCaseStatus(query, predicateValue, field);
+        } else {
+            query.value(field, predicateValue);
+        }
+    }
+
+    private void convertContainsTextPredicate(PropertyDefinition propertyDefinition, FTSQuery query, QName field, String value) {
+        QName container = propertyDefinition.getContainerClass().getName();
+
+        List<Serializable> values = getPropertyValuesByConstraintsFromField(container, field, value);
+        if (values.isEmpty()) {
+            query.contains(field, value);
+            return;
+        }
+
+        query.any(field, values);
+    }
+
+    private List<Serializable> getPropertyValuesByConstraintsFromField(QName container, QName field, String inputValue) {
+        Map<String, String> mapping = dictUtils.getPropertyDisplayNameMappingWithChildren(container, field);
+
+        return mapping.entrySet().stream().filter(e -> checkValueEqualsToKeyOrValue(e, inputValue))
+            .map(Map.Entry::getKey).collect(Collectors.toList());
+    }
+
+    private void addContainsNodeRefSearchTerms(FTSQuery query, QName field, QName targetTypeName, String value) {
+        if (field == null) {
+            return;
+        }
+
+        if (NodeRef.isNodeRef(value)) {
+            query.value(field, value);
+            return;
+        }
+
+        String assocVal = String.format(CONTAINS_STRING_TEMPLATE, value);
+
+        List<NodeRef> assocs = searchInnerValues(field, targetTypeName, assocVal, false);
+        if (assocs.size() > 0) {
+            query.any(field, new ArrayList<>(assocs));
+        } else {
+            query.alwaysFalse();
+        }
+    }
+
+    private List<NodeRef> searchInnerValues(QName field, QName targetTypeName, String value, boolean exact) {
+        FTSQuery innerQuery = FTSQuery.createRaw();
+        innerQuery.maxItems(innerQueryMaxItems);
+        if (targetTypeName != null) {
+            innerQuery.type(targetTypeName);
+        }
+
+        Map<QName, Serializable> attributes = new HashMap<>();
+
+        List<QName> customSearchFields = assocToCustomSearchFieldsRegistry.get(field);
+        if (customSearchFields != null && !customSearchFields.isEmpty()) {
+            for (QName customSearchField : customSearchFields) {
+                attributes.put(customSearchField, value);
+            }
+        } else {
+
+            getQNameConfigValueDelimitedByComma(SEARCH_PROPS)
+                .forEach(attribute -> attributes.put(attribute, value));
+
+            if (targetTypeName != null) {
+
+                if (targetTypeName.equals(ContentModel.TYPE_PERSON)) {
+                    attributes.put(ContentModel.PROP_USERNAME, value);
+                    attributes.put(ContentModel.PROP_USER_USERNAME, value);
+                    attributes.put(ContentModel.PROP_FIRSTNAME, value);
+                    attributes.put(ContentModel.PROP_LASTNAME, value);
+                }
+
+                if (targetTypeName.equals(ContentModel.TYPE_AUTHORITY_CONTAINER)) {
+                    attributes.put(ContentModel.PROP_AUTHORITY_DISPLAY_NAME, value);
+                }
+
+                TypeDefinition targetType = dictUtils.getTypeDefinition(targetTypeName);
+                if (targetType != null) {
+                    attributes.putAll(getTargetTypeAttributes(targetType, value));
+                }
+            }
+        }
+
+        return innerQuery
+            .and().values(attributes, BinOperator.OR, exact)
+            .query(searchService);
+    }
+
+    private String getPredicateValue(DataValue value, String valueStr, ClassAttributeDefinition classAttributeDefinition) {
+        if (!value.isTextual()) {
+            return valueStr;
+        }
+
+        if (!(classAttributeDefinition instanceof PropertyDefinition)) {
+            return String.format(QUOTES_STRING_TEMPLATE, valueStr);
+        }
+
+        String predicateValue;
+        DataTypeDefinition dataTypeDefinition = ((PropertyDefinition) classAttributeDefinition).getDataType();
+        if (DataTypeDefinition.DATETIME.equals(dataTypeDefinition.getName())) {
+            predicateValue = TimeUtils.convertTime(valueStr, log);
+        } else {
+            predicateValue = valueStr;
+        }
+
+        return String.format(QUOTES_STRING_TEMPLATE, predicateValue);
+    }
+
+    private String evalPredicateValue(String predicateValue, ClassAttributeDefinition attDef) {
+
+        if (!(attDef instanceof PropertyDefinition)) {
+            return predicateValue;
+        }
+
+        predicateValue = evalConstants(predicateValue);
+
+        DataTypeDefinition dataTypeDefinition = ((PropertyDefinition) attDef).getDataType();
+        boolean isDateTime = DataTypeDefinition.DATETIME.equals(dataTypeDefinition.getName());
+        boolean isDate = DataTypeDefinition.DATE.equals(dataTypeDefinition.getName());
+
+        if (isDateTime || isDate) {
+            predicateValue = evalDuration(predicateValue);
+        }
+
+        return predicateValue;
+    }
+
+    private String evalConstants(String predicateValue) {
+        switch (predicateValue) {
+            case CURRENT_USER:
+                return AuthenticationUtil.getFullyAuthenticatedUser();
+            case TODAY:
+                return TimeUtils.formatIsoDate(Date.from(Instant.now().plus(TimeZoneContext.getUtcOffset())));
+            case NOW:
+                return TimeUtils.formatIsoDateTime(new Date());
+            default:
+                return predicateValue;
+        }
+    }
+
+    private String evalDuration(String predicateValue) {
+        javax.xml.datatype.Duration duration = TimeUtils.parseIsoDuration(predicateValue);
+        if (duration != null) {
+            Date date = new Date();
+            duration.addTo(date);
+            return TimeUtils.formatIsoDateTime(date);
+        }
+
+        return predicateValue;
     }
 
     private void queryCaseStatus(FTSQuery query, String predicateValue, QName field) {
         NodeRef nodeRef = new NodeRef(predicateValue);
         if (predicateValue.startsWith(WORKSPACE_PREFIX)) {
             String name = (String) nodeService.getProperty(nodeRef, ContentModel.PROP_NAME);
-            query.open().value(field, predicateValue).or()
-                .value(ASSOC_CASE_STATUS_PROP, name).close();
+            query.open()
+                .exact(field, predicateValue).or()
+                .exact(ASSOC_CASE_STATUS_PROP, name)
+                .close();
         } else {
-            query.open().value(ASSOC_CASE_STATUS_PROP, nodeRef.getId());
+            query.open().exact(ASSOC_CASE_STATUS_PROP, nodeRef.getId());
             getStatusByName(nodeRef.getId()).ifPresent(ref -> query.or().exact(field, ref));
             query.close();
         }
@@ -788,6 +846,18 @@ public class ValuePredicateToFtsConverter implements PredicateToFtsConverter {
             .exact(ContentModel.PROP_NAME, statusName)
             .transactional()
             .queryOne(searchService);
+    }
+
+    private QName getQueryField(ClassAttributeDefinition def) {
+        if (def == null) {
+            return null;
+        }
+
+        QName definitionName = def.getName();
+        if (def instanceof AssociationDefinition) {
+            return associationIndexPropertyRegistry.getAssociationIndexProperty(definitionName);
+        }
+        return definitionName;
     }
 
     /**
@@ -859,5 +929,16 @@ public class ValuePredicateToFtsConverter implements PredicateToFtsConverter {
     @Autowired
     public void setMessageService(MessageService messageService) {
         this.messageService = messageService;
+    }
+
+    @Autowired(required = false)
+    public void setAssocToCustomSearchFieldsConfigs(List<AssocToCustomSearchFieldsConfig> configs) {
+        if (configs == null) {
+            return;
+        }
+
+        for (AssocToCustomSearchFieldsConfig config : configs) {
+            registerAssocToCustomSearchFields(config.getAssocQName(), config.getCustomSearchFields());
+        }
     }
 }

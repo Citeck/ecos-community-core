@@ -19,6 +19,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * Factory of group action "Export to Html-file".
@@ -45,13 +46,9 @@ public class ExportHtmlActionFactory extends AbstractExportActionFactory<ExportH
     }
 
     @Override
-    protected HtmlEnvironment createEnvironment(GroupActionConfig config, List<String> requestedAttributes, List<String> columnTitles) throws Exception {
+    protected HtmlEnvironment createEnvironment(GroupActionConfig config, List<ReportColumnDef> columns) throws Exception {
         mimeType = MIMETYPE;
         ClassPathResource classPathResource = new ClassPathResource(FTL_TEMPLATE_PATH);
-        if (classPathResource == null) {
-            log.error("Failed to find export action template {}", config);
-            return null;
-        }
 
         HtmlEnvironment htmlEnvironment = new HtmlEnvironment(config);
         Configuration templateConfiguration = new Configuration();
@@ -66,6 +63,11 @@ public class ExportHtmlActionFactory extends AbstractExportActionFactory<ExportH
             log.error("Failed to setup export action template configuration {}", config, e);
             throw e;
         }
+
+        List<String> columnTitles = columns.stream()
+            .map(ReportColumnDef::getName)
+            .collect(Collectors.toList());
+
         htmlEnvironment.setTemplateConfiguration(templateConfiguration);
         htmlEnvironment.getTemplateParams().put(PARAM_REPORT_TITLE, config.getStrParam(PARAM_REPORT_TITLE));
         htmlEnvironment.getTemplateParams().put(FTL_COLUMN_TITLES, columnTitles);
@@ -79,26 +81,24 @@ public class ExportHtmlActionFactory extends AbstractExportActionFactory<ExportH
     }
 
     @Override
-    protected int writeData(List<RecordAtts> nodesAttributes, int nextRowIndex, List<String> requestedAttributes, HtmlEnvironment environment) {
+    protected int writeData(List<List<DataValue>> lines, int nextRowIndex, HtmlEnvironment environment) {
         if (environment.getWriter() == null) {
             return nextRowIndex;
         }
         environment.getTemplateParams().put(PARAM_ROW_IDX, nextRowIndex);
         List<List<NodeDef>> nodesData = new ArrayList<>();
-        for (RecordAtts attributes : nodesAttributes) {
+        for (List<DataValue> line : lines) {
             List<NodeDef> rowData = new ArrayList<>();
-            for (int attIdx = 0; attIdx < requestedAttributes.size(); attIdx++) {
-                String attributeName = requestedAttributes.get(attIdx);
-                DataValue dataValue = attributes.getAtt(attributeName);
+            for (DataValue value : line) {
                 String url = null;
-                if (dataValue.isTextual() && UrlValidator.getInstance().isValid(dataValue.asText())) {
+                if (value.isTextual() && UrlValidator.getInstance().isValid(value.asText())) {
                     try {
-                        url = new URL(dataValue.asText()).toString();
+                        url = new URL(value.asText()).toString();
                     } catch (MalformedURLException e) {
                         //do not need to do anything
                     }
                 }
-                rowData.add(new NodeDef(dataValue.asText(), url, dataValue.isInt()));
+                rowData.add(new NodeDef(value.asText(), url, value.isInt()));
             }
             nodesData.add(rowData);
         }
@@ -110,7 +110,7 @@ public class ExportHtmlActionFactory extends AbstractExportActionFactory<ExportH
             log.error(ERROR_MSG, environment.getConfig(), e);
         }
 
-        return nextRowIndex + nodesAttributes.size();
+        return nextRowIndex + lines.size();
     }
 
     @Override

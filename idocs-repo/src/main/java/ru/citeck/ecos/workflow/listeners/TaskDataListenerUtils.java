@@ -15,7 +15,7 @@ import ru.citeck.ecos.model.IdocsModel;
 import ru.citeck.ecos.model.lib.status.dto.StatusDef;
 import ru.citeck.ecos.records2.RecordRef;
 import ru.citeck.ecos.records3.RecordsService;
-import ru.citeck.ecos.utils.EcosU18NUtils;
+import ru.citeck.ecos.utils.EcosI18NUtils;
 import ru.citeck.ecos.utils.RepoUtils;
 
 import java.io.Serializable;
@@ -110,7 +110,7 @@ public class TaskDataListenerUtils {
         MLText statusTitle;
         NodeRef statusRef = caseStatusService.getStatusByName(name);
         if (statusRef == null) {
-            statusTitle = EcosU18NUtils.getMLText(CONSTRAINT_STATUS_KEY + name);
+            statusTitle = EcosI18NUtils.getMLText(CONSTRAINT_STATUS_KEY + name);
         } else {
             statusTitle = getMlTitle(statusRef);
         }

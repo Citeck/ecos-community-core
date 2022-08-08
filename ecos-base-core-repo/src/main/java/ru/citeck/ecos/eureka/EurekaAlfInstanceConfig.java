@@ -2,19 +2,18 @@ package ru.citeck.ecos.eureka;
 
 import com.netflix.appinfo.DataCenterInfo;
 import com.netflix.appinfo.EurekaInstanceConfig;
-import org.alfresco.util.GUID;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import ru.citeck.ecos.utils.InetUtils;
+import ru.citeck.ecos.webapp.api.properties.EcosWebAppProperties;
+import ru.citeck.ecos.webapp.lib.utils.EcosEnvUtils;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 
+@Slf4j
 public class EurekaAlfInstanceConfig extends AbstractEurekaConfig implements EurekaInstanceConfig {
-
-    private static final Logger logger = LoggerFactory.getLogger(EurekaAlfInstanceConfig.class);
 
     private static final String ENV_PROP_PORT = "ECOS_EUREKA_INSTANCE_PORT";
     private static final String ENV_PROP_IP = "ECOS_EUREKA_INSTANCE_IP";
@@ -27,23 +26,25 @@ public class EurekaAlfInstanceConfig extends AbstractEurekaConfig implements Eur
 
     private static final String HEALTH_URL = "/alfresco/service/citeck/ecos/eureka-status";
 
-    private static final String UUID = GUID.generate();
+    private final InetUtils.HostInfo hostInfo;
+    private final EcosWebAppProperties webAppProperties;
 
-    private InetUtils.HostInfo hostInfo;
-
-    public EurekaAlfInstanceConfig(Properties globalProperties, InetUtils inetUtils) {
+    public EurekaAlfInstanceConfig(Properties globalProperties,
+                                   InetUtils inetUtils,
+                                   EcosWebAppProperties webAppProperties) {
         super(globalProperties);
         hostInfo = inetUtils.findFirstNonLoopbackHostInfo();
+        this.webAppProperties = webAppProperties;
     }
 
     @Override
     public String getInstanceId() {
-        return getAppname() + ":" + UUID;
+        return getAppname() + ":" + webAppProperties.getAppInstanceId();
     }
 
     @Override
     public String getAppname() {
-        return getStrParam("instance.appname", () -> "alfresco");
+        return webAppProperties.getAppName();
     }
 
     @Override
@@ -63,7 +64,7 @@ public class EurekaAlfInstanceConfig extends AbstractEurekaConfig implements Eur
             try {
                 return Integer.parseInt(portFromEnv);
             } catch (NumberFormatException e) {
-                logger.warn("Incorrect port in " + ENV_PROP_PORT + " param. Value: " + portFromEnv);
+                log.warn("Incorrect port in " + ENV_PROP_PORT + " param. Value: " + portFromEnv);
             }
         }
         return getIntParam("port", () -> getGlobalIntParam("alfresco.port", () -> 8080));
@@ -159,8 +160,7 @@ public class EurekaAlfInstanceConfig extends AbstractEurekaConfig implements Eur
 
             Boolean isDev = getGlobalBoolParam("ecos.environment.dev", () -> false);
             if (isDev) {
-                String osName = StringUtils.defaultString(System.getProperty("os.name"));
-                if (osName.contains("Windows")) {
+                if (EcosEnvUtils.isOsMac() || EcosEnvUtils.isOsWindows()) {
                     return "host.docker.internal";
                 }
             }

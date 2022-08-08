@@ -19,6 +19,7 @@ import org.alfresco.service.cmr.repository.NodeRef;
 import org.alfresco.service.cmr.repository.NodeService;
 import org.alfresco.service.namespace.NamespaceService;
 import org.alfresco.service.namespace.QName;
+import org.alfresco.util.FileNameValidator;
 import org.alfresco.util.GUID;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -27,6 +28,7 @@ import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 import ru.citeck.ecos.commons.data.DataValue;
 import ru.citeck.ecos.eform.model.EcosEformFileModel;
+import ru.citeck.ecos.eform.service.TempFilesParentComponent;
 import ru.citeck.ecos.records2.RecordMeta;
 import ru.citeck.ecos.records2.request.delete.RecordsDelResult;
 import ru.citeck.ecos.records2.request.delete.RecordsDeletion;
@@ -41,7 +43,6 @@ public class TempContentRecordsDao implements RecordsDao, MutableRecordsDao {
 
     public static final String ID = "tempContent";
 
-    private static final NodeRef ROOT_NODE_REF = new NodeRef("workspace://SpacesStore/eform-files-temp-root");
     private static final String PARAM_NAME = "name";
     private static final String PARAM_FILE_NAME = "fileName";
     private static final String PARAM_MIMETYPE = "mimetype";
@@ -54,6 +55,8 @@ public class TempContentRecordsDao implements RecordsDao, MutableRecordsDao {
     private ContentService contentService;
     @Autowired
     private MimetypeService mimetypeService;
+    @Autowired
+    private TempFilesParentComponent tempFilesParentComponent;
 
     @Override
     public String getId() {
@@ -93,15 +96,19 @@ public class TempContentRecordsDao implements RecordsDao, MutableRecordsDao {
         Map<QName, Serializable> props = new HashMap<>();
         props.put(EcosEformFileModel.PROP_TEMP_FILE_ID, name);
         if (StringUtils.isNotBlank(fileName)) {
-            props.put(ContentModel.PROP_NAME, fileName);
+            if (FileNameValidator.isValid(fileName)) {
+                props.put(ContentModel.PROP_NAME, fileName);
+            } else {
+                props.put(ContentModel.PROP_NAME, FileNameValidator.getValidFileName(fileName));
+            }
         }
 
         NodeRef createdTempFile = nodeService.createNode(
-                ROOT_NODE_REF,
-                ContentModel.ASSOC_CHILDREN,
-                QName.createQName(NamespaceService.CONTENT_MODEL_1_0_URI, GUID.generate()),
-                EcosEformFileModel.TYPE_TEMP_FILE,
-                props).getChildRef();
+            tempFilesParentComponent.getOrCreateParentForNewTempFile(),
+            ContentModel.ASSOC_CHILDREN,
+            QName.createQName(NamespaceService.CONTENT_MODEL_1_0_URI, GUID.generate()),
+            EcosEformFileModel.TYPE_TEMP_FILE,
+            props).getChildRef();
 
         if (StringUtils.isBlank(mimetype) ||
                 !mimetypeService.getExtensionsByMimetype().containsKey(mimetype)) {

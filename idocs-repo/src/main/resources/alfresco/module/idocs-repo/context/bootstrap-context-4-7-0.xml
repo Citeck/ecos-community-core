@@ -1,0 +1,53 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+        http://www.springframework.org/schema/beans/spring-beans-3.0.xsd">
+
+    <bean id="idocs.import-spaces.4-7-0" abstract="true" parent="idocs.import-spaces.4-4-0">
+        <property name="sinceVersion" value="4.7.0"/>
+        <property name="appliesFromVersion" value="4.7.0"/>
+    </bean>
+
+    <bean id="idocs.import-scripts.4-7-0" abstract="true" parent="idocs.import-scripts.4-4-0">
+        <property name="sinceVersion" value="4.7.0"/>
+        <property name="appliesFromVersion" value="4.7.0"/>
+    </bean>
+
+    <bean id="idocs.module-component.users-profile-admin-group" parent="idocs.import-spaces.4-7-0">
+        <property name="name" value="users-profile-admin-group" />
+        <property name="description" value="users-profile-admin-group" />
+        <property name="bootstrapViews">
+            <list>
+                <props>
+                    <prop key="path">/</prop>
+                    <prop key="location">alfresco/templates/bootstrap/ru/citeck/common/group.xml</prop>
+                    <prop key="messages">alfresco/module/idocs-repo/bootstrap/groups/users-profile-admin</prop>
+                    <prop key="encoding">UTF-8</prop>
+                </props>
+            </list>
+        </property>
+    </bean>
+
+    <bean id="idocs.module-component.authority-groups-management" parent="idocs.import-spaces.4-7-0">
+        <property name="name" value="authority-groups-management" />
+        <property name="description" value="authority-groups-management" />
+        <property name="bootstrapViews">
+            <list>
+                <props>
+                    <prop key="path">/</prop>
+                    <prop key="location">alfresco/templates/bootstrap/ru/citeck/common/group.xml</prop>
+                    <prop key="messages">alfresco/module/idocs-repo/bootstrap/groups/managed-authority-groups</prop>
+                    <prop key="encoding">UTF-8</prop>
+                </props>
+                <props>
+                    <prop key="path">/</prop>
+                    <prop key="location">alfresco/templates/bootstrap/ru/citeck/common/group.xml</prop>
+                    <prop key="messages">alfresco/module/idocs-repo/bootstrap/groups/authority-groups-managers</prop>
+                    <prop key="encoding">UTF-8</prop>
+                </props>
+            </list>
+        </property>
+    </bean>
+
+</beans>

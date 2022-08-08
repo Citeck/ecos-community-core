@@ -5,12 +5,10 @@ import lombok.RequiredArgsConstructor;
 import org.alfresco.model.ContentModel;
 import org.alfresco.repo.security.authentication.AuthenticationUtil;
 import org.alfresco.rest.framework.core.exceptions.PermissionDeniedException;
+import org.alfresco.service.cmr.repository.ContentData;
 import org.alfresco.service.cmr.repository.NodeRef;
 import org.alfresco.service.cmr.search.SearchService;
-import org.alfresco.service.cmr.security.AuthorityService;
-import org.alfresco.service.cmr.security.AuthorityType;
-import org.alfresco.service.cmr.security.MutableAuthenticationService;
-import org.alfresco.service.cmr.security.PersonService;
+import org.alfresco.service.cmr.security.*;
 import org.alfresco.service.namespace.NamespaceService;
 import org.alfresco.service.namespace.QName;
 import org.apache.commons.lang.StringUtils;
@@ -20,6 +18,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import ru.citeck.ecos.commons.data.DataValue;
 import ru.citeck.ecos.commons.data.ObjectData;
+import ru.citeck.ecos.commons.utils.digest.DigestAlgorithm;
+import ru.citeck.ecos.commons.utils.digest.DigestUtils;
 import ru.citeck.ecos.model.EcosModel;
 import ru.citeck.ecos.records.source.alf.AlfNodesRecordsDAO;
 import ru.citeck.ecos.records.source.alf.meta.AlfNodeRecord;
@@ -39,9 +39,14 @@ import ru.citeck.ecos.records2.source.dao.local.LocalRecordsDao;
 import ru.citeck.ecos.records2.source.dao.local.v2.LocalRecordsMetaDao;
 import ru.citeck.ecos.records2.source.dao.local.v2.LocalRecordsQueryWithMetaDao;
 import ru.citeck.ecos.records3.record.atts.value.AttValue;
+import ru.citeck.ecos.records3.record.atts.value.AttValueCtx;
+import ru.citeck.ecos.records3.record.mixin.AttMixin;
 import ru.citeck.ecos.utils.AuthorityUtils;
+import ru.citeck.ecos.utils.NodeUtils;
 
 import java.io.Serializable;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -57,21 +62,24 @@ public class PeopleRecordsDao extends LocalRecordsDao
     private static final String PROP_USER_NAME = "userName";
     private static final String PROP_CM_USER_NAME = "cm:" + PROP_USER_NAME;
 
-    private static final String PROP_FULL_NAME = "fullName";
-    private static final String PROP_IS_AVAILABLE = "isAvailable";
-    private static final String PROP_IS_MUTABLE = "isMutable";
-    private static final String PROP_IS_ADMIN = "isAdmin";
-    private static final String PROP_IS_DISABLED = "isDisabled";
-    private static final String PROP_AUTHORITIES = "authorities";
+    public static final String PROP_FULL_NAME = "fullName";
+    public static final String PROP_IS_AVAILABLE = "isAvailable";
+    public static final String PROP_IS_MUTABLE = "isMutable";
+    public static final String PROP_IS_ADMIN = "isAdmin";
+    public static final String PROP_IS_DISABLED = "isDisabled";
+    public static final String PROP_AUTHORITIES = "authorities";
+    public static final String GROUPS = "groups";
+    public static final String PERSON_AVATAR = "personAvatar";
+
     private static final String ECOS_OLD_PASS = "ecos:oldPass";
     private static final String ECOS_PASS = "ecos:pass";
     private static final String ECOS_PASS_VERIFY = "ecos:passVerify";
-    private static final String GROUPS = "groups";
 
     private static final String GROUP_USERS_PROFILE_ADMIN = "GROUP_USERS_PROFILE_ADMIN";
     private static final String PERMS_WRITE = "Write";
     private static final String ADMIN_USERNAME = "admin";
 
+    private final NodeUtils nodeUtils;
     private final AuthorityUtils authorityUtils;
     private final AuthorityService authorityService;
     private final AlfNodesRecordsDAO alfNodesRecordsDao;
@@ -80,19 +88,25 @@ public class PeopleRecordsDao extends LocalRecordsDao
     private final PersonService personService;
 
     @Autowired
-    public PeopleRecordsDao(AuthorityUtils authorityUtils,
-                            PersonService personService,
-                            AuthorityService authorityService,
-                            NamespaceService namespaceService,
-                            AlfNodesRecordsDAO alfNodesRecordsDao,
-                            MutableAuthenticationService authenticationService) {
+    public PeopleRecordsDao(
+        NodeUtils nodeUtils,
+        PersonService personService,
+        AuthorityUtils authorityUtils,
+        AuthorityService authorityService,
+        NamespaceService namespaceService,
+        AlfNodesRecordsDAO alfNodesRecordsDao,
+        MutableAuthenticationService authenticationService
+    ) {
         setId(ID);
-        this.authorityUtils = authorityUtils;
+        this.nodeUtils = nodeUtils;
         this.personService = personService;
+        this.authorityUtils = authorityUtils;
         this.authorityService = authorityService;
         this.namespaceService = namespaceService;
         this.alfNodesRecordsDao = alfNodesRecordsDao;
         this.authenticationService = authenticationService;
+
+        alfNodesRecordsDao.addAttributesMixin(new AlfNodesMixin());
     }
 
     @Override
@@ -115,8 +129,8 @@ public class PeopleRecordsDao extends LocalRecordsDao
 
             RecordsMutResult mutResult;
             if (personUserName.equals(authenticationService.getCurrentUserName())
-                || AuthenticationUtil.isRunAsUserTheSystemUser()
-                || authorityService.hasAdminAuthority()) {
+                    || AuthenticationUtil.isRunAsUserTheSystemUser()
+                    || authorityService.hasAdminAuthority()) {
 
                 mutResult = alfNodesRecordsDao.mutate(newMutation);
 
@@ -176,30 +190,6 @@ public class PeopleRecordsDao extends LocalRecordsDao
 
         //  search and set nodeRef for requested user
         meta.setId(personRef.toString());
-
-        ObjectData attributes = meta.getAttributes();
-        attributes.remove(ECOS_OLD_PASS);
-        attributes.remove(ECOS_PASS);
-        attributes.remove(ECOS_PASS_VERIFY);
-
-        return meta;
-    }
-
-    private RecordMeta handleMeta(RecordMeta meta) {
-
-        String username = meta.getId().getId();
-
-        if (meta.hasAttribute(ECOS_PASS)) {
-            String oldPass = meta.getAttribute(ECOS_OLD_PASS).asText();
-            String newPass = meta.getAttribute(ECOS_PASS).asText();
-            String verifyPass = meta.getAttribute(ECOS_PASS_VERIFY).asText();
-
-            this.updatePassword(username, oldPass, newPass, verifyPass);
-
-        }
-
-        //  search and set nodeRef for requested user
-        meta.setId(authorityService.getAuthorityNodeRef(username).toString());
 
         ObjectData attributes = meta.getAttributes();
         attributes.remove(ECOS_OLD_PASS);
@@ -360,7 +350,7 @@ public class PeopleRecordsDao extends LocalRecordsDao
                 case PROP_IS_MUTABLE:
                     return authenticationService.isAuthenticationMutable(userName);
                 case PROP_IS_ADMIN:
-                    return authorityService.isAdminAuthority(userName);
+                    return isAdmin();
                 case PROP_IS_DISABLED:
                     String isDisabledProp = EcosModel.PROP_IS_PERSON_DISABLED.toPrefixString(namespaceService);
                     return alfNode.getAttribute(isDisabledProp, field);
@@ -368,10 +358,19 @@ public class PeopleRecordsDao extends LocalRecordsDao
                     return getUserAuthorities();
                 case "nodeRef":
                     return alfNode != null ? alfNode.getId() : null;
+                case "jobTitle":
+                    String jobTitleProp = ContentModel.PROP_JOBTITLE.toPrefixString(namespaceService);
+                    return alfNode.getAttribute(jobTitleProp, field);
+                case "avatar":
+                    if (!alfNode.has("ecos:photo")) {
+                        return null;
+                    }
+                    return new AvatarValue(alfNode.getId());
                 case GROUPS:
                     return getUserGroups(userName, queryContext, field);
+                case "permissions":
+                    return getPermissions();
             }
-
             return alfNode.getAttribute(name, field);
         }
 
@@ -403,9 +402,9 @@ public class PeopleRecordsDao extends LocalRecordsDao
         @Override
         public boolean has(String permission) {
             if (PERMS_WRITE.equalsIgnoreCase(permission)
-                && !authorityService.hasAdminAuthority()
-                && authorityService.getAuthorities().contains(GROUP_USERS_PROFILE_ADMIN)
-                && !Objects.equals(authenticationService.getCurrentUserName(), userValue.userName)) {
+                    && !authorityService.hasAdminAuthority()
+                    && authorityService.getAuthorities().contains(GROUP_USERS_PROFILE_ADMIN)
+                    && !Objects.equals(authenticationService.getCurrentUserName(), userValue.userName)) {
 
                 return !userValue.isAdmin();
             }
@@ -426,6 +425,28 @@ public class PeopleRecordsDao extends LocalRecordsDao
             record.init(context, metaField);
             return record;
         }).collect(Collectors.toList());
+    }
+
+    @RequiredArgsConstructor
+    private class AvatarValue implements MetaValue {
+
+        private final String nodeRef;
+
+        @Override
+        public Object getAttribute(@NotNull String name, @NotNull MetaField field) throws Exception {
+            if ("url".equals(name)) {
+                ContentData contentData = nodeUtils.getProperty(new NodeRef(nodeRef), EcosModel.PROP_PHOTO);
+                if (contentData == null || StringUtils.isBlank(contentData.getContentUrl())) {
+                    return null;
+                }
+                byte[] contentUrlBytes = contentData.getContentUrl().getBytes(StandardCharsets.UTF_8);
+                String cacheBust = DigestUtils.getDigest(contentUrlBytes, DigestAlgorithm.MD5).getHash();
+                String nodeRefParam = URLEncoder.encode(nodeRef, "UTF-8");
+                return "/gateway/alfresco/alfresco/s/citeck/ecos/image/thumbnail" +
+                    "?nodeRef=" + nodeRefParam + "&property=ecos%3Aphoto&cb=" + cacheBust;
+            }
+            return null;
+        }
     }
 
     private class UserAuthorities implements MetaValue {
@@ -460,6 +481,25 @@ public class PeopleRecordsDao extends LocalRecordsDao
         @Override
         public boolean has(String authority) {
             return getAuthorities().contains(authority);
+        }
+    }
+
+    private class AlfNodesMixin implements AttMixin {
+        @Nullable
+        @Override
+        public Object getAtt(@NotNull String att, @NotNull AttValueCtx value) throws Exception {
+            if (att.equals(PERSON_AVATAR)) {
+                String nodeRef = value.getRef().getId();
+                if (nodeUtils.isNodeRef(nodeRef)) {
+                    return new AvatarValue(nodeRef);
+                }
+            }
+            return null;
+        }
+        @NotNull
+        @Override
+        public Collection<String> getProvidedAtts() {
+            return Collections.singletonList(PERSON_AVATAR);
         }
     }
 }

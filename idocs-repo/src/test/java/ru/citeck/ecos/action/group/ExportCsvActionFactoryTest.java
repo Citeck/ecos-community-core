@@ -40,7 +40,7 @@ public class ExportCsvActionFactoryTest extends ExportActionFactoryBaseTest {
         try {
             List<String> fileContent = Files.readAllLines(testFile.toPath());
             Assert.assertEquals("Row count does not match", refs.size() + 1, fileContent.size());
-            String[] columns = fileContent.get(0).split(ExportCsvActionFactory.DEFAULT_DELIMITER);
+            String[] columns = fileContent.get(0).split("\t");
             Assert.assertEquals("Column count does not match", getColumns().size(), columns.length);
         } catch (IOException e) {
             throw new RuntimeException(e);

@@ -1,0 +1,26 @@
+---
+id: alfresco-groups-sync
+
+name:
+  ru: Группы из Alfresco
+  en: Groups from Alfresco
+
+enabled: true
+type: alfresco
+
+authorityType: GROUP
+manageNewAuthorities: true
+
+repeatDelayDuration: PT10S
+version: 3
+
+config:
+  batchSize: 30
+  attributes:
+    name: cm:authorityDisplayName
+    branchType: org:branchType
+    branchSubType: org:branchTypeAssoc.cm:name
+    roleType: org:roleType
+    roleSubType: org:roleTypeAssoc.cm:name
+    roleIsManager: org:roleTypeAssoc.org:roleIsManager?bool
+    authorityGroups: 'assoc_src_cm:member[].cm:authorityName|rxg("GROUP_(.+)")|presuf("emodel/authority-group@")'

@@ -44,6 +44,7 @@ import org.apache.commons.logging.LogFactory;
 import org.springframework.extensions.surf.util.I18NUtil;
 import ru.citeck.ecos.attr.NodeAttributeService;
 import ru.citeck.ecos.behavior.AssociationIndexing;
+import ru.citeck.ecos.model.CiteckWorkflowModel;
 import ru.citeck.ecos.model.EcosModel;
 import ru.citeck.ecos.service.CiteckServices;
 import ru.citeck.ecos.utils.RepoUtils;
@@ -134,6 +135,8 @@ class NodeInfoFactoryImpl implements NodeInfoFactory {
         if (typeDef == null) {
             taskType = WorkflowModel.TYPE_WORKFLOW_TASK;
         }
+
+        props.put(CiteckWorkflowModel.PROP_DUE_DATE_TIME, props.get(WorkflowModel.PROP_DUE_DATE));
 
         nodeInfo.setType(taskType);
         nodeInfo.setProperties(props);

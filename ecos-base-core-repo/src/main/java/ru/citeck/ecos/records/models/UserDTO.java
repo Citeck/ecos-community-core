@@ -1,7 +1,7 @@
 package ru.citeck.ecos.records.models;
 
 import lombok.Data;
-import ru.citeck.ecos.records2.graphql.meta.annotation.MetaAtt;
+import ru.citeck.ecos.records3.record.atts.schema.annotation.AttName;
 
 import java.util.Date;
 
@@ -16,32 +16,32 @@ public class UserDTO {
     private Date birthDate;
     private String displayName;
 
-    @MetaAtt("cm:userName")
+    @AttName("cm:userName")
     public void setUserName(String userName) {
         this.userName = userName;
     }
 
-    @MetaAtt("cm:firstName")
+    @AttName("cm:firstName")
     public void setFirstName(String firstName) {
         this.firstName = firstName;
     }
 
-    @MetaAtt("cm:lastName")
+    @AttName("cm:lastName")
     public void setLastName(String lastName) {
         this.lastName = lastName;
     }
 
-    @MetaAtt("cm:middleName")
+    @AttName("cm:middleName")
     public void setMiddleName(String middleName) {
         this.middleName = middleName;
     }
 
-    @MetaAtt("ecos:birthDate")
+    @AttName("ecos:birthDate")
     public void setBirthDate(Date birthDate) {
         this.birthDate = birthDate;
     }
 
-    @MetaAtt(".disp")
+    @AttName(".disp")
     public void setDisplayName(String displayName) {
         this.displayName = displayName;
     }

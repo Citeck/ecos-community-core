@@ -18,6 +18,8 @@
  */
 package ru.citeck.ecos.behavior;
 
+import lombok.AllArgsConstructor;
+import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.alfresco.model.ContentModel;
 import org.alfresco.repo.admin.RepositoryState;
@@ -55,6 +57,7 @@ import ru.citeck.ecos.utils.TransactionUtils;
 import javax.annotation.PostConstruct;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
 @Slf4j
@@ -62,9 +65,13 @@ import java.util.function.Consumer;
 @DependsOn("idocs.dictionaryBootstrap")
 public class CaseTemplateBehavior implements NodeServicePolicies.OnCreateNodePolicy, NodeServicePolicies.OnAddAspectPolicy {
 
+    private static final String CREATED_CASES_TXN_KEY = CaseTemplateBehavior.class.getSimpleName() + "-created-cases";
+
     private static final String ECOS_CASE_PROCESS_TYPE_CONFIG_KEY = "ecos-case-process-type";
     private static final String KEY_FILLED_CASE_NODES = "filled-case-nodes";
     private static final String STATUS_PROCESS_START_ERROR = "ecos-process-start-error";
+
+    private static final ThreadLocal<Boolean> runInCurrentThread = ThreadLocal.withInitial(() -> false);
 
     private PolicyComponent policyComponent;
     private NodeService nodeService;
@@ -100,26 +107,44 @@ public class CaseTemplateBehavior implements NodeServicePolicies.OnCreateNodePol
     @PostConstruct
     public void init() {
         policyComponent.bindClassBehaviour(NodeServicePolicies.OnCreateNodePolicy.QNAME, ICaseModel.ASPECT_CASE,
-                new OrderedBehaviour(this, "onCreateNode", NotificationFrequency.TRANSACTION_COMMIT, order));
+                new OrderedBehaviour(this, "onCreateNode", NotificationFrequency.EVERY_EVENT, order));
         policyComponent.bindClassBehaviour(NodeServicePolicies.OnAddAspectPolicy.QNAME, ICaseModel.ASPECT_CASE,
-                new OrderedBehaviour(this, "onAddAspect", NotificationFrequency.TRANSACTION_COMMIT, order));
+                new OrderedBehaviour(this, "onAddAspect", NotificationFrequency.EVERY_EVENT, order));
     }
 
     @Override
     public void onAddAspect(NodeRef caseNode, QName aspectTypeQName) {
-        if (nodeService.exists(caseNode) &&
-                ICaseModel.ASPECT_CASE.equals(aspectTypeQName)) {
-            copyFromTemplate(caseNode);
+        if (ICaseModel.ASPECT_CASE.equals(aspectTypeQName)) {
+            TransactionUtils.processBeforeCommit(
+                CREATED_CASES_TXN_KEY,
+                new CaseCreatedEvent(caseNode, runInCurrentThread.get()),
+                this::copyFromTemplate
+            );
         }
     }
 
     @Override
     public void onCreateNode(ChildAssociationRef childAssocRef) {
-        NodeRef caseNode = childAssocRef.getChildRef();
-        copyFromTemplate(caseNode);
+        TransactionUtils.processBeforeCommit(
+            CREATED_CASES_TXN_KEY,
+            new CaseCreatedEvent(childAssocRef.getChildRef(), runInCurrentThread.get()),
+            this::copyFromTemplate
+        );
     }
 
-    private void copyFromTemplate(final NodeRef caseNode) {
+    public static void runInCurrentThread(Runnable action) {
+        boolean valueBefore = runInCurrentThread.get();
+        runInCurrentThread.set(true);
+        try {
+            action.run();
+        } finally {
+            runInCurrentThread.set(valueBefore);
+        }
+    }
+
+    private void copyFromTemplate(CaseCreatedEvent caseCreatedEvent) {
+
+        final NodeRef caseNode = caseCreatedEvent.nodeRef;
 
         if (repositoryState.isBootstrapping()
                 || !isAllowedCaseNode(caseNode)
@@ -134,9 +159,9 @@ public class CaseTemplateBehavior implements NodeServicePolicies.OnCreateNodePol
         final CaseServiceType enabledCaseServiceType = getEnabledCaseServiceType();
 
         if (enabledCaseServiceType == CaseServiceType.EPROC) {
-            eprocCopyFromTemplateImpl(caseNode);
+            eprocCopyFromTemplateImpl(caseNode, caseCreatedEvent.runInCurrentThread);
         } else {
-            alfrescoCopyFromTemplateImpl(caseNode);
+            alfrescoCopyFromTemplateImpl(caseNode, caseCreatedEvent.runInCurrentThread);
         }
     }
 
@@ -159,66 +184,86 @@ public class CaseTemplateBehavior implements NodeServicePolicies.OnCreateNodePol
         return filledCaseNodes;
     }
 
-    private void alfrescoCopyFromTemplateImpl(NodeRef caseNode) {
-        TransactionUtils.doAfterCommit(() -> {
-            itemsUpdateState.startUpdate(CaseTemplateBehavior.class, caseNode);
-
-            final StopWatch stopWatch = new StopWatch(CaseTemplateBehavior.class.getName());
-            startWatch(stopWatch, "copyFromTemplate caseRef: " + caseNode);
-            caseXmlService.fillCaseFromTemplate(caseNode);
-            stopWatch.stop();
-
-            TransactionUtils.doAfterCommit(() -> {
-
-                itemsUpdateState.endUpdate(CaseTemplateBehavior.class, caseNode, true, false);
-
-                startWatch(stopWatch, "fire '" + ICaseEventModel.CONSTR_CASE_CREATED + "' event. caseRef: " + caseNode);
+    private void alfrescoCopyFromTemplateImpl(NodeRef caseNode, boolean runInCurrentThread) {
+        copyFromTemplateImpl(caseNode, CaseServiceType.ALFRESCO, runInCurrentThread,
+            () -> caseXmlService.fillCaseFromTemplate(caseNode),
+            () -> {
                 RecordRef caseRef = RecordRef.valueOf(caseNode.toString());
                 ActivityRef activityRef = ActivityRef.of(CaseServiceType.ALFRESCO, caseRef, ActivityRef.ROOT_ID);
                 caseActivityEventService.fireEvent(activityRef, ICaseEventModel.CONSTR_CASE_CREATED);
-                stopWatch.stop();
-
-                log.info(stopWatch.prettyPrint());
-
-            }, getExceptionConsumer(caseNode));
-        }, getExceptionConsumer(caseNode));
+            }
+        );
     }
 
-    private void eprocCopyFromTemplateImpl(NodeRef caseNode) {
-
-        TransactionUtils.doAfterCommit(() -> {
-            itemsUpdateState.startUpdate(CaseTemplateBehavior.class, caseNode);
-            RecordRef caseRef = RecordRef.valueOf(caseNode.toString());
-
-            final StopWatch stopWatch = new StopWatch(CaseTemplateBehavior.class.getName());
-            startWatch(stopWatch, "eproc caseImport for caseRef: " + caseNode);
-            eProcCaseImporter.importCase(caseRef);
-            stopWatch.stop();
-
-            //TODO do it in same transaction after global roles has been kicked
-            TransactionUtils.doAfterCommit(() -> {
-                startWatch(stopWatch, "fire '" + ICaseEventModel.CONSTR_CASE_CREATED + "' event. caseRef: " + caseNode);
+    private void eprocCopyFromTemplateImpl(NodeRef caseNode, boolean runInCurrentThread) {
+        RecordRef caseRef = RecordRef.valueOf(caseNode.toString());
+        copyFromTemplateImpl(caseNode, CaseServiceType.EPROC, runInCurrentThread,
+            () -> eProcCaseImporter.importCase(caseRef),
+            () -> {
                 ActivityRef activityRef = ActivityRef.of(CaseServiceType.EPROC, caseRef, ActivityRef.ROOT_ID);
                 caseActivityEventService.fireEvent(activityRef, ICaseEventModel.CONSTR_CASE_CREATED);
-                stopWatch.stop();
-
-                itemsUpdateState.endUpdate(CaseTemplateBehavior.class, caseNode, true, false);
-
-                log.info(stopWatch.prettyPrint());
-            }, getExceptionConsumer(caseNode));
-        }, getExceptionConsumer(caseNode));
+            }
+        );
     }
 
-    private void startWatch(StopWatch stopWatch, String taskName) {
-        if (!stopWatch.isRunning()) {
-            stopWatch.start(taskName);
+    private void copyFromTemplateImpl(NodeRef caseNode,
+                                      CaseServiceType type,
+                                      boolean runInCurrentThread,
+                                      Runnable applyTemplate,
+                                      Runnable fireCaseCreated) {
+
+        final StopWatch stopWatch = new StopWatch(CaseTemplateBehavior.class.getName());
+        BiConsumer<String, Runnable> runWithStopWatch = (taskName, action) -> {
+            if (!stopWatch.isRunning()) {
+                stopWatch.start(taskName);
+            }
+            try {
+                action.run();
+            } finally {
+                stopWatch.stop();
+            }
+        };
+
+        String prefix = "[" + type + "] ";
+        String copyFromTemplateTaskName = prefix + "copyFromTemplate caseRef: " + caseNode;
+        String fireCaseCreatedTaskName = prefix + "fire '"
+            + ICaseEventModel.CONSTR_CASE_CREATED + "' event. caseRef: " + caseNode;
+
+        if (runInCurrentThread) {
+
+            runWithStopWatch.accept(copyFromTemplateTaskName, applyTemplate);
+            runWithStopWatch.accept(fireCaseCreatedTaskName, fireCaseCreated);
+
+            log.info(stopWatch.prettyPrint());
+
+        } else {
+
+            itemsUpdateState.startUpdate(CaseTemplateBehavior.class, caseNode);
+
+            TransactionUtils.doAfterCommit(() -> {
+                runWithStopWatch.accept(copyFromTemplateTaskName, applyTemplate);
+                TransactionUtils.doAfterCommit(
+                    () -> {
+                        runWithStopWatch.accept(fireCaseCreatedTaskName, fireCaseCreated);
+                        itemsUpdateState.endUpdate(
+                            CaseTemplateBehavior.class,
+                            caseNode,
+                            true,
+                            false
+                        );
+                        log.info(stopWatch.prettyPrint());
+                    },
+                    getExceptionConsumer(caseNode, "fireCreatedEvent")
+                );
+            }, getExceptionConsumer(caseNode, "caseImport"));
         }
     }
 
-    private Consumer<Exception> getExceptionConsumer(NodeRef caseNode) {
+    private Consumer<Exception> getExceptionConsumer(NodeRef caseNode, String action) {
         return e -> {
             itemsUpdateState.endUpdate(CaseTemplateBehavior.class, caseNode, true, true);
             caseStatusService.setStatus(caseNode, STATUS_PROCESS_START_ERROR);
+            log.debug(String.format("Error copyFromTemplate, action: %s, nodeRef: %s", action, caseNode), e);
         };
     }
 
@@ -238,5 +283,12 @@ public class CaseTemplateBehavior implements NodeServicePolicies.OnCreateNodePol
 
         throw new IllegalStateException("Param '" + ECOS_CASE_PROCESS_TYPE_CONFIG_KEY +
                 "' in system configuration is mandatory must be 'alf' or 'eproc'");
+    }
+
+    @Data
+    @AllArgsConstructor
+    private static class CaseCreatedEvent {
+        private NodeRef nodeRef;
+        private boolean runInCurrentThread;
     }
 }

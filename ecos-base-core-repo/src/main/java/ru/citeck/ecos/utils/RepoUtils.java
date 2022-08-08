@@ -357,7 +357,7 @@ public class RepoUtils {
             return defaultExtension;
         }
         // get default extension
-        String extension = mimetypeService.getExtension(mimetype);
+        String extension = mimetypeService.getExtension(mimetype.toLowerCase());
         if (extension == null) {
             return defaultExtension;
         }

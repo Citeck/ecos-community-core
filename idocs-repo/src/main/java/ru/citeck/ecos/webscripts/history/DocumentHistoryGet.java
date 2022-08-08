@@ -16,14 +16,15 @@ import org.alfresco.service.namespace.QName;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.extensions.surf.util.I18NUtil;
 import org.springframework.extensions.webscripts.*;
+import ru.citeck.ecos.commons.data.MLText;
+import ru.citeck.ecos.commons.json.Json;
 import ru.citeck.ecos.constants.DocumentHistoryConstants;
 import ru.citeck.ecos.history.HistoryRemoteService;
+import ru.citeck.ecos.history.HistoryService;
 import ru.citeck.ecos.history.filter.Criteria;
 import ru.citeck.ecos.history.impl.HistoryGetService;
-import ru.citeck.ecos.model.IdocsModel;
 import ru.citeck.ecos.spring.registry.MappingRegistry;
 
 import java.io.IOException;
@@ -36,9 +37,6 @@ import java.util.stream.Collectors;
 
 public class DocumentHistoryGet extends AbstractWebScript {
 
-    private static final String ENABLED_REMOTE_HISTORY_SERVICE = "ecos.citeck.history.service.enabled";
-
-    public static final String ALFRESCO_NAMESPACE = NamespaceService.CONTENT_MODEL_1_0_URI;
     public static final String HISTORY_PROPERTY_NAME = "history";
     public static final String ATTRIBUTES_PROPERTY_NAME = "attributes";
 
@@ -50,10 +48,6 @@ public class DocumentHistoryGet extends AbstractWebScript {
     private static final String PARAM_FILTER = "filter";
     private static final String PARAM_TASK_TYPES = "taskTypes";
 
-    @Autowired
-    @Qualifier("global-properties")
-    private Properties properties;
-
     private NodeService nodeService;
     private PersonService personService;
     private MessageService messageService;
@@ -61,10 +55,12 @@ public class DocumentHistoryGet extends AbstractWebScript {
     private DictionaryService dictionaryService;
     private HistoryGetService historyGetService;
     private HistoryRemoteService historyRemoteService;
+    private HistoryGetUtils historyGetUtils;
+    private HistoryService historyService;
 
     private MappingRegistry<String, Criteria> filterRegistry = new MappingRegistry<>();
 
-    private ObjectMapper objectMapper = new ObjectMapper();
+    private final ObjectMapper objectMapper = new ObjectMapper();
 
     @Override
     public void execute(WebScriptRequest req, WebScriptResponse res) throws IOException {
@@ -99,7 +95,7 @@ public class DocumentHistoryGet extends AbstractWebScript {
 
         /* Load data */
         List<Map> historyRecordMaps = Collections.emptyList();
-        if (isEnabledRemoteHistoryService()) {
+        if (historyService.isEnabledRemoteHistoryService()) {
             historyRecordMaps = historyRemoteService.getAllHistoryRecords(page, limit);
         }
 
@@ -110,7 +106,19 @@ public class DocumentHistoryGet extends AbstractWebScript {
         return formatHistoryNodes(historyRecordMaps, includeEvents, includeTypes);
     }
 
-    public List<ObjectNode> getHistoryEvents(String documentId, String filter, String events, String taskTypes) {
+    public List<ObjectNode> getHistoryEvents(String documentId,
+                                             String filter,
+                                             String events,
+                                             String taskTypes) {
+
+        return getHistoryEvents(documentId, filter, events, taskTypes, false);
+    }
+
+    public List<ObjectNode> getHistoryEvents(String documentId,
+                                             String filter,
+                                             String events,
+                                             String taskTypes,
+                                             boolean forceLocal) {
 
         Set<String> includeEvents = split(events);
         Set<String> includeTypes = split(taskTypes);
@@ -123,17 +131,9 @@ public class DocumentHistoryGet extends AbstractWebScript {
             }
         }
 
-        if (NodeRef.isNodeRef(documentId)) {
-            NodeRef documentRef = new NodeRef(documentId);
-            Boolean useNewHistory = (Boolean) nodeService.getProperty(documentRef, IdocsModel.PROP_USE_NEW_HISTORY);
-            if ((useNewHistory == null || !useNewHistory) && isEnabledRemoteHistoryService()) {
-                historyRemoteService.sendHistoryEventsByDocumentToRemoteService(documentRef);
-            }
-        }
-
         /* Load data */
         List<Map> historyRecordMaps;
-        if (isEnabledRemoteHistoryService()) {
+        if (!forceLocal && historyService.isEnabledRemoteHistoryService()) {
             if (NodeRef.isNodeRef(documentId)) {
                 documentId = new NodeRef(documentId).getId();
             }
@@ -147,20 +147,6 @@ public class DocumentHistoryGet extends AbstractWebScript {
         }
 
         return formatHistoryNodes(historyRecordMaps, includeEvents, includeTypes);
-    }
-
-    /**
-     * Check - is remote history service enabled
-     *
-     * @return Check result
-     */
-    private Boolean isEnabledRemoteHistoryService() {
-        String propertyValue = properties.getProperty(ENABLED_REMOTE_HISTORY_SERVICE);
-        if (propertyValue == null) {
-            return false;
-        } else {
-            return Boolean.valueOf(propertyValue);
-        }
     }
 
     /**
@@ -229,6 +215,8 @@ public class DocumentHistoryGet extends AbstractWebScript {
                 (String) historyRecordMap.get(DocumentHistoryConstants.TASK_ROLE.getValue()));
             attributesNode.put(DocumentHistoryConstants.TASK_OUTCOME.getKey(),
                 (String) historyRecordMap.get(DocumentHistoryConstants.TASK_OUTCOME.getValue()));
+            attributesNode.put(DocumentHistoryConstants.TASK_OUTCOME_NAME.getKey(),
+                (String) historyRecordMap.get(DocumentHistoryConstants.TASK_OUTCOME_NAME.getValue()));
             attributesNode.put(
                 DocumentHistoryConstants.TASK_OUTCOME_TITLE.getKey(),
                 getTaskOutcomeTitle(taskTypeShort, historyRecordMap, outcomeTitles)
@@ -302,6 +290,17 @@ public class DocumentHistoryGet extends AbstractWebScript {
                                        Map<String, Object> historyRecordMap,
                                        Map<List<String>, String> titles) {
 
+        Object outcomeName = historyRecordMap.get(DocumentHistoryConstants.TASK_OUTCOME_NAME.getValue());
+        if (outcomeName instanceof String) {
+            MLText mlText = Json.getMapper().read((String) outcomeName, MLText.class);
+            if (mlText != null) {
+                String result = mlText.getClosest(I18NUtil.getLocale());
+                if (!result.isEmpty()) {
+                    return result;
+                }
+            }
+        }
+
         String outcome = (String) historyRecordMap.get(DocumentHistoryConstants.TASK_OUTCOME.getValue());
         if (outcome == null) {
             return null;
@@ -310,27 +309,7 @@ public class DocumentHistoryGet extends AbstractWebScript {
         String taskDefinitionVarKey = DocumentHistoryConstants.TASK_DEFINITION_KEY.getValue();
         String taskDefinitionKey = (String) historyRecordMap.get(taskDefinitionVarKey);
 
-        return titles.computeIfAbsent(Arrays.asList(taskTypeShort, taskDefinitionKey, outcome), itemKey -> {
-
-            if (StringUtils.isNotBlank(taskDefinitionKey)) {
-                String key = "flowable.form.button." + taskDefinitionKey + "." + outcome + ".label";
-                String title = I18NUtil.getMessage(key);
-                if (StringUtils.isNotBlank(title)) {
-                    return title;
-                }
-            }
-
-            if (StringUtils.isNotBlank(taskTypeShort)) {
-                String correctType = taskTypeShort.replaceAll(":", "_");
-                String title = I18NUtil.getMessage("workflowtask." + correctType + ".outcome." + outcome);
-                if (StringUtils.isNotBlank(title)) {
-                    return title;
-                }
-            }
-
-            String title = I18NUtil.getMessage("workflowtask.outcome." + outcome);
-            return StringUtils.isNotBlank(title) ? title : outcome;
-        });
+        return historyGetUtils.getOutcomeTitle(taskTypeShort, taskDefinitionKey, outcome);
     }
 
     private ArrayNode transformNodeRefsToArrayNode(ArrayList<NodeRef> nodes) {
@@ -409,5 +388,15 @@ public class DocumentHistoryGet extends AbstractWebScript {
         this.nodeService = serviceRegistry.getNodeService();
         this.dictionaryService = serviceRegistry.getDictionaryService();
         this.messageService = serviceRegistry.getMessageService();
+    }
+
+    @Autowired
+    public void setHistoryGetUtils(HistoryGetUtils historyGetUtils) {
+        this.historyGetUtils = historyGetUtils;
+    }
+
+    @Autowired
+    public void setHistoryService(HistoryService historyService) {
+        this.historyService = historyService;
     }
 }

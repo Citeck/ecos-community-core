@@ -1,5 +1,6 @@
 package ru.citeck.ecos.records.workflow;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.NullNode;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
@@ -47,11 +48,16 @@ import ru.citeck.ecos.records2.source.dao.MutableRecordsDao;
 import ru.citeck.ecos.records2.source.dao.local.LocalRecordsDao;
 import ru.citeck.ecos.records2.source.dao.local.v2.LocalRecordsMetaDao;
 import ru.citeck.ecos.records2.source.dao.local.v2.LocalRecordsQueryDao;
+import ru.citeck.ecos.role.CaseRoleService;
+import ru.citeck.ecos.security.EcosPermissionService;
 import ru.citeck.ecos.utils.AuthorityUtils;
 import ru.citeck.ecos.utils.NodeUtils;
+import ru.citeck.ecos.utils.TransactionUtils;
 import ru.citeck.ecos.utils.WorkflowUtils;
+import ru.citeck.ecos.workflow.mirror.WorkflowMirrorService;
 import ru.citeck.ecos.workflow.owner.OwnerAction;
 import ru.citeck.ecos.workflow.owner.OwnerService;
+import ru.citeck.ecos.workflow.records.WorkflowRecordsDao;
 import ru.citeck.ecos.workflow.tasks.EcosTaskService;
 import ru.citeck.ecos.workflow.tasks.TaskInfo;
 
@@ -70,6 +76,8 @@ public class WorkflowTaskRecords extends LocalRecordsDao
     private static final String DOCUMENT_FIELD_PREFIX = "_ECM_";
     private static final String OUTCOME_PREFIX = "outcome_";
     private static final String APP_ALFRESCO = "alfresco";
+    private static final String APP_EPROC = "eproc";
+
 
     private static final String ID = "wftask";
 
@@ -85,6 +93,9 @@ public class WorkflowTaskRecords extends LocalRecordsDao
     private final DictionaryService dictionaryService;
     private final EcosTypeService ecosTypeService;
     private final NodeUtils nodeUtils;
+    private final CaseRoleService caseRoleService;
+    private final EcosPermissionService ecosPermissionService;
+    private final WorkflowMirrorService workflowMirrorService;
 
     @Autowired
     public WorkflowTaskRecords(EcosTaskService ecosTaskService,
@@ -95,8 +106,13 @@ public class WorkflowTaskRecords extends LocalRecordsDao
                                WorkflowUtils workflowUtils, AuthorityUtils authorityUtils,
                                NamespaceService namespaceService,
                                DictionaryService dictionaryService, EcosTypeService ecosTypeService,
-                               NodeUtils nodeUtils) {
+                               NodeUtils nodeUtils,
+                               CaseRoleService caseRoleService,
+                               EcosPermissionService ecosPermissionService,
+                               WorkflowMirrorService workflowMirrorService) {
         setId(ID);
+        this.workflowMirrorService = workflowMirrorService;
+        this.ecosPermissionService = ecosPermissionService;
         this.counterpartyResolver = counterpartyResolver;
         this.namespaceService = namespaceService;
         this.dictionaryService = dictionaryService;
@@ -109,6 +125,7 @@ public class WorkflowTaskRecords extends LocalRecordsDao
         this.authorityUtils = authorityUtils;
         this.ecosTypeService = ecosTypeService;
         this.nodeUtils = nodeUtils;
+        this.caseRoleService = caseRoleService;
     }
 
     @Override
@@ -147,49 +164,7 @@ public class WorkflowTaskRecords extends LocalRecordsDao
 
         String[] outcome = new String[1];
 
-        meta.forEachJ((n, v) -> {
-            if (n.startsWith(DOCUMENT_FIELD_PREFIX)) {
-                documentProps.set(getEcmFieldName(n), v);
-            }
-            if (n.startsWith(OUTCOME_PREFIX)) {
-                if (v.isBoolean() && v.asBoolean()) {
-                    outcome[0] = n.substring(OUTCOME_PREFIX.length());
-                }
-            } else {
-
-                String name = n;
-                if (name.contains(":")) {
-                    name = name.replaceFirst(":", "_");
-                }
-
-                if (v.isTextual()) {
-                    String value = v.asText();
-                    if (isDate(name) && StringUtils.isEmpty(value)) {
-                        value = null;
-                    }
-                    taskProps.put(name, value);
-                } else if (v.isBoolean()) {
-                    taskProps.put(name, v.asBoolean());
-                } else if (v.isDouble()) {
-                    taskProps.put(name, v.asDouble());
-                } else if (v.isInt()) {
-                    taskProps.put(name, v.asInt());
-                } else if (v.isLong()) {
-                    taskProps.put(name, v.asLong());
-                } else if (v.isNull()) {
-                    taskProps.put(name, null);
-                } else if (v.isArray()) {
-                    Set<NodeRef> nodeRefs = new HashSet<>();
-                    for (DataValue jsonNode : v) {
-                        String stringNode = jsonNode.asText();
-                        if (NodeRef.isNodeRef(stringNode)) {
-                            nodeRefs.add(new NodeRef(stringNode));
-                        }
-                    }
-                    taskProps.put(name, nodeRefs);
-                }
-            }
-        });
+        meta.forEachJ((n, v) -> processMutateProp(n, v, taskProps, documentProps, outcome));
 
         if (outcome[0] == null) {
             throw new IllegalStateException(OUTCOME_PREFIX + "* field is mandatory for task completion");
@@ -210,12 +185,72 @@ public class WorkflowTaskRecords extends LocalRecordsDao
         return new RecordMeta(taskId);
     }
 
+    private void processMutateProp(
+        String key,
+        DataValue value,
+        Map<String, Object> taskProps,
+        RecordMeta documentProps,
+        String[] outcome
+    ) {
+        if ("_formInfo".equals(key)) {
+            taskProps.put(key, value.getAs(JsonNode.class));
+            return;
+        }
+        if (key.startsWith(DOCUMENT_FIELD_PREFIX)) {
+            documentProps.set(getEcmFieldName(key), value);
+            return;
+        }
+        if (key.startsWith(OUTCOME_PREFIX)) {
+            if (value.isBoolean() && value.asBoolean()) {
+                outcome[0] = key.substring(OUTCOME_PREFIX.length());
+            }
+            return;
+        }
+        String name = key;
+        if (name.contains(":")) {
+            name = name.replaceFirst(":", "_");
+        }
+
+        if (value.isTextual()) {
+            String valueStr = value.asText();
+            if (isDate(name) && StringUtils.isEmpty(valueStr)) {
+                valueStr = null;
+            }
+            if (authorityUtils.isAuthorityRef(valueStr)) {
+                valueStr = authorityUtils.getNodeRefNotNull(valueStr).toString();
+            }
+            taskProps.put(name, valueStr);
+        } else if (value.isBoolean()) {
+            taskProps.put(name, value.asBoolean());
+        } else if (value.isDouble()) {
+            taskProps.put(name, value.asDouble());
+        } else if (value.isInt()) {
+            taskProps.put(name, value.asInt());
+        } else if (value.isLong()) {
+            taskProps.put(name, value.asLong());
+        } else if (value.isNull()) {
+            taskProps.put(name, null);
+        } else if (value.isArray()) {
+            Set<NodeRef> nodeRefs = new HashSet<>();
+            for (DataValue jsonNode : value) {
+                String stringNode = jsonNode.asText();
+                if (authorityUtils.isAuthorityRef(stringNode)) {
+                    nodeRefs.add(authorityUtils.getNodeRefNotNull(stringNode));
+                } else if (nodeUtils.isNodeRef(stringNode)) {
+                    nodeRefs.add(new NodeRef(stringNode));
+                }
+            }
+            taskProps.put(name, nodeRefs);
+        }
+    }
+
     private boolean isChangeOwnerAction(RecordMeta meta) {
         DataValue changeOwner = meta.getAttribute(ATT_CHANGE_OWNER);
         return !changeOwner.isNull();
     }
 
     private void processChangeOwnerAction(RecordMeta meta, String taskId) {
+
         DataValue changeOwner = meta.getAttribute(ATT_CHANGE_OWNER);
         String paramAction = changeOwner.get(ATT_ACTION).asText();
 
@@ -230,7 +265,40 @@ public class WorkflowTaskRecords extends LocalRecordsDao
             owner = CURRENT_USER.equals(ownerParam) ? AuthenticationUtil.getRunAsUser() : ownerParam;
         }
 
-        ownerService.changeOwner(taskId, action, owner);
+        String normalizedOwner = authorityUtils.getAuthorityName(owner);
+
+        TaskInfo taskInfo = ecosTaskService.getTaskInfo(taskId).orElse(null);
+        if (taskInfo == null) {
+            throw new IllegalStateException("taskInfo is null for taskId: " + taskId);
+        }
+        Set<String> roles = taskInfo.getCandidateRoles();
+        RecordRef document = taskInfo.getDocument();
+        if (document.getId().startsWith(NodeUtils.WORKSPACE_SPACES_STORE_PREFIX) && !roles.isEmpty()) {
+
+            NodeRef documentNodeRef = new NodeRef(document.getId());
+
+            for (String roleId : roles) {
+                NodeRef roleRef = caseRoleService.getRole(documentNodeRef, roleId);
+                if (roleRef == null) {
+                    continue;
+                }
+                Set<NodeRef> assignees = caseRoleService.getAssignees(documentNodeRef, roleId);
+                Map<NodeRef, String> delegates = new HashMap<>();
+                for (NodeRef assignee : assignees) {
+                    delegates.put(assignee, normalizedOwner);
+                }
+                if (!delegates.isEmpty()) {
+                    caseRoleService.setDelegates(roleRef, delegates);
+                }
+            }
+        }
+        ownerService.changeOwner(taskId, action, normalizedOwner);
+        if (document.getId().startsWith(NodeUtils.WORKSPACE_SPACES_STORE_PREFIX)) {
+            TransactionUtils.doAfterBehaviours(() ->
+                ecosPermissionService.updateNodePermissions(new NodeRef(document.getId()))
+            );
+        }
+        workflowMirrorService.mirrorTask(taskId);
     }
 
     private String getEcmFieldName(String name) {
@@ -324,7 +392,15 @@ public class WorkflowTaskRecords extends LocalRecordsDao
         WorkflowTaskRecords.TasksQuery tasksQuery = query.getQuery(WorkflowTaskRecords.TasksQuery.class);
         if (tasksQuery.document != null) {
             RecordRef docRecordRef = RecordRef.valueOf(tasksQuery.document);
-            if (docRecordRef.getSourceId().equals("workflow")) {
+            if (docRecordRef.getAppName().startsWith(APP_EPROC)) {
+                docRecordRef = RecordRef.valueOf(docRecordRef.getId());
+
+                if (docRecordRef.getSourceId().isEmpty()) {
+                    docRecordRef = docRecordRef.withSourceId(WorkflowRecordsDao.ID);
+                }
+            }
+
+            if (docRecordRef.getSourceId().equals(WorkflowRecordsDao.ID)) {
                 tasksQuery.setWorkflowId(docRecordRef.getId());
                 tasksQuery.setDocument(null);
             }

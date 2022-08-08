@@ -23,74 +23,75 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
-public class CompositeDeputyListener implements DeputyListener
-{
-	private List<DeputyListener> listeners = new ArrayList<>();
-	public void addDeputyListener(DeputyListener listener) {
-		listeners.add(listener);
-		Collections.sort(listeners, (a, b) -> a.getPriority() - b.getPriority());
-	}
+public class CompositeDeputyListener implements DeputyListener {
 
-	@Override
-	public int getPriority() {
-		return 0;
-	}
+    private List<DeputyListener> listeners = new ArrayList<>();
 
-	@Override
-	public void onRoleMemberAvailable(String roleFullName, String userName) {
-		for(DeputyListener listener : listeners) {
-			listener.onRoleMemberAvailable(roleFullName, userName);
-		}
-	}
+    public void addDeputyListener(DeputyListener listener) {
+        listeners.add(listener);
+        Collections.sort(listeners, (a, b) -> a.getPriority() - b.getPriority());
+    }
 
-	@Override
-	public void onRoleMemberUnavailable(String roleFullName, String userName) {
-		for(DeputyListener listener : listeners) {
-			listener.onRoleMemberUnavailable(roleFullName, userName);
-		}
-	}
+    @Override
+    public int getPriority() {
+        return 0;
+    }
 
-	@Override
-	public void onRoleDeputyAvailable(String roleFullName, String userName) {
-		for(DeputyListener listener : listeners) {
-			listener.onRoleDeputyAvailable(roleFullName, userName);
-		}
-	}
+    @Override
+    public void onRoleMemberAvailable(String roleFullName, String userName) {
+        for (DeputyListener listener : listeners) {
+            listener.onRoleMemberAvailable(roleFullName, userName);
+        }
+    }
 
-	@Override
-	public void onRoleDeputyUnavailable(String roleFullName, String userName) {
-		for(DeputyListener listener : listeners) {
-			listener.onRoleDeputyUnavailable(roleFullName, userName);
-		}
-	}
+    @Override
+    public void onRoleMemberUnavailable(String roleFullName, String userName) {
+        for (DeputyListener listener : listeners) {
+            listener.onRoleMemberUnavailable(roleFullName, userName);
+        }
+    }
 
-	@Override
-	public void onUserDeputyAvailable(String userName, String deputyName) {
-		for(DeputyListener listener : listeners) {
-			listener.onUserDeputyAvailable(userName, deputyName);
-		}
-	}
+    @Override
+    public void onRoleDeputyAvailable(String roleFullName, String userName) {
+        for (DeputyListener listener : listeners) {
+            listener.onRoleDeputyAvailable(roleFullName, userName);
+        }
+    }
 
-	@Override
-	public void onUserDeputyUnavailable(String userName, String deputyName) {
-		for(DeputyListener listener : listeners) {
-			listener.onUserDeputyUnavailable(userName, deputyName);
-		}
-	}
+    @Override
+    public void onRoleDeputyUnavailable(String roleFullName, String userName) {
+        for (DeputyListener listener : listeners) {
+            listener.onRoleDeputyUnavailable(roleFullName, userName);
+        }
+    }
 
-	@Override
-	public void onUserAvailable(String userName) {
-		for(DeputyListener listener : listeners) {
-			listener.onUserAvailable(userName);
-		}
-	}
+    @Override
+    public void onUserDeputyAvailable(String userName, String deputyName) {
+        for (DeputyListener listener : listeners) {
+            listener.onUserDeputyAvailable(userName, deputyName);
+        }
+    }
 
-	@Override
-	public void onUserUnavailable(String userName) {
-		for(DeputyListener listener : listeners) {
-			listener.onUserUnavailable(userName);
-		}
-	}
+    @Override
+    public void onUserDeputyUnavailable(String userName, String deputyName) {
+        for (DeputyListener listener : listeners) {
+            listener.onUserDeputyUnavailable(userName, deputyName);
+        }
+    }
+
+    @Override
+    public void onUserAvailable(String userName) {
+        for (DeputyListener listener : listeners) {
+            listener.onUserAvailable(userName);
+        }
+    }
+
+    @Override
+    public void onUserUnavailable(String userName) {
+        for (DeputyListener listener : listeners) {
+            listener.onUserUnavailable(userName);
+        }
+    }
 
     @Override
     public void onAssistantAdded(String userName) {
@@ -100,10 +101,10 @@ public class CompositeDeputyListener implements DeputyListener
     }
 
     @Override
-	public void onAssistantRemoved(String userName, String deputyName) {
-		for (DeputyListener listener : listeners) {
-			listener.onAssistantRemoved(userName, deputyName);
-		}
+    public void onAssistantRemoved(String userName, String deputyName) {
+        for (DeputyListener listener : listeners) {
+            listener.onAssistantRemoved(userName, deputyName);
+        }
     }
 
     @Override
@@ -119,5 +120,4 @@ public class CompositeDeputyListener implements DeputyListener
             listener.onRoleAssistantRemoved(roleFullName, assistantName);
         }
     }
-
 }

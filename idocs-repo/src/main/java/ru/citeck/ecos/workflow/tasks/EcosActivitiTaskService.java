@@ -1,5 +1,6 @@
 package ru.citeck.ecos.workflow.tasks;
 
+import jdk.nashorn.internal.ir.ObjectNode;
 import lombok.extern.log4j.Log4j;
 import org.activiti.engine.TaskService;
 import org.activiti.engine.task.IdentityLink;
@@ -8,7 +9,6 @@ import org.activiti.engine.task.Task;
 import org.alfresco.repo.workflow.activiti.ActivitiConstants;
 import org.alfresco.repo.workflow.activiti.ActivitiScriptNode;
 import org.alfresco.repo.workflow.activiti.properties.ActivitiPropertyConverter;
-import org.alfresco.service.cmr.dictionary.DictionaryService;
 import org.alfresco.service.cmr.repository.MLText;
 import org.alfresco.service.cmr.repository.NodeRef;
 import org.alfresco.service.cmr.workflow.WorkflowInstance;
@@ -17,18 +17,17 @@ import org.alfresco.service.cmr.workflow.WorkflowService;
 import org.alfresco.service.cmr.workflow.WorkflowTask;
 import org.alfresco.service.namespace.NamespaceService;
 import org.apache.commons.lang.StringUtils;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
+import ru.citeck.ecos.commons.json.Json;
 import ru.citeck.ecos.model.CiteckWorkflowModel;
 import ru.citeck.ecos.records2.RecordRef;
 import ru.citeck.ecos.utils.WorkflowUtils;
 
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Log4j
@@ -42,8 +41,6 @@ public class EcosActivitiTaskService implements EngineTaskService {
 
     @Autowired
     private TaskService taskService;
-    @Autowired
-    private DictionaryService dictionaryService;
     @Autowired
     private NamespaceService namespaceService;
     @Autowired
@@ -139,6 +136,18 @@ public class EcosActivitiTaskService implements EngineTaskService {
 
         //TODO: transient variables should be saved in execution
         taskVariables.putAll(transientVariables);
+
+        Set<String> keys = new HashSet<>(taskVariables.keySet());
+        for (String key : keys) {
+            Object value = taskVariables.get(key);
+            if (value instanceof ObjectNode
+                    || value instanceof com.fasterxml.jackson.databind.node.ObjectNode
+                    || value instanceof ecos.com.fasterxml.jackson210.databind.node.ObjectNode) {
+
+                taskVariables.put(key, Json.getMapper().toString(value));
+            }
+        }
+
         taskService.complete(taskId, taskVariables, true);
     }
 
@@ -166,6 +175,7 @@ public class EcosActivitiTaskService implements EngineTaskService {
         return null;
     }
 
+    @NotNull
     private RecordRef getDocument(String taskId) {
 
         Object bpmPackage = getVariable(taskId, VAR_PACKAGE);
@@ -252,6 +262,7 @@ public class EcosActivitiTaskService implements EngineTaskService {
         }
 
         @Override
+        @NotNull
         public RecordRef getDocument() {
             return EcosActivitiTaskService.this.getDocument(getId());
         }

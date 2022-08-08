@@ -1,5 +1,6 @@
 package ru.citeck.ecos.history.impl;
 
+import lombok.extern.slf4j.Slf4j;
 import org.alfresco.repo.policy.BehaviourFilter;
 import org.alfresco.repo.security.authentication.AuthenticationUtil;
 import org.alfresco.repo.transaction.AlfrescoTransactionSupport.TxnReadState;
@@ -11,8 +12,7 @@ import org.alfresco.service.cmr.security.PersonService;
 import org.alfresco.service.namespace.QName;
 import org.alfresco.service.transaction.TransactionService;
 import org.apache.commons.lang.StringUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.apache.commons.lang3.time.FastDateFormat;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
@@ -23,6 +23,8 @@ import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 import ru.citeck.ecos.constants.DocumentHistoryConstants;
+import ru.citeck.ecos.eureka.EcosServiceDiscovery;
+import ru.citeck.ecos.eureka.EcosServiceInstanceInfo;
 import ru.citeck.ecos.history.HistoryRemoteService;
 import ru.citeck.ecos.model.ActivityModel;
 import ru.citeck.ecos.model.HistoryModel;
@@ -34,7 +36,6 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
-import java.text.SimpleDateFormat;
 import java.util.*;
 
 import static org.alfresco.repo.transaction.AlfrescoTransactionSupport.getTransactionReadState;
@@ -42,6 +43,7 @@ import static org.alfresco.repo.transaction.AlfrescoTransactionSupport.getTransa
 /**
  * History remote service
  */
+@Slf4j
 public class HistoryRemoteServiceImpl implements HistoryRemoteService {
 
     /**
@@ -67,8 +69,8 @@ public class HistoryRemoteServiceImpl implements HistoryRemoteService {
     };
     private static final String HISTORY_RECORD_FILE_NAME = "history_record";
     private static final String DELIMITER = "||";
-    private static final SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy_MM_dd_HH_mm_ss");
-    private static final SimpleDateFormat importDateFormat = new SimpleDateFormat("dd.MM.yyyy HH:mm:ss");
+    private static final FastDateFormat DATE_FORMAT = FastDateFormat.getInstance("yyyy_MM_dd_HH_mm_ss");
+    private static final FastDateFormat IMPORT_DATE_FORMAT = FastDateFormat.getInstance("dd.MM.yyyy HH:mm:ss");
     private static final String SEND_NEW_RECORD_QUEUE = "send_new_record_queue";
     private static final String SEND_NEW_RECORDS_QUEUE = "send_new_records_queue";
     private static final String DELETE_RECORDS_BY_DOCUMENT_QUEUE = "delete_records_by_document_queue";
@@ -79,7 +81,6 @@ public class HistoryRemoteServiceImpl implements HistoryRemoteService {
      */
     private static final String USE_ACTIVE_MQ = "ecos.citeck.history.service.use.activemq";
     private static final String CSV_RESULT_FOLDER = "ecos.citeck.history.service.csv.folder";
-    private static final String HISTORY_SERVICE_HOST = "ecos.citeck.history.service.host";
 
     /**
      * Path constants
@@ -94,10 +95,6 @@ public class HistoryRemoteServiceImpl implements HistoryRemoteService {
     private static final String GET_BY_USERNAME_START_DATE = "/history_records/by_username/%s/start_date/%s/limit/%d";
     private static final String GET_BY_USERNAME_START_END_DATE = "/history_records/by_username/%s/start_date/%s/end_date/%s/limit/%d";
 
-    /**
-     * Logger
-     */
-    private static Log logger = LogFactory.getLog(HistoryRemoteServiceImpl.class);
 
     /**
      * Global properties
@@ -123,6 +120,21 @@ public class HistoryRemoteServiceImpl implements HistoryRemoteService {
     @Autowired(required = false)
     private JmsTemplate jmsTemplate;
 
+    private EcosServiceDiscovery ecosServiceDiscovery;
+
+    private String getHistoryServiceHost() {
+        EcosServiceInstanceInfo instanceInfo = ecosServiceDiscovery.getInstanceInfo("history");
+        if (instanceInfo == null) {
+            throw new RuntimeException("History service is not available");
+        }
+        String hostUrl = "http";
+        if (instanceInfo.getSecurePortEnabled()) {
+            hostUrl += "s";
+        }
+        hostUrl += "://" + instanceInfo.getHost() + ":" + instanceInfo.getPort();
+        return hostUrl;
+    }
+
     /**
      * Get all history records
      *
@@ -133,7 +145,7 @@ public class HistoryRemoteServiceImpl implements HistoryRemoteService {
     @Override
     public List<Map> getAllHistoryRecords(int page, int limit) {
         String url = String.format(GET_ALL_RECORDS, page, limit);
-        return restTemplate.getForObject(properties.getProperty(HISTORY_SERVICE_HOST) + url, List.class);
+        return restTemplate.getForObject(getHistoryServiceHost() + url, List.class);
     }
 
     /**
@@ -145,7 +157,7 @@ public class HistoryRemoteServiceImpl implements HistoryRemoteService {
     @Override
     public List<Map> getHistoryRecords(String documentUuid) {
         return restTemplate.postForObject(
-            properties.getProperty(HISTORY_SERVICE_HOST) + GET_BY_DOCUMENT_ID_PATH,
+            getHistoryServiceHost() + GET_BY_DOCUMENT_ID_PATH,
             documentUuid,
             List.class);
     }
@@ -193,7 +205,7 @@ public class HistoryRemoteServiceImpl implements HistoryRemoteService {
             url = String.format(GET_BY_USERNAME_START_END_DATE, username, startDate.getTime(), endDate.getTime(), limit);
         }
 
-        return restTemplate.getForObject(properties.getProperty(HISTORY_SERVICE_HOST) + url, List.class);
+        return restTemplate.getForObject(getHistoryServiceHost() + url, List.class);
     }
 
     /**
@@ -217,11 +229,11 @@ public class HistoryRemoteServiceImpl implements HistoryRemoteService {
             } else {
                 MultiValueMap<String, Object> paramsMap = new LinkedMultiValueMap();
                 paramsMap.setAll(requestParams);
-                restTemplate.postForObject(properties.getProperty(HISTORY_SERVICE_HOST) + INSERT_RECORD_PATH, paramsMap, Boolean.class);
+                restTemplate.postForObject(getHistoryServiceHost() + INSERT_RECORD_PATH, paramsMap, Boolean.class);
             }
 
         } catch (Exception exception) {
-            logger.error(exception);
+            log.error(exception.getMessage(), exception);
             saveHistoryRecordAsCsv(requestParams);
         }
     }
@@ -254,12 +266,12 @@ public class HistoryRemoteServiceImpl implements HistoryRemoteService {
             } else {
                 MultiValueMap<String, Object> map = new LinkedMultiValueMap<>();
                 map.add("records", convertListOfMapsToJsonString(result));
-                restTemplate.postForObject(properties.getProperty(HISTORY_SERVICE_HOST) + INSERT_RECORDS_PATH, map, Boolean.class);
+                restTemplate.postForObject(getHistoryServiceHost() + INSERT_RECORDS_PATH, map, Boolean.class);
             }
             /* Update document status */
             updateDocumentHistoryStatus(documentRef, true);
         } catch (Exception exception) {
-            logger.error(exception);
+            log.error(exception.getMessage(), exception);
         }
     }
 
@@ -300,7 +312,7 @@ public class HistoryRemoteServiceImpl implements HistoryRemoteService {
         entryMap.put(DocumentHistoryConstants.COMMENTS.getValue(),
             nodeService.getProperty(eventRef, HistoryModel.PROP_TASK_COMMENT));
         entryMap.put(DocumentHistoryConstants.DOCUMENT_DATE.getValue(),
-            importDateFormat.format((Date) nodeService.getProperty(eventRef, HistoryModel.PROP_DATE)));
+            IMPORT_DATE_FORMAT.format((Date) nodeService.getProperty(eventRef, HistoryModel.PROP_DATE)));
         entryMap.put(DocumentHistoryConstants.TASK_ROLE.getValue(),
             nodeService.getProperty(eventRef, HistoryModel.PROP_TASK_ROLE));
         entryMap.put(DocumentHistoryConstants.TASK_OUTCOME.getValue(),
@@ -383,7 +395,7 @@ public class HistoryRemoteServiceImpl implements HistoryRemoteService {
         }
         csvResult.append("\n");
         /* Create file */
-        String currentDate = dateFormat.format(new Date());
+        String currentDate = DATE_FORMAT.format(new Date());
         File csvFile = new File(properties.getProperty(CSV_RESULT_FOLDER, DEFAULT_RESULT_CSV_FOLDER)
             + HISTORY_RECORD_FILE_NAME + currentDate + ".csv");
         try {
@@ -395,7 +407,7 @@ public class HistoryRemoteServiceImpl implements HistoryRemoteService {
                 StandardOpenOption.SYNC
             );
         } catch (IOException e) {
-            logger.error(e);
+            log.error(e.getMessage(), e);
             throw new RuntimeException(e);
         }
     }
@@ -411,7 +423,7 @@ public class HistoryRemoteServiceImpl implements HistoryRemoteService {
         try {
             setUseNewHistoryStatus(documentNodeRef, newStatus);
         } catch (Exception e) {
-            logger.error("Unexpected error with args documentNodeRef = " + documentNodeRef +
+            log.error("Unexpected error with args documentNodeRef = " + documentNodeRef +
                 ", newStatus = " + newStatus, e);
         }
     }
@@ -432,7 +444,7 @@ public class HistoryRemoteServiceImpl implements HistoryRemoteService {
             }
         } else {
             restTemplate.postForObject(
-                properties.getProperty(HISTORY_SERVICE_HOST) + DELETE_BY_DOCUMENT_ID_PATH,
+                getHistoryServiceHost() + DELETE_BY_DOCUMENT_ID_PATH,
                 documentNodeRef.getId(),
                 Object.class);
         }
@@ -497,5 +509,10 @@ public class HistoryRemoteServiceImpl implements HistoryRemoteService {
 
     public void setNodeUtils(NodeUtils nodeUtils) {
         this.nodeUtils = nodeUtils;
+    }
+
+    @Autowired
+    public void setEcosServiceDiscovery(EcosServiceDiscovery ecosServiceDiscovery) {
+        this.ecosServiceDiscovery = ecosServiceDiscovery;
     }
 }
