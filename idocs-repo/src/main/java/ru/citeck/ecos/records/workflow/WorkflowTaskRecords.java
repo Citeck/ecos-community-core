@@ -69,6 +69,11 @@ public class WorkflowTaskRecords extends LocalRecordsDao
 
     private static final String ID = "wftask";
 
+    private static final String GROUP_WORKFLOW_TASK_ADMIN = "GROUP_WORKFLOW_TASK_ADMIN";
+    private static final String PERMS_WRITE = "Write";
+    private static final String PERMS_READ = "Read";
+    private static final String PERMS_REASSIGN = "Reassign";
+
     private final EcosTaskService ecosTaskService;
     private final AuthorityService authorityService;
     private final WorkflowTaskRecordsUtils workflowTaskRecordsUtils;
@@ -785,41 +790,48 @@ public class WorkflowTaskRecords extends LocalRecordsDao
         private final TaskInfo taskInfo;
 
         @Override
-        public boolean has(String name) {
+        public boolean has(String permission) {
 
-            if (!name.equals("Write") && !name.equals("Read")) {
+            if (!permission.equalsIgnoreCase(PERMS_WRITE) && !permission.equalsIgnoreCase(PERMS_READ) &&
+                !permission.equalsIgnoreCase(PERMS_REASSIGN)) {
                 return true;
             }
 
-            String user = AuthenticationUtil.getFullyAuthenticatedUser();
-            if (StringUtils.isBlank(user)) {
+            String userName = AuthenticationUtil.getFullyAuthenticatedUser();
+            if (StringUtils.isBlank(userName)) {
                 return false;
             }
-            if (authorityService.isAdminAuthority(user)
-                    || Objects.equals(user, AuthenticationUtil.getSystemUserName())) {
+
+            if (authorityService.isAdminAuthority(userName) ||
+                    Objects.equals(userName, AuthenticationUtil.getSystemUserName())) {
+                return true;
+            }
+
+            if (PERMS_REASSIGN.equalsIgnoreCase(permission) &&
+                authorityService.getAuthoritiesForUser(userName).contains(GROUP_WORKFLOW_TASK_ADMIN)) {
                 return true;
             }
 
             String assignee = taskInfo.getAssignee();
             if (StringUtils.isNotBlank(assignee)) {
-                return Objects.equals(user, assignee);
+                return Objects.equals(userName, assignee);
             }
 
             List<String> actors = taskInfo.getActors()
                 .stream()
-                .map(actor -> {
-                    if (actor.startsWith("workspace://")) {
-                        return authorityUtils.getAuthorityName(new NodeRef(actor));
-                    } else {
-                        return actor;
-                    }
-                }).collect(Collectors.toList());
-            if (actors.contains(user)) {
+                .map(actor -> actor.startsWith("workspace://") ?
+                    authorityUtils.getAuthorityName(new NodeRef(actor)) : actor)
+                .collect(Collectors.toList());
+            if (actors.contains(userName)) {
                 return true;
             }
 
-            Set<String> authoritiesForUser = authorityService.getAuthoritiesForUser(user);
-            return actors.stream().anyMatch(authoritiesForUser::contains);
+            Set<String> authoritiesForUser = authorityService.getAuthoritiesForUser(userName);
+            if (actors.stream().anyMatch(authoritiesForUser::contains)) {
+                return true;
+            }
+
+            return false;
         }
     }
 }
