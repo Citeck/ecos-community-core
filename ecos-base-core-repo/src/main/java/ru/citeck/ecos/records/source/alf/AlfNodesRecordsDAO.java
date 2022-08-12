@@ -182,12 +182,12 @@ public class AlfNodesRecordsDAO extends LocalRecordsDao
         ObjectData attributes = initialAtts.deepCopy();
 
         RecordMeta resultRecord;
-        Map<QName, Serializable> props = new HashMap<>();
-        Map<QName, DataValue> contentProps = new HashMap<>();
-        Map<QName, Set<NodeRef>> assocs = new HashMap<>();
-        Map<QName, DataValue> childAssocEformFiles = new HashMap<>();
-        Map<QName, DataValue> attachmentAssocEformFiles = new HashMap<>();
-        Map<String, String> attsToIgnore = new HashMap<>();
+        Map<QName, Serializable> props = new LinkedHashMap<>();
+        Map<QName, DataValue> contentProps = new LinkedHashMap<>();
+        Map<QName, Set<NodeRef>> assocs = new LinkedHashMap<>();
+        Map<QName, DataValue> childAssocEformFiles = new LinkedHashMap<>();
+        Map<QName, DataValue> attachmentAssocEformFiles = new LinkedHashMap<>();
+        Map<String, String> attsToIgnore = new LinkedHashMap<>();
 
         String newCaseStatus = "";
         if (attributes.has(StatusConstants.ATT_STATUS)) {
@@ -362,12 +362,14 @@ public class AlfNodesRecordsDAO extends LocalRecordsDao
                             Set<NodeRef> targetRefs = refsStream
                                 .filter(NodeRef::isNodeRef)
                                 .map(NodeRef::new)
-                                .collect(Collectors.toSet());
+                                .collect(Collectors.toCollection(LinkedHashSet::new));
 
                             if (!targetRefs.isEmpty() && addOrRemoveCmd != null) {
                                 Set<NodeRef> existedAssocTargets = assocs.get(fieldName);
                                 if (existedAssocTargets == null) {
-                                    existedAssocTargets = new HashSet<>(nodeUtils.getAssocTargets(nodeRef, fieldName));
+                                    existedAssocTargets = new LinkedHashSet<>(
+                                        nodeUtils.getAssocTargets(nodeRef, fieldName)
+                                    );
                                 }
                                 if (ADD_CMD_PREFIX.equals(addOrRemoveCmd)) {
                                     existedAssocTargets.addAll(targetRefs);
