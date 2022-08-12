@@ -244,70 +244,124 @@ public class NodeUtils {
             targets = Collections.emptySet();
         }
 
+        AssociationDefinition assocDef = dictionaryService.getAssociation(assocName);
+        if (assocDef == null) {
+            return false;
+        }
+        boolean isChildAssoc = assocDef instanceof ChildAssociationDefinition;
+
+        boolean isOrderedTargets = targets instanceof List<?>
+            || targets instanceof LinkedHashSet<?>
+            || targets instanceof TreeSet<?>;
+
         Set<NodeRef> targetsSet = targets.stream().map(ref -> {
             String protocol = ref.getStoreRef().getProtocol();
             if (protocol.startsWith("alfresco/@") && protocol.contains("workspace")) {
                 return new NodeRef(StoreRef.STORE_REF_WORKSPACE_SPACESSTORE, ref.getId());
             }
             return ref;
-        }).collect(Collectors.toSet());
+        }).collect(Collectors.toCollection(LinkedHashSet::new));
 
-        AssociationDefinition assocDef = dictionaryService.getAssociation(assocName);
+        Map<NodeRef, ChildAssociationRef> storedChildAssocsByChild = Collections.emptyMap();
+        List<NodeRef> storedRefs;
+        if (isChildAssoc) {
+            List<ChildAssociationRef> childAssocs = getChildAssocs(nodeRef, assocDef, true);
+            storedRefs = new ArrayList<>(childAssocs.size());
+            storedChildAssocsByChild = new LinkedHashMap<>();
+            for (ChildAssociationRef assoc : childAssocs) {
+                NodeRef childRef = assoc.getChildRef();
+                storedChildAssocsByChild.put(childRef, assoc);
+                storedRefs.add(childRef);
+            }
+        } else {
+            storedRefs = getAssocsImpl(nodeRef, assocDef, true);
+        }
 
-        if (assocDef != null) {
+        Set<NodeRef> toAdd = targetsSet.stream()
+                                       .filter(r -> !storedRefs.contains(r))
+                                       .collect(Collectors.toCollection(LinkedHashSet::new));
+        Set<NodeRef> toRemove = storedRefs.stream()
+                                          .filter(r -> !targetsSet.contains(r))
+                                          .collect(Collectors.toCollection(LinkedHashSet::new));
 
-            List<NodeRef> storedRefs = getAssocsImpl(nodeRef, assocDef, true);
-
-            Set<NodeRef> toAdd = targetsSet.stream()
-                                           .filter(r -> !storedRefs.contains(r))
-                                           .collect(Collectors.toSet());
-            Set<NodeRef> toRemove = storedRefs.stream()
-                                              .filter(r -> !targetsSet.contains(r))
-                                              .collect(Collectors.toSet());
-
-            if (!toAdd.isEmpty() || !toRemove.isEmpty()) {
-
-                if (assocDef instanceof ChildAssociationDefinition) {
-
-                    List<ChildAssociationRef> currentAssocs = getChildAssocs(nodeRef, assocDef, true);
-                    Map<NodeRef, ChildAssociationRef> currentAssocByChild = new HashMap<>();
-                    currentAssocs.forEach(a -> currentAssocByChild.put(a.getChildRef(), a));
-
-                    for (NodeRef removeRef : toRemove) {
-                        if (primaryChildren) {
-                            nodeService.removeChildAssociation(currentAssocByChild.get(removeRef));
-                        } else {
-                            nodeService.removeSecondaryChildAssociation(currentAssocByChild.get(removeRef));
-                        }
-                    }
-                    for (NodeRef addRef : toAdd) {
-                        ChildAssociationRef primaryParent = nodeService.getPrimaryParent(addRef);
-                        if (primaryChildren) {
-                            nodeService.moveNode(addRef, nodeRef, assocName, primaryParent.getQName());
-                            ClassDefinition assocClassDef = assocDef.getSourceClass();
-                            if (assocClassDef.isAspect()) {
-                                QName assocAspectQName = assocClassDef.getName();
-                                if (!nodeService.hasAspect(nodeRef, assocAspectQName)) {
-                                    nodeService.addAspect(nodeRef, assocAspectQName, null);
-                                }
-                            }
-                        } else {
-                            nodeService.addChild(nodeRef, addRef, assocName, primaryParent.getQName());
-                        }
+        if (toAdd.isEmpty() && toRemove.isEmpty()) {
+            // nothing to add and remove, but maybe we should change associations order?
+            if (!isOrderedTargets || (targetsSet.isEmpty() && storedRefs.isEmpty())) {
+               return false;
+            }
+            if (!isOrderedCollectionsContentEquals(targetsSet, storedRefs)) {
+                if (isChildAssoc) {
+                    int idx = 1;
+                    for (NodeRef childRef : targetsSet) {
+                        nodeService.setChildAssociationIndex(storedChildAssocsByChild.get(childRef), idx);
+                        idx++;
                     }
                 } else {
-                    for (NodeRef removeRef : toRemove) {
-                        nodeService.removeAssociation(nodeRef, removeRef, assocName);
-                    }
-                    for (NodeRef addRef : toAdd) {
-                        nodeService.createAssociation(nodeRef, addRef, assocName);
-                    }
+                    nodeService.setAssociations(nodeRef, assocName, new ArrayList<>(targetsSet));
                 }
-
                 return true;
             }
+            return false;
+
+        } else {
+
+            if (!toAdd.isEmpty()) {
+                ClassDefinition assocClassDef = assocDef.getSourceClass();
+                if (assocClassDef.isAspect()) {
+                    QName assocAspectQName = assocClassDef.getName();
+                    if (!nodeService.hasAspect(nodeRef, assocAspectQName)) {
+                        nodeService.addAspect(nodeRef, assocAspectQName, null);
+                    }
+                }
+            }
+
+            if (isChildAssoc) {
+
+                for (NodeRef refToRemove : toRemove) {
+                    if (primaryChildren) {
+                        nodeService.removeChildAssociation(storedChildAssocsByChild.get(refToRemove));
+                    } else {
+                        nodeService.removeSecondaryChildAssociation(storedChildAssocsByChild.get(refToRemove));
+                    }
+                }
+                int idx = 1;
+                for (NodeRef targetRef : targetsSet) {
+                    ChildAssociationRef childAssoc = storedChildAssocsByChild.get(targetRef);
+                    if (childAssoc == null) {
+                        ChildAssociationRef primaryParent = nodeService.getPrimaryParent(targetRef);
+                        if (primaryChildren) {
+                            childAssoc = nodeService.moveNode(targetRef, nodeRef, assocName, primaryParent.getQName());
+                        } else {
+                            childAssoc = nodeService.addChild(nodeRef, targetRef, assocName, primaryParent.getQName());
+                        }
+                    }
+                    if (isOrderedTargets) {
+                        nodeService.setChildAssociationIndex(childAssoc, idx);
+                    }
+                    idx++;
+                }
+            } else {
+                nodeService.setAssociations(nodeRef, assocName, new ArrayList<>(targetsSet));
+            }
+            return true;
         }
-        return false;
+    }
+
+    // todo: move logic to ecos-commons
+    private <T> boolean isOrderedCollectionsContentEquals(Collection<T> first, Collection<T> second) {
+        if (first.size() != second.size()) {
+            return false;
+        }
+        Iterator<T> firstIt = first.iterator();
+        Iterator<T> secondIt = second.iterator();
+        while (firstIt.hasNext() && secondIt.hasNext()) {
+            T firstElement = firstIt.next();
+            T secondElement = secondIt.next();
+            if (!Objects.equals(firstElement, secondElement)) {
+                return false;
+            }
+        }
+        return true;
     }
 
     /**
