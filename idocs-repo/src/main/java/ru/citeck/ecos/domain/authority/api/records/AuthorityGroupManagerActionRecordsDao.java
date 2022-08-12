@@ -267,27 +267,27 @@ public class AuthorityGroupManagerActionRecordsDao implements RecordMutateDao {
 
         public static final String ID = "update";
 
-        private String child;
+        private String group;
         private String displayName;
 
         @Override
         public void checkValidity() {
-            MandatoryParam.check("child", child);
+            MandatoryParam.check("group", group);
             MandatoryParam.check("displayName", displayName);
         }
 
         @Override
         public void checkPermissions(Set<String> managedGroups, String currentUser) {
-            if (StringUtils.isNotBlank(child)) {
-                checkPermissionsForGroup(child, false, managedGroups);
+            if (StringUtils.isNotBlank(group)) {
+                checkPermissionsForGroup(group, false, managedGroups);
             }
         }
 
         @Override
         public void execute(String currentUser) {
             if (StringUtils.isNotBlank(displayName)) {
-                log.info("[" + currentUser + "] Group update. New display name: '" + displayName + "'");
-                authorityService.setAuthorityDisplayName(child, displayName);
+                log.info("[" + currentUser + "] Group update. Name: '" + group + "' New display name: '" + displayName + "'");
+                authorityService.setAuthorityDisplayName(group, displayName);
             }
         }
     }
@@ -298,24 +298,24 @@ public class AuthorityGroupManagerActionRecordsDao implements RecordMutateDao {
 
         public static final String ID = "delete";
 
-        private String child;
+        private String group;
 
         @Override
         public void checkValidity() {
-            MandatoryParam.check("child", child);
+            MandatoryParam.check("group", group);
         }
 
         @Override
         public void checkPermissions(Set<String> managedGroups, String currentUser) {
-            if (StringUtils.isNotBlank(child)) {
-                checkPermissionsForGroup(child, false, managedGroups);
+            if (StringUtils.isNotBlank(group)) {
+                checkPermissionsForGroup(group, false, managedGroups);
             }
         }
 
         @Override
         public void execute(String currentUser) {
-            log.info("[" + currentUser + "] Group delete: '" + child + "'");
-            authorityService.deleteAuthority(child);
+            log.info("[" + currentUser + "] Group delete: '" + group + "'");
+            authorityService.deleteAuthority(group);
         }
     }
 

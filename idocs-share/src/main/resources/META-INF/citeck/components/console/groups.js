@@ -46,17 +46,17 @@
     return ecosExecuteAction(actionRecord, successMessage, failureMessage);
   }
 
-  var ecosDelete = (child, successMessage, failureMessage) => {
+  var ecosDelete = (group, successMessage, failureMessage) => {
     var actionRecord = Citeck.Records.getRecordToEdit('alfresco/authority-group-manager-action@');
     actionRecord.att('type', "delete");
-    actionRecord.att('child', child);
+    actionRecord.att('group', group);
     return ecosExecuteAction(actionRecord, successMessage, failureMessage);
   }
 
-  var ecosUpdate = (child, displayName, successMessage, failureMessage) => {
+  var ecosUpdate = (group, displayName, successMessage, failureMessage) => {
     var actionRecord = Citeck.Records.getRecordToEdit('alfresco/authority-group-manager-action@');
     actionRecord.att('type', "update");
-    actionRecord.att('child', child);
+    actionRecord.att('group', group);
     actionRecord.att('displayName', displayName);
     return ecosExecuteAction(actionRecord, successMessage, failureMessage);
   }
