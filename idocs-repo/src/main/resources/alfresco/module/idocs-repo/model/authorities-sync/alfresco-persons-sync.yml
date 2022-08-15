@@ -36,6 +36,7 @@ config:
     itn: 'ecos:inn'
     inila: 'ecos:inila'
     skype: 'cm:skype'
+    # 'v2-' prefix required to ignore previous cache keys and resynchronize photo
     photoCacheKey: 'ecos:photo.contentUrl|presuf("v2-")'
     atWorkplace: 'deputy:available'
     location: 'cm:location'
