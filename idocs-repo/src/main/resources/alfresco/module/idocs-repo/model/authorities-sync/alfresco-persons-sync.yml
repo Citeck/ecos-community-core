@@ -12,7 +12,7 @@ authorityType: PERSON
 manageNewAuthorities: true
 
 repeatDelayDuration: PT10S
-version: 4
+version: 5
 
 config:
   batchSize: 30
@@ -36,7 +36,7 @@ config:
     itn: 'ecos:inn'
     inila: 'ecos:inila'
     skype: 'cm:skype'
-    photoCacheKey: 'ecos:photo.contentUrl'
+    photoCacheKey: 'ecos:photo.contentUrl|presuf("v2-")'
     atWorkplace: 'deputy:available'
     location: 'cm:location'
     mobile: 'cm:mobile'
