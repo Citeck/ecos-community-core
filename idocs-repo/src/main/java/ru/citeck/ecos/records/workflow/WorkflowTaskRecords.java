@@ -824,8 +824,7 @@ public class WorkflowTaskRecords extends LocalRecordsDao
                 return true;
             }
 
-            if (PERMS_REASSIGN.equalsIgnoreCase(permission) &&
-                authorityService.getAuthoritiesForUser(userName).contains(GROUP_WORKFLOW_TASKS_REASSIGN_ALLOWED)) {
+            if (PERMS_REASSIGN.equalsIgnoreCase(permission) && isUserPartOfReassignAllowedGroup(userName)) {
                 return true;
             }
 
