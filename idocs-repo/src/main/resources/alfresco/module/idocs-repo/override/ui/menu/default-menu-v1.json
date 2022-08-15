@@ -1497,7 +1497,7 @@
               "hidden": false,
               "type": "ARBITRARY",
               "config": {
-                "url": "/share/page/console/admin-console/groups"
+                "url": "/v2/admin?journalId=authority-groups&type=JOURNAL"
               }
             },
             {
@@ -1509,7 +1509,7 @@
               "hidden": false,
               "type": "ARBITRARY",
               "config": {
-                "url": "/share/page/console/admin-console/users"
+                "url": "/v2/admin?journalId=persons&type=JOURNAL"
               }
             },
             {
