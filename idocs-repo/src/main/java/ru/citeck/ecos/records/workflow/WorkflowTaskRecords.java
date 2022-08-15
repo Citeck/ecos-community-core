@@ -69,7 +69,7 @@ public class WorkflowTaskRecords extends LocalRecordsDao
 
     private static final String ID = "wftask";
 
-    private static final String GROUP_WORKFLOW_TASK_ADMIN = "GROUP_WORKFLOW_TASK_ADMIN";
+    private static final String GROUP_WORKFLOW_TASKS_REASSIGN_ALLOWED = "GROUP_WORKFLOW_TASKS_REASSIGN_ALLOWED";
     private static final String PERMS_WRITE = "Write";
     private static final String PERMS_READ = "Read";
     private static final String PERMS_REASSIGN = "Reassign";
@@ -134,7 +134,14 @@ public class WorkflowTaskRecords extends LocalRecordsDao
         }
 
         if (isChangeOwnerAction(meta)) {
-            processChangeOwnerAction(meta, taskId);
+            if (isUserPartOfReassignAllowedGroup(AuthenticationUtil.getFullyAuthenticatedUser())) {
+                AuthenticationUtil.runAsSystem(() -> {
+                    processChangeOwnerAction(meta, taskId);
+                    return null;
+                });
+            } else {
+                processChangeOwnerAction(meta, taskId);
+            }
             return new RecordMeta(taskId);
         }
 
@@ -211,6 +218,16 @@ public class WorkflowTaskRecords extends LocalRecordsDao
     private boolean isChangeOwnerAction(RecordMeta meta) {
         DataValue changeOwner = meta.getAttribute(ATT_CHANGE_OWNER);
         return changeOwner != null && !changeOwner.isNull();
+    }
+
+    private boolean isUserPartOfReassignAllowedGroup(String userName) {
+        if (StringUtils.isBlank(userName)) {
+            return true;
+        }
+        if (authorityService.getAuthoritiesForUser(userName).contains(GROUP_WORKFLOW_TASKS_REASSIGN_ALLOWED)) {
+            return true;
+        }
+        return false;
     }
 
     private void processChangeOwnerAction(RecordMeta meta, String taskId) {
@@ -808,7 +825,7 @@ public class WorkflowTaskRecords extends LocalRecordsDao
             }
 
             if (PERMS_REASSIGN.equalsIgnoreCase(permission) &&
-                authorityService.getAuthoritiesForUser(userName).contains(GROUP_WORKFLOW_TASK_ADMIN)) {
+                authorityService.getAuthoritiesForUser(userName).contains(GROUP_WORKFLOW_TASKS_REASSIGN_ALLOWED)) {
                 return true;
             }
 
