@@ -47,6 +47,8 @@ public class AuthorityGroupManagerActionRecordsDao implements RecordMutateDao {
 
         actionTypes.put(AddOrRemoveAuthorityAction.ID, AddOrRemoveAuthorityAction.class);
         actionTypes.put(CreateGroupAction.ID, CreateGroupAction.class);
+        actionTypes.put(UpdateGroupAction.ID, UpdateGroupAction.class);
+        actionTypes.put(DeleteGroupAction.ID, DeleteGroupAction.class);
 
         managedGroupsByAuthority = new LinkedHashMap<>();
         managedGroupsByAuthority.put(
@@ -256,6 +258,64 @@ public class AuthorityGroupManagerActionRecordsDao implements RecordMutateDao {
             if (StringUtils.isNotBlank(parent)) {
                 authorityService.addAuthority(parent, fullName);
             }
+        }
+    }
+
+    @Data
+    @NoArgsConstructor
+    class UpdateGroupAction implements AuthorityAction {
+
+        public static final String ID = "update";
+
+        private String group;
+        private String displayName;
+
+        @Override
+        public void checkValidity() {
+            MandatoryParam.check("group", group);
+            MandatoryParam.check("displayName", displayName);
+        }
+
+        @Override
+        public void checkPermissions(Set<String> managedGroups, String currentUser) {
+            if (StringUtils.isNotBlank(group)) {
+                checkPermissionsForGroup(group, false, managedGroups);
+            }
+        }
+
+        @Override
+        public void execute(String currentUser) {
+            if (StringUtils.isNotBlank(displayName)) {
+                log.info("[" + currentUser + "] Group update. Name: '" + group + "' New display name: '" + displayName + "'");
+                authorityService.setAuthorityDisplayName(group, displayName);
+            }
+        }
+    }
+
+    @Data
+    @NoArgsConstructor
+    class DeleteGroupAction implements AuthorityAction {
+
+        public static final String ID = "delete";
+
+        private String group;
+
+        @Override
+        public void checkValidity() {
+            MandatoryParam.check("group", group);
+        }
+
+        @Override
+        public void checkPermissions(Set<String> managedGroups, String currentUser) {
+            if (StringUtils.isNotBlank(group)) {
+                checkPermissionsForGroup(group, false, managedGroups);
+            }
+        }
+
+        @Override
+        public void execute(String currentUser) {
+            log.info("[" + currentUser + "] Group delete: '" + group + "'");
+            authorityService.deleteAuthority(group);
         }
     }
 
