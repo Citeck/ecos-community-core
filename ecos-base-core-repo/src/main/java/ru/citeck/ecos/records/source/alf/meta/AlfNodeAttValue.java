@@ -186,13 +186,16 @@ public class AlfNodeAttValue implements MetaValue {
                 case "bytes":
                     String contentUrl = content.getContentUrl();
                     ContentService contentService = context.getServiceRegistry().getContentService();
-                    ContentReader reader = contentService.getRawReader(contentUrl);
-                    if (reader != null && reader.exists()) {
-                        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-                        reader.getContent(outputStream);
-                        return outputStream.toByteArray();
-                    }
-                    return null;
+                    return AuthenticationUtil.runAsSystem(() -> {
+                        ContentReader reader = contentService.getRawReader(contentUrl);
+                        if (reader != null && reader.exists()) {
+                            ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+                            reader.getContent(outputStream);
+                            return outputStream.toByteArray();
+                        } else {
+                            return null;
+                        }
+                    });
             }
         }
         return null;
