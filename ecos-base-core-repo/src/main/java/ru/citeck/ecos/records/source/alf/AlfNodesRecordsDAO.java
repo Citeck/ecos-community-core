@@ -63,6 +63,7 @@ import ru.citeck.ecos.records2.source.dao.local.v2.LocalRecordsQueryWithMetaDao;
 import ru.citeck.ecos.security.EcosPermissionService;
 import ru.citeck.ecos.utils.AuthorityUtils;
 import ru.citeck.ecos.utils.NodeUtils;
+import ru.citeck.ecos.webapp.api.entity.EntityRef;
 import ru.citeck.ecos.webapp.api.properties.EcosWebAppProperties;
 import ru.citeck.ecos.webapp.lib.model.type.dto.TypeDef;
 
@@ -689,14 +690,6 @@ public class AlfNodesRecordsDAO extends LocalRecordsDao
     private NodeRef getParent(RecordMeta record, QName type, RecordRef ecosType) {
 
         String parent = record.getAttribute(RecordConstants.ATT_PARENT, "");
-        if (parent.contains("@")) {
-            RecordRef parentRef = RecordRef.valueOf(parent);
-            if (!parentRef.getAppName().isEmpty() &&
-                !parentRef.getAppName().equals(webAppProperties.getAppName())) {
-
-                parent = "";
-            }
-        }
         if (!parent.isEmpty()) {
 
             NodeRef parentRef = nodeUtils.getNodeRefOrNull(parent);
@@ -706,7 +699,11 @@ public class AlfNodesRecordsDAO extends LocalRecordsDao
             if (authorityUtils.isAuthorityRef(parent)) {
                 return authorityUtils.getNodeRefNotNull(parent);
             }
-            return getByPath(parent);
+            int appDelimIdx = parent.indexOf(EntityRef.APP_NAME_DELIMITER);
+            int srcDelimIdx = parent.indexOf(EntityRef.SOURCE_ID_DELIMITER);
+            if (srcDelimIdx == -1 || appDelimIdx == -1 || appDelimIdx > srcDelimIdx) {
+                return getByPath(parent);
+            }
         }
 
         if (RecordRef.isNotEmpty(ecosType)) {
