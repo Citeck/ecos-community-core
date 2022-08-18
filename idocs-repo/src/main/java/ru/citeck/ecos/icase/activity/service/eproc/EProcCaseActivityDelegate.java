@@ -63,7 +63,12 @@ public class EProcCaseActivityDelegate implements CaseActivityDelegate {
     @Override
     public void startActivity(ActivityRef activityRef) {
         ActivityInstance instance = eprocActivityService.getStateInstance(activityRef);
-        ActivityTransitionDefinition transitionDefinition = getTransitionDefinition(instance, ActivityState.STARTED);
+        ActivityTransitionDefinition transitionDefinition = getTransitionDefinition(
+            instance.getDefinition().getTransitions(),
+            ActivityState.NOT_STARTED,
+            ActivityState.STARTED
+        );
+
         if (transitionDefinition == null) {
             return;
         }
