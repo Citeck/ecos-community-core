@@ -24,125 +24,131 @@ import org.alfresco.service.namespace.QName;
  * @author: Alexander Nemerov
  * @date: 27.01.14
  */
-public final class IdocsModel {
+public interface IdocsModel {
 
     // model
-    public static final String IDOCS_MODEL_PREFIX = "idocs";
+    String IDOCS_MODEL_PREFIX = "idocs";
 
     // namespace
-    public static final String IDOCS_NAMESPACE = "http://www.citeck.ru/model/content/idocs/1.0";
+    String IDOCS_NAMESPACE = "http://www.citeck.ru/model/content/idocs/1.0";
 
     // types
-    public static final QName TYPE_DOC = QName.createQName(IDOCS_NAMESPACE, "doc");
-    public static final QName TYPE_INTERNAL = QName.createQName(IDOCS_NAMESPACE, "internal");
-    public static final QName TYPE_ATTORNEY = QName.createQName(IDOCS_NAMESPACE, "powerOfAttorney");
-    public static final QName TYPE_LEGAL_ENTITY = QName.createQName(IDOCS_NAMESPACE, "legalEntity");
-    public static final QName TYPE_CURRENCY = QName.createQName(IDOCS_NAMESPACE, "currency");
-    public static final QName TYPE_CURRENCY_RATE_RECORD = QName.createQName(IDOCS_NAMESPACE, "currencyRateRecord");
-    public static final QName TYPE_CURRENCY_RATE_INTERNAL_RECORD = QName.createQName(IDOCS_NAMESPACE, "currencyRateInternalRecord");
-    public static final QName TYPE_CURRENCY_RATES_XML = QName.createQName(IDOCS_NAMESPACE, "currencyRatesXML");
-    public static final QName TYPE_ABSTRACT_ATTORNEY = QName.createQName(IDOCS_NAMESPACE, "abstractAttorney");
-    public static final QName TYPE_CONTRACTOR = QName.createQName(IDOCS_NAMESPACE, "contractor");
-    public static final QName TYPE_COUNTRY = QName.createQName(IDOCS_NAMESPACE, "countryISO3166");
-    public static final QName TYPE_GROUP_OF_COUNTRIES = QName.createQName(IDOCS_NAMESPACE, "groupOfCountries");
+    QName TYPE_DOC = QName.createQName(IDOCS_NAMESPACE, "doc");
+    QName TYPE_INTERNAL = QName.createQName(IDOCS_NAMESPACE, "internal");
+    QName TYPE_ATTORNEY = QName.createQName(IDOCS_NAMESPACE, "powerOfAttorney");
+    QName TYPE_LEGAL_ENTITY = QName.createQName(IDOCS_NAMESPACE, "legalEntity");
+    QName TYPE_CURRENCY = QName.createQName(IDOCS_NAMESPACE, "currency");
+    QName TYPE_CURRENCY_RATE_RECORD = QName.createQName(IDOCS_NAMESPACE, "currencyRateRecord");
+    QName TYPE_CURRENCY_RATE_INTERNAL_RECORD = QName.createQName(IDOCS_NAMESPACE, "currencyRateInternalRecord");
+    QName TYPE_CURRENCY_RATES_XML = QName.createQName(IDOCS_NAMESPACE, "currencyRatesXML");
+    QName TYPE_ABSTRACT_ATTORNEY = QName.createQName(IDOCS_NAMESPACE, "abstractAttorney");
+    QName TYPE_ABSTRACT_CONTRACTOR = QName.createQName(IDOCS_NAMESPACE, "abstractContractor");
+    QName TYPE_CONTRACTOR = QName.createQName(IDOCS_NAMESPACE, "contractor");
+    QName TYPE_COUNTRY = QName.createQName(IDOCS_NAMESPACE, "countryISO3166");
+    QName TYPE_GROUP_OF_COUNTRIES = QName.createQName(IDOCS_NAMESPACE, "groupOfCountries");
 
     // aspects
-    public static final QName ASPECT_LIFECYCLE = QName.createQName(IDOCS_NAMESPACE, "lifeCycle");
-    public static final QName ASPECT_HAS_ATTORNEYS = QName.createQName(IDOCS_NAMESPACE, "hasAttorneys");
-    public static final QName ASPECT_HAS_CUSTOM_FORM_ACTION = QName.createQName(IDOCS_NAMESPACE, "hasCustomFormAction");
+    QName ASPECT_LIFECYCLE = QName.createQName(IDOCS_NAMESPACE, "lifeCycle");
+    QName ASPECT_HAS_ATTORNEYS = QName.createQName(IDOCS_NAMESPACE, "hasAttorneys");
+    QName ASPECT_HAS_CONTRACTOR = QName.createQName(IDOCS_NAMESPACE, "hasContractor");
+    QName ASPECT_HAS_RESPONSIBILITIES = QName.createQName(IDOCS_NAMESPACE, "hasResponsibilities");
+    QName ASPECT_HAS_CUSTOM_FORM_ACTION = QName.createQName(IDOCS_NAMESPACE, "hasCustomFormAction");
 
     // properties
-    public static final QName PROP_REGISTRATION_DATE = QName.createQName(IDOCS_NAMESPACE, "registrationDate");
-    public static final QName PROP_REGISTRATION_NUMBER = QName.createQName(IDOCS_NAMESPACE, "registrationNumber");
-    public static final QName PROP_DOCUMENT_STATUS = QName.createQName(IDOCS_NAMESPACE, "documentStatus");
-    public static final QName PROP_CODE = QName.createQName(IDOCS_NAMESPACE, "code");
-    public static final QName PROP_FULL_NAME = QName.createQName(IDOCS_NAMESPACE, "fullName");
-    public static final QName PROP_FULL_ORG_NAME = QName.createQName(IDOCS_NAMESPACE, "fullOrganizationName");
-    public static final QName PROP_LEGAL_ADDRESS = QName.createQName(IDOCS_NAMESPACE, "legalAddress");
-    public static final QName PROP_LEGAL_FORM_NAME = QName.createQName(IDOCS_NAMESPACE, "legalFormName");
-    public static final QName PROP_PHONE_NUMBER = QName.createQName(IDOCS_NAMESPACE, "phoneNumber");
-    public static final QName PROP_OKPO = QName.createQName(IDOCS_NAMESPACE, "okpo");
-    public static final QName PROP_OGRN = QName.createQName(IDOCS_NAMESPACE, "ogrn");
-    public static final QName PROP_INN = QName.createQName(IDOCS_NAMESPACE, "inn");
-    public static final QName PROP_KPP = QName.createQName(IDOCS_NAMESPACE, "kpp");
-    public static final QName PROP_SHORT_ORGANIZATION_NAME = QName.createQName(IDOCS_NAMESPACE, "shortOrganizationName");
-    public static final QName PROP_COUNTRY_NAME = QName.createQName(IDOCS_NAMESPACE, "countryName");
-    public static final QName PROP_POST_CODE = QName.createQName(IDOCS_NAMESPACE, "postCode");
-    public static final QName PROP_REGION_NAME = QName.createQName(IDOCS_NAMESPACE, "regionName");
-    public static final QName PROP_DISTRICT_NAME = QName.createQName(IDOCS_NAMESPACE, "districtName");
-    public static final QName PROP_CITY_NAME = QName.createQName(IDOCS_NAMESPACE, "cityName");
-    public static final QName PROP_STREET_NAME = QName.createQName(IDOCS_NAMESPACE, "streetName");
-    public static final QName PROP_HOUSE = QName.createQName(IDOCS_NAMESPACE, "house");
-    public static final QName PROP_ADDRESS_EXTRA_INFO = QName.createQName(IDOCS_NAMESPACE, "addressExtraInfo");
-    public static final QName PROP_CURRENCY_CODE = QName.createQName(IDOCS_NAMESPACE, "currencyCode");
-    public static final QName PROP_CURRENCY_NUMBER_CODE = QName.createQName(IDOCS_NAMESPACE, "currencyNumberCode");
-    public static final QName PROP_CURRENCY_RATE = QName.createQName(IDOCS_NAMESPACE, "currencyRate");
-    public static final QName PROP_CRR_VALUE = QName.createQName(IDOCS_NAMESPACE, "crrValue");
-    public static final QName PROP_CRR_DATE = QName.createQName(IDOCS_NAMESPACE, "crrDate");
-    public static final QName PROP_CRR_SYNC_DATE = QName.createQName(IDOCS_NAMESPACE, "crrSyncDate");
-    public static final QName PROP_CRR_INTERNAL_VALUE = QName.createQName(IDOCS_NAMESPACE, "crrInternalValue");
-    public static final QName PROP_CRR_INTERNAL_MONTH = QName.createQName(IDOCS_NAMESPACE, "crrInternalMonth");
-    public static final QName PROP_CRR_INTERNAL_YEAR = QName.createQName(IDOCS_NAMESPACE, "crrInternalYear");
-    public static final QName PROP_CURRENCY_NAME_RU = QName.createQName(IDOCS_NAMESPACE, "currencyNameRu");
-    public static final QName PROP_CURRENCY_CATALOG_CODE = QName.createQName(IDOCS_NAMESPACE, "currencyCatalogCode");
-    public static final QName PROP_DIADOC_BOX_ID = QName.createQName(IDOCS_NAMESPACE, "diadocBoxId");
-    public static final QName PROP_CONTRACTOR = QName.createQName(IDOCS_NAMESPACE, "contractor");
-    public static final QName PROP_SIGN_OUR_REQUIRED = QName.createQName(IDOCS_NAMESPACE, "signOurRequired");
-    public static final QName PROP_SIGN_CA_REQUIRED = QName.createQName(IDOCS_NAMESPACE, "signCARequired");
-    public static final QName PROP_TOTAL_SUM = QName.createQName(IDOCS_NAMESPACE, "totalSum");
-    public static final QName PROP_VAT_PART = QName.createQName(IDOCS_NAMESPACE, "vatPart");
-    public static final QName PROP_COMMENT = QName.createQName(IDOCS_NAMESPACE, "comment");
-    public static final QName PROP_DOCUMENT_CASE_COMPLETED = QName.createQName(IDOCS_NAMESPACE, "caseCompleted");
-    public static final QName PROP_CASE_MODELS_SENT = QName.createQName(IDOCS_NAMESPACE, "caseModelsSent");
-    public static final QName PROP_ATTACHMENT_STATE = QName.createQName(IDOCS_NAMESPACE, "attachmentState");
-    public static final QName PROP_ABSTRACT_CONTRACTOR = QName.createQName(IDOCS_NAMESPACE, "abstractContractor");
-    public static final QName PROP_CUSTOM_FORM_ACTION_DATA = QName.createQName(IDOCS_NAMESPACE, "customFormActionData");
-    public static final QName PROP_USE_NEW_HISTORY = QName.createQName(IDOCS_NAMESPACE, "useNewHistory");
-    public static final QName PROP_ENG_ORGANIZATION_NAME = QName.createQName(IDOCS_NAMESPACE, "engOrganizationName");
-    public static final QName PROP_ORGANIZATION_NAME = QName.createQName(IDOCS_NAMESPACE, "organizationName");
-    public static final QName PROP_MANAGER_GROUP = QName.createQName(IDOCS_NAMESPACE, "managerGroup");
-    public static final QName PROP_MANAGER_PERMISSION = QName.createQName(IDOCS_NAMESPACE, "managerPermission");
-    public static final QName PROP_COUNTRY_ISO3166_NAME = QName.createQName(IDOCS_NAMESPACE, "countryISO3166Name");
-    public static final QName PROP_COUNTRY_ISO3166_CODE = QName.createQName(IDOCS_NAMESPACE, "countryISO31661Code");
-    public static final QName PROP_GOC_NAME = QName.createQName(IDOCS_NAMESPACE, "gocName");
+    QName PROP_REGISTRATION_DATE = QName.createQName(IDOCS_NAMESPACE, "registrationDate");
+    QName PROP_REGISTRATION_NUMBER = QName.createQName(IDOCS_NAMESPACE, "registrationNumber");
+    QName PROP_DOCUMENT_STATUS = QName.createQName(IDOCS_NAMESPACE, "documentStatus");
+    QName PROP_CODE = QName.createQName(IDOCS_NAMESPACE, "code");
+    QName PROP_FULL_NAME = QName.createQName(IDOCS_NAMESPACE, "fullName");
+    QName PROP_FULL_ORG_NAME = QName.createQName(IDOCS_NAMESPACE, "fullOrganizationName");
+    QName PROP_LEGAL_ADDRESS = QName.createQName(IDOCS_NAMESPACE, "legalAddress");
+    QName PROP_LEGAL_FORM_NAME = QName.createQName(IDOCS_NAMESPACE, "legalFormName");
+    QName PROP_PHONE_NUMBER = QName.createQName(IDOCS_NAMESPACE, "phoneNumber");
+    QName PROP_OKPO = QName.createQName(IDOCS_NAMESPACE, "okpo");
+    QName PROP_OGRN = QName.createQName(IDOCS_NAMESPACE, "ogrn");
+    QName PROP_INN = QName.createQName(IDOCS_NAMESPACE, "inn");
+    QName PROP_KPP = QName.createQName(IDOCS_NAMESPACE, "kpp");
+    QName PROP_SHORT_ORGANIZATION_NAME = QName.createQName(IDOCS_NAMESPACE, "shortOrganizationName");
+    QName PROP_COUNTRY_NAME = QName.createQName(IDOCS_NAMESPACE, "countryName");
+    QName PROP_POST_CODE = QName.createQName(IDOCS_NAMESPACE, "postCode");
+    QName PROP_REGION_NAME = QName.createQName(IDOCS_NAMESPACE, "regionName");
+    QName PROP_DISTRICT_NAME = QName.createQName(IDOCS_NAMESPACE, "districtName");
+    QName PROP_CITY_NAME = QName.createQName(IDOCS_NAMESPACE, "cityName");
+    QName PROP_STREET_NAME = QName.createQName(IDOCS_NAMESPACE, "streetName");
+    QName PROP_HOUSE = QName.createQName(IDOCS_NAMESPACE, "house");
+    QName PROP_ADDRESS_EXTRA_INFO = QName.createQName(IDOCS_NAMESPACE, "addressExtraInfo");
+    QName PROP_CURRENCY_CODE = QName.createQName(IDOCS_NAMESPACE, "currencyCode");
+    QName PROP_CURRENCY_NUMBER_CODE = QName.createQName(IDOCS_NAMESPACE, "currencyNumberCode");
+    QName PROP_CURRENCY_RATE = QName.createQName(IDOCS_NAMESPACE, "currencyRate");
+    QName PROP_CRR_VALUE = QName.createQName(IDOCS_NAMESPACE, "crrValue");
+    QName PROP_CRR_DATE = QName.createQName(IDOCS_NAMESPACE, "crrDate");
+    QName PROP_CRR_SYNC_DATE = QName.createQName(IDOCS_NAMESPACE, "crrSyncDate");
+    QName PROP_CRR_INTERNAL_VALUE = QName.createQName(IDOCS_NAMESPACE, "crrInternalValue");
+    QName PROP_CRR_INTERNAL_MONTH = QName.createQName(IDOCS_NAMESPACE, "crrInternalMonth");
+    QName PROP_CRR_INTERNAL_YEAR = QName.createQName(IDOCS_NAMESPACE, "crrInternalYear");
+    QName PROP_CURRENCY_NAME_RU = QName.createQName(IDOCS_NAMESPACE, "currencyNameRu");
+    QName PROP_CURRENCY_CATALOG_CODE = QName.createQName(IDOCS_NAMESPACE, "currencyCatalogCode");
+    @Deprecated
+    QName PROP_DIADOC_BOX_ID = QName.createQName(IDOCS_NAMESPACE, "diadocBoxId");
+    QName PROP_CONTRACTOR = QName.createQName(IDOCS_NAMESPACE, "contractor");
+    QName PROP_SIGN_OUR_REQUIRED = QName.createQName(IDOCS_NAMESPACE, "signOurRequired");
+    QName PROP_SIGN_CA_REQUIRED = QName.createQName(IDOCS_NAMESPACE, "signCARequired");
+    QName PROP_TOTAL_SUM = QName.createQName(IDOCS_NAMESPACE, "totalSum");
+    QName PROP_VAT_PART = QName.createQName(IDOCS_NAMESPACE, "vatPart");
+    QName PROP_COMMENT = QName.createQName(IDOCS_NAMESPACE, "comment");
+    QName PROP_DOCUMENT_CASE_COMPLETED = QName.createQName(IDOCS_NAMESPACE, "caseCompleted");
+    QName PROP_CASE_MODELS_SENT = QName.createQName(IDOCS_NAMESPACE, "caseModelsSent");
+    QName PROP_ATTACHMENT_STATE = QName.createQName(IDOCS_NAMESPACE, "attachmentState");
+    QName PROP_CUSTOM_FORM_ACTION_DATA = QName.createQName(IDOCS_NAMESPACE, "customFormActionData");
+    QName PROP_USE_NEW_HISTORY = QName.createQName(IDOCS_NAMESPACE, "useNewHistory");
+    QName PROP_ENG_ORGANIZATION_NAME = QName.createQName(IDOCS_NAMESPACE, "engOrganizationName");
+    QName PROP_ORGANIZATION_NAME = QName.createQName(IDOCS_NAMESPACE, "organizationName");
+    QName PROP_MANAGER_GROUP = QName.createQName(IDOCS_NAMESPACE, "managerGroup");
+    QName PROP_MANAGER_PERMISSION = QName.createQName(IDOCS_NAMESPACE, "managerPermission");
+    QName PROP_COUNTRY_ISO3166_NAME = QName.createQName(IDOCS_NAMESPACE, "countryISO3166Name");
+    QName PROP_COUNTRY_ISO3166_CODE = QName.createQName(IDOCS_NAMESPACE, "countryISO31661Code");
+    QName PROP_GOC_NAME = QName.createQName(IDOCS_NAMESPACE, "gocName");
+    QName PROP_GLN = QName.createQName(IDOCS_NAMESPACE, "gln");
 
     //assocs
-    public static final QName ASSOC_GENERAL_DIRECTOR = QName.createQName(IDOCS_NAMESPACE, "generalDirector");
-    public static final QName ASSOC_ACCOUNTANT_GENERAL = QName.createQName(IDOCS_NAMESPACE, "accountantGeneral");
-    public static final QName ASSOC_DOC_ATTORNEYS = QName.createQName(IDOCS_NAMESPACE, "docAttorneys");
-    public static final QName ASSOC_SIGNER = QName.createQName(IDOCS_NAMESPACE, "signatory");
-    public static final QName ASSOC_CURRENCY_DOCUMENT = QName.createQName(IDOCS_NAMESPACE, "currencyDocument");
-    public static final QName ASSOC_INITIATOR = QName.createQName(IDOCS_NAMESPACE, "initiator");
-    public static final QName ASSOC_LEGAL_FORM = QName.createQName(IDOCS_NAMESPACE, "legalForm");
-    public static final QName ASSOC_LEGAL_ENTITY = QName.createQName(IDOCS_NAMESPACE, "legalEntity");
-    public static final QName ASSOC_ORG_COUNTRY = QName.createQName(IDOCS_NAMESPACE, "orgCountry");
-    public static final QName ASSOC_ORG_CURRENCY = QName.createQName(IDOCS_NAMESPACE, "orgCurrency");
+    QName ASSOC_GENERAL_DIRECTOR = QName.createQName(IDOCS_NAMESPACE, "generalDirector");
+    QName ASSOC_ACCOUNTANT_GENERAL = QName.createQName(IDOCS_NAMESPACE, "accountantGeneral");
+    QName ASSOC_DOC_ATTORNEYS = QName.createQName(IDOCS_NAMESPACE, "docAttorneys");
+    QName ASSOC_SIGNER = QName.createQName(IDOCS_NAMESPACE, "signatory");
+    QName ASSOC_CURRENCY_DOCUMENT = QName.createQName(IDOCS_NAMESPACE, "currencyDocument");
+    QName ASSOC_INITIATOR = QName.createQName(IDOCS_NAMESPACE, "initiator");
+    QName ASSOC_LEGAL_FORM = QName.createQName(IDOCS_NAMESPACE, "legalForm");
+    QName ASSOC_LEGAL_ENTITY = QName.createQName(IDOCS_NAMESPACE, "legalEntity");
+    QName ASSOC_ORG_COUNTRY = QName.createQName(IDOCS_NAMESPACE, "orgCountry");
+    QName ASSOC_ORG_CURRENCY = QName.createQName(IDOCS_NAMESPACE, "orgCurrency");
 
-    public static final QName ASSOC_CRR_BASE_CURRENCY = QName.createQName(IDOCS_NAMESPACE, "crrBaseCurrency");
-    public static final QName ASSOC_CRR_TARGET_CURRENCY = QName.createQName(IDOCS_NAMESPACE, "crrTargetCurrency");
-    public static final QName ASSOC_CRR_INTERNAL_BASE_CURRENCY = QName.createQName(IDOCS_NAMESPACE, "crrInternalBaseCurrency");
-    public static final QName ASSOC_CRR_INTERNAL_TARGET_CURRENCY = QName.createQName(IDOCS_NAMESPACE, "crrInternalTargetCurrency");
-    public static final QName ASSOC_GOC_COUNTRY = QName.createQName(IDOCS_NAMESPACE, "gocCountries");
+    QName ASSOC_CRR_BASE_CURRENCY = QName.createQName(IDOCS_NAMESPACE, "crrBaseCurrency");
+    QName ASSOC_CRR_TARGET_CURRENCY = QName.createQName(IDOCS_NAMESPACE, "crrTargetCurrency");
+    QName ASSOC_CRR_INTERNAL_BASE_CURRENCY = QName.createQName(IDOCS_NAMESPACE, "crrInternalBaseCurrency");
+    QName ASSOC_CRR_INTERNAL_TARGET_CURRENCY = QName.createQName(IDOCS_NAMESPACE, "crrInternalTargetCurrency");
+    QName ASSOC_GOC_COUNTRY = QName.createQName(IDOCS_NAMESPACE, "gocCountries");
 
-    public static final QName ASSOC_ATTACHMENT_RKK_CREATED_FROM = QName.createQName(IDOCS_NAMESPACE, "attachmentRkkCreatedFrom");
+    QName ASSOC_ATTACHMENT_RKK_CREATED_FROM = QName.createQName(IDOCS_NAMESPACE, "attachmentRkkCreatedFrom");
+    QName ASSOC_CONTRACTOR = QName.createQName(IDOCS_NAMESPACE, "contractor");
+    QName ASSOC_RESPONSIBILITIES = QName.createQName(IDOCS_NAMESPACE, "responsibilities");
 
     // constraints
-    public static final String CONSTR_REPEAL_BY_COUNTERPARTY_REQUESTED = "REPEAL_BY_COUNTERPARTY_REQUESTED";
-    public static final String CONSTR_REPEALED_BY_COUNTERPARTY = "REPEALED_BY_COUNTERPARTY";
-    public static final String CONSTR_CLARIFICATION_REQUESTED = "CLARIFICATION_REQUESTED";
-    public static final String CONSTR_SIGN_REQUIRED = "SIGN_REQUIRED";
-    public static final String CONSTR_RECEIVED = "RECEIVED";
-    public static final String CONSTR_SIGNED = "SIGNED";
-    public static final String CONSTR_COUNTERPARTY_SIGNED = "COUNTERPARTY_SIGNED";
-    public static final String CONSTR_COUNTERPARTY_SIGN_REQUESTED = "COUNTERPARTY_SIGN_REQUESTED";
-    public static final String DELIVERY_FAILED = "DELIVERY_FAILED";
-    public static final String REQUESTS_MY_REVOCATION = "REQUESTS_MY_REVOCATION";
-    public static final String REVOCATION_IS_REQUESTED_BY_ME = "REVOCATION_IS_REQUESTED_BY_ME";
-    public static final String REVOCATION_ACCEPTED = "REVOCATION_ACCEPTED";
-    public static final String REVOCATION_REJECTED = "REVOCATION_REJECTED";
-    public static final String REJECTION_SENT = "REJECTION_SENT";
-    public static final String REJECTED = "REJECTED";
-    public static final String REVISIONED = "REVISIONED";
-    public static final String CORRECTED = "CORRECTED";
-    public static final String REVISION_CORRECTED = "REVISION_CORRECTED";
+    String CONSTR_REPEAL_BY_COUNTERPARTY_REQUESTED = "REPEAL_BY_COUNTERPARTY_REQUESTED";
+    String CONSTR_REPEALED_BY_COUNTERPARTY = "REPEALED_BY_COUNTERPARTY";
+    String CONSTR_CLARIFICATION_REQUESTED = "CLARIFICATION_REQUESTED";
+    String CONSTR_SIGN_REQUIRED = "SIGN_REQUIRED";
+    String CONSTR_RECEIVED = "RECEIVED";
+    String CONSTR_SIGNED = "SIGNED";
+    String CONSTR_COUNTERPARTY_SIGNED = "COUNTERPARTY_SIGNED";
+    String CONSTR_COUNTERPARTY_SIGN_REQUESTED = "COUNTERPARTY_SIGN_REQUESTED";
+    String DELIVERY_FAILED = "DELIVERY_FAILED";
+    String REQUESTS_MY_REVOCATION = "REQUESTS_MY_REVOCATION";
+    String REVOCATION_IS_REQUESTED_BY_ME = "REVOCATION_IS_REQUESTED_BY_ME";
+    String REVOCATION_ACCEPTED = "REVOCATION_ACCEPTED";
+    String REVOCATION_REJECTED = "REVOCATION_REJECTED";
+    String REJECTION_SENT = "REJECTION_SENT";
+    String REJECTED = "REJECTED";
+    String REVISIONED = "REVISIONED";
+    String CORRECTED = "CORRECTED";
+    String REVISION_CORRECTED = "REVISION_CORRECTED";
 }
