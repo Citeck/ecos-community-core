@@ -1,7 +1,6 @@
 package ru.citeck.ecos.eureka;
 
 import lombok.extern.slf4j.Slf4j;
-import org.alfresco.util.GUID;
 import org.apache.commons.lang.StringUtils;
 import ru.citeck.ecos.utils.InetUtils;
 import ru.citeck.ecos.webapp.api.properties.EcosWebAppProperties;
@@ -20,17 +19,18 @@ public class EurekaAlfShareInstanceConfig extends EurekaAlfInstanceConfig {
     private static final String ENV_PROP_IP = "ECOS_EUREKA_INSTANCE_SHARE_IP";
     private static final String ENV_PROP_HOST = "ECOS_EUREKA_INSTANCE_SHARE_HOST";
 
-    private static final String UUID = GUID.generate();
+    private final EcosWebAppProperties webAppProperties;
 
     public EurekaAlfShareInstanceConfig(Properties globalProperties,
                                         InetUtils inetUtils,
                                         EcosWebAppProperties webAppProperties) {
         super(globalProperties, inetUtils, webAppProperties);
+        this.webAppProperties = webAppProperties;
     }
 
     @Override
     public String getInstanceId() {
-        return getAppname() + ":" + UUID;
+        return getAppname() + ":" + webAppProperties.getAppInstanceId();
     }
 
     @Override
