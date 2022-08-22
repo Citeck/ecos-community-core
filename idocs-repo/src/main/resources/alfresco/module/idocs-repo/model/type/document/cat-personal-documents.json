@@ -1,5 +1,6 @@
 {
-    "id": "category-document-type/cat-personal-documents",
-    "name": "Личное дело",
-    "parent": "emodel/type@category-document-type"
+  "id": "category-document-type/cat-personal-documents",
+  "name": "Личное дело",
+  "parentRef": "emodel/type@category-document-type",
+  "inheritForm": false
 }

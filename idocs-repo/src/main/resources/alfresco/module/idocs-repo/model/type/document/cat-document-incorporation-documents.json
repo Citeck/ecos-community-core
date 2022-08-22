@@ -1,5 +1,6 @@
 {
-    "id": "category-document-type/cat-document-incorporation-documents",
-    "name": "Учредительные документы",
-    "parent": "emodel/type@category-document-type"
+  "id": "category-document-type/cat-document-incorporation-documents",
+  "name": "Учредительные документы",
+  "parentRef": "emodel/type@category-document-type",
+  "inheritForm": false
 }
