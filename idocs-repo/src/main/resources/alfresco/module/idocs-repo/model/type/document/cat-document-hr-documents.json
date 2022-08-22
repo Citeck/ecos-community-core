@@ -1,5 +1,6 @@
 {
-    "id": "category-document-type/cat-document-hr-documents",
-    "name": "Кадровые документы",
-    "parent": "emodel/type@category-document-type"
+  "id": "category-document-type/cat-document-hr-documents",
+  "name": "Кадровые документы",
+  "parentRef": "emodel/type@category-document-type",
+  "inheritForm": false
 }

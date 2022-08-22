@@ -1,5 +1,6 @@
 {
-    "id": "category-document-type/cat-document-marketing-materials",
-    "name": "Маркетинговые материалы",
-    "parent": "emodel/type@category-document-type"
+  "id": "category-document-type/cat-document-marketing-materials",
+  "name": "Маркетинговые материалы",
+  "parentRef": "emodel/type@category-document-type",
+  "inheritForm": false
 }

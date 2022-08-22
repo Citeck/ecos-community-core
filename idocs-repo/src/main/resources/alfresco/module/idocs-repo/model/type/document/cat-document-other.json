@@ -1,8 +1,9 @@
 {
-    "id": "category-document-type/cat-document-other",
-    "name": {
-        "ru": "Прочее",
-        "en": "Other"
-    },
-    "parent": "emodel/type@category-document-type"
+  "id": "category-document-type/cat-document-other",
+  "name": {
+    "ru": "Прочее",
+    "en": "Other"
+  },
+  "parentRef": "emodel/type@category-document-type",
+  "inheritForm": false
 }

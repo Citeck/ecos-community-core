@@ -1,5 +1,6 @@
 {
-    "id": "category-document-type/kind-d-counterparty-documents",
-    "name": "Документы контрагента",
-    "parent": "emodel/type@category-document-type"
+  "id": "category-document-type/kind-d-counterparty-documents",
+  "name": "Документы контрагента",
+  "parentRef": "emodel/type@category-document-type",
+  "inheritForm": false
 }
