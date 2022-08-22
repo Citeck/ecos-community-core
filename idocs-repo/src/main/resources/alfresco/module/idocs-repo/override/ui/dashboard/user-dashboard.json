@@ -1,0 +1,94 @@
+{
+  "id": "user-dashboard",
+  "typeRef": "emodel/type@user-dashboard",
+  "appliedToRef": "",
+  "authority": null,
+  "priority": 0,
+  "config": {
+    "layouts": [
+      {
+        "id": "layout_bb6e6685-f802-4680-8606-007a42a8c1bd",
+        "tab": {
+          "label": "Вкладка",
+          "idLayout": "layout_bb6e6685-f802-4680-8606-007a42a8c1bd"
+        },
+        "type": "1-column",
+        "columns": [
+          {
+            "widgets": [
+              {
+                "dndId": "ec87c555-3b02-4b86-9faa-61525f5dca16",
+                "name": "journal",
+                "label": "dashboard-settings.widget.journal",
+                "id": "fd5c5515-7bad-4002-8064-fed1d4c930b7",
+                "props": {
+                  "id": "fd5c5515-7bad-4002-8064-fed1d4c930b7",
+                  "config": {
+                    "version": "v2",
+                    "v2": {
+                      "customJournalMode": false,
+                      "journalsListIds": [
+                        "uiserv/journal@active-tasks"
+                      ],
+                      "journalId": "active-tasks",
+                      "customJournal": ""
+                    }
+                  }
+                },
+                "description": "Вкладка"
+              },
+              {
+                "dndId": "bc555479-8f14-4f9f-8d34-b2ee7ecf2e24",
+                "name": "birthdays",
+                "label": "dashboard-settings.widget.birthdays",
+                "id": "eb35eb7b-d877-463a-807f-c31a45bbcffc",
+                "props": {
+                  "id": "eb35eb7b-d877-463a-807f-c31a45bbcffc",
+                  "config": {}
+                },
+                "description": "Вкладка"
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "mobile": [
+      {
+        "id": "layout_330b11c3-f296-4949-8a4d-2e0c698e656c",
+        "tab": {
+          "label": "Вкладка",
+          "idLayout": "layout_330b11c3-f296-4949-8a4d-2e0c698e656c"
+        },
+        "type": "mobile",
+        "columns": [
+          {
+            "widgets": [
+              {
+                "dndId": "cd6b576c-b7de-412f-aa88-decc0dd15ca5",
+                "name": "journal",
+                "label": "dashboard-settings.widget.journal",
+                "id": "12943234-6e3c-4965-a73a-31c53b0cc2df",
+                "props": {
+                  "id": "12943234-6e3c-4965-a73a-31c53b0cc2df",
+                  "config": {
+                    "version": "v2",
+                    "v2": {
+                      "customJournalMode": false,
+                      "journalsListIds": [
+                        "uiserv/journal@active-tasks"
+                      ],
+                      "journalId": "active-tasks",
+                      "customJournal": ""
+                    }
+                  }
+                }
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "attributes": {}
+}
