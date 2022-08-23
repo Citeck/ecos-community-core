@@ -1,0 +1,4 @@
+{
+   "isActionsAllowed": ${isActionsAllowed},
+   "isAdminAuthority": ${isAdminAuthority}
+}

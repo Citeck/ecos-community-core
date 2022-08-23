@@ -3,7 +3,7 @@
 <@markup id="css" >
     <@link rel="stylesheet" type="text/css" href="${url.context}/res/components/people-finder/people-finder.css" group="orgstruct" />
     <@link rel="stylesheet" type="text/css" href="${url.context}/res/components/people-finder/group-finder.css" group="orgstruct" />
-    
+
     <@link rel="stylesheet" type="text/css" href="${url.context}/res/citeck/components/orgstruct/orgstruct-icons.css" group="orgstruct" />
     <@link rel="stylesheet" type="text/css" href="${url.context}/res/citeck/components/orgstruct/console.css" group="orgstruct" />
 </@>
@@ -29,8 +29,7 @@
         'citeck/components/dynamic-tree/dynamic-toolbar',
         'citeck/components/orgstruct/picker-dialogs'
     ], function() {
-        var url = Alfresco.constants.PROXY_URI + '/api/people/'+ Alfresco.constants.USERNAME;
-
+        var url = Alfresco.constants.PROXY_URI + '/api/people/check-user-orgsturct-access?userName=' + Alfresco.constants.USERNAME;
         Alfresco.util.Ajax.request({
             url: url,
             successCallback: {
@@ -41,8 +40,9 @@
                             Alfresco.constants.Citeck = {};
                         };
 
-                        // Get know if current user has admin authority
+                        // Get know if current user has access to actions
                         Alfresco.constants.Citeck.userIsAdmin = response.json["isAdminAuthority"];
+                        Alfresco.constants.Citeck.isActionsAllowed = response.json["isActionsAllowed"] || response.json["isAdminAuthority"];
 
                         // render orgstruct
 
@@ -84,7 +84,7 @@
                                                 "GROUP": {
                                                     "format": "authority",
                                                     "get": "${page.url.context}/proxy/alfresco/api/orgstruct/group/{shortName}/children/?showdisabled=" +
-                                                            (Alfresco.constants.Citeck.userIsAdmin ? "true" : "false") + "&excludeAuthorities=" + ${excludeAuthorities?trim},
+                                                            (Alfresco.constants.Citeck.isActionsAllowed ? "true" : "false") + "&excludeAuthorities=" + ${excludeAuthorities?trim},
                                                     "add": "${page.url.context}/proxy/alfresco/api/groups/{parent.shortName}/children/{item.fullName}",
                                                     "delete": "${page.url.context}/proxy/alfresco/api/groups/{parent.shortName}/children/{item.fullName}",
                                                 }
@@ -118,15 +118,15 @@
                                         },
                                         toolbar: {
                                             buttons: {
-                                                "root": [ "search", Alfresco.constants.Citeck.userIsAdmin ? "createBranch" : "" ],
+                                                "root": [ "search", Alfresco.constants.Citeck.isActionsAllowed ? "createBranch" : "" ],
                                                 "search": [ "search", "resetSearch" ],
                                                 "GROUP-branch": [
-                                                    Alfresco.constants.Citeck.userIsAdmin ? "createBranch" : "",
-                                                    Alfresco.constants.Citeck.userIsAdmin ? "createRole" : "",
-                                                    Alfresco.constants.Citeck.userIsAdmin ? "addGroup" : "" ],
+                                                    Alfresco.constants.Citeck.isActionsAllowed ? "createBranch" : "",
+                                                    Alfresco.constants.Citeck.isActionsAllowed ? "createRole" : "",
+                                                    Alfresco.constants.Citeck.isActionsAllowed ? "addGroup" : "" ],
                                                 "GROUP-role": [
-                                                    Alfresco.constants.Citeck.userIsAdmin ? "addUser" : "",
-                                                    Alfresco.constants.Citeck.userIsAdmin ? "createUser" : "" ],
+                                                    Alfresco.constants.Citeck.isActionsAllowed ? "addUser" : "",
+                                                    Alfresco.constants.Citeck.isActionsAllowed ? "createUser" : "" ],
                                                 "GROUP-group": [],
                                             },
                                         },
@@ -141,22 +141,22 @@
                                             },
                                             buttons: {
                                                 "GROUP-group": [
-                                                    Alfresco.constants.Citeck.userIsAdmin ? "convertToBranch" : "",
-                                                    Alfresco.constants.Citeck.userIsAdmin ? "convertToRole" : "",
-                                                    Alfresco.constants.Citeck.userIsAdmin ? "editItem" : "",
-                                                    Alfresco.constants.Citeck.userIsAdmin ? "deleteItem": "" ],
+                                                    Alfresco.constants.Citeck.isActionsAllowed ? "convertToBranch" : "",
+                                                    Alfresco.constants.Citeck.isActionsAllowed ? "convertToRole" : "",
+                                                    Alfresco.constants.Citeck.isActionsAllowed ? "editItem" : "",
+                                                    Alfresco.constants.Citeck.isActionsAllowed ? "deleteItem": "" ],
                                                 "GROUP-branch": [
-                                                    Alfresco.constants.Citeck.userIsAdmin ? "convertToGroup" : "",
-                                                    Alfresco.constants.Citeck.userIsAdmin ? "editItem" : "",
-                                                    Alfresco.constants.Citeck.userIsAdmin ? "deleteItem": "" ],
+                                                    Alfresco.constants.Citeck.isActionsAllowed ? "convertToGroup" : "",
+                                                    Alfresco.constants.Citeck.isActionsAllowed ? "editItem" : "",
+                                                    Alfresco.constants.Citeck.isActionsAllowed ? "deleteItem": "" ],
                                                 "GROUP-role": [
-                                                    Alfresco.constants.Citeck.userIsAdmin ? "convertToGroup" : "",
-                                                    Alfresco.constants.Citeck.userIsAdmin ? "editItem" : "",
-                                                    Alfresco.constants.Citeck.userIsAdmin ? "deleteItem": "" ],
+                                                    Alfresco.constants.Citeck.isActionsAllowed ? "convertToGroup" : "",
+                                                    Alfresco.constants.Citeck.isActionsAllowed ? "editItem" : "",
+                                                    Alfresco.constants.Citeck.isActionsAllowed ? "deleteItem": "" ],
                                                 // "USER": [ "editItem", "deleteItem" ]
                                                 "USER": [
-                                                    Alfresco.constants.Citeck.userIsAdmin ? "editItemInplaced" : "",
-                                                    Alfresco.constants.Citeck.userIsAdmin ? "deleteItem" : ""]
+                                                    Alfresco.constants.Citeck.isActionsAllowed ? "editItemInplaced" : "",
+                                                    Alfresco.constants.Citeck.isActionsAllowed ? "deleteItem" : ""]
                                             },
                                         },
                                         list: {
@@ -170,21 +170,21 @@
                                             },
                                             buttons: {
                                             "GROUP-group": [
-                                                Alfresco.constants.Citeck.userIsAdmin ? "convertToBranch" : "",
-                                                Alfresco.constants.Citeck.userIsAdmin ? "convertToRole" : "",
-                                                Alfresco.constants.Citeck.userIsAdmin ? "editItem" : "",
-                                                Alfresco.constants.Citeck.userIsAdmin ? "deleteItem" : "" ],
+                                                Alfresco.constants.Citeck.isActionsAllowed ? "convertToBranch" : "",
+                                                Alfresco.constants.Citeck.isActionsAllowed || Alfresco.constants.Citeck.isAllowToEdit ? "convertToRole" : "",
+                                                Alfresco.constants.Citeck.isActionsAllowed ? "editItem" : "",
+                                                Alfresco.constants.Citeck.isActionsAllowed ? "deleteItem" : "" ],
                                             "GROUP-branch": [
-                                                Alfresco.constants.Citeck.userIsAdmin ? "convertToGroup" : "",
-                                                Alfresco.constants.Citeck.userIsAdmin ? "editItem" : "",
-                                                Alfresco.constants.Citeck.userIsAdmin ? "deleteItem" : "" ],
+                                                Alfresco.constants.Citeck.isActionsAllowed ? "convertToGroup" : "",
+                                                Alfresco.constants.Citeck.isActionsAllowed ? "editItem" : "",
+                                                Alfresco.constants.Citeck.isActionsAllowed ? "deleteItem" : "" ],
                                             "GROUP-role": [
-                                                Alfresco.constants.Citeck.userIsAdmin ? "convertToGroup" : "",
-                                                Alfresco.constants.Citeck.userIsAdmin ? "editItem" : "",
-                                                Alfresco.constants.Citeck.userIsAdmin ? "deleteItem" : "" ],
+                                                Alfresco.constants.Citeck.isActionsAllowed ? "convertToGroup" : "",
+                                                Alfresco.constants.Citeck.isActionsAllowed ? "editItem" : "",
+                                                Alfresco.constants.Citeck.isActionsAllowed ? "deleteItem" : "" ],
                                             "USER": [
-                                                Alfresco.constants.Citeck.userIsAdmin ? "editItemInplaced" : "",
-                                                Alfresco.constants.Citeck.userIsAdmin ? "deleteItem" : "" ]
+                                                Alfresco.constants.Citeck.isActionsAllowed ? "editItemInplaced" : "",
+                                                Alfresco.constants.Citeck.isActionsAllowed ? "deleteItem" : "" ]
                                             },
                                         },
                                     },
