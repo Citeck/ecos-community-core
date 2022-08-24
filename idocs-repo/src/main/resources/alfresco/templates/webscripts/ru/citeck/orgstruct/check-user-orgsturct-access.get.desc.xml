@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<webscript>
-    <shortname>Check user orgstruct access</shortname>
-    <description>Check if the user has access to orgstruct actions</description>
-    <url>/api/people/check-user-orgsturct-access?userName={userName}</url>
-    <format default="json"/>
-    <authentication>user</authentication>
-    <transaction allow="readonly">required</transaction>
-</webscript>
