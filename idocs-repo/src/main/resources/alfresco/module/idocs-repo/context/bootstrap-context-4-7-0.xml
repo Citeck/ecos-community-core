@@ -65,4 +65,19 @@
         </property>
     </bean>
 
+    <bean id="idocs.module-component.orgstruct-managers-group" parent="idocs.import-spaces.4-7-0">
+        <property name="name" value="orgstruct-managers-group" />
+        <property name="description" value="orgstruct-managers-group" />
+        <property name="bootstrapViews">
+            <list>
+                <props>
+                    <prop key="path">/</prop>
+                    <prop key="location">alfresco/templates/bootstrap/ru/citeck/common/group.xml</prop>
+                    <prop key="messages">alfresco/module/idocs-repo/bootstrap/groups/orgstruct-managers</prop>
+                    <prop key="encoding">UTF-8</prop>
+                </props>
+            </list>
+        </property>
+    </bean>
+
 </beans>
