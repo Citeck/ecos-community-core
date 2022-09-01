@@ -40,6 +40,7 @@
                 };
                 // Get know if current user has access to actions
                 Alfresco.constants.Citeck.userIsAdmin = response["isAdmin"];
+                Alfresco.constants.Citeck.userIsOrgstructManager = response["isOrgstructManagers"];
                 Alfresco.constants.Citeck.isOrgstructActionsAllowed = response["isOrgstructManagers"] || response["isAdmin"];
                 // render orgstruct
                 require(['citeck/components/orgstruct/console'], function (){
@@ -82,6 +83,7 @@
                                                     (Alfresco.constants.Citeck.isOrgstructActionsAllowed ? "true" : "false") + "&excludeAuthorities=" + ${excludeAuthorities?trim},
                                             "add": "${page.url.context}/proxy/alfresco/api/groups/{parent.shortName}/children/{item.fullName}",
                                             "delete": "${page.url.context}/proxy/alfresco/api/groups/{parent.shortName}/children/{item.fullName}",
+                                            "isOrgstructManagers": Alfresco.constants.Citeck.userIsOrgstructManager
                                         }
                                     },
                                     titles: {

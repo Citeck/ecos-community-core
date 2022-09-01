@@ -17,7 +17,8 @@
  * along with Citeck EcoS. If not, see <http://www.gnu.org/licenses/>.
  */
 define([
-    'citeck/components/dynamic-tree/error-manager'
+    'citeck/components/dynamic-tree/error-manager',
+    'ecosui!ecos-records'
 ], function() {
 
     Citeck = typeof Citeck != "undefined" ? Citeck : {};
@@ -330,6 +331,15 @@ define([
             return children;
         },
 
+        ecosAddOrRemove: function(parent, child, add) {
+            var actionRecord = Citeck.Records.getRecordToEdit('alfresco/authority-group-manager-action@');
+            actionRecord.att('type', "add-or-remove");
+            actionRecord.att('parent', parent);
+            actionRecord.att('child', child);
+            actionRecord.att('add', add);
+            return actionRecord.save();
+        }
+
     });
 
     /**
@@ -543,20 +553,36 @@ define([
             // first set item properties, then parent properties:
             // child element should have enough information to build url:
             var url = config["add"];
-            url = this.renderTemplate({item: child, parent: parent}, url);
-            url = encodeURI(url);
+            var isOrgstructManagers = config["isOrgstructManagers"];
+            if (isOrgstructManagers) {
+                this.ecosAddOrRemove(parent.fullName, child.fullName, true).then(() => {
+                      Alfresco.util.PopupManager.displayMessage({
+                        text: "Authority added",
+                        displayTime: 2
+                      });
+                      process.call(this);
+                    }).catch(e => {
+                        Alfresco.util.PopupManager.displayMessage({
+                          text: "Failure" + " - " + e.message,
+                          displayTime: 3
+                        });
+                    });
+            } else {
+                url = this.renderTemplate({item: child, parent: parent}, url);
+                url = encodeURI(url);
 
-            Alfresco.util.Ajax.jsonPost({
-                url: url,
-                successCallback: {
-                    scope: this,
-                    fn: process,
-                },
-                failureCallback: {
-                    scope: this,
-                    fn: this.onFailure
-                },
-            });
+                Alfresco.util.Ajax.jsonPost({
+                    url: url,
+                    successCallback: {
+                        scope: this,
+                        fn: process,
+                    },
+                    failureCallback: {
+                        scope: this,
+                        fn: this.onFailure
+                    },
+                });
+            }
         },
 
         /**
@@ -589,22 +615,38 @@ define([
 
             // first set item properties, then parent properties:
             var url = config["delete"];
-            url = this.renderTemplate({item: child, parent: parent}, url);
-            url = encodeURI(url);
+            var isOrgstructManagers = config["isOrgstructManagers"];
+            if (isOrgstructManagers) {
+                this.ecosAddOrRemove(parent.fullName, child.fullName, false).then(() => {
+                      Alfresco.util.PopupManager.displayMessage({
+                        text: "Authority removed",
+                        displayTime: 2
+                      });
+                      process.call(this);
+                    }).catch(e => {
+                        Alfresco.util.PopupManager.displayMessage({
+                          text: "Failure" + " - " + e.message,
+                          displayTime: 3
+                        });
+                    });
+            } else {
+                url = this.renderTemplate({item: child, parent: parent}, url);
+                url = encodeURI(url);
 
-            // send request:
-            Alfresco.util.Ajax.request({
-                method: Alfresco.util.Ajax.DELETE,
-                url: url,
-                successCallback: {
-                    scope: this,
-                    fn: process,
-                },
-                failureCallback: {
-                    scope: this,
-                    fn: this.onFailure
-                },
-            });
+                // send request:
+                Alfresco.util.Ajax.request({
+                    method: Alfresco.util.Ajax.DELETE,
+                    url: url,
+                    successCallback: {
+                        scope: this,
+                        fn: process,
+                    },
+                    failureCallback: {
+                        scope: this,
+                        fn: this.onFailure
+                    },
+                });
+            }
         },
 
     });
