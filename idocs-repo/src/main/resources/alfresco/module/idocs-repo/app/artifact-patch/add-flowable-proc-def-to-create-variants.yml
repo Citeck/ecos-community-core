@@ -1,0 +1,21 @@
+---
+id: add-flowable-proc-def-to-create-variants
+
+name:
+  ru: Добавить вариант создания "Создать flowable process"
+  en: Add create variant "Create flowable process"
+
+target: model/type$bpmn-process-def
+
+type: json
+config:
+  operations:
+    - op: add
+      path: '$.createVariants'
+      idx: 1
+      value:
+        id: create-new-flowable-process-def
+        name: { ru: Создать flowable процесс, en: Create flowable process }
+        formRef: uiserv/form@cat-doc-type-ecos-bpm-process-form
+        typeRef: emodel/type@cat-doc-type-ecos-bpm-process
+        sourceId: alfresco/
