@@ -2,10 +2,8 @@ package ru.citeck.ecos.eform.webscripts;
 
 import lombok.extern.log4j.Log4j;
 import org.alfresco.model.ContentModel;
-import org.alfresco.service.cmr.repository.ContentService;
-import org.alfresco.service.cmr.repository.ContentWriter;
-import org.alfresco.service.cmr.repository.NodeRef;
-import org.alfresco.service.cmr.repository.NodeService;
+import org.alfresco.repo.content.MimetypeMap;
+import org.alfresco.service.cmr.repository.*;
 import org.alfresco.service.namespace.NamespaceService;
 import org.alfresco.service.namespace.QName;
 import org.alfresco.util.GUID;
@@ -86,7 +84,12 @@ public class FileEformPost extends DeclarativeWebScript {
 
         String mimeType = StringUtils.isNoneBlank(file.content.getMimetype()) ? file.content.getMimetype() :
                 file.mimetype;
-        writer.setMimetype(mimeType);
+
+        if (StringUtils.isBlank(mimeType) || mimeType.equals(MimetypeMap.MIMETYPE_BINARY)) {
+            writer.guessMimetype(file.fileName);
+        } else {
+            writer.setMimetype(mimeType);
+        }
 
         writer.putContent(file.content.getInputStream());
 
