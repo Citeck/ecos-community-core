@@ -92,6 +92,15 @@
                 ]]></invariant>
             </field>
 
+            <view id="cm_person_general_info--employeeId">
+                <param name="customClass">field-width-full</param>
+                <field prop="ecos:employeeId">
+                    <region name="input">
+                        <param name="maxlength">10</param>
+                    </region>
+                </field>
+            </view>
+
             <view template="wide">
                 <view id="cm_person_general_info--fio" template="blockset">
                     <field prop="cm:lastName" template="block">
