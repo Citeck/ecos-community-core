@@ -1,6 +1,7 @@
 package ru.citeck.ecos.records.source.alf.meta;
 
 import com.fasterxml.jackson.databind.util.ISO8601Utils;
+import java.io.ByteArrayOutputStream;
 import lombok.Getter;
 import org.alfresco.error.AlfrescoRuntimeException;
 import org.alfresco.model.ContentModel;
@@ -78,6 +79,9 @@ public class AlfNodeAttValue implements MetaValue {
             return alfNode.nodeRef();
         } else if (qName != null) {
             return qName.shortName();
+        }
+        if (rawValue instanceof String) {
+            return (String) rawValue;
         }
         return null;
     }
@@ -177,6 +181,19 @@ public class AlfNodeAttValue implements MetaValue {
                     return content.getLocale();
                 case "contentUrl":
                     return content.getContentUrl();
+                case "bytes":
+                    String contentUrl = content.getContentUrl();
+                    ContentService contentService = context.getServiceRegistry().getContentService();
+                    return AuthenticationUtil.runAsSystem(() -> {
+                        ContentReader reader = contentService.getRawReader(contentUrl);
+                        if (reader != null && reader.exists()) {
+                            ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+                            reader.getContent(outputStream);
+                            return outputStream.toByteArray();
+                        } else {
+                            return null;
+                        }
+                    });
             }
         }
         return null;
