@@ -5,15 +5,14 @@
     "en": "General",
     "ru": "Основное"
   },
-  "description": {
-    "en": ""
-  },
+  "description": {},
   "customModule": null,
   "typeRef": "emodel/type@person",
   "width": "default",
   "i18n": {
     "ru": {
       "cm:userName": "Логин",
+      "ecos:employeeId": "Табельный номер",
       "cm:lastName": "Фамилия",
       "cm:firstName": "Имя",
       "cm:middleName": "Отчество",
@@ -31,6 +30,7 @@
     },
     "en": {
       "cm:userName": "Login",
+      "ecos:employeeId": "Employee ID",
       "cm:lastName": "Last name",
       "cm:firstName": "First name",
       "cm:middleName": "Middle name",
@@ -66,6 +66,19 @@
                     "key": "cm_userName",
                     "properties": {
                       "attribute": "cm:userName"
+                    },
+                    "type": "textfield",
+                    "input": true
+                  },
+                  {
+                    "label": "ecos:employeeId",
+                    "key": "ecos_employeeId",
+                    "validate": {
+                      "maxLength": 10
+                    },
+                    "defaultValue": "",
+                    "properties": {
+                      "attribute": "ecos:employeeId"
                     },
                     "type": "textfield",
                     "input": true
