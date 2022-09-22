@@ -1,9 +1,36 @@
 {
-    "id": "pdf-content-with-barcode",
-    "key": "content.barcode.pdf",
-    "name": "Скачать PDF (со штрихкодом)",
-    "type": "open-url",
-    "config": {
-        "url": "/share/proxy/alfresco/citeck/contract/pdf-content-with-barcode?recordRef=${?localId}&barcodeType=Barcode128&barcodeProp=contracts:barcode"
+  "id": "pdf-content-with-barcode",
+  "key": "content.barcode.pdf",
+  "name": "Скачать PDF (со штрихкодом)",
+  "type": "open-url",
+  "config": {
+    "url": "/share/proxy/alfresco/citeck/contract/pdf-content-with-barcode",
+    "args": {
+      "recordRef": "${?localId}",
+      "barcodeType": "Barcode128",
+      "barcodeProp": "contracts:barcode"
     }
+  },
+  "evaluator": {
+    "type": "group",
+    "config": {
+      "joinBy": "AND",
+      "evaluators": [
+        {
+          "type": "has-attribute",
+          "inverse": false,
+          "config": {
+            "attribute": "contracts:barcode"
+          }
+        },
+        {
+          "type": "has-attribute",
+          "inverse": false,
+          "config": {
+            "attribute": "cm:content"
+          }
+        }
+      ]
+    }
+  }
 }
