@@ -304,9 +304,7 @@ public class ChildrenGet extends AbstractWebScript {
             if (notEmpty) {
                 query.or();
             }
-            query.open()
-                .value(ContentModel.PROP_USERNAME, filterOptions.filter)
-                .or();
+            query.open();
             int tokenSize = filterOptions.filterTokens.size();
             DataValue middleNameField = uiSettingsCache.getUnchecked(middleNameRef);
             boolean middleNameSearch = middleNameField.asBoolean(false);
@@ -326,7 +324,8 @@ public class ChildrenGet extends AbstractWebScript {
                     ContentModel.PROP_FIRSTNAME, ContentModel.PROP_LASTNAME, AlfrescoMissingQNamesModel.PROP_MIDDLE_NAME);
                 fillQuery(query, uniqFieldCombination);
             } else {
-                query.value(ContentModel.PROP_FIRSTNAME, filter)
+                query.value(ContentModel.PROP_USERNAME, filter)
+                    .or().value(ContentModel.PROP_FIRSTNAME, filter)
                     .or().value(ContentModel.PROP_LASTNAME, filter);
                 if (middleNameSearch) {
                     query.or().value(AlfrescoMissingQNamesModel.PROP_MIDDLE_NAME, filter);
