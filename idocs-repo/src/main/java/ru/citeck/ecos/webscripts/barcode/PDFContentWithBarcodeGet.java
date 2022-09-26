@@ -64,7 +64,8 @@ public class PDFContentWithBarcodeGet extends AbstractWebScript {
         try {
             transformContent = pdfContentTransformService.getTransformContent(nodeRef);
             if (transformContent == null) {
-                throw new WebScriptException(Status.STATUS_BAD_REQUEST, "Node with NodeRef = " + recordRefStr + " is not found");
+                throw new WebScriptException(Status.STATUS_BAD_REQUEST,
+                        "TransformContent of Node with NodeRef = " + recordRefStr + " is not found");
             }
 
             switch (barcodeTypeStr) {

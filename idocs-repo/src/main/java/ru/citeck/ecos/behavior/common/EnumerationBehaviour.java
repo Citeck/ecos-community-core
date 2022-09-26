@@ -27,6 +27,7 @@ import org.alfresco.service.cmr.repository.ChildAssociationRef;
 import org.alfresco.service.cmr.repository.NodeRef;
 import org.alfresco.service.cmr.repository.NodeService;
 import org.alfresco.service.namespace.QName;
+import org.apache.commons.lang.StringUtils;
 import ru.citeck.ecos.behavior.JavaBehaviour;
 import ru.citeck.ecos.counter.EnumerationException;
 import ru.citeck.ecos.counter.EnumerationService;
@@ -45,6 +46,7 @@ public class EnumerationBehaviour implements NodeServicePolicies.OnCreateNodePol
 
     private QName className;
     private QName numberField;
+    private QName barcodeField;
     private QName enumerationStateField;
     private Object enabledState;
     private String templateName;
@@ -81,6 +83,13 @@ public class EnumerationBehaviour implements NodeServicePolicies.OnCreateNodePol
         }
 
         nodeService.setProperty(nodeRef, numberField, number);
+        fillBarcodeField(nodeRef, number);
+    }
+
+    private void fillBarcodeField(NodeRef nodeRef, String number) {
+        if (barcodeField != null && StringUtils.isNotBlank(number)) {
+            nodeService.setProperty(nodeRef, barcodeField, number);
+        }
     }
 
     public void setServiceRegistry(ServiceRegistry serviceRegistry) {
@@ -102,6 +111,10 @@ public class EnumerationBehaviour implements NodeServicePolicies.OnCreateNodePol
 
     public void setNumberField(QName numberField) {
         this.numberField = numberField;
+    }
+
+    public void setBarcodeField(QName barcodeField) {
+        this.barcodeField = barcodeField;
     }
 
     public void setEnumerationStateField(QName enumerationStateField) {
