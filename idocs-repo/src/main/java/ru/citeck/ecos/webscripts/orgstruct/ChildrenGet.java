@@ -180,7 +180,7 @@ public class ChildrenGet extends AbstractWebScript {
 
         if (!extraFieldSet.isEmpty()) {
             result.extraFields = new HashMap<>(extraFieldSet.size());
-            extraFieldSet.forEach(field -> result.extraFields.put(field.toPrefixString(), (String) props.get(field)));
+            extraFieldSet.forEach(field -> result.extraFields.put(field.toPrefixString(), props.get(field)));
         }
         return result;
     }
@@ -386,15 +386,19 @@ public class ChildrenGet extends AbstractWebScript {
         if (StringUtils.isBlank(extraFields)) {
             return Collections.emptySet();
         }
-        Set<QName> extraFieldSet;
+        return Arrays.stream(extraFields.split(","))
+            .map(s -> Optional.ofNullable(tryGetQName(s)))
+            .filter(Optional::isPresent)
+            .map(Optional::get)
+            .collect(Collectors.toSet());
+    }
+
+    private QName tryGetQName(String s) {
         try {
-            extraFieldSet = Arrays.stream(extraFields.split(","))
-                .map(s -> QName.createQName(s, namespaceService))
-                .collect(Collectors.toSet());
+            return QName.createQName(s, namespaceService);
         } catch (Exception e) {
-            extraFieldSet = Collections.emptySet();
+            return null;
         }
-        return extraFieldSet;
     }
 
     private boolean filterAuthority(Pair<NodeRef, String> authority,
@@ -794,7 +798,7 @@ public class ChildrenGet extends AbstractWebScript {
         public String lastName;
         public String middleName;
         public String email;
-        public Map<String, String> extraFields;
+        public Map<String, Object> extraFields;
 
         public boolean available = true;
         public boolean isPersonDisabled = false;
