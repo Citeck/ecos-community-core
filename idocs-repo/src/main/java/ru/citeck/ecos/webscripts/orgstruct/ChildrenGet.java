@@ -24,7 +24,6 @@ import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.extensions.webscripts.*;
-import ru.citeck.ecos.commons.data.DataValue;
 import ru.citeck.ecos.config.EcosConfigService;
 import ru.citeck.ecos.model.AlfrescoMissingQNamesModel;
 import ru.citeck.ecos.model.DeputyModel;
@@ -32,7 +31,6 @@ import ru.citeck.ecos.model.EcosModel;
 import ru.citeck.ecos.model.OrgStructModel;
 import ru.citeck.ecos.orgstruct.OrgMetaService;
 import ru.citeck.ecos.orgstruct.OrgStructService;
-import ru.citeck.ecos.records2.RecordRef;
 import ru.citeck.ecos.records3.RecordsService;
 import ru.citeck.ecos.search.ftsquery.FTSQuery;
 import ru.citeck.ecos.utils.ConfigUtils;
@@ -63,6 +61,8 @@ public class ChildrenGet extends AbstractWebScript {
     private static final String PARAM_SHOW_DISABLED = "showdisabled";
     private static final String PARAM_ADD_ADMIN_GROUP = "addAdminGroup";
     private static final String PARAM_EXCLUDE_AUTHORITIES = "excludeAuthorities";
+    private static final String PARAM_SEARCH_EXTRA_FIELDS = "searchExtraFields";
+    private static final String PARAM_USE_MIDDLE_NAME = "useMiddleName";
 
     private static final String CONFIG_KEY_SHOW_INACTIVE = "orgstruct-show-inactive-user-only-for-admin";
     private static final String CONFIG_KEY_HIDE_INACTIVE_FOR_ALL = "hide-disabled-users-for-everyone";
@@ -83,11 +83,7 @@ public class ChildrenGet extends AbstractWebScript {
     private EcosConfigService ecosConfigService;
     private AuthenticationService authenticationService;
     private NamespaceService namespaceService;
-    private RecordsService recordsServiceV1;
 
-    private RecordRef middleNameRef;
-    private RecordRef extraFieldsRef;
-    private LoadingCache<RecordRef, DataValue> uiSettingsCache;
     private LoadingCache<RequestParams, List<Pair<NodeRef, String>>> authoritiesCache;
 
     private ObjectMapper objectMapper = new ObjectMapper();
@@ -107,17 +103,7 @@ public class ChildrenGet extends AbstractWebScript {
         this.authorityService = serviceRegistry.getAuthorityService();
         this.authenticationService = serviceRegistry.getAuthenticationService();
         this.namespaceService = serviceRegistry.getNamespaceService();
-        this.recordsServiceV1 = recordsServiceV1;
 
-        middleNameRef = RecordRef.create("uiserv", "config", "orgstruct-search-user-middle-name");
-        extraFieldsRef = RecordRef.create("uiserv", "config", "orgstruct-search-user-extra-fields");
-
-        uiSettingsCache = CacheBuilder.newBuilder()
-            .expireAfterWrite(5, TimeUnit.MINUTES)
-            .maximumSize(2)
-            .build(CacheLoader.from(recordRef ->
-                AuthenticationUtil.runAsSystem(() -> getUiSettings(recordRef))
-            ));
         authoritiesCache = CacheBuilder.newBuilder()
             .expireAfterWrite(5, TimeUnit.MINUTES)
             .maximumSize(200)
@@ -138,14 +124,14 @@ public class ChildrenGet extends AbstractWebScript {
         }
 
         List<Pair<NodeRef, String>> authoritiesRaw = authoritiesCache.getUnchecked(params);
-        List<Authority> authorities = formatAuthorities(authoritiesRaw);
+        List<Authority> authorities = formatAuthorities(authoritiesRaw, params.filterOptions.searchExtraFields);
 
         res.setContentType(Format.JSON.mimetype() + ";charset=UTF-8");
         objectMapper.writeValue(res.getWriter(), authorities);
         res.setStatus(Status.STATUS_OK);
     }
 
-    private List<Authority> formatAuthorities(List<Pair<NodeRef, String>> authorities) {
+    private List<Authority> formatAuthorities(List<Pair<NodeRef, String>> authorities, Set<QName> extraFieldSet) {
 
         List<Authority> result = new ArrayList<>();
 
@@ -166,7 +152,7 @@ public class ChildrenGet extends AbstractWebScript {
             if (authorityRefName.getSecond().startsWith(GROUP_PREFIX)) {
                 authority = formatGroupAuthority(authorityRefName, roleIsManager);
             } else {
-                authority = formatUserAuthority(authorityRefName);
+                authority = formatUserAuthority(authorityRefName, extraFieldSet);
             }
             authority.nodeRef = authorityRefName.getFirst().toString();
             authority.fullName = authorityRefName.getSecond();
@@ -177,7 +163,7 @@ public class ChildrenGet extends AbstractWebScript {
         return result;
     }
 
-    private Authority formatUserAuthority(Pair<NodeRef, String> authority) {
+    private Authority formatUserAuthority(Pair<NodeRef, String> authority, Set<QName> extraFieldSet) {
 
         Map<QName, Serializable> props = nodeService.getProperties(authority.getFirst());
 
@@ -192,10 +178,8 @@ public class ChildrenGet extends AbstractWebScript {
         result.email = (String) props.get(ContentModel.PROP_EMAIL);
         result.displayName = result.firstName + " " + result.lastName;
 
-        String extraFields = uiSettingsCache.getUnchecked(extraFieldsRef).asText();
-        Set<QName> extraFieldSet = extractExtraFields(extraFields);
         if (!extraFieldSet.isEmpty()) {
-            result.extraFields = new HashMap<>(extraFields.length());
+            result.extraFields = new HashMap<>(extraFieldSet.size());
             extraFieldSet.forEach(field -> result.extraFields.put(field.toPrefixString(), (String) props.get(field)));
         }
         return result;
@@ -229,10 +213,6 @@ public class ChildrenGet extends AbstractWebScript {
         }
 
         return authority;
-    }
-
-    private DataValue getUiSettings(RecordRef recordRef) {
-        return recordsServiceV1.getAtt(recordRef, "value");
     }
 
     private List<Pair<NodeRef, String>> getAuthorities(RequestParams params) {
@@ -306,12 +286,10 @@ public class ChildrenGet extends AbstractWebScript {
             }
             query.open();
             int tokenSize = filterOptions.filterTokens.size();
-            DataValue middleNameField = uiSettingsCache.getUnchecked(middleNameRef);
-            boolean middleNameSearch = middleNameField.asBoolean(false);
             if (tokenSize == 2) {
                 query.open();
                 List<Map<String, QName>> uniqFieldCombination;
-                if (middleNameSearch) {
+                if (filterOptions.useMiddleName) {
                     uniqFieldCombination = uniqFieldCombination(filterOptions.filterTokens, ContentModel.PROP_FIRSTNAME,
                         ContentModel.PROP_LASTNAME, AlfrescoMissingQNamesModel.PROP_MIDDLE_NAME);
                 } else {
@@ -319,7 +297,7 @@ public class ChildrenGet extends AbstractWebScript {
                         ContentModel.PROP_LASTNAME);
                 }
                 fillQuery(query, uniqFieldCombination);
-            } else if (tokenSize == 3 && middleNameSearch) {
+            } else if (tokenSize == 3 && filterOptions.useMiddleName) {
                 List<Map<String, QName>> uniqFieldCombination = uniqFieldCombination(filterOptions.filterTokens,
                     ContentModel.PROP_FIRSTNAME, ContentModel.PROP_LASTNAME, AlfrescoMissingQNamesModel.PROP_MIDDLE_NAME);
                 fillQuery(query, uniqFieldCombination);
@@ -327,12 +305,10 @@ public class ChildrenGet extends AbstractWebScript {
                 query.value(ContentModel.PROP_USERNAME, filter)
                     .or().value(ContentModel.PROP_FIRSTNAME, filter)
                     .or().value(ContentModel.PROP_LASTNAME, filter);
-                if (middleNameSearch) {
+                if (filterOptions.useMiddleName) {
                     query.or().value(AlfrescoMissingQNamesModel.PROP_MIDDLE_NAME, filter);
                 }
-                String extraFields = uiSettingsCache.getUnchecked(extraFieldsRef).asText();
-                Set<QName> extraFieldSet = extractExtraFields(extraFields);
-                for (QName extraField : extraFieldSet) {
+                for (QName extraField : filterOptions.searchExtraFields) {
                     query.or().value(extraField, filter);
                 }
             }
@@ -407,7 +383,7 @@ public class ChildrenGet extends AbstractWebScript {
     }
 
     private Set<QName> extractExtraFields(String extraFields) {
-        if (extraFields.length() == 0) {
+        if (StringUtils.isBlank(extraFields)) {
             return Collections.emptySet();
         }
         Set<QName> extraFieldSet;
@@ -585,6 +561,8 @@ public class ChildrenGet extends AbstractWebScript {
         options.limit = DEFAULT_RESULTS_LIMIT;
         options.subTypes = strToSet(req.getParameter(PARAM_SUB_TYPES));
         options.addAdminGroup = ConfigUtils.strToBool(req.getParameter(PARAM_ADD_ADMIN_GROUP), Boolean.FALSE);
+        options.useMiddleName = Boolean.parseBoolean(req.getParameter(PARAM_USE_MIDDLE_NAME));
+        options.searchExtraFields = extractExtraFields(req.getParameter(PARAM_SEARCH_EXTRA_FIELDS));
 
         Function<String, String> addStars = str -> {
             if (StringUtils.isNotBlank(str)) {
@@ -739,12 +717,14 @@ public class ChildrenGet extends AbstractWebScript {
         boolean showDisabled;
         boolean userIsAdmin;
         boolean addAdminGroup;
+        boolean useMiddleName;
         int limit;
         String filter;
         Set<String> filterTokens;
         String rootGroup;
         Set<String> subTypes;
         Set<String> excludeAuthorities;
+        Set<QName> searchExtraFields;
 
         @Override
         public boolean equals(Object o) {
@@ -759,17 +739,19 @@ public class ChildrenGet extends AbstractWebScript {
             FilterOptions that = (FilterOptions) o;
 
             return userIsAdmin == that.userIsAdmin &&
-                    branch == that.branch &&
-                    role == that.role &&
-                    group == that.group &&
-                    user == that.user &&
-                    showDisabled == that.showDisabled &&
-                    addAdminGroup == that.addAdminGroup &&
-                    limit == that.limit &&
-                    Objects.equals(filter, that.filter) &&
-                    Objects.equals(rootGroup, that.rootGroup) &&
-                    subTypes.equals(that.subTypes) &&
-                    excludeAuthorities.equals(that.excludeAuthorities);
+                branch == that.branch &&
+                role == that.role &&
+                group == that.group &&
+                user == that.user &&
+                showDisabled == that.showDisabled &&
+                addAdminGroup == that.addAdminGroup &&
+                useMiddleName == that.useMiddleName &&
+                limit == that.limit &&
+                Objects.equals(filter, that.filter) &&
+                Objects.equals(rootGroup, that.rootGroup) &&
+                subTypes.equals(that.subTypes) &&
+                excludeAuthorities.equals(that.excludeAuthorities) &&
+                Objects.equals(searchExtraFields, that.searchExtraFields);
         }
 
         @Override
@@ -781,11 +763,13 @@ public class ChildrenGet extends AbstractWebScript {
             result = 31 * result + (showDisabled ? 1 : 0);
             result = 31 * result + (userIsAdmin ? 1 : 0);
             result = 31 * result + (addAdminGroup ? 1 : 0);
+            result = 31 * result + (useMiddleName ? 1 : 0);
             result = 31 * result + Objects.hashCode(rootGroup);
             result = 31 * result + Objects.hashCode(filter);
             result = 31 * result + limit;
             result = 31 * result + subTypes.hashCode();
             result = 31 * result + excludeAuthorities.hashCode();
+            result = 31 * result + Objects.hashCode(searchExtraFields);
             return result;
         }
     }
