@@ -157,7 +157,8 @@
             {
               "id": "885b4f0c-34a1-4362-80d2-7a34281175cf",
               "label": {
-                "en": "Активные задачи"
+                "ru": "Текущие задачи",
+                "en": "Active tasks"
               },
               "icon": "ui/icon@i-leftmenu-current-tasks",
               "hidden": false,
@@ -172,6 +173,20 @@
               },
               "items": [],
               "allowedFor": []
+            },
+            {
+              "id": "1af6c697-6d67-4170-a2ee-ee56bb9e8d73",
+              "label": {
+                "ru": "Завершенные задачи",
+                "en": "Completed tasks"
+              },
+              "icon": "ui/icon@i-leftmenu-completed-tasks",
+              "hidden": false,
+              "type": "JOURNAL",
+              "config": {
+                "recordRef": "uiserv/journal@bpmn-historic-tasks",
+                "displayCount": true
+              }
             }
           ],
           "allowedFor": [
