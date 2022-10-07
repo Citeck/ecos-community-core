@@ -25,9 +25,11 @@ import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import ru.citeck.ecos.node.DisplayNameService;
+import ru.citeck.ecos.records2.RecordRef;
 
 import java.io.Serializable;
 import java.util.*;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 @Component
@@ -38,6 +40,11 @@ public class NodeUtils {
     public static final String WORKSPACE_PREFIX = StoreRef.PROTOCOL_WORKSPACE + StoreRef.URI_FILLER;
     public static final String ARCHIVE_PREFIX = StoreRef.PROTOCOL_ARCHIVE + StoreRef.URI_FILLER;
     public static final String DELETED_PREFIX = StoreRef.PROTOCOL_DELETED + StoreRef.URI_FILLER;
+
+    public static final String WORKSPACE_SPACES_STORE_PREFIX = WORKSPACE_PREFIX + "SpacesStore/";
+    public static final int UUID_SIZE = 36;
+    public static final Pattern UUID_PATTERN = Pattern.compile("^[\\da-fA-F]{8}-([\\da-fA-F]{4}-){3}[\\da-fA-F]{12}$");
+
 
     private static final String KEY_PENDING_DELETE_NODES = "DbNodeServiceImpl.pendingDeleteNodes";
 
@@ -52,6 +59,13 @@ public class NodeUtils {
     private NamespaceService namespaceService;
     private DictionaryService dictionaryService;
     private DisplayNameService displayNameService;
+
+    public static boolean isNodeRefWithUuid(@Nullable String nodeRef) {
+        return nodeRef != null
+            && nodeRef.startsWith(WORKSPACE_SPACES_STORE_PREFIX)
+            && nodeRef.length() == WORKSPACE_SPACES_STORE_PREFIX.length() + UUID_SIZE
+            && UUID_PATTERN.matcher(nodeRef.substring(WORKSPACE_SPACES_STORE_PREFIX.length())).matches();
+    }
 
     public String getDisplayName(NodeRef nodeRef) {
         return displayNameService.getDisplayName(nodeRef);
@@ -116,6 +130,9 @@ public class NodeUtils {
         if (node instanceof NodeRef) {
             return (NodeRef) node;
         }
+        if (node instanceof RecordRef) {
+            return getNodeRefOrNull(((RecordRef) node).getId());
+        }
 
         if (!(node instanceof String)) {
             return null;
@@ -140,11 +157,15 @@ public class NodeUtils {
             return new NodeRef(nodeStr.substring(workspaceIdx));
         }
 
-        NodeRef root = nodeService.getRootNode(StoreRef.STORE_REF_WORKSPACE_SPACESSTORE);
-        List<NodeRef> results = searchService.selectNodes(root, nodeStr, null,
-                                                          namespaceService, false);
+        if (nodeStr.startsWith("/") || nodeStr.contains("app:company_home")) {
 
-        return results.isEmpty() ? null : results.get(0);
+            NodeRef root = nodeService.getRootNode(StoreRef.STORE_REF_WORKSPACE_SPACESSTORE);
+            List<NodeRef> results = searchService.selectNodes(root, nodeStr, null,
+                namespaceService, false);
+            return results.isEmpty() ? null : results.get(0);
+        }
+
+        return null;
     }
 
     /**
@@ -185,13 +206,16 @@ public class NodeUtils {
     }
 
     public String getValidChildName(NodeRef parentRef, QName childAssoc, String name) {
+        return AuthenticationUtil.runAsSystem(() -> getValidChildNameImpl(parentRef, childAssoc, name));
+    }
 
+    public String getValidChildNameImpl(NodeRef parentRef, QName childAssoc, String name) {
         AssociationDefinition assoc = dictionaryService.getAssociation(childAssoc);
 
         name = getValidName(name);
 
         if (!(assoc instanceof ChildAssociationDefinition) ||
-                ((ChildAssociationDefinition) assoc).getDuplicateChildNamesAllowed()) {
+            ((ChildAssociationDefinition) assoc).getDuplicateChildNamesAllowed()) {
             return name;
         }
 
@@ -263,11 +287,11 @@ public class NodeUtils {
             List<NodeRef> storedRefs = getAssocsImpl(nodeRef, assocDef, true);
 
             Set<NodeRef> toAdd = targetsSet.stream()
-                                           .filter(r -> !storedRefs.contains(r))
-                                           .collect(Collectors.toSet());
+                .filter(r -> !storedRefs.contains(r))
+                .collect(Collectors.toSet());
             Set<NodeRef> toRemove = storedRefs.stream()
-                                              .filter(r -> !targetsSet.contains(r))
-                                              .collect(Collectors.toSet());
+                .filter(r -> !targetsSet.contains(r))
+                .collect(Collectors.toSet());
 
             if (!toAdd.isEmpty() || !toRemove.isEmpty()) {
 
@@ -413,8 +437,8 @@ public class NodeUtils {
         if (assocDef.isChild()) {
 
             return getChildAssocs(nodeRef, assocDef, nodeIsSource).stream()
-                             .map(r -> nodeIsSource ? r.getChildRef() : r.getParentRef())
-                             .collect(Collectors.toList());
+                .map(r -> nodeIsSource ? r.getChildRef() : r.getParentRef())
+                .collect(Collectors.toList());
         } else {
 
             List<AssociationRef> assocsRefs;
@@ -426,8 +450,8 @@ public class NodeUtils {
             }
 
             return assocsRefs.stream()
-                             .map(r -> nodeIsSource ? r.getTargetRef() : r.getSourceRef())
-                             .collect(Collectors.toList());
+                .map(r -> nodeIsSource ? r.getTargetRef() : r.getSourceRef())
+                .collect(Collectors.toList());
         }
     }
 
@@ -475,7 +499,7 @@ public class NodeUtils {
 
     @Autowired
     public void setServiceRegistry(ServiceRegistry serviceRegistry) {
-        nodeService = serviceRegistry.getNodeService();
+        nodeService = (NodeService) serviceRegistry.getService(QName.createQName("","nodeService"));
         searchService = serviceRegistry.getSearchService();
         namespaceService = serviceRegistry.getNamespaceService();
         dictionaryService = serviceRegistry.getDictionaryService();
