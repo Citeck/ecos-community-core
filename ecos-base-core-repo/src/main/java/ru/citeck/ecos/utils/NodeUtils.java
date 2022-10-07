@@ -29,6 +29,7 @@ import ru.citeck.ecos.records2.RecordRef;
 
 import java.io.Serializable;
 import java.util.*;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 @Component
@@ -39,6 +40,11 @@ public class NodeUtils {
     public static final String WORKSPACE_PREFIX = StoreRef.PROTOCOL_WORKSPACE + StoreRef.URI_FILLER;
     public static final String ARCHIVE_PREFIX = StoreRef.PROTOCOL_ARCHIVE + StoreRef.URI_FILLER;
     public static final String DELETED_PREFIX = StoreRef.PROTOCOL_DELETED + StoreRef.URI_FILLER;
+
+    public static final String WORKSPACE_SPACES_STORE_PREFIX = WORKSPACE_PREFIX + "SpacesStore/";
+    public static final int UUID_SIZE = 36;
+    public static final Pattern UUID_PATTERN = Pattern.compile("^[\\da-fA-F]{8}-([\\da-fA-F]{4}-){3}[\\da-fA-F]{12}$");
+
 
     private static final String KEY_PENDING_DELETE_NODES = "DbNodeServiceImpl.pendingDeleteNodes";
 
@@ -53,6 +59,13 @@ public class NodeUtils {
     private NamespaceService namespaceService;
     private DictionaryService dictionaryService;
     private DisplayNameService displayNameService;
+
+    public static boolean isNodeRefWithUuid(@Nullable String nodeRef) {
+        return nodeRef != null
+            && nodeRef.startsWith(WORKSPACE_SPACES_STORE_PREFIX)
+            && nodeRef.length() == WORKSPACE_SPACES_STORE_PREFIX.length() + UUID_SIZE
+            && UUID_PATTERN.matcher(nodeRef.substring(WORKSPACE_SPACES_STORE_PREFIX.length())).matches();
+    }
 
     public String getDisplayName(NodeRef nodeRef) {
         return displayNameService.getDisplayName(nodeRef);
@@ -274,11 +287,11 @@ public class NodeUtils {
             List<NodeRef> storedRefs = getAssocsImpl(nodeRef, assocDef, true);
 
             Set<NodeRef> toAdd = targetsSet.stream()
-                                           .filter(r -> !storedRefs.contains(r))
-                                           .collect(Collectors.toSet());
+                .filter(r -> !storedRefs.contains(r))
+                .collect(Collectors.toSet());
             Set<NodeRef> toRemove = storedRefs.stream()
-                                              .filter(r -> !targetsSet.contains(r))
-                                              .collect(Collectors.toSet());
+                .filter(r -> !targetsSet.contains(r))
+                .collect(Collectors.toSet());
 
             if (!toAdd.isEmpty() || !toRemove.isEmpty()) {
 
@@ -424,8 +437,8 @@ public class NodeUtils {
         if (assocDef.isChild()) {
 
             return getChildAssocs(nodeRef, assocDef, nodeIsSource).stream()
-                             .map(r -> nodeIsSource ? r.getChildRef() : r.getParentRef())
-                             .collect(Collectors.toList());
+                .map(r -> nodeIsSource ? r.getChildRef() : r.getParentRef())
+                .collect(Collectors.toList());
         } else {
 
             List<AssociationRef> assocsRefs;
@@ -437,8 +450,8 @@ public class NodeUtils {
             }
 
             return assocsRefs.stream()
-                             .map(r -> nodeIsSource ? r.getTargetRef() : r.getSourceRef())
-                             .collect(Collectors.toList());
+                .map(r -> nodeIsSource ? r.getTargetRef() : r.getSourceRef())
+                .collect(Collectors.toList());
         }
     }
 

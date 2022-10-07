@@ -11,7 +11,6 @@ import org.alfresco.service.cmr.security.AuthorityService;
 import org.alfresco.service.cmr.security.AuthorityType;
 import org.alfresco.service.cmr.security.MutableAuthenticationService;
 import org.alfresco.service.cmr.security.PersonService;
-import org.alfresco.service.namespace.NamespaceService;
 import org.alfresco.service.namespace.QName;
 import org.apache.commons.lang.StringUtils;
 import org.jetbrains.annotations.NotNull;
@@ -26,7 +25,10 @@ import ru.citeck.ecos.records.source.alf.meta.AlfNodeRecord;
 import ru.citeck.ecos.records2.QueryContext;
 import ru.citeck.ecos.records2.RecordMeta;
 import ru.citeck.ecos.records2.RecordRef;
-import ru.citeck.ecos.records2.graphql.meta.value.*;
+import ru.citeck.ecos.records2.graphql.meta.value.EmptyValue;
+import ru.citeck.ecos.records2.graphql.meta.value.MetaEdge;
+import ru.citeck.ecos.records2.graphql.meta.value.MetaField;
+import ru.citeck.ecos.records2.graphql.meta.value.MetaValue;
 import ru.citeck.ecos.records2.graphql.meta.value.field.EmptyMetaField;
 import ru.citeck.ecos.records2.request.delete.RecordsDelResult;
 import ru.citeck.ecos.records2.request.delete.RecordsDeletion;
@@ -63,6 +65,7 @@ public class PeopleRecordsDao extends LocalRecordsDao
     public static final String PROP_IS_MUTABLE = "isMutable";
     public static final String PROP_IS_ADMIN = "isAdmin";
     public static final String PROP_IS_DISABLED = "isDisabled";
+    private static final String PROP_EMODEL_DISABLED = "personDisabled";
     public static final String PROP_AUTHORITIES = "authorities";
     public static final String GROUPS = "groups";
     private static final String ECOS_OLD_PASS = "ecos:oldPass";
@@ -76,7 +79,6 @@ public class PeopleRecordsDao extends LocalRecordsDao
     private final AuthorityUtils authorityUtils;
     private final AuthorityService authorityService;
     private final AlfNodesRecordsDAO alfNodesRecordsDao;
-    private final NamespaceService namespaceService;
     private final MutableAuthenticationService authenticationService;
     private final PersonService personService;
 
@@ -85,7 +87,6 @@ public class PeopleRecordsDao extends LocalRecordsDao
         PersonService personService,
         AuthorityUtils authorityUtils,
         AuthorityService authorityService,
-        NamespaceService namespaceService,
         AlfNodesRecordsDAO alfNodesRecordsDao,
         MutableAuthenticationService authenticationService
     ) {
@@ -93,7 +94,6 @@ public class PeopleRecordsDao extends LocalRecordsDao
         this.personService = personService;
         this.authorityUtils = authorityUtils;
         this.authorityService = authorityService;
-        this.namespaceService = namespaceService;
         this.alfNodesRecordsDao = alfNodesRecordsDao;
         this.authenticationService = authenticationService;
     }
@@ -341,8 +341,8 @@ public class PeopleRecordsDao extends LocalRecordsDao
                 case PROP_IS_ADMIN:
                     return authorityService.isAdminAuthority(userName);
                 case PROP_IS_DISABLED:
-                    String isDisabledProp = EcosModel.PROP_IS_PERSON_DISABLED.toPrefixString(namespaceService);
-                    return alfNode.getAttribute(isDisabledProp, field);
+                case PROP_EMODEL_DISABLED:
+                    return alfNode.getAttribute(EcosModel.PREFIX_PROP_IS_PERSON_DISABLED, field);
                 case PROP_AUTHORITIES:
                     return getUserAuthorities();
                 case "nodeRef":
