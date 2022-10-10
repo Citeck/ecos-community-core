@@ -2,7 +2,9 @@ package ru.citeck.ecos.domain.auth;
 
 import kotlin.jvm.functions.Function0;
 import net.sf.acegisecurity.Authentication;
+import net.sf.acegisecurity.GrantedAuthority;
 import org.alfresco.repo.security.authentication.AuthenticationUtil;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -15,10 +17,8 @@ import ru.citeck.ecos.context.lib.auth.data.EmptyAuth;
 import ru.citeck.ecos.context.lib.auth.data.SimpleAuthData;
 
 import javax.annotation.PostConstruct;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Configuration
 public class AlfContextLibConfig extends ContextServiceFactory {
@@ -52,23 +52,37 @@ public class AlfContextLibConfig extends ContextServiceFactory {
         @NotNull
         @Override
         public AuthData getCurrentFullAuth() {
-            return getUserAuth(AuthenticationUtil.getFullyAuthenticatedUser());
+            return getUserAuth(AuthenticationUtil.getFullyAuthenticatedUser(),
+                Arrays.asList(AuthenticationUtil.getFullAuthentication().getAuthorities())
+            );
         }
 
         @NotNull
         @Override
         public AuthData getCurrentRunAsAuth() {
-            return getUserAuth(AuthenticationUtil.getRunAsUser());
+            return getUserAuth(AuthenticationUtil.getRunAsUser(),
+                Arrays.asList(AuthenticationUtil.getRunAsAuthentication().getAuthorities())
+            );
         }
 
-        private AuthData getUserAuth(String user) {
+        private AuthData getUserAuth(String user, List<GrantedAuthority> grantedAuthorities) {
 
             if (StringUtils.isBlank(user)) {
                 return EmptyAuth.INSTANCE;
             }
             user = INNER_TO_OUTER_USER_MAPPING.getOrDefault(user, user);
 
-            return new SimpleAuthData(user, Collections.emptyList());
+            if (CollectionUtils.isEmpty(grantedAuthorities)) {
+                grantedAuthorities = Collections.emptyList();
+            }
+
+            //TODO fix: actually grantedAuthorities does not contains all user authorities
+            List<String> authorities = grantedAuthorities
+                .stream()
+                .map(GrantedAuthority::getAuthority)
+                .collect(Collectors.toList());
+
+            return new SimpleAuthData(user, authorities);
         }
 
         @Override
