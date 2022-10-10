@@ -850,7 +850,7 @@
               "hidden": false,
               "type": "ARBITRARY",
               "config": {
-                "url": "/share/page/orgstruct"
+                "url": "/v2/orgstructure"
               }
             }
           ]
