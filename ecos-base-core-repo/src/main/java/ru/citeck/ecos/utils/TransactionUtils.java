@@ -2,7 +2,6 @@ package ru.citeck.ecos.utils;
 
 import org.alfresco.repo.security.authentication.AuthenticationUtil;
 import org.alfresco.repo.transaction.AlfrescoTransactionSupport;
-import org.alfresco.repo.transaction.RetryingTransactionHelper;
 import org.alfresco.repo.transaction.TransactionalResourceHelper;
 import org.alfresco.service.ServiceRegistry;
 import org.alfresco.service.transaction.TransactionService;
@@ -10,6 +9,8 @@ import org.alfresco.util.transaction.TransactionListenerAdapter;
 import org.apache.log4j.Logger;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.extensions.surf.util.I18NUtil;
+import ru.citeck.ecos.context.lib.auth.AuthContext;
+import ru.citeck.ecos.context.lib.auth.data.AuthData;
 import ru.citeck.ecos.domain.auth.EcosReqContext;
 import ru.citeck.ecos.domain.auth.EcosReqContextData;
 import ru.citeck.ecos.records3.record.request.RequestContext;
@@ -61,9 +62,9 @@ public class TransactionUtils {
 
     public static void doAfterCommit(final Runnable job, final Consumer<Exception> errorHandler) {
 
-        final String currentUser = AuthenticationUtil.getFullyAuthenticatedUser();
         final Locale locale = I18NUtil.getLocale();
         final EcosReqContextData ecosReqContext = EcosReqContext.getCurrent();
+        final AuthData authData = AuthContext.getCurrentFullAuth();
 
         List<Job> jobs = AlfrescoTransactionSupport.getResource(AFTER_COMMIT_JOBS_KEY);
 
@@ -76,7 +77,7 @@ public class TransactionUtils {
             AlfrescoTransactionSupport.bindListener(new TransactionListenerAdapter() {
                 @Override
                 public void afterCommit() {
-                    executeAfterCommitJobs(finalJobs, currentUser, locale, ecosReqContext);
+                    executeAfterCommitJobs(finalJobs, authData, locale, ecosReqContext);
                 }
             });
         }
@@ -144,7 +145,7 @@ public class TransactionUtils {
 
     private static void executeAfterCommitJobs(
         List<Job> jobs,
-        final String currentUser,
+        final AuthData authData,
         final Locale locale,
         final EcosReqContextData ecosReqContext
     ) {
@@ -157,13 +158,13 @@ public class TransactionUtils {
             EcosReqContext.doWith(ecosReqContext, () -> {
                 try {
                     AuthenticationUtil.clearCurrentSecurityContext();
-                    AuthenticationUtil.runAs(() -> {
+                    AuthContext.runAsJ(authData, () -> {
                         AuthenticationUtil.runAsSystem(() -> {
                             executeAfterCommitJobsImpl(jobs);
                             return null;
                         });
                         return null;
-                    }, currentUser);
+                    });
                 } finally {
                     I18NUtil.setLocale(localeBefore);
                 }

@@ -7,6 +7,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.web.context.WebApplicationContext;
 import org.springframework.web.context.support.WebApplicationContextUtils;
+import ru.citeck.ecos.context.lib.auth.AuthContext;
 import ru.citeck.ecos.context.lib.auth.AuthUser;
 import ru.citeck.ecos.context.lib.client.ClientContext;
 import ru.citeck.ecos.context.lib.client.data.ClientData;
@@ -30,6 +31,8 @@ public class EcosReqContextRequestFilter implements Filter {
 
     private static final String JWT_TOKEN_PREFIX = "Bearer ";
     private static final String JWT_SECRET_PROP_KEY = "ecos.webapp.web.authenticators.jwt.secret";
+    private static final String CLAIM_AUTH_HEADER = "auth";
+    private static final String CLAIM_AUTH_DELIMITER = ",";
 
     private SecretKey jwtSecretKey;
 
@@ -104,6 +107,8 @@ public class EcosReqContextRequestFilter implements Filter {
         }
 
         boolean isSystemRequest = false;
+        List<String> authorities = new ArrayList<>();
+
         if (StringUtils.isNotBlank(authorization)
             && authorization.startsWith(JWT_TOKEN_PREFIX)
             && authorization.length() > JWT_TOKEN_PREFIX.length()) {
@@ -124,8 +129,14 @@ public class EcosReqContextRequestFilter implements Filter {
                     .parseClaimsJwt(token)
                     .getBody();
             }
+
             if (AuthUser.SYSTEM.equals(claims.getSubject())) {
                 isSystemRequest = true;
+            }
+
+            Object auth = claims.get(CLAIM_AUTH_HEADER);
+            if (auth instanceof String) {
+                authorities = Arrays.asList(((String) auth).split(CLAIM_AUTH_DELIMITER));
             }
         }
 
@@ -136,13 +147,16 @@ public class EcosReqContextRequestFilter implements Filter {
 
             Duration finalTzOffset = utcOffset;
             String finalRealIp = realIp;
+            String finalUser = ecosUser;
+            List<String> finalAuthorities = authorities;
+
             EcosReqContext.doWith(new EcosReqContextData(
                 ecosUser,
                 authorization,
                 timezoneHeader,
                 acceptLangHeader,
                 isSystemRequest
-            ), () -> {
+            ), () -> AuthContext.runAsFullJ(finalUser, finalAuthorities, () -> {
                 I18nContext.doWithLocalesJ(getLocales(request), () ->
                     TimeZoneContext.doWithUtcOffsetJ(finalTzOffset, () -> {
                         if (StringUtils.isNotBlank(finalRealIp)) {
@@ -157,7 +171,7 @@ public class EcosReqContextRequestFilter implements Filter {
                     })
                 );
                 return null;
-            });
+            }));
         } else {
             chain.doFilter(request, response);
         }

@@ -49,6 +49,8 @@ public class AlfContextLibConfig extends ContextServiceFactory {
 
     private static class AlfAuthComponent implements AuthComponent {
 
+        private final ThreadLocal<List<String>> authAuthorities = new ThreadLocal<>();
+
         @NotNull
         @Override
         public AuthData getCurrentFullAuth() {
@@ -76,13 +78,17 @@ public class AlfContextLibConfig extends ContextServiceFactory {
                 grantedAuthorities = Collections.emptyList();
             }
 
-            //TODO fix: actually grantedAuthorities does not contains all user authorities
-            List<String> authorities = grantedAuthorities
+            // GrantedAuth does not contain all actual user authorities, so we need to get them from thread local.
+            Set<String> authorities = grantedAuthorities
                 .stream()
                 .map(GrantedAuthority::getAuthority)
-                .collect(Collectors.toList());
+                .collect(Collectors.toSet());
 
-            return new SimpleAuthData(user, authorities);
+            if (authAuthorities.get() != null) {
+                authorities.addAll(authAuthorities.get());
+            }
+
+            return new SimpleAuthData(user, new ArrayList<>(authorities));
         }
 
         @Override
@@ -91,16 +97,23 @@ public class AlfContextLibConfig extends ContextServiceFactory {
             String user = auth.getUser();
             user = OUTER_TO_INNER_USER_MAPPING.getOrDefault(user, user);
 
+            authAuthorities.set(auth.getAuthorities());
+
             if (full) {
                 Authentication fullAuth = AuthenticationUtil.getFullAuthentication();
                 AuthenticationUtil.setFullyAuthenticatedUser(user);
                 try {
                     return action.invoke();
                 } finally {
+                    authAuthorities.remove();
                     AuthenticationUtil.setFullAuthentication(fullAuth);
                 }
             } else {
-                return AuthenticationUtil.runAs(action::invoke, user);
+                try {
+                    return AuthenticationUtil.runAs(action::invoke, user);
+                } finally {
+                    authAuthorities.remove();
+                }
             }
         }
 
