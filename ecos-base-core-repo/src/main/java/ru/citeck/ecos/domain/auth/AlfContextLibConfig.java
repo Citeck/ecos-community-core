@@ -1,24 +1,24 @@
 package ru.citeck.ecos.domain.auth;
 
 import kotlin.jvm.functions.Function0;
+import lombok.RequiredArgsConstructor;
 import net.sf.acegisecurity.Authentication;
-import net.sf.acegisecurity.GrantedAuthority;
 import org.alfresco.repo.security.authentication.AuthenticationUtil;
-import org.apache.commons.collections.CollectionUtils;
+import org.alfresco.service.cmr.security.AuthorityService;
 import org.apache.commons.lang.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
 import ru.citeck.ecos.context.lib.ContextServiceFactory;
-import ru.citeck.ecos.context.lib.auth.AuthConstants;
+import ru.citeck.ecos.context.lib.auth.AuthUser;
 import ru.citeck.ecos.context.lib.auth.component.AuthComponent;
+import ru.citeck.ecos.context.lib.auth.component.SimpleAuthComponent;
 import ru.citeck.ecos.context.lib.auth.data.AuthData;
-import ru.citeck.ecos.context.lib.auth.data.EmptyAuth;
 import ru.citeck.ecos.context.lib.auth.data.SimpleAuthData;
 
 import javax.annotation.PostConstruct;
 import java.util.*;
-import java.util.stream.Collectors;
 
 @Configuration
 public class AlfContextLibConfig extends ContextServiceFactory {
@@ -30,10 +30,11 @@ public class AlfContextLibConfig extends ContextServiceFactory {
         OUTER_TO_INNER_USER_MAPPING = new HashMap<>();
         INNER_TO_OUTER_USER_MAPPING = new HashMap<>();
 
-        OUTER_TO_INNER_USER_MAPPING.put(AuthConstants.SYSTEM_USER, AuthenticationUtil.SYSTEM_USER_NAME);
-
+        OUTER_TO_INNER_USER_MAPPING.put(AuthUser.SYSTEM, AuthenticationUtil.SYSTEM_USER_NAME);
         OUTER_TO_INNER_USER_MAPPING.forEach((k, v) -> INNER_TO_OUTER_USER_MAPPING.put(v, k));
     }
+
+    private AuthorityService authorityService;
 
     @Override
     @PostConstruct
@@ -44,77 +45,69 @@ public class AlfContextLibConfig extends ContextServiceFactory {
     @Nullable
     @Override
     protected AuthComponent createAuthComponent() {
-        return new AlfAuthComponent();
+        return new AlfAuthComponent(authorityService);
     }
 
+    @Autowired
+    public void setAuthorityService(AuthorityService authorityService) {
+        this.authorityService = authorityService;
+    }
+
+    @RequiredArgsConstructor
     private static class AlfAuthComponent implements AuthComponent {
 
-        private final ThreadLocal<List<String>> authAuthorities = new ThreadLocal<>();
+        private final SimpleAuthComponent simpleAuthComponent = new SimpleAuthComponent();
+
+        private final AuthorityService authorityService;
 
         @NotNull
         @Override
         public AuthData getCurrentFullAuth() {
-            return getUserAuth(AuthenticationUtil.getFullyAuthenticatedUser(),
-                Arrays.asList(AuthenticationUtil.getFullAuthentication().getAuthorities())
+            String user = AuthenticationUtil.getFullyAuthenticatedUser();
+            List<String> authorities = simpleAuthComponent.getCurrentFullAuth().getAuthorities();
+            if (authorities.isEmpty() && StringUtils.isNotBlank(user)) {
+                authorities = new ArrayList<>(authorityService.getAuthoritiesForUser(user));
+            }
+            return new SimpleAuthData(
+                INNER_TO_OUTER_USER_MAPPING.getOrDefault(user, user),
+                authorities
             );
         }
 
         @NotNull
         @Override
         public AuthData getCurrentRunAsAuth() {
-            return getUserAuth(AuthenticationUtil.getRunAsUser(),
-                Arrays.asList(AuthenticationUtil.getRunAsAuthentication().getAuthorities())
+            String user = AuthenticationUtil.getRunAsUser();
+            List<String> authorities = simpleAuthComponent.getCurrentRunAsAuth().getAuthorities();
+            if (authorities.isEmpty() && StringUtils.isNotBlank(user)) {
+                authorities = new ArrayList<>(authorityService.getAuthoritiesForUser(user));
+            }
+            return new SimpleAuthData(
+                INNER_TO_OUTER_USER_MAPPING.getOrDefault(user, user),
+                authorities
             );
-        }
-
-        private AuthData getUserAuth(String user, List<GrantedAuthority> grantedAuthorities) {
-
-            if (StringUtils.isBlank(user)) {
-                return EmptyAuth.INSTANCE;
-            }
-            user = INNER_TO_OUTER_USER_MAPPING.getOrDefault(user, user);
-
-            if (CollectionUtils.isEmpty(grantedAuthorities)) {
-                grantedAuthorities = Collections.emptyList();
-            }
-
-            // GrantedAuth does not contain all actual user authorities, so we need to get them from thread local.
-            Set<String> authorities = grantedAuthorities
-                .stream()
-                .map(GrantedAuthority::getAuthority)
-                .collect(Collectors.toSet());
-
-            if (authAuthorities.get() != null) {
-                authorities.addAll(authAuthorities.get());
-            }
-
-            return new SimpleAuthData(user, new ArrayList<>(authorities));
         }
 
         @Override
         public <T> T runAs(@NotNull AuthData auth, boolean full, @NotNull Function0<? extends T> action) {
 
-            String user = auth.getUser();
-            user = OUTER_TO_INNER_USER_MAPPING.getOrDefault(user, user);
+            return simpleAuthComponent.runAs(auth, full, () -> {
 
-            authAuthorities.set(auth.getAuthorities());
+                String user = auth.getUser();
+                user = OUTER_TO_INNER_USER_MAPPING.getOrDefault(user, user);
 
-            if (full) {
-                Authentication fullAuth = AuthenticationUtil.getFullAuthentication();
-                AuthenticationUtil.setFullyAuthenticatedUser(user);
-                try {
-                    return action.invoke();
-                } finally {
-                    authAuthorities.remove();
-                    AuthenticationUtil.setFullAuthentication(fullAuth);
-                }
-            } else {
-                try {
+                if (full) {
+                    Authentication fullAuthBefore = AuthenticationUtil.getFullAuthentication();
+                    AuthenticationUtil.setFullyAuthenticatedUser(user);
+                    try {
+                        return action.invoke();
+                    } finally {
+                        AuthenticationUtil.setFullAuthentication(fullAuthBefore);
+                    }
+                } else {
                     return AuthenticationUtil.runAs(action::invoke, user);
-                } finally {
-                    authAuthorities.remove();
                 }
-            }
+            });
         }
 
         @NotNull
