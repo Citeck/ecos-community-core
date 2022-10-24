@@ -11,6 +11,7 @@ import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
 import ru.citeck.ecos.context.lib.ContextServiceFactory;
+import ru.citeck.ecos.context.lib.auth.AuthContext;
 import ru.citeck.ecos.context.lib.auth.AuthUser;
 import ru.citeck.ecos.context.lib.auth.component.AuthComponent;
 import ru.citeck.ecos.context.lib.auth.component.SimpleAuthComponent;
@@ -65,8 +66,8 @@ public class AlfContextLibConfig extends ContextServiceFactory {
         public AuthData getCurrentFullAuth() {
             String user = AuthenticationUtil.getFullyAuthenticatedUser();
             List<String> authorities = simpleAuthComponent.getCurrentFullAuth().getAuthorities();
-            if (authorities.isEmpty() && StringUtils.isNotBlank(user)) {
-                authorities = new ArrayList<>(authorityService.getAuthoritiesForUser(user));
+            if (authorities.isEmpty()) {
+                authorities = getAlfUserAuthorities(user);
             }
             return new SimpleAuthData(
                 INNER_TO_OUTER_USER_MAPPING.getOrDefault(user, user),
@@ -79,13 +80,24 @@ public class AlfContextLibConfig extends ContextServiceFactory {
         public AuthData getCurrentRunAsAuth() {
             String user = AuthenticationUtil.getRunAsUser();
             List<String> authorities = simpleAuthComponent.getCurrentRunAsAuth().getAuthorities();
-            if (authorities.isEmpty() && StringUtils.isNotBlank(user)) {
-                authorities = new ArrayList<>(authorityService.getAuthoritiesForUser(user));
+            if (authorities.isEmpty()) {
+                authorities = getAlfUserAuthorities(user);
             }
             return new SimpleAuthData(
                 INNER_TO_OUTER_USER_MAPPING.getOrDefault(user, user),
                 authorities
             );
+        }
+
+        private List<String> getAlfUserAuthorities(String userName) {
+            if (StringUtils.isBlank(userName)) {
+                return Collections.emptyList();
+            }
+            if (AuthenticationUtil.isRunAsUserTheSystemUser()) {
+                return AuthContext.getSystemAuthorities();
+            } else {
+                return new ArrayList<>(authorityService.getAuthoritiesForUser(userName));
+            }
         }
 
         @Override
