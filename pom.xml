@@ -14,7 +14,7 @@
 
     <properties>
 
-        <revision>4.14.2</revision>
+        <revision>4.14.3</revision>
 
         <alfresco.sdk.version>3.0.1</alfresco.sdk.version>
 
@@ -68,7 +68,7 @@
         <default.locale>en</default.locale>
         <yuicompressor.compress.skip>false</yuicompressor.compress.skip>
 
-        <ecos.webapp-lib.version>1.7.0</ecos.webapp-lib.version>
+        <ecos.webapp-lib.version>1.7.7</ecos.webapp-lib.version>
 
         <ecos.flowable.version>3.0.5.4</ecos.flowable.version>
         <spring.retry.version>1.2.4.RELEASE</spring.retry.version>

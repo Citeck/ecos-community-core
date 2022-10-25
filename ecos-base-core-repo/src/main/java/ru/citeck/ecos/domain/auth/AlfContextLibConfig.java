@@ -93,7 +93,7 @@ public class AlfContextLibConfig extends ContextServiceFactory {
             if (StringUtils.isBlank(userName)) {
                 return Collections.emptyList();
             }
-            if (AuthenticationUtil.SYSTEM_USER_NAME.equals(userName)) {
+            if (AuthenticationUtil.SYSTEM_USER_NAME.equalsIgnoreCase(userName)) {
                 return AuthContext.getSystemAuthorities();
             } else {
                 return new ArrayList<>(authorityService.getAuthoritiesForUser(userName));
