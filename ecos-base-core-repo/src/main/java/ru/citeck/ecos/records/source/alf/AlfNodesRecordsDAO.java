@@ -495,6 +495,11 @@ public class AlfNodesRecordsDAO extends LocalRecordsDao
         ObjectData attsToStore = computedAttsService.computeAttsToStore(metaValue, isNewRecord, typeRef);
 
         if (attsToStore.size() > 0) {
+            if (attsToStore.has(RecordConstants.ATT_DOC_NUM)) {
+                String ecosDocNumProp = EcosModel.PROP_DOC_NUM.toPrefixString(namespaceService);
+                attsToStore.set(ecosDocNumProp, attsToStore.get(RecordConstants.ATT_DOC_NUM));
+                attsToStore.remove(RecordConstants.ATT_DOC_NUM);
+            }
             processSingleRecord(new RecordMeta(recordRef, attsToStore), false);
         }
 
