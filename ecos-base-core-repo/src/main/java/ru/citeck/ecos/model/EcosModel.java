@@ -47,6 +47,7 @@ public interface EcosModel {
     QName PROP_USER_INILA = QName.createQName(ECOS_NAMESPACE, "inila");
     QName PROP_USER_INN = QName.createQName(ECOS_NAMESPACE, "inn");
     QName PROP_TYPE_OF_EMPLOYMENT = QName.createQName(ECOS_NAMESPACE, "typeOfEmployment");
+    QName PROP_EMPLOYEE_ID = QName.createQName(ECOS_NAMESPACE, "employeeId");
     QName PROP_COUNTRY_CODE = QName.createQName(ECOS_NAMESPACE, "countryCode");
     QName PROP_SUPERVISOR_ID = QName.createQName(ECOS_NAMESPACE, "supervisorId");
     QName PROP_SUPERVISOR_NAME = QName.createQName(ECOS_NAMESPACE, "supervisorName");
