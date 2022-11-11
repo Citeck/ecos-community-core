@@ -32,6 +32,7 @@ public interface EcosModel {
     QName PROP_DOCUMENT_AMOUNT = QName.createQName(ECOS_NAMESPACE, "documentAmount");
     QName PROP__VAT = QName.createQName(ECOS_NAMESPACE, "VAT");
     QName PROP_PHOTO = QName.createQName(ECOS_NAMESPACE, "photo");
+    String PREFIX_PROP_PHOTO = ECOS_MODEL_EXT + PROP_PHOTO.getLocalName();
     QName PROP_BIRTH_DATE = QName.createQName(ECOS_NAMESPACE, "birthDate");
     QName PROP_BIRTH_MONTH_DAY = QName.createQName(ECOS_NAMESPACE, "birthMonthDay");
     QName PROP_CITY = QName.createQName(ECOS_NAMESPACE, "city");

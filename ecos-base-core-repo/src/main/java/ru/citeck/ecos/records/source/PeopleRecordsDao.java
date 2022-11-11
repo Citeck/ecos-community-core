@@ -11,6 +11,7 @@ import org.alfresco.service.cmr.security.AuthorityService;
 import org.alfresco.service.cmr.security.AuthorityType;
 import org.alfresco.service.cmr.security.MutableAuthenticationService;
 import org.alfresco.service.cmr.security.PersonService;
+import org.alfresco.service.namespace.NamespaceService;
 import org.alfresco.service.namespace.QName;
 import org.apache.commons.lang.StringUtils;
 import org.jetbrains.annotations.NotNull;
@@ -59,6 +60,9 @@ public class PeopleRecordsDao extends LocalRecordsDao
 
     private static final String PROP_USER_NAME = "userName";
     private static final String PROP_CM_USER_NAME = "cm:" + PROP_USER_NAME;
+    private static final String JOB_TITLE = "jobTitle";
+    private static final String PROP_JOBTITLE = ContentModel.PROP_JOBTITLE.getLocalName();
+    private static final String PREFIX_PROP_JOBTITLE = NamespaceService.CONTENT_MODEL_PREFIX + QName.NAMESPACE_PREFIX + PROP_JOBTITLE;
 
     public static final String PROP_FULL_NAME = "fullName";
     public static final String PROP_IS_AVAILABLE = "isAvailable";
@@ -347,11 +351,10 @@ public class PeopleRecordsDao extends LocalRecordsDao
                     return getUserAuthorities();
                 case "nodeRef":
                     return alfNode != null ? alfNode.getId() : null;
-                case "jobTitle":
-                    String jobTitleProp = ContentModel.PROP_JOBTITLE.toPrefixString(namespaceService);
-                    return alfNode.getAttribute(jobTitleProp, field);
+                case JOB_TITLE:
+                    return alfNode.getAttribute(PREFIX_PROP_JOBTITLE, field);
                 case "avatar":
-                    if (!alfNode.has("ecos:photo")) {
+                    if (!alfNode.has(EcosModel.PREFIX_PROP_PHOTO)) {
                         return null;
                     }
                     return new AvatarValue(alfNode.getId());
