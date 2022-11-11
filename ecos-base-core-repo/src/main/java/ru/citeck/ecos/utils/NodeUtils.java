@@ -1,6 +1,7 @@
 package ru.citeck.ecos.utils;
 
 import org.alfresco.model.ContentModel;
+import org.alfresco.repo.domain.node.NodeDAO;
 import org.alfresco.repo.jscript.ScriptNode;
 import org.alfresco.repo.security.authentication.AuthenticationUtil;
 import org.alfresco.repo.transaction.AlfrescoTransactionSupport;
@@ -23,6 +24,7 @@ import org.apache.commons.lang.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 import ru.citeck.ecos.node.DisplayNameService;
 
@@ -43,6 +45,7 @@ public class NodeUtils {
         StoreRef.PROTOCOL_DELETED + "://"
     );
 
+    private NodeDAO nodeDao;
     private NodeService nodeService;
     private SearchService searchService;
     private NamespaceService namespaceService;
@@ -263,41 +266,51 @@ public class NodeUtils {
         }).collect(Collectors.toCollection(LinkedHashSet::new));
 
         Map<NodeRef, ChildAssociationRef> storedChildAssocsByChild = Collections.emptyMap();
-        List<NodeRef> storedRefs;
+        Map<NodeRef, AssociationRef> storedAssocsByTarget = Collections.emptyMap();
+        List<NodeRef> storedRefs = new ArrayList<>();
         if (isChildAssoc) {
-            List<ChildAssociationRef> childAssocs = getChildAssocs(nodeRef, assocDef, true);
-            storedRefs = new ArrayList<>(childAssocs.size());
             storedChildAssocsByChild = new LinkedHashMap<>();
+            List<ChildAssociationRef> childAssocs = getChildAssocs(nodeRef, assocDef, true);
             for (ChildAssociationRef assoc : childAssocs) {
                 NodeRef childRef = assoc.getChildRef();
                 storedChildAssocsByChild.put(childRef, assoc);
                 storedRefs.add(childRef);
             }
         } else {
-            storedRefs = getAssocsImpl(nodeRef, assocDef, true);
+            storedAssocsByTarget = new LinkedHashMap<>();
+            List<AssociationRef> targetAssocs = nodeService.getTargetAssocs(nodeRef, assocDef.getName());
+            for (AssociationRef assocRef : targetAssocs) {
+                NodeRef targetRef = assocRef.getTargetRef();
+                storedAssocsByTarget.put(targetRef, assocRef);
+                storedRefs.add(targetRef);
+            }
         }
 
         Set<NodeRef> toAdd = targetsSet.stream()
-                                       .filter(r -> !storedRefs.contains(r))
-                                       .collect(Collectors.toCollection(LinkedHashSet::new));
+            .filter(r -> !storedRefs.contains(r))
+            .collect(Collectors.toCollection(LinkedHashSet::new));
         Set<NodeRef> toRemove = storedRefs.stream()
-                                          .filter(r -> !targetsSet.contains(r))
-                                          .collect(Collectors.toCollection(LinkedHashSet::new));
+            .filter(r -> !targetsSet.contains(r))
+            .collect(Collectors.toCollection(LinkedHashSet::new));
 
         if (toAdd.isEmpty() && toRemove.isEmpty()) {
             // nothing to add and remove, but maybe we should change associations order?
             if (!isOrderedTargets || (targetsSet.isEmpty() && storedRefs.isEmpty())) {
-               return false;
+                return false;
             }
             if (!isOrderedCollectionsContentEquals(targetsSet, storedRefs)) {
+                int idx = 1;
                 if (isChildAssoc) {
-                    int idx = 1;
                     for (NodeRef childRef : targetsSet) {
                         nodeService.setChildAssociationIndex(storedChildAssocsByChild.get(childRef), idx);
                         idx++;
                     }
                 } else {
-                    nodeService.setAssociations(nodeRef, assocName, new ArrayList<>(targetsSet));
+                    for (NodeRef targetRef : targetsSet) {
+                        AssociationRef assocRef = storedAssocsByTarget.get(targetRef);
+                        nodeDao.setNodeAssocIndex(assocRef.getId(), idx);
+                        idx++;
+                    }
                 }
                 return true;
             }
@@ -341,7 +354,22 @@ public class NodeUtils {
                     idx++;
                 }
             } else {
-                nodeService.setAssociations(nodeRef, assocName, new ArrayList<>(targetsSet));
+
+                for (NodeRef removeRef : toRemove) {
+                    nodeService.removeAssociation(nodeRef, removeRef, assocName);
+                }
+
+                int idx = 1;
+                for (NodeRef targetRef : targetsSet) {
+                    AssociationRef assocRef = storedAssocsByTarget.get(targetRef);
+                    if (assocRef == null) {
+                        assocRef = nodeService.createAssociation(nodeRef, targetRef, assocName);
+                    }
+                    if (isOrderedTargets) {
+                        nodeDao.setNodeAssocIndex(assocRef.getId(), idx);
+                    }
+                    idx++;
+                }
             }
             return true;
         }
@@ -463,8 +491,8 @@ public class NodeUtils {
         if (assocDef.isChild()) {
 
             return getChildAssocs(nodeRef, assocDef, nodeIsSource).stream()
-                             .map(r -> nodeIsSource ? r.getChildRef() : r.getParentRef())
-                             .collect(Collectors.toList());
+                .map(r -> nodeIsSource ? r.getChildRef() : r.getParentRef())
+                .collect(Collectors.toList());
         } else {
 
             List<AssociationRef> assocsRefs;
@@ -476,8 +504,8 @@ public class NodeUtils {
             }
 
             return assocsRefs.stream()
-                             .map(r -> nodeIsSource ? r.getTargetRef() : r.getSourceRef())
-                             .collect(Collectors.toList());
+                .map(r -> nodeIsSource ? r.getTargetRef() : r.getSourceRef())
+                .collect(Collectors.toList());
         }
     }
 
@@ -525,9 +553,15 @@ public class NodeUtils {
 
     @Autowired
     public void setServiceRegistry(ServiceRegistry serviceRegistry) {
-        nodeService = (NodeService) serviceRegistry.getService(QName.createQName("","nodeService"));
+        nodeService = (NodeService) serviceRegistry.getService(QName.createQName("", "nodeService"));
         searchService = serviceRegistry.getSearchService();
         namespaceService = serviceRegistry.getNamespaceService();
         dictionaryService = serviceRegistry.getDictionaryService();
+    }
+
+    @Autowired
+    @Qualifier("nodeDAO")
+    public void setNodeDao(NodeDAO nodeDao) {
+        this.nodeDao = nodeDao;
     }
 }
