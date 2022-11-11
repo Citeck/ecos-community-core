@@ -266,6 +266,10 @@
                         <constraint ref="ecos:constraint:typeOfEmployment"/>
                     </constraints>
                 </property>
+                <property name="ecos:employeeId">
+                    <title>Employee ID</title>
+                    <type>d:text</type>
+                </property>
             </properties>
         </aspect>
 

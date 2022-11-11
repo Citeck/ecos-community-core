@@ -2,7 +2,7 @@
     <shortname>Org.Struct children groups</shortname>
     <description>All children groups (branches, roles and ordinary groups)</description>
     <url>/api/orgstruct/v2/group/{groupname}/v2/children/</url>
-    <url>/api/orgstruct/v2/group/{groupname}/children?branch={includeBranches?}&amp;role={includeRoles?}&amp;group={includeGroups?}&amp;user={includeUsers?}&amp;filter={filter?}&amp;recurse={recurse}&amp;showdisabled={showDisabled}&amp;excludeAuthorities={excludeAuthorities}&amp;addAdminGroup={addAdminGroup?}</url>
+    <url>/api/orgstruct/v2/group/{groupname}/children?branch={includeBranches?}&amp;role={includeRoles?}&amp;group={includeGroups?}&amp;user={includeUsers?}&amp;filter={filter?}&amp;recurse={recurse}&amp;showdisabled={showDisabled}&amp;excludeAuthorities={excludeAuthorities}&amp;addAdminGroup={addAdminGroup?}&amp;searchExtraFields={searchExtraFields?}&amp;useMiddleName={useMiddleName?}</url>
     <format default="json">argument</format>
     <authentication>user</authentication>
     <transaction allow="readonly">required</transaction>
@@ -46,6 +46,14 @@
         <arg>
             <shortname>addAdminGroup</shortname>
             <description>true to get GROUP_ALFRESCO_ADMINISTRATORS in search (false by default), includeGroups must be true</description>
+        </arg>
+        <arg>
+            <shortname>searchExtraFields</shortname>
+            <description>extra fields separated by commas for additional filtering</description>
+        </arg>
+        <arg>
+            <shortname>useMiddleName</shortname>
+            <description>true to filter users by field "cm:middleName" (false by default)</description>
         </arg>
     </args>
     <responses>
