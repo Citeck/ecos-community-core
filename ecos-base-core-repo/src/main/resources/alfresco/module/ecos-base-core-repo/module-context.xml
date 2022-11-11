@@ -8,5 +8,6 @@
     <import resource="classpath:alfresco/module/ecos-base-core-repo/context/remote-api-context.xml" />
     <import resource="classpath:alfresco/module/ecos-base-core-repo/context/service-context.xml" />
     <import resource="classpath:alfresco/module/ecos-base-core-repo/context/behaviour-context.xml" />
+    <import resource="classpath:alfresco/module/ecos-base-core-repo/context/custom-node-children-ibatis-context.xml" />
 
 </beans>

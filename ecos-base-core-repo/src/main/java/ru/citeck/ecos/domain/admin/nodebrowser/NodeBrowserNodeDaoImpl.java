@@ -1,9 +1,6 @@
 package ru.citeck.ecos.domain.admin.nodebrowser;
 
-import org.alfresco.repo.domain.node.ChildAssocEntity;
-import org.alfresco.repo.domain.node.NodeAssocEntity;
-import org.alfresco.repo.domain.node.NodeDAO;
-import org.alfresco.repo.domain.node.NodeEntity;
+import org.alfresco.repo.domain.node.*;
 import org.alfresco.repo.domain.qname.QNameDAO;
 import org.alfresco.service.cmr.repository.*;
 import org.alfresco.util.Pair;
@@ -13,6 +10,7 @@ import org.mybatis.spring.SqlSessionTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
+import ru.citeck.ecos.domain.node.ChildAssocEntityLimit;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -26,12 +24,13 @@ import java.util.List;
 @Component
 public class NodeBrowserNodeDaoImpl implements NodeBrowserNodeDao {
 
-    private static final String SELECT_CHILD_ASSOCS_OF_PARENT_LIMITED = "alfresco.node.select.children.select_ChildAssocsOfParent_Limited";
+    private static final String SELECT_CHILD_ASSOCS_OF_PARENT_LIMITED = "custom.alfresco.node.select.children.select_ChildAssocsOfParent_Limited";
     private static final String SELECT_NODE_ASSOCS_BY_TARGET = "alfresco.node.select_NodeAssocsByTarget";
 
     private NodeDAO nodeDao;
     private QNameDAO qnameDao;
     private SqlSessionTemplate template;
+    private SqlSessionTemplate customTemplate;
 
     @NotNull
     @Override
@@ -40,21 +39,22 @@ public class NodeBrowserNodeDaoImpl implements NodeBrowserNodeDao {
         // Get the node
         Pair<Long, NodeRef> parentNodePair = getNodePairNotNull(nodeRef);
 
-        ChildAssocEntity assocEntity = new ChildAssocEntity();
+        ChildAssocEntityLimit assocEntity = new ChildAssocEntityLimit();
 
         NodeEntity parentNode = new NodeEntity();
         parentNode.setId(parentNodePair.getFirst());
         assocEntity.setParentNode(parentNode);
         assocEntity.setOrdered(true);
+        assocEntity.setLimit(maxItems + 1);
 
         List<ChildAssociationRef> results = new ArrayList<>(10);
 
         RowBounds rowBounds = new RowBounds(skipCount, maxItems + 1);
-        List<?> entities = template.selectList(SELECT_CHILD_ASSOCS_OF_PARENT_LIMITED, assocEntity, rowBounds);
+        List<?> entities = customTemplate.selectList(SELECT_CHILD_ASSOCS_OF_PARENT_LIMITED, assocEntity, rowBounds);
 
         for (Object entity : entities) {
 
-            ChildAssocEntity assoc = (ChildAssocEntity) entity;
+            ChildAssocEntityLimit assoc = (ChildAssocEntityLimit) entity;
             Pair<Long, ChildAssociationRef> childAssocPair = assoc.getPair(qnameDao);
 
             if (results.size() < maxItems) {
@@ -105,6 +105,12 @@ public class NodeBrowserNodeDaoImpl implements NodeBrowserNodeDao {
     @Qualifier("repoSqlSessionTemplate")
     public void setTemplate(SqlSessionTemplate template) {
         this.template = template;
+    }
+
+    @Autowired
+    @Qualifier("customSqlSessionTemplate")
+    public void setCustomTemplate(SqlSessionTemplate customTemplate) {
+        this.customTemplate = customTemplate;
     }
 
     @Autowired

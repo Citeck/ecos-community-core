@@ -4,9 +4,19 @@ import ecos.com.google.common.cache.CacheBuilder;
 import ecos.com.google.common.cache.CacheLoader;
 import ecos.com.google.common.cache.LoadingCache;
 import org.alfresco.model.ContentModel;
+import ru.citeck.ecos.domain.node.ChildAssocEntityLimit;
+import org.alfresco.repo.domain.node.NodeDAO;
+import org.alfresco.repo.domain.node.NodeEntity;
+import org.alfresco.repo.domain.qname.QNameDAO;
 import org.alfresco.repo.node.NodeServicePolicies.OnCreateChildAssociationPolicy;
 import org.alfresco.repo.policy.Behaviour.NotificationFrequency;
+import org.alfresco.service.namespace.InvalidQNameException;
 import org.apache.commons.lang.StringUtils;
+import org.apache.ibatis.session.RowBounds;
+import org.jetbrains.annotations.NotNull;
+import org.mybatis.spring.SqlSessionTemplate;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import ru.citeck.ecos.behavior.OrderedBehaviour;
 import org.alfresco.repo.policy.PolicyComponent;
 import org.alfresco.repo.security.authentication.AuthenticationUtil;
@@ -18,7 +28,6 @@ import org.alfresco.service.namespace.QName;
 import org.alfresco.util.Pair;
 import org.alfresco.util.ParameterCheck;
 import org.apache.log4j.Logger;
-import ru.citeck.ecos.search.ftsquery.FTSQuery;
 import ru.citeck.ecos.service.AlfrescoServices;
 import ru.citeck.ecos.utils.RepoUtils;
 
@@ -32,12 +41,17 @@ public class SplitChildrenBehaviour implements OnCreateChildAssociationPolicy {
 
     private static final Logger logger = Logger.getLogger(SplitChildrenBehaviour.class);
 
+    private static final String SELECT_CHILD_ASSOCS_OF_PARENT_LIMITED = "custom.alfresco.node.select.children.select_ChildAssocsOfParent_Limited";
+
     private NamespaceService namespaceService;
     private ServiceRegistry serviceRegistry;
     private PolicyComponent policyComponent;
     private SearchService searchService;
     private NodeService nodeService;
     private MimetypeService mimetypeService;
+    private SqlSessionTemplate template;
+    private NodeDAO nodeDao;
+    private QNameDAO qnameDAO;
 
     private int order = 250;
 
@@ -190,13 +204,43 @@ public class SplitChildrenBehaviour implements OnCreateChildAssociationPolicy {
         return queryContainerByName(parentChild.getFirst(), parentChild.getSecond());
     }
 
-    private Optional<NodeRef> queryContainerByName(NodeRef parent, String name) {
-        return FTSQuery.create()
-                       .type(containerType).and()
-                       .parent(parent).and()
-                       .exact(ContentModel.PROP_NAME, name)
-                       .transactional()
-                       .queryOne(searchService);
+    public Optional<NodeRef> queryContainerByName(NodeRef parent, String childName) {
+
+        Pair<Long, NodeRef> parentNodePair = getNodePairNotNull(parent);
+
+        ChildAssocEntityLimit assocEntity = new ChildAssocEntityLimit();
+        NodeEntity parentNode = new NodeEntity();
+        parentNode.setId(parentNodePair.getFirst());
+        assocEntity.setParentNode(parentNode);
+        if (childAssocType != null) {
+            if (!assocEntity.setTypeQNameAll(qnameDAO, childAssocType, false)) {
+                throw new InvalidQNameException("Invalid QName child assoc type: " + childAssocType + ", nodeRef: " + nodeRef);
+            }
+        }
+        assocEntity.setChildNodeNameAll(null, childAssocType, childName);
+        assocEntity.setOrdered(true);
+        assocEntity.setLimit(1);
+
+        RowBounds rowBounds = new RowBounds(0, 1);
+        List<ChildAssocEntityLimit> entities = template.selectList(SELECT_CHILD_ASSOCS_OF_PARENT_LIMITED, assocEntity, rowBounds);
+
+        ChildAssocEntityLimit childAssocEntity = entities.size() > 0 ? entities.get(0) : null;
+        if (childAssocEntity == null || childAssocEntity.getChildNode() == null) {
+            return null;
+        }
+
+        return Optional.of(childAssocEntity.getChildNode().getNodeRef());
+    }
+
+    @NotNull
+    private Pair<Long, NodeRef> getNodePairNotNull(@NotNull NodeRef nodeRef) throws InvalidNodeRefException {
+
+        Pair<Long, NodeRef> unchecked = nodeDao.getNodePair(nodeRef);
+        if (unchecked == null) {
+            NodeRef.Status nodeStatus = nodeDao.getNodeRefStatus(nodeRef);
+            throw new InvalidNodeRefException("Node does not exist: " + nodeRef + " (status:" + nodeStatus + ")", nodeRef);
+        }
+        return unchecked;
     }
 
     private NodeRef getNodeRef() {
@@ -364,5 +408,23 @@ public class SplitChildrenBehaviour implements OnCreateChildAssociationPolicy {
         public void setDepth(int depth) {
             this.depth = depth;
         }
+    }
+
+    @Autowired
+    @Qualifier("customSqlSessionTemplate")
+    public void setTemplate(SqlSessionTemplate template) {
+        this.template = template;
+    }
+
+    @Autowired
+    @Qualifier("qnameDAO")
+    public void setQnameDAO(QNameDAO qnameDAO) {
+        this.qnameDAO = qnameDAO;
+    }
+
+    @Autowired
+    @Qualifier("nodeDAO")
+    public void setNodeDao(NodeDAO nodeDao) {
+        this.nodeDao = nodeDao;
     }
 }
