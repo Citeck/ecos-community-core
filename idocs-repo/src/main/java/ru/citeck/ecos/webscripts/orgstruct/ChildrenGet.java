@@ -17,6 +17,7 @@ import org.alfresco.service.cmr.search.SearchService;
 import org.alfresco.service.cmr.security.AuthenticationService;
 import org.alfresco.service.cmr.security.AuthorityService;
 import org.alfresco.service.cmr.security.AuthorityType;
+import org.alfresco.service.namespace.NamespaceService;
 import org.alfresco.service.namespace.QName;
 import org.alfresco.util.Pair;
 import org.apache.commons.lang.StringUtils;
@@ -24,11 +25,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.extensions.webscripts.*;
 import ru.citeck.ecos.config.EcosConfigService;
+import ru.citeck.ecos.model.AlfrescoMissingQNamesModel;
 import ru.citeck.ecos.model.DeputyModel;
 import ru.citeck.ecos.model.EcosModel;
 import ru.citeck.ecos.model.OrgStructModel;
 import ru.citeck.ecos.orgstruct.OrgMetaService;
 import ru.citeck.ecos.orgstruct.OrgStructService;
+import ru.citeck.ecos.records3.RecordsService;
 import ru.citeck.ecos.search.ftsquery.FTSQuery;
 import ru.citeck.ecos.utils.ConfigUtils;
 import ru.citeck.ecos.utils.PersonUtils;
@@ -37,6 +40,7 @@ import java.io.IOException;
 import java.io.Serializable;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -57,6 +61,8 @@ public class ChildrenGet extends AbstractWebScript {
     private static final String PARAM_SHOW_DISABLED = "showdisabled";
     private static final String PARAM_ADD_ADMIN_GROUP = "addAdminGroup";
     private static final String PARAM_EXCLUDE_AUTHORITIES = "excludeAuthorities";
+    private static final String PARAM_SEARCH_EXTRA_FIELDS = "searchExtraFields";
+    private static final String PARAM_USE_MIDDLE_NAME = "useMiddleName";
 
     private static final String CONFIG_KEY_SHOW_INACTIVE = "orgstruct-show-inactive-user-only-for-admin";
     private static final String CONFIG_KEY_HIDE_INACTIVE_FOR_ALL = "hide-disabled-users-for-everyone";
@@ -76,6 +82,7 @@ public class ChildrenGet extends AbstractWebScript {
     private AuthorityService authorityService;
     private EcosConfigService ecosConfigService;
     private AuthenticationService authenticationService;
+    private NamespaceService namespaceService;
 
     private LoadingCache<RequestParams, List<Pair<NodeRef, String>>> authoritiesCache;
 
@@ -85,7 +92,8 @@ public class ChildrenGet extends AbstractWebScript {
     public ChildrenGet(ServiceRegistry serviceRegistry,
                        @Qualifier("ecosConfigService") EcosConfigService ecosConfigService,
                        OrgStructService orgStructService,
-                       OrgMetaService orgMetaService) {
+                       OrgMetaService orgMetaService,
+                       RecordsService recordsServiceV1) {
 
         this.orgMetaService = orgMetaService;
         this.orgStructService = orgStructService;
@@ -94,13 +102,14 @@ public class ChildrenGet extends AbstractWebScript {
         this.searchService = serviceRegistry.getSearchService();
         this.authorityService = serviceRegistry.getAuthorityService();
         this.authenticationService = serviceRegistry.getAuthenticationService();
+        this.namespaceService = serviceRegistry.getNamespaceService();
 
         authoritiesCache = CacheBuilder.newBuilder()
-                .expireAfterWrite(5, TimeUnit.MINUTES)
-                .maximumSize(200)
-                .build(CacheLoader.from(options ->
-                        AuthenticationUtil.runAsSystem(() -> getAuthorities(options))
-                ));
+            .expireAfterWrite(5, TimeUnit.MINUTES)
+            .maximumSize(200)
+            .build(CacheLoader.from(options ->
+                AuthenticationUtil.runAsSystem(() -> getAuthorities(options))
+            ));
     }
 
     @Override
@@ -115,14 +124,14 @@ public class ChildrenGet extends AbstractWebScript {
         }
 
         List<Pair<NodeRef, String>> authoritiesRaw = authoritiesCache.getUnchecked(params);
-        List<Authority> authorities = formatAuthorities(authoritiesRaw);
+        List<Authority> authorities = formatAuthorities(authoritiesRaw, params.filterOptions.searchExtraFields);
 
         res.setContentType(Format.JSON.mimetype() + ";charset=UTF-8");
         objectMapper.writeValue(res.getWriter(), authorities);
         res.setStatus(Status.STATUS_OK);
     }
 
-    private List<Authority> formatAuthorities(List<Pair<NodeRef, String>> authorities) {
+    private List<Authority> formatAuthorities(List<Pair<NodeRef, String>> authorities, Set<QName> extraFieldSet) {
 
         List<Authority> result = new ArrayList<>();
 
@@ -143,7 +152,7 @@ public class ChildrenGet extends AbstractWebScript {
             if (authorityRefName.getSecond().startsWith(GROUP_PREFIX)) {
                 authority = formatGroupAuthority(authorityRefName, roleIsManager);
             } else {
-                authority = formatUserAuthority(authorityRefName);
+                authority = formatUserAuthority(authorityRefName, extraFieldSet);
             }
             authority.nodeRef = authorityRefName.getFirst().toString();
             authority.fullName = authorityRefName.getSecond();
@@ -154,7 +163,7 @@ public class ChildrenGet extends AbstractWebScript {
         return result;
     }
 
-    private Authority formatUserAuthority(Pair<NodeRef, String> authority) {
+    private Authority formatUserAuthority(Pair<NodeRef, String> authority, Set<QName> extraFieldSet) {
 
         Map<QName, Serializable> props = nodeService.getProperties(authority.getFirst());
 
@@ -165,9 +174,14 @@ public class ChildrenGet extends AbstractWebScript {
 
         result.firstName = (String) props.get(ContentModel.PROP_FIRSTNAME);
         result.lastName = (String) props.get(ContentModel.PROP_LASTNAME);
+        result.middleName = (String) props.get(AlfrescoMissingQNamesModel.PROP_MIDDLE_NAME);
         result.email = (String) props.get(ContentModel.PROP_EMAIL);
         result.displayName = result.firstName + " " + result.lastName;
 
+        if (!extraFieldSet.isEmpty()) {
+            result.extraFields = new HashMap<>(extraFieldSet.size());
+            extraFieldSet.forEach(field -> result.extraFields.put(field.toPrefixString(), props.get(field)));
+        }
         return result;
     }
 
@@ -270,18 +284,33 @@ public class ChildrenGet extends AbstractWebScript {
             if (notEmpty) {
                 query.or();
             }
-            query.open()
-                    .value(ContentModel.PROP_USERNAME, filterOptions.filter)
-                    .or();
-            if (filterOptions.filterTokens.size() == 2) {
-                List<String> tokens = new ArrayList<>(filterOptions.filterTokens);
-                query.value(ContentModel.PROP_FIRSTNAME, tokens.get(0)).and()
-                        .value(ContentModel.PROP_LASTNAME, tokens.get(1)).or()
-                        .value(ContentModel.PROP_FIRSTNAME, tokens.get(1)).and()
-                        .value(ContentModel.PROP_LASTNAME, tokens.get(0));
+            query.open();
+            int tokenSize = filterOptions.filterTokens.size();
+            if (tokenSize == 2) {
+                query.open();
+                List<Map<String, QName>> uniqFieldCombination;
+                if (filterOptions.useMiddleName) {
+                    uniqFieldCombination = uniqFieldCombination(filterOptions.filterTokens, ContentModel.PROP_FIRSTNAME,
+                        ContentModel.PROP_LASTNAME, AlfrescoMissingQNamesModel.PROP_MIDDLE_NAME);
+                } else {
+                    uniqFieldCombination = uniqFieldCombination(filterOptions.filterTokens, ContentModel.PROP_FIRSTNAME,
+                        ContentModel.PROP_LASTNAME);
+                }
+                fillQuery(query, uniqFieldCombination);
+            } else if (tokenSize == 3 && filterOptions.useMiddleName) {
+                List<Map<String, QName>> uniqFieldCombination = uniqFieldCombination(filterOptions.filterTokens,
+                    ContentModel.PROP_FIRSTNAME, ContentModel.PROP_LASTNAME, AlfrescoMissingQNamesModel.PROP_MIDDLE_NAME);
+                fillQuery(query, uniqFieldCombination);
             } else {
-                query.value(ContentModel.PROP_FIRSTNAME, filter).or()
-                        .value(ContentModel.PROP_LASTNAME, filter);
+                query.value(ContentModel.PROP_USERNAME, filter)
+                    .or().value(ContentModel.PROP_FIRSTNAME, filter)
+                    .or().value(ContentModel.PROP_LASTNAME, filter);
+                if (filterOptions.useMiddleName) {
+                    query.or().value(AlfrescoMissingQNamesModel.PROP_MIDDLE_NAME, filter);
+                }
+                for (QName extraField : filterOptions.searchExtraFields) {
+                    query.or().value(extraField, filter);
+                }
             }
             query.close();
         }
@@ -289,6 +318,87 @@ public class ChildrenGet extends AbstractWebScript {
         return query.query(searchService)
                 .stream()
                 .map(this::getAuthorityNameRef);
+    }
+
+    private void fillQuery(FTSQuery query, List<Map<String, QName>> uniqFieldCombination) {
+        query.open();
+        for (int i = 0; i < uniqFieldCombination.size(); i++) {
+            Map<String, QName> tokenFieldMap = uniqFieldCombination.get(i);
+            if (i != 0) {
+                query.or();
+            }
+            final AtomicBoolean first = new AtomicBoolean(true);
+            query.open();
+            tokenFieldMap.forEach((token, field) -> {
+                if (first.get()) {
+                    first.set(false);
+                } else {
+                    query.and();
+                }
+                query.value(field, token);
+            });
+            query.close();
+        }
+        query.close();
+    }
+
+    private List<Map<String, QName>> uniqFieldCombination(Set<String> tokens, QName... fields) {
+        List<Map<String, QName>> result = new ArrayList<>();
+        for (String token : tokens) {
+            for (QName field : fields) {
+                if (result.size() < fields.length) {
+                    Map<String, QName> firstLoop = new HashMap<>();
+                    firstLoop.put(token, field);
+                    result.add(firstLoop);
+                } else {
+                    List<Map<String, QName>> changedCombination = new ArrayList<>();
+                    for (Map<String, QName> combinationMap : result) {
+                        boolean addTokenField = true;
+                        boolean copyCombination = true;
+                        for (Map.Entry<String, QName> tokenField : combinationMap.entrySet()) {
+                            if (tokenField.getValue().equals(field)) {
+                                addTokenField = false;
+                                copyCombination = false;
+                                break;
+                            }
+                            if (tokenField.getKey().equals(token)) {
+                                addTokenField = false;
+                            }
+                        }
+                        if (addTokenField) {
+                            combinationMap.put(token, field);
+                        } else if (copyCombination) {
+                            HashMap<String, QName> newSubQuery = new HashMap<>(combinationMap);
+                            newSubQuery.put(token, field);
+                            changedCombination.add(newSubQuery);
+                        }
+                    }
+                    if (!changedCombination.isEmpty()) {
+                        result.addAll(changedCombination);
+                    }
+                }
+            }
+        }
+        return result;
+    }
+
+    private Set<QName> extractExtraFields(String extraFields) {
+        if (StringUtils.isBlank(extraFields)) {
+            return Collections.emptySet();
+        }
+        return Arrays.stream(extraFields.split(","))
+            .map(s -> Optional.ofNullable(tryGetQName(s)))
+            .filter(Optional::isPresent)
+            .map(Optional::get)
+            .collect(Collectors.toSet());
+    }
+
+    private QName tryGetQName(String s) {
+        try {
+            return QName.createQName(s, namespaceService);
+        } catch (Exception e) {
+            return null;
+        }
     }
 
     private boolean filterAuthority(Pair<NodeRef, String> authority,
@@ -455,6 +565,8 @@ public class ChildrenGet extends AbstractWebScript {
         options.limit = DEFAULT_RESULTS_LIMIT;
         options.subTypes = strToSet(req.getParameter(PARAM_SUB_TYPES));
         options.addAdminGroup = ConfigUtils.strToBool(req.getParameter(PARAM_ADD_ADMIN_GROUP), Boolean.FALSE);
+        options.useMiddleName = Boolean.parseBoolean(req.getParameter(PARAM_USE_MIDDLE_NAME));
+        options.searchExtraFields = extractExtraFields(req.getParameter(PARAM_SEARCH_EXTRA_FIELDS));
 
         Function<String, String> addStars = str -> {
             if (StringUtils.isNotBlank(str)) {
@@ -609,12 +721,14 @@ public class ChildrenGet extends AbstractWebScript {
         boolean showDisabled;
         boolean userIsAdmin;
         boolean addAdminGroup;
+        boolean useMiddleName;
         int limit;
         String filter;
         Set<String> filterTokens;
         String rootGroup;
         Set<String> subTypes;
         Set<String> excludeAuthorities;
+        Set<QName> searchExtraFields;
 
         @Override
         public boolean equals(Object o) {
@@ -629,17 +743,19 @@ public class ChildrenGet extends AbstractWebScript {
             FilterOptions that = (FilterOptions) o;
 
             return userIsAdmin == that.userIsAdmin &&
-                    branch == that.branch &&
-                    role == that.role &&
-                    group == that.group &&
-                    user == that.user &&
-                    showDisabled == that.showDisabled &&
-                    addAdminGroup == that.addAdminGroup &&
-                    limit == that.limit &&
-                    Objects.equals(filter, that.filter) &&
-                    Objects.equals(rootGroup, that.rootGroup) &&
-                    subTypes.equals(that.subTypes) &&
-                    excludeAuthorities.equals(that.excludeAuthorities);
+                branch == that.branch &&
+                role == that.role &&
+                group == that.group &&
+                user == that.user &&
+                showDisabled == that.showDisabled &&
+                addAdminGroup == that.addAdminGroup &&
+                useMiddleName == that.useMiddleName &&
+                limit == that.limit &&
+                Objects.equals(filter, that.filter) &&
+                Objects.equals(rootGroup, that.rootGroup) &&
+                subTypes.equals(that.subTypes) &&
+                excludeAuthorities.equals(that.excludeAuthorities) &&
+                Objects.equals(searchExtraFields, that.searchExtraFields);
         }
 
         @Override
@@ -651,11 +767,13 @@ public class ChildrenGet extends AbstractWebScript {
             result = 31 * result + (showDisabled ? 1 : 0);
             result = 31 * result + (userIsAdmin ? 1 : 0);
             result = 31 * result + (addAdminGroup ? 1 : 0);
+            result = 31 * result + (useMiddleName ? 1 : 0);
             result = 31 * result + Objects.hashCode(rootGroup);
             result = 31 * result + Objects.hashCode(filter);
             result = 31 * result + limit;
             result = 31 * result + subTypes.hashCode();
             result = 31 * result + excludeAuthorities.hashCode();
+            result = 31 * result + Objects.hashCode(searchExtraFields);
             return result;
         }
     }
@@ -678,7 +796,9 @@ public class ChildrenGet extends AbstractWebScript {
 
         public String firstName;
         public String lastName;
+        public String middleName;
         public String email;
+        public Map<String, Object> extraFields;
 
         public boolean available = true;
         public boolean isPersonDisabled = false;
