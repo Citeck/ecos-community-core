@@ -5,12 +5,9 @@ import org.alfresco.model.ContentModel;
 import org.alfresco.service.cmr.dictionary.DictionaryService;
 import org.alfresco.service.cmr.repository.NodeRef;
 import org.alfresco.service.cmr.repository.NodeService;
-import org.alfresco.service.cmr.security.AuthorityService;
-import org.alfresco.service.cmr.security.AuthorityType;
 import org.alfresco.service.cmr.security.PersonService;
 import org.alfresco.service.namespace.QName;
 import org.apache.commons.lang.StringUtils;
-import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import ru.citeck.ecos.flowable.services.FlowableRecipientsService;
 import ru.citeck.ecos.model.lib.role.service.RoleService;
@@ -18,10 +15,13 @@ import ru.citeck.ecos.records2.RecordRef;
 import ru.citeck.ecos.role.CaseRoleService;
 import ru.citeck.ecos.utils.AuthorityUtils;
 import ru.citeck.ecos.utils.NodeUtils;
+import ru.citeck.ecos.utils.PersonUtils;
 import ru.citeck.ecos.utils.RepoUtils;
 
-import javax.xml.soap.Node;
-import java.util.*;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Objects;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -32,8 +32,6 @@ public class FlowableRecipientsServiceImpl implements FlowableRecipientsService 
 
     @Autowired
     private CaseRoleService caseRoleService;
-    @Autowired
-    private AuthorityService authorityService;
     @Autowired
     private DictionaryService dictionaryService;
     @Autowired
@@ -84,20 +82,11 @@ public class FlowableRecipientsServiceImpl implements FlowableRecipientsService 
 
             QName type = nodeService.getType(ref);
             if (dictionaryService.isSubClass(type, ContentModel.TYPE_PERSON)) {
-                String email = RepoUtils.getProperty(ref, ContentModel.PROP_EMAIL, nodeService);
-                if (StringUtils.isNotBlank(email)) {
-                    emails.add(email);
-                }
+                appendActiveUserEmail(emails, ref);
             } else if (dictionaryService.isSubClass(type, ContentModel.TYPE_AUTHORITY_CONTAINER)) {
                 String groupName = (String) nodeService.getProperty(ref, ContentModel.PROP_AUTHORITY_NAME);
-                Set<String> authorities = authorityService.getContainedAuthorities(AuthorityType.USER, groupName, false);
-                for (String authority : authorities) {
-                    NodeRef authorityRef = authorityService.getAuthorityNodeRef(authority);
-                    String email = RepoUtils.getProperty(authorityRef, ContentModel.PROP_EMAIL, nodeService);
-                    if (StringUtils.isNotBlank(email)) {
-                        emails.add(email);
-                    }
-                }
+                Set<String> userNames = authorityUtils.getContainedUsers(groupName, false);
+                authorityUtils.getNodeRefs(userNames).forEach(userRef -> appendActiveUserEmail(emails, userRef));
             }
         }
 
@@ -108,16 +97,30 @@ public class FlowableRecipientsServiceImpl implements FlowableRecipientsService 
         }
     }
 
+    private void appendActiveUserEmail(Set<String> emails, NodeRef person) {
+        if (PersonUtils.isPersonDisabled(person, nodeService)) {
+            return;
+        }
+        String email = getUserEmail(person);
+        if (StringUtils.isNotBlank(email)) {
+            emails.add(email);
+        }
+    }
+
     @Override
     public String getUserEmail(String username) {
         NodeRef person = personService.getPerson(username);
+        return getUserEmail(person);
+    }
+
+    private String getUserEmail(NodeRef person) {
         return RepoUtils.getProperty(person, ContentModel.PROP_EMAIL, nodeService);
     }
 
     @Override
     public Set<String> getRoleGroups(NodeRef document, String caseRoleName) {
         return getRoleRecipients(document, caseRoleName, ContentModel.TYPE_AUTHORITY_CONTAINER,
-                ContentModel.PROP_AUTHORITY_NAME);
+            ContentModel.PROP_AUTHORITY_NAME);
     }
 
     @Override

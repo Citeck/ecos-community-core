@@ -26,7 +26,10 @@ import ru.citeck.ecos.records.source.alf.meta.AlfNodeRecord;
 import ru.citeck.ecos.records2.QueryContext;
 import ru.citeck.ecos.records2.RecordMeta;
 import ru.citeck.ecos.records2.RecordRef;
-import ru.citeck.ecos.records2.graphql.meta.value.*;
+import ru.citeck.ecos.records2.graphql.meta.value.EmptyValue;
+import ru.citeck.ecos.records2.graphql.meta.value.MetaEdge;
+import ru.citeck.ecos.records2.graphql.meta.value.MetaField;
+import ru.citeck.ecos.records2.graphql.meta.value.MetaValue;
 import ru.citeck.ecos.records2.graphql.meta.value.field.EmptyMetaField;
 import ru.citeck.ecos.records2.request.delete.RecordsDelResult;
 import ru.citeck.ecos.records2.request.delete.RecordsDeletion;
@@ -61,12 +64,16 @@ public class PeopleRecordsDao extends LocalRecordsDao
 
     private static final String PROP_USER_NAME = "userName";
     private static final String PROP_CM_USER_NAME = "cm:" + PROP_USER_NAME;
+    private static final String JOB_TITLE = "jobTitle";
+    private static final String PROP_JOBTITLE = ContentModel.PROP_JOBTITLE.getLocalName();
+    private static final String PREFIX_PROP_JOBTITLE = NamespaceService.CONTENT_MODEL_PREFIX + QName.NAMESPACE_PREFIX + PROP_JOBTITLE;
 
     public static final String PROP_FULL_NAME = "fullName";
     public static final String PROP_IS_AVAILABLE = "isAvailable";
     public static final String PROP_IS_MUTABLE = "isMutable";
     public static final String PROP_IS_ADMIN = "isAdmin";
     public static final String PROP_IS_DISABLED = "isDisabled";
+    private static final String PROP_EMODEL_DISABLED = "personDisabled";
     public static final String PROP_AUTHORITIES = "authorities";
     public static final String GROUPS = "groups";
     public static final String PERSON_AVATAR = "personAvatar";
@@ -83,7 +90,6 @@ public class PeopleRecordsDao extends LocalRecordsDao
     private final AuthorityUtils authorityUtils;
     private final AuthorityService authorityService;
     private final AlfNodesRecordsDAO alfNodesRecordsDao;
-    private final NamespaceService namespaceService;
     private final MutableAuthenticationService authenticationService;
     private final PersonService personService;
 
@@ -93,7 +99,6 @@ public class PeopleRecordsDao extends LocalRecordsDao
         PersonService personService,
         AuthorityUtils authorityUtils,
         AuthorityService authorityService,
-        NamespaceService namespaceService,
         AlfNodesRecordsDAO alfNodesRecordsDao,
         MutableAuthenticationService authenticationService
     ) {
@@ -102,7 +107,6 @@ public class PeopleRecordsDao extends LocalRecordsDao
         this.personService = personService;
         this.authorityUtils = authorityUtils;
         this.authorityService = authorityService;
-        this.namespaceService = namespaceService;
         this.alfNodesRecordsDao = alfNodesRecordsDao;
         this.authenticationService = authenticationService;
 
@@ -352,17 +356,16 @@ public class PeopleRecordsDao extends LocalRecordsDao
                 case PROP_IS_ADMIN:
                     return isAdmin();
                 case PROP_IS_DISABLED:
-                    String isDisabledProp = EcosModel.PROP_IS_PERSON_DISABLED.toPrefixString(namespaceService);
-                    return alfNode.getAttribute(isDisabledProp, field);
+                case PROP_EMODEL_DISABLED:
+                    return alfNode.getAttribute(EcosModel.PREFIX_PROP_IS_PERSON_DISABLED, field);
                 case PROP_AUTHORITIES:
                     return getUserAuthorities();
                 case "nodeRef":
                     return alfNode != null ? alfNode.getId() : null;
-                case "jobTitle":
-                    String jobTitleProp = ContentModel.PROP_JOBTITLE.toPrefixString(namespaceService);
-                    return alfNode.getAttribute(jobTitleProp, field);
+                case JOB_TITLE:
+                    return alfNode.getAttribute(PREFIX_PROP_JOBTITLE, field);
                 case "avatar":
-                    if (!alfNode.has("ecos:photo")) {
+                    if (!alfNode.has(EcosModel.PREFIX_PROP_PHOTO)) {
                         return null;
                     }
                     return new AvatarValue(alfNode.getId());

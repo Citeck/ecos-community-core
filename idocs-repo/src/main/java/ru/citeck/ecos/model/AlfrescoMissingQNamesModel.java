@@ -8,5 +8,5 @@ public class AlfrescoMissingQNamesModel {
     public static final String CONTENT_NAMESPACE = NamespaceService.CONTENT_MODEL_1_0_URI;
     public static final String CM_PREFIX = NamespaceService.CONTENT_MODEL_PREFIX;
 
-    public static final QName PROP_MIDDLE_NAME = QName.createQName(NamespaceService.CONTENT_MODEL_1_0_URI, "middleName");
+    public static final QName PROP_MIDDLE_NAME = QName.createQName(CONTENT_NAMESPACE, "middleName");
 }

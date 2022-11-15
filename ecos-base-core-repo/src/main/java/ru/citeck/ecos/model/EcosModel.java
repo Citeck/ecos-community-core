@@ -6,6 +6,7 @@ public interface EcosModel {
 
     // model
     String ECOS_MODEL_PREFIX = "ecos";
+    String ECOS_MODEL_EXT = ECOS_MODEL_PREFIX + QName.NAMESPACE_PREFIX;
 
     //Namespaces
     String ECOS_NAMESPACE = "http://www.citeck.ru/model/content/ecos/1.0";
@@ -31,6 +32,7 @@ public interface EcosModel {
     QName PROP_DOCUMENT_AMOUNT = QName.createQName(ECOS_NAMESPACE, "documentAmount");
     QName PROP__VAT = QName.createQName(ECOS_NAMESPACE, "VAT");
     QName PROP_PHOTO = QName.createQName(ECOS_NAMESPACE, "photo");
+    String PREFIX_PROP_PHOTO = ECOS_MODEL_EXT + PROP_PHOTO.getLocalName();
     QName PROP_BIRTH_DATE = QName.createQName(ECOS_NAMESPACE, "birthDate");
     QName PROP_BIRTH_MONTH_DAY = QName.createQName(ECOS_NAMESPACE, "birthMonthDay");
     QName PROP_CITY = QName.createQName(ECOS_NAMESPACE, "city");
@@ -42,6 +44,7 @@ public interface EcosModel {
     QName PROP_PASS_VERIFY = QName.createQName(ECOS_NAMESPACE, "passVerify");
     QName PROP_TIMEZONE = QName.createQName(ECOS_NAMESPACE, "timezone");
     QName PROP_IS_PERSON_DISABLED = QName.createQName(ECOS_NAMESPACE, "isPersonDisabled");
+    String PREFIX_PROP_IS_PERSON_DISABLED = ECOS_MODEL_EXT + PROP_IS_PERSON_DISABLED.getLocalName();
     QName PROP_ICON_TYPE = QName.createQName(ECOS_NAMESPACE, "iconType");
     QName PROP_FA_ICON_NAME = QName.createQName(ECOS_NAMESPACE, "faIconName");
     QName PROP_USER_INILA = QName.createQName(ECOS_NAMESPACE, "inila");

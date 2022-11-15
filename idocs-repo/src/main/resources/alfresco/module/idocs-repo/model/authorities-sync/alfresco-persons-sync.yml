@@ -12,7 +12,7 @@ authorityType: PERSON
 manageNewAuthorities: true
 
 repeatDelayDuration: PT10S
-version: 5
+version: 6
 
 config:
   batchSize: 30
@@ -22,6 +22,7 @@ config:
     middleName: 'cm:middleName'
     email: 'cm:email'
     jobTitle: 'cm:jobtitle'
+    employeeId: 'ecos:employeeId'
     birthDate: 'ecos:birthDate'
     sex: 'ecos:sex'
     city: 'ecos:city'
