@@ -274,6 +274,7 @@ public class NodeUtils {
             targets = Collections.emptySet();
         }
 
+        //todo
         AssociationDefinition assocDef = dictionaryService.getAssociation(assocName);
         if (assocDef == null) {
             return false;
@@ -283,6 +284,7 @@ public class NodeUtils {
         boolean isOrderedTargets = targets instanceof List<?>
             || targets instanceof LinkedHashSet<?>
             || targets instanceof TreeSet<?>;
+        //todo end
 
         Set<NodeRef> targetsSet = targets.stream().map(ref -> {
             String protocol = ref.getStoreRef().getProtocol();
@@ -290,7 +292,7 @@ public class NodeUtils {
                 return new NodeRef(StoreRef.STORE_REF_WORKSPACE_SPACESSTORE, ref.getId());
             }
             return ref;
-        }).collect(Collectors.toCollection(LinkedHashSet::new));
+        }).collect(Collectors.toCollection(LinkedHashSet::new));//todo
 
         Map<NodeRef, ChildAssociationRef> storedChildAssocsByChild = Collections.emptyMap();
         Map<NodeRef, AssociationRef> storedAssocsByTarget = Collections.emptyMap();

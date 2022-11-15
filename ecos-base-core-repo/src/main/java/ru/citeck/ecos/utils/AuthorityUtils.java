@@ -115,8 +115,8 @@ public class AuthorityUtils {
      */
     public Set<String> getContainingAuthorities(String authorityName) {
         return authorityService.getContainingAuthoritiesInZone(null, authorityName,
-                                                               AuthorityService.ZONE_APP_DEFAULT,
-                                                              null, 1000);
+            AuthorityService.ZONE_APP_DEFAULT,
+            null, 1000);
     }
 
     public Set<NodeRef> getContainingAuthoritiesRefs(String authorityName) {
@@ -125,10 +125,10 @@ public class AuthorityUtils {
 
     public Set<NodeRef> getNodeRefs(Set<String> authorities) {
         return authorities.stream()
-                          .map(a -> Optional.ofNullable(getNodeRef(a)))
-                          .filter(Optional::isPresent)
-                          .map(Optional::get)
-                          .collect(Collectors.toSet());
+            .map(a -> Optional.ofNullable(getNodeRef(a)))
+            .filter(Optional::isPresent)
+            .map(Optional::get)
+            .collect(Collectors.toSet());
     }
 
     public String getDisplayName(String authority) {

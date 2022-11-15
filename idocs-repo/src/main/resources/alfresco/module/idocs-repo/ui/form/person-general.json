@@ -1,0 +1,285 @@
+{
+  "id": "person_general",
+  "formKey": "alf_cm:person",
+  "title": {
+    "en": "General",
+    "ru": "Основное"
+  },
+  "description": {},
+  "customModule": null,
+  "typeRef": "emodel/type@person",
+  "width": "default",
+  "i18n": {
+    "ru": {
+      "cm:userName": "Логин",
+      "ecos:employeeId": "Табельный номер",
+      "cm:lastName": "Фамилия",
+      "cm:firstName": "Имя",
+      "cm:middleName": "Отчество",
+      "idocs:nameInGenitiveCase": "Имя в родительном падеже",
+      "ecos:birthDate": "День рождения",
+      "hrdl:reiGender": "Пол",
+      "ecos:city": "Город",
+      "cm:jobtitle": "Должность",
+      "ecos:sex": "Пол",
+      "cm:organization": "Компания",
+      "Male": "Мужской",
+      "Female": "Женский",
+      "Submit": "Сохранить",
+      "Cancel": "Отмена"
+    },
+    "en": {
+      "cm:userName": "Login",
+      "ecos:employeeId": "Employee ID",
+      "cm:lastName": "Last name",
+      "cm:firstName": "First name",
+      "cm:middleName": "Middle name",
+      "idocs:nameInGenitiveCase": "Name in genitive case",
+      "ecos:birthDate": "Birth date",
+      "hrdl:reiGender": "Gender",
+      "ecos:city": "City",
+      "cm:jobtitle": "Job title",
+      "ecos:sex": "Sex",
+      "cm:organization": "Company",
+      "Male": "Male",
+      "Female": "Female",
+      "Submit": "Save",
+      "Cancel": "Cancel"
+    }
+  },
+  "definition": {
+    "components": [
+      {
+        "columns": [
+          {
+            "components": [
+              {
+                "title": "Basic Information",
+                "key": "panel",
+                "type": "panel",
+                "input": false,
+                "components": [
+                  {
+                    "label": "cm:userName",
+                    "clearOnHide": false,
+                    "defaultValue": "",
+                    "key": "cm_userName",
+                    "properties": {
+                      "attribute": "cm:userName"
+                    },
+                    "type": "textfield",
+                    "input": true
+                  },
+                  {
+                    "label": "ecos:employeeId",
+                    "key": "ecos_employeeId",
+                    "validate": {
+                      "maxLength": 10
+                    },
+                    "defaultValue": "",
+                    "properties": {
+                      "attribute": "ecos:employeeId"
+                    },
+                    "type": "textfield",
+                    "input": true
+                  },
+                  {
+                    "label": "cm:lastName",
+                    "clearOnHide": false,
+                    "defaultValue": "",
+                    "key": "cm_lastName",
+                    "properties": {
+                      "attribute": "cm:lastName"
+                    },
+                    "type": "textfield",
+                    "input": true
+                  },
+                  {
+                    "label": "cm:firstName",
+                    "defaultValue": "",
+                    "key": "cm_firstName",
+                    "properties": {
+                      "attribute": "cm:firstName"
+                    },
+                    "type": "textfield",
+                    "input": true
+                  },
+                  {
+                    "label": "cm:middleName",
+                    "defaultValue": "",
+                    "key": "cm_middleName",
+                    "properties": {
+                      "attribute": "cm:middleName"
+                    },
+                    "type": "textfield",
+                    "input": true
+                  },
+                  {
+                    "label": "idocs:nameInGenitiveCase",
+                    "defaultValue": "",
+                    "key": "idocs_nameInGenitiveCase",
+                    "properties": {
+                      "attribute": "idocs:nameInGenitiveCase"
+                    },
+                    "type": "textfield",
+                    "input": true
+                  },
+                  {
+                    "label": "ecos:birthDate",
+                    "format": "dd-MM-yyyy",
+                    "datePicker": {
+                      "minDate": "",
+                      "maxDate": ""
+                    },
+                    "defaultValue": "",
+                    "key": "ecos_birthDate",
+                    "properties": {
+                      "attribute": "ecos:birthDate"
+                    },
+                    "type": "datetime",
+                    "input": true,
+                    "suffix": true
+                  },
+                  {
+                    "label": "ecos:sex",
+                    "dataSrc": "values",
+                    "data": {
+                      "values": [
+                        {
+                          "label": "Male",
+                          "value": "male"
+                        },
+                        {
+                          "label": "Female",
+                          "value": "female"
+                        }
+                      ]
+                    },
+                    "defaultValue": "",
+                    "key": "ecos_sex",
+                    "properties": {
+                      "attribute": "ecos:sex"
+                    },
+                    "type": "ecosSelect",
+                    "input": true
+                  },
+                  {
+                    "label": "ecos:city",
+                    "defaultValue": "",
+                    "key": "ecos_city",
+                    "properties": {
+                      "attribute": "ecos:city"
+                    },
+                    "type": "textfield",
+                    "input": true
+                  },
+                  {
+                    "label": "cm:organization",
+                    "clearOnHide": false,
+                    "defaultValue": "",
+                    "key": "cm_organization",
+                    "properties": {
+                      "attribute": "cm:organization"
+                    },
+                    "type": "textfield",
+                    "input": true
+                  },
+                  {
+                    "label": "cm:jobtitle",
+                    "defaultValue": "",
+                    "key": "cm_jobtitle",
+                    "properties": {
+                      "attribute": "cm:jobtitle"
+                    },
+                    "type": "textfield",
+                    "input": true
+                  }
+                ]
+              }
+            ],
+            "md": 12,
+            "type": "column",
+            "input": false,
+            "key": "column",
+            "label": "Column",
+            "index": 0,
+            "clearOnHide": true,
+            "conditional": {
+              "show": null,
+              "when": null
+            }
+          }
+        ],
+        "key": "columns2",
+        "type": "columns",
+        "input": false
+      },
+      {
+        "columns": [
+          {
+            "components": [
+              {
+                "label": "Cancel",
+                "removeIndents": true,
+                "action": "event",
+                "state": "",
+                "showValidations": false,
+                "event": "cancel",
+                "block": true,
+                "clearOnHide": false,
+                "key": "submit2",
+                "type": "button",
+                "input": true
+              }
+            ],
+            "type": "column",
+            "input": false,
+            "key": "column",
+            "index": 0,
+            "md": 3
+          },
+          {
+            "index": 1,
+            "type": "column",
+            "input": false,
+            "key": "column",
+            "components": [],
+            "md": 3
+          },
+          {
+            "md": 3,
+            "type": "column",
+            "input": false,
+            "key": "column",
+            "index": 2,
+            "components": []
+          },
+          {
+            "md": 3,
+            "type": "column",
+            "input": false,
+            "key": "column",
+            "index": 3,
+            "components": [
+              {
+                "removeIndents": true,
+                "state": "",
+                "theme": "primary",
+                "block": true,
+                "disableOnInvalid": true,
+                "clearOnHide": false,
+                "key": "submit",
+                "type": "button",
+                "input": true
+              }
+            ]
+          }
+        ],
+        "key": "columns3",
+        "type": "columns",
+        "input": false
+      }
+    ]
+  },
+  "attributes": {}
+}

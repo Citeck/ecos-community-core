@@ -625,7 +625,7 @@ public class AlfNodeRecord implements MetaValue {
         } else if (value instanceof MLText) {
             metaValue = new MLTextValue((MLText) value);
         } else if (att != null && value instanceof String
-                && (attributesAsRecord.contains(att.name()) || AttributeType.ASSOC.equals(attType))) {
+            && (attributesAsRecord.contains(att.name()) || AttributeType.ASSOC.equals(attType))) {
 
             RecordRef recordRef = RecordRef.valueOf((String) value);
             metaValue = context.getServiceFactory().getMetaValuesConverter().toMetaValue(recordRef);
