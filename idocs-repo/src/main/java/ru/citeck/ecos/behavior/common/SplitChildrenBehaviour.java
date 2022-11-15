@@ -4,19 +4,14 @@ import ecos.com.google.common.cache.CacheBuilder;
 import ecos.com.google.common.cache.CacheLoader;
 import ecos.com.google.common.cache.LoadingCache;
 import org.alfresco.model.ContentModel;
-import ru.citeck.ecos.domain.node.ChildAssocEntityLimit;
 import org.alfresco.repo.domain.node.NodeDAO;
-import org.alfresco.repo.domain.node.NodeEntity;
 import org.alfresco.repo.domain.qname.QNameDAO;
 import org.alfresco.repo.node.NodeServicePolicies.OnCreateChildAssociationPolicy;
 import org.alfresco.repo.policy.Behaviour.NotificationFrequency;
-import org.alfresco.service.namespace.InvalidQNameException;
 import org.apache.commons.lang.StringUtils;
-import org.apache.ibatis.session.RowBounds;
 import org.jetbrains.annotations.NotNull;
 import org.mybatis.spring.SqlSessionTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import ru.citeck.ecos.behavior.OrderedBehaviour;
 import org.alfresco.repo.policy.PolicyComponent;
 import org.alfresco.repo.security.authentication.AuthenticationUtil;
@@ -29,6 +24,7 @@ import org.alfresco.util.Pair;
 import org.alfresco.util.ParameterCheck;
 import org.apache.log4j.Logger;
 import ru.citeck.ecos.service.AlfrescoServices;
+import ru.citeck.ecos.service.EcosNodeService;
 import ru.citeck.ecos.utils.RepoUtils;
 
 import java.io.Serializable;
@@ -41,17 +37,13 @@ public class SplitChildrenBehaviour implements OnCreateChildAssociationPolicy {
 
     private static final Logger logger = Logger.getLogger(SplitChildrenBehaviour.class);
 
-    private static final String SELECT_CHILD_ASSOCS_OF_PARENT_LIMITED = "custom.alfresco.node.select.children.select_ChildAssocsOfParent_Limited";
-
     private NamespaceService namespaceService;
     private ServiceRegistry serviceRegistry;
     private PolicyComponent policyComponent;
     private SearchService searchService;
     private NodeService nodeService;
     private MimetypeService mimetypeService;
-    private SqlSessionTemplate template;
-    private NodeDAO nodeDao;
-    private QNameDAO qnameDAO;
+    private EcosNodeService ecosNodeService;
 
     private int order = 250;
 
@@ -206,30 +198,12 @@ public class SplitChildrenBehaviour implements OnCreateChildAssociationPolicy {
 
     public Optional<NodeRef> queryContainerByName(NodeRef parent, String childName) {
 
-        Pair<Long, NodeRef> parentNodePair = getNodePairNotNull(parent);
+        List<ChildAssociationRef> entities = ecosNodeService.getChildAssocsLimited(parent, childAssocType, null,
+            childName, 1, false);
 
-        ChildAssocEntityLimit assocEntity = new ChildAssocEntityLimit();
-        NodeEntity parentNode = new NodeEntity();
-        parentNode.setId(parentNodePair.getFirst());
-        assocEntity.setParentNode(parentNode);
-        if (childAssocType != null) {
-            if (!assocEntity.setTypeQNameAll(qnameDAO, childAssocType, false)) {
-                throw new InvalidQNameException("Invalid QName child assoc type: " + childAssocType + ", nodeRef: " + nodeRef);
-            }
-        }
-        assocEntity.setChildNodeNameAll(null, childAssocType, childName);
-        assocEntity.setOrdered(true);
-        assocEntity.setLimit(1);
+        ChildAssociationRef childAssocEntity = entities.size() > 0 ? entities.get(0) : null;
 
-        RowBounds rowBounds = new RowBounds(0, 1);
-        List<ChildAssocEntityLimit> entities = template.selectList(SELECT_CHILD_ASSOCS_OF_PARENT_LIMITED, assocEntity, rowBounds);
-
-        ChildAssocEntityLimit childAssocEntity = entities.size() > 0 ? entities.get(0) : null;
-        if (childAssocEntity == null || childAssocEntity.getChildNode() == null) {
-            return null;
-        }
-
-        return Optional.of(childAssocEntity.getChildNode().getNodeRef());
+        return Optional.ofNullable(childAssocEntity == null ? null : childAssocEntity.getChildRef());
     }
 
     @NotNull
@@ -411,20 +385,7 @@ public class SplitChildrenBehaviour implements OnCreateChildAssociationPolicy {
     }
 
     @Autowired
-    @Qualifier("customSqlSessionTemplate")
-    public void setTemplate(SqlSessionTemplate template) {
-        this.template = template;
-    }
-
-    @Autowired
-    @Qualifier("qnameDAO")
-    public void setQnameDAO(QNameDAO qnameDAO) {
-        this.qnameDAO = qnameDAO;
-    }
-
-    @Autowired
-    @Qualifier("nodeDAO")
-    public void setNodeDao(NodeDAO nodeDao) {
-        this.nodeDao = nodeDao;
+    public void setEcosNodeService(EcosNodeService ecosNodeService) {
+        this.ecosNodeService = ecosNodeService;
     }
 }
