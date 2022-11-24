@@ -107,14 +107,21 @@ public class AlfContextLibConfig extends ContextServiceFactory {
 
                 String user = auth.getUser();
                 user = OUTER_TO_INNER_USER_MAPPING.getOrDefault(user, user);
+                boolean alfAuthRequired = StringUtils.isNotBlank(user);
 
                 if (full) {
-                    Authentication fullAuthBefore = AuthenticationUtil.getFullAuthentication();
-                    AuthenticationUtil.setFullyAuthenticatedUser(user);
+
+                    Authentication fullAuthBefore = null;
+                    if (alfAuthRequired) {
+                        fullAuthBefore = AuthenticationUtil.getFullAuthentication();
+                        AuthenticationUtil.setFullyAuthenticatedUser(user);
+                    }
                     try {
                         return action.invoke();
                     } finally {
-                        AuthenticationUtil.setFullAuthentication(fullAuthBefore);
+                       if (alfAuthRequired) {
+                           AuthenticationUtil.setFullAuthentication(fullAuthBefore);
+                       }
                     }
                 } else {
                     return AuthenticationUtil.runAs(action::invoke, user);

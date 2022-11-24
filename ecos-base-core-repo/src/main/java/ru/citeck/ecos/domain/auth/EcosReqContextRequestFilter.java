@@ -83,7 +83,6 @@ public class EcosReqContextRequestFilter implements Filter {
             HttpServletRequest httpReq = (HttpServletRequest) request;
 
             authorization = httpReq.getHeader(HttpHeaders.AUTHORIZATION);
-            ecosUser = httpReq.getHeader(HttpHeaders.X_ECOS_USER);
             timezoneHeader = httpReq.getHeader(HttpHeaders.X_ECOS_TIMEZONE);
             acceptLangHeader = httpReq.getHeader(HttpHeaders.ACCEPT_LANGUAGE);
             realIp = httpReq.getHeader(HttpHeaders.X_REAL_IP);
@@ -133,7 +132,7 @@ public class EcosReqContextRequestFilter implements Filter {
             if (AuthUser.SYSTEM.equals(claims.getSubject())) {
                 isSystemRequest = true;
             }
-
+            ecosUser = claims.getSubject().split("\\|")[0];
             Object auth = claims.get(CLAIM_AUTH_HEADER);
             if (auth instanceof String) {
                 authorities = Arrays.asList(((String) auth).split(CLAIM_AUTH_DELIMITER));
@@ -141,17 +140,16 @@ public class EcosReqContextRequestFilter implements Filter {
         }
 
         if (StringUtils.isNotBlank(authorization)
-                || StringUtils.isNotBlank(ecosUser)
-                || StringUtils.isNotBlank(timezoneHeader)
-                || StringUtils.isNotBlank(acceptLangHeader)) {
+            || StringUtils.isNotBlank(ecosUser)
+            || StringUtils.isNotBlank(timezoneHeader)
+            || StringUtils.isNotBlank(acceptLangHeader)) {
 
             Duration finalTzOffset = utcOffset;
             String finalRealIp = realIp;
-            String finalUser = ecosUser;
+            String finalUser = StringUtils.defaultString(ecosUser);
             List<String> finalAuthorities = authorities;
 
             EcosReqContext.doWith(new EcosReqContextData(
-                ecosUser,
                 authorization,
                 timezoneHeader,
                 acceptLangHeader,

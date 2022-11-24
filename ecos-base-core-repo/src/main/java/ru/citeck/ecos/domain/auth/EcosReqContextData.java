@@ -8,8 +8,6 @@ import org.jetbrains.annotations.Nullable;
 @AllArgsConstructor
 public class EcosReqContextData {
     @Nullable
-    private final String ecosUserHeader;
-    @Nullable
     private final String authHeader;
     @Nullable
     private final String timezoneHeader;
