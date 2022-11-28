@@ -4,6 +4,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import ru.citeck.ecos.audit.lib.EcosAuditProperties;
 import ru.citeck.ecos.notifications.lib.NotificationsProperties;
 import ru.citeck.ecos.webapp.lib.env.EcosWebAppEnvironment;
 import ru.citeck.ecos.webapp.lib.web.client.props.EcosWebClientProps;
@@ -42,5 +43,10 @@ public class EcosWebAppCorePropsConfig {
     @Bean
     public NotificationsProperties notificationsProps() {
         return new NotificationsProperties(new Locale(defaultAppNotificationLocale), defaultAppNotificationFrom);
+    }
+
+    @Bean
+    public EcosAuditProperties auditProperties() {
+        return environment.getValue("ecos.webapp.audit", EcosAuditProperties.class);
     }
 }

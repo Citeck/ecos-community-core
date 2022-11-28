@@ -19,6 +19,7 @@ import ru.citeck.ecos.model.lib.num.dto.NumTemplateDef;
 import ru.citeck.ecos.model.lib.type.service.utils.TypeUtils;
 import ru.citeck.ecos.node.etype.EcosTypeAlfTypeService;
 import ru.citeck.ecos.records2.RecordRef;
+import ru.citeck.ecos.webapp.api.entity.EntityRef;
 import ru.citeck.ecos.webapp.lib.model.num.registry.NumTemplatesRegistry;
 import ru.citeck.ecos.webapp.lib.model.type.dto.TypeDef;
 import ru.citeck.ecos.webapp.lib.model.type.registry.EcosTypesRegistry;
@@ -49,8 +50,8 @@ public class TypesSyncConfiguration {
                 .build(CacheLoader.from(this::getEcosTypeImpl));
 
             @Override
-            public TypeDef getType(RecordRef typeRef) {
-                return ecosTypesRegistry.getValue(typeRef.getId());
+            public TypeDef getType(EntityRef typeRef) {
+                return ecosTypesRegistry.getValue(typeRef.getLocalId());
             }
 
             @Override

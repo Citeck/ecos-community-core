@@ -20,10 +20,10 @@ import ru.citeck.ecos.model.lib.status.service.StatusService;
 import ru.citeck.ecos.model.lib.type.dto.TypeInfo;
 import ru.citeck.ecos.model.lib.type.repo.TypesRepo;
 import ru.citeck.ecos.model.lib.type.service.TypeRefService;
-import ru.citeck.ecos.records2.RecordRef;
 import ru.citeck.ecos.records3.RecordsServiceFactory;
 import ru.citeck.ecos.service.CiteckServices;
 import ru.citeck.ecos.webapp.api.context.EcosWebAppContext;
+import ru.citeck.ecos.webapp.api.entity.EntityRef;
 import ru.citeck.ecos.webapp.lib.model.num.registry.NumTemplatesRegistry;
 import ru.citeck.ecos.webapp.lib.model.perms.registry.TypePermissionsRegistry;
 import ru.citeck.ecos.webapp.lib.model.type.registry.EcosTypesRegistry;
@@ -62,7 +62,7 @@ public class ModelServiceFactoryConfig extends ModelServiceFactory {
     @NotNull
     @Override
     protected NumTemplatesRepo createNumTemplatesRepo() {
-        return recordRef -> numTemplatesRegistry.getValue(recordRef.getId());
+        return recordRef -> numTemplatesRegistry.getValue(recordRef.getLocalId());
     }
 
     @Bean
@@ -107,12 +107,12 @@ public class ModelServiceFactoryConfig extends ModelServiceFactory {
         return new TypesRepo() {
             @Nullable
             @Override
-            public TypeInfo getTypeInfo(@NotNull RecordRef recordRef) {
+            public TypeInfo getTypeInfo(@NotNull EntityRef recordRef) {
                 return typesRegistry.getTypeInfo(recordRef);
             }
             @NotNull
             @Override
-            public List<RecordRef> getChildren(@NotNull RecordRef recordRef) {
+            public List<EntityRef> getChildren(@NotNull EntityRef recordRef) {
                 return typesRegistry.getChildren(recordRef);
             }
         };

@@ -4,9 +4,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
-import ru.citeck.ecos.webapp.api.audit.EcosAuditService;
+import ru.citeck.ecos.audit.lib.EcosAuditProperties;
+import ru.citeck.ecos.audit.lib.EcosAuditService;
+import ru.citeck.ecos.audit.lib.EcosAuditServiceImpl;
+import ru.citeck.ecos.audit.lib.output.EcosAuditOutputsServiceImpl;
+import ru.citeck.ecos.audit.lib.processor.EcosAuditProcessorsServiceImpl;
 import ru.citeck.ecos.webapp.api.properties.EcosWebAppProperties;
-import ru.citeck.ecos.webapp.lib.audit.SimpleEcosAuditService;
 import ru.citeck.ecos.webapp.lib.lock.EcosAppLockService;
 import ru.citeck.ecos.zookeeper.EcosZooKeeper;
 import ru.citeck.ecos.zookeeper.lock.EcosZkLockService;
@@ -16,6 +19,8 @@ public class EcosWebAppConfig {
 
     @Autowired
     private EcosWebAppProperties props;
+    @Autowired
+    private EcosAuditProperties auditProps;
     @Autowired
     private EcosZooKeeper ecosZooKeeper;
 
@@ -27,6 +32,9 @@ public class EcosWebAppConfig {
 
     @Bean
     public EcosAuditService ecosAuditService() {
-        return new SimpleEcosAuditService();
+        return new EcosAuditServiceImpl(auditProps,
+            new EcosAuditOutputsServiceImpl(),
+            new EcosAuditProcessorsServiceImpl()
+        );
     }
 }

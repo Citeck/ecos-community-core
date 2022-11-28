@@ -44,6 +44,7 @@ import ru.citeck.ecos.records3.record.dao.query.dto.query.QueryPage;
 import ru.citeck.ecos.records3.record.dao.query.dto.query.RecordsQuery;
 import ru.citeck.ecos.records3.record.dao.query.dto.res.RecsQueryRes;
 import ru.citeck.ecos.utils.NodeUtils;
+import ru.citeck.ecos.webapp.api.entity.EntityRef;
 import ru.citeck.ecos.webapp.lib.model.type.dto.TypeDef;
 
 import java.util.*;
@@ -108,7 +109,7 @@ public class DocLibService {
         RecordRef typeRef = RecordRef.valueOf(ecosType);
 
         DocLibDef docLib = ecosTypeService.getDocLib(docLibTypeRef);
-        Set<RecordRef> allowedTypes = new HashSet<>(docLib.getFileTypeRefs());
+        Set<EntityRef> allowedTypes = new HashSet<>(docLib.getFileTypeRefs());
         allowedTypes.add(docLib.getDirTypeRef());
 
         if (!allowedTypes.contains(typeRef)) {
@@ -335,13 +336,13 @@ public class DocLibService {
         boolean includeFiles = query.getNodeType() == null || query.getNodeType().equals(DocLibNodeType.FILE);
 
         OrPredicate typesPredicate = new OrPredicate();
-        if (includeDirs && RecordRef.isNotEmpty(docLibDef.getDirTypeRef())) {
+        if (includeDirs && EntityRef.isNotEmpty(docLibDef.getDirTypeRef())) {
             ecosTypeService.expandTypeWithChildren(docLibDef.getDirTypeRef()).forEach(
                 ref -> typesPredicate.addPredicate(Predicates.eq(RecordConstants.ATT_TYPE, ref))
             );
         }
         if (includeFiles) {
-            for (RecordRef fileType : docLibDef.getFileTypeRefs()) {
+            for (EntityRef fileType : docLibDef.getFileTypeRefs()) {
                 ecosTypeService.expandTypeWithChildren(fileType).forEach(
                     ref -> typesPredicate.addPredicate(Predicates.eq(RecordConstants.ATT_TYPE, ref))
                 );

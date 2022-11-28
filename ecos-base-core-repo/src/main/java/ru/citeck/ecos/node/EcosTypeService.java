@@ -24,6 +24,7 @@ import ru.citeck.ecos.records2.predicate.PredicateService;
 import ru.citeck.ecos.records2.predicate.model.Predicates;
 import ru.citeck.ecos.records2.request.query.RecordsQuery;
 import ru.citeck.ecos.utils.DictUtils;
+import ru.citeck.ecos.webapp.api.entity.EntityRef;
 import ru.citeck.ecos.webapp.lib.model.type.dto.TypeDef;
 
 import java.util.*;
@@ -58,9 +59,9 @@ public class EcosTypeService {
     }
 
     @NotNull
-    public List<RecordRef> expandTypeWithChildren(@Nullable RecordRef typeRef) {
-        if (RecordRef.isEmpty(typeRef) || typesManager == null) {
-            return Collections.singletonList(typeRef);
+    public List<RecordRef> expandTypeWithChildren(@Nullable EntityRef typeRef) {
+        if (EntityRef.isEmpty(typeRef) || typesManager == null) {
+            return Collections.singletonList(RecordRef.valueOf(typeRef));
         }
         List<RecordRef> result = new ArrayList<>();
         forEachDesc(typeRef, typeDto -> {
@@ -85,8 +86,8 @@ public class EcosTypeService {
     }
 
     @Nullable
-    public TypeDef getTypeDef(@Nullable RecordRef typeRef) {
-        if (typesManager == null || RecordRef.isEmpty(typeRef)) {
+    public TypeDef getTypeDef(@Nullable EntityRef typeRef) {
+        if (typesManager == null || EntityRef.isEmpty(typeRef)) {
             return null;
         }
         return typesManager.getType(typeRef);
@@ -183,9 +184,9 @@ public class EcosTypeService {
         return getNumTemplateByTypeRef(typeRef);
     }
 
-    public void forEachDesc(RecordRef typeRef, Function<TypeDef, Boolean> action) {
+    public void forEachDesc(EntityRef typeRef, Function<TypeDef, Boolean> action) {
 
-        if (RecordRef.isEmpty(typeRef) || typesManager == null) {
+        if (EntityRef.isEmpty(typeRef) || typesManager == null) {
             return;
         }
         forEachDesc(Collections.singletonList(typeRef), action);
@@ -198,7 +199,7 @@ public class EcosTypeService {
         });
     }
 
-    public List<RecordRef> getChildren(RecordRef typeRef) {
+    public List<RecordRef> getChildren(EntityRef typeRef) {
 
         RecordsQuery query = new RecordsQuery();
         query.setSourceId("emodel/type");
@@ -208,11 +209,11 @@ public class EcosTypeService {
         return recordsService.queryRecords(query).getRecords();
     }
 
-    private void forEachDesc(List<RecordRef> types, Function<TypeDef, Boolean> action) {
+    private void forEachDesc(List<? extends EntityRef> types, Function<TypeDef, Boolean> action) {
 
-        for (RecordRef type : types) {
+        for (EntityRef type : types) {
 
-            if (RecordRef.isEmpty(type)) {
+            if (EntityRef.isEmpty(type)) {
                 continue;
             }
 

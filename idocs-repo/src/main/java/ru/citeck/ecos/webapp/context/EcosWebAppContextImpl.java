@@ -6,9 +6,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import ru.citeck.ecos.audit.lib.EcosAuditService;
 import ru.citeck.ecos.commons.promise.Promises;
 import ru.citeck.ecos.webapp.api.apps.EcosWebAppsApi;
-import ru.citeck.ecos.webapp.api.audit.EcosAuditService;
 import ru.citeck.ecos.webapp.api.authority.EcosAuthorityService;
 import ru.citeck.ecos.webapp.api.context.EcosWebAppContext;
 import ru.citeck.ecos.webapp.api.lock.EcosLockService;
@@ -74,7 +74,7 @@ public class EcosWebAppContextImpl implements EcosWebAppContext {
 
     @NotNull
     @Override
-    public EcosAuditService getAuditService() {
+    public EcosAuditService getAuditApi() {
         return ecosAuditService;
     }
 

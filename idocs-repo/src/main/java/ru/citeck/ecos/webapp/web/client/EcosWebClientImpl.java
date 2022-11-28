@@ -42,6 +42,7 @@ public class EcosWebClientImpl implements EcosWebClient {
     public <R> Promise<R> execute(
         @NotNull String targetApp,
         @NotNull String path,
+        int version,
         @NotNull Object request,
         @NotNull Class<R> respType
     ) {

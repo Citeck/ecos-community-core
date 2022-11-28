@@ -45,6 +45,33 @@ public class WebAppSpringEnvironment implements EnvironmentComponent {
         return environment.getProperty(key, aClass);
     }
 
+    @NotNull
+    @Override
+    public Set<String> getMapPropertyKeys(@NotNull String prefix) {
+        Set<String> result = new HashSet<>();
+        MutablePropertySources sources = environment.getPropertySources();
+        for (PropertySource<?> source : sources) {
+            if (source instanceof EnumerablePropertySource<?>) {
+                String[] propertyNames = ((EnumerablePropertySource<?>) source).getPropertyNames();
+                for (String propName : propertyNames) {
+                    if (propName.startsWith(prefix)) {
+                        result.add(getKey(propName, prefix));
+                    }
+                }
+            }
+        }
+        return result;
+    }
+
+    private String getKey(String s, String prefix) {
+        int firstCharPosition = prefix.length() + 1;
+        int lastCharPosition = s.indexOf(".", firstCharPosition);
+        if (lastCharPosition < 0) {
+            lastCharPosition = s.length();
+        }
+        return s.substring(firstCharPosition, lastCharPosition);
+    }
+
     @Override
     public boolean containsValue(@NotNull String key) {
 
