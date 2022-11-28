@@ -1,4 +1,4 @@
-package ru.citeck.ecos.service;
+package ru.citeck.ecos.domain.node;
 
 import org.alfresco.repo.domain.node.NodeDAO;
 import org.alfresco.service.cmr.repository.ChildAssociationRef;

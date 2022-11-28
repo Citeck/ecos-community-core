@@ -11,7 +11,7 @@ import org.mybatis.spring.SqlSessionTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
-import ru.citeck.ecos.service.EcosNodeService;
+import ru.citeck.ecos.domain.node.EcosNodeService;
 
 import java.util.ArrayList;
 import java.util.List;

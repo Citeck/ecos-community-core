@@ -4,13 +4,9 @@ import ecos.com.google.common.cache.CacheBuilder;
 import ecos.com.google.common.cache.CacheLoader;
 import ecos.com.google.common.cache.LoadingCache;
 import org.alfresco.model.ContentModel;
-import org.alfresco.repo.domain.node.NodeDAO;
-import org.alfresco.repo.domain.qname.QNameDAO;
 import org.alfresco.repo.node.NodeServicePolicies.OnCreateChildAssociationPolicy;
 import org.alfresco.repo.policy.Behaviour.NotificationFrequency;
 import org.apache.commons.lang.StringUtils;
-import org.jetbrains.annotations.NotNull;
-import org.mybatis.spring.SqlSessionTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import ru.citeck.ecos.behavior.OrderedBehaviour;
 import org.alfresco.repo.policy.PolicyComponent;
@@ -24,7 +20,7 @@ import org.alfresco.util.Pair;
 import org.alfresco.util.ParameterCheck;
 import org.apache.log4j.Logger;
 import ru.citeck.ecos.service.AlfrescoServices;
-import ru.citeck.ecos.service.EcosNodeService;
+import ru.citeck.ecos.domain.node.EcosNodeService;
 import ru.citeck.ecos.utils.RepoUtils;
 
 import java.io.Serializable;
@@ -204,17 +200,6 @@ public class SplitChildrenBehaviour implements OnCreateChildAssociationPolicy {
         ChildAssociationRef childAssocEntity = entities.size() > 0 ? entities.get(0) : null;
 
         return Optional.ofNullable(childAssocEntity == null ? null : childAssocEntity.getChildRef());
-    }
-
-    @NotNull
-    private Pair<Long, NodeRef> getNodePairNotNull(@NotNull NodeRef nodeRef) throws InvalidNodeRefException {
-
-        Pair<Long, NodeRef> unchecked = nodeDao.getNodePair(nodeRef);
-        if (unchecked == null) {
-            NodeRef.Status nodeStatus = nodeDao.getNodeRefStatus(nodeRef);
-            throw new InvalidNodeRefException("Node does not exist: " + nodeRef + " (status:" + nodeStatus + ")", nodeRef);
-        }
-        return unchecked;
     }
 
     private NodeRef getNodeRef() {

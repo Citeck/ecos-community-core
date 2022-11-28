@@ -1,4 +1,4 @@
-package ru.citeck.ecos.service;
+package ru.citeck.ecos.domain.node;
 
 import org.alfresco.repo.domain.node.ChildAssocEntity;
 import org.alfresco.repo.domain.node.NodeDAO;
@@ -25,7 +25,6 @@ import java.util.List;
 public class EcosNodeDao {
 
     private static final String SELECT_CHILD_ASSOCS_OF_PARENT_LIMITED = "custom.alfresco.node.select.children.select_ChildAssocsOfParent_Limited";
-    private static final String SELECT_NODE_ASSOCS_BY_TARGET = "alfresco.node.select_NodeAssocsByTarget";
 
     private QNameDAO qnameDao;
     private SqlSessionTemplate customTemplate;
