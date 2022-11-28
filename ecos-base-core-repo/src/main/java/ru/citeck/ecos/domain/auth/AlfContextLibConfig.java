@@ -78,7 +78,7 @@ public class AlfContextLibConfig extends ContextServiceFactory {
         @NotNull
         @Override
         public AuthData getCurrentRunAsAuth() {
-            String user = AuthenticationUtil.getRunAsUser();
+            String user = StringUtils.defaultString(AuthenticationUtil.getRunAsUser());
             List<String> authorities = simpleAuthComponent.getCurrentRunAsAuth().getAuthorities();
             if (authorities.isEmpty()) {
                 authorities = getAlfUserAuthorities(user);
