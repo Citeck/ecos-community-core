@@ -7,6 +7,7 @@ import org.alfresco.model.ContentModel;
 import org.alfresco.repo.node.NodeServicePolicies.OnCreateChildAssociationPolicy;
 import org.alfresco.repo.policy.Behaviour.NotificationFrequency;
 import org.apache.commons.lang.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import ru.citeck.ecos.behavior.OrderedBehaviour;
 import org.alfresco.repo.policy.PolicyComponent;
 import org.alfresco.repo.security.authentication.AuthenticationUtil;
@@ -18,8 +19,8 @@ import org.alfresco.service.namespace.QName;
 import org.alfresco.util.Pair;
 import org.alfresco.util.ParameterCheck;
 import org.apache.log4j.Logger;
-import ru.citeck.ecos.search.ftsquery.FTSQuery;
 import ru.citeck.ecos.service.AlfrescoServices;
+import ru.citeck.ecos.domain.node.EcosNodeService;
 import ru.citeck.ecos.utils.RepoUtils;
 
 import java.io.Serializable;
@@ -38,6 +39,7 @@ public class SplitChildrenBehaviour implements OnCreateChildAssociationPolicy {
     private SearchService searchService;
     private NodeService nodeService;
     private MimetypeService mimetypeService;
+    private EcosNodeService ecosNodeService;
 
     private int order = 250;
 
@@ -190,13 +192,14 @@ public class SplitChildrenBehaviour implements OnCreateChildAssociationPolicy {
         return queryContainerByName(parentChild.getFirst(), parentChild.getSecond());
     }
 
-    private Optional<NodeRef> queryContainerByName(NodeRef parent, String name) {
-        return FTSQuery.create()
-                       .type(containerType).and()
-                       .parent(parent).and()
-                       .exact(ContentModel.PROP_NAME, name)
-                       .transactional()
-                       .queryOne(searchService);
+    public Optional<NodeRef> queryContainerByName(NodeRef parent, String childName) {
+
+        List<ChildAssociationRef> entities = ecosNodeService.getChildAssocsLimited(parent, childAssocType, null,
+            childName, 1, false);
+
+        ChildAssociationRef childAssocEntity = entities.size() > 0 ? entities.get(0) : null;
+
+        return Optional.ofNullable(childAssocEntity == null ? null : childAssocEntity.getChildRef());
     }
 
     private NodeRef getNodeRef() {
@@ -364,5 +367,10 @@ public class SplitChildrenBehaviour implements OnCreateChildAssociationPolicy {
         public void setDepth(int depth) {
             this.depth = depth;
         }
+    }
+
+    @Autowired
+    public void setEcosNodeService(EcosNodeService ecosNodeService) {
+        this.ecosNodeService = ecosNodeService;
     }
 }
