@@ -1,0 +1,12 @@
+id: change-storage-type-for-certificate-type
+
+name:
+  ru: Изменить тип хранилища типа "certificate"
+  en: Change the storage type for type "certificate"
+
+target: model/type$certificate
+
+type: json
+config:
+  operations:
+    - { op: set, path: '$.storageType', value: 'ALFRESCO' }

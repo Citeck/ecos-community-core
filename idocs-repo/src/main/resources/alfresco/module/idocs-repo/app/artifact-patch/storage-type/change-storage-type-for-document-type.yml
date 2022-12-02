@@ -1,0 +1,12 @@
+id: change-storage-type-for-document-type
+
+name:
+  ru: Изменить тип хранилища типа "document"
+  en: Change the storage type for type "document"
+
+target: model/type$document
+
+type: json
+config:
+  operations:
+    - { op: set, path: '$.storageType', value: 'ALFRESCO' }

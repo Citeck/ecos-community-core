@@ -1,0 +1,12 @@
+id: change-storage-type-for-case-type
+
+name:
+  ru: Изменить тип хранилища типа "case"
+  en: Change the storage type for type "case"
+
+target: model/type$case
+
+type: json
+config:
+  operations:
+    - { op: set, path: '$.storageType', value: 'ALFRESCO' }

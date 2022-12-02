@@ -1,0 +1,12 @@
+id: change-storage-type-for-directory-type
+
+name:
+  ru: Изменить тип хранилища типа "directory"
+  en: Change the storage type for type "directory"
+
+target: model/type$directory
+
+type: json
+config:
+  operations:
+    - { op: set, path: '$.storageType', value: 'ALFRESCO' }
