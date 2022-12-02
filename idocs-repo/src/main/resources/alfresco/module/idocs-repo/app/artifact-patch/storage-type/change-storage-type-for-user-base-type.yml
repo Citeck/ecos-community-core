@@ -1,0 +1,12 @@
+id: change-storage-type-for-user-base-type
+
+name:
+  ru: Изменить тип хранилища типа "user-base"
+  en: Change the storage type for type "user-base"
+
+target: model/type$user-base
+
+type: json
+config:
+  operations:
+    - { op: set, path: '$.storageType', value: 'ALFRESCO' }

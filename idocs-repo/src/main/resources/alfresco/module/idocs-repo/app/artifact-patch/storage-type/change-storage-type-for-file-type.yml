@@ -1,0 +1,12 @@
+id: change-storage-type-for-file-type
+
+name:
+  ru: Изменить тип хранилища типа "file"
+  en: Change the storage type for type "file"
+
+target: model/type$file
+
+type: json
+config:
+  operations:
+    - { op: set, path: '$.storageType', value: 'ALFRESCO' }

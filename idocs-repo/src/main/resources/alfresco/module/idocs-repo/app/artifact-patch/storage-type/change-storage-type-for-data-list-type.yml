@@ -1,0 +1,12 @@
+id: change-storage-type-for-data-list-type
+
+name:
+  ru: Изменить тип хранилища типа "data-list"
+  en: Change the storage type for type "data-list"
+
+target: model/type$data-list
+
+type: json
+config:
+  operations:
+    - { op: set, path: '$.storageType', value: 'ALFRESCO' }
