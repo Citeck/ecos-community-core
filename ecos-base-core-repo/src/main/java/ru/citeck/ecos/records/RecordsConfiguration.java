@@ -9,6 +9,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import ru.citeck.ecos.graphql.AlfGqlContext;
+import ru.citeck.ecos.records.value.NodeRefValueFactory;
+import ru.citeck.ecos.records.value.AlfQNameValueFactory;
 import ru.citeck.ecos.records3.RecordsProperties;
 import ru.citeck.ecos.records2.evaluator.RecordEvaluatorService;
 import ru.citeck.ecos.records2.meta.RecordsTemplateService;
@@ -19,6 +21,7 @@ import ru.citeck.ecos.records2.RecordsService;
 import ru.citeck.ecos.records3.RecordsServiceFactory;
 import ru.citeck.ecos.records2.graphql.meta.value.MetaValuesConverter;
 import ru.citeck.ecos.records2.request.rest.RestHandler;
+import ru.citeck.ecos.records3.record.atts.value.factory.AttValueFactory;
 import ru.citeck.ecos.records3.record.request.RequestContext;
 import ru.citeck.ecos.records3.record.resolver.LocalRecordsResolver;
 import ru.citeck.ecos.records2.source.dao.local.meta.MetaRecordsDaoAttsProvider;
@@ -27,6 +30,8 @@ import ru.citeck.ecos.records3.txn.RecordsTxnService;
 import ru.citeck.ecos.webapp.api.context.EcosWebAppContext;
 
 import javax.annotation.PostConstruct;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.function.Supplier;
 
 @Configuration
@@ -137,5 +142,14 @@ public class RecordsConfiguration extends RecordsServiceFactory {
     @NotNull
     public RestHandlerAdapter restHandlerAdapter() {
         return super.getRestHandlerAdapter();
+    }
+
+    @NotNull
+    @Override
+    protected List<AttValueFactory<?>> createAttValueFactories() {
+        List<AttValueFactory<?>> factories = new ArrayList<>(super.createAttValueFactories());
+        factories.add(new NodeRefValueFactory());
+        factories.add(new AlfQNameValueFactory());
+        return factories;
     }
 }
