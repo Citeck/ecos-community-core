@@ -22,6 +22,7 @@ import ru.citeck.ecos.comment.model.CommentDto;
 import ru.citeck.ecos.comment.model.CommentTagDto;
 import ru.citeck.ecos.model.EcosCommonModel;
 import ru.citeck.ecos.records2.RecordRef;
+import ru.citeck.ecos.webapp.api.entity.EntityRef;
 
 import java.util.List;
 
@@ -68,6 +69,7 @@ public class EcosCommentServiceImpl implements EcosCommentService {
 
         ecosCommentEventService.sendCreateEvent(EcosCommentEventDto.builder()
             .rec(RecordRef.valueOf(created.getRecord()))
+            .record(EntityRef.valueOf(created.getRecord()))
             .commentRec(EcosCommentUtils.commentIdToRecordRef(created.getId()))
             .textAfter(created.getText())
             .build()
@@ -111,6 +113,7 @@ public class EcosCommentServiceImpl implements EcosCommentService {
 
         ecosCommentEventService.sendUpdateEvent(EcosCommentEventDto.builder()
             .rec(RecordRef.valueOf(commentAfter.getRecord()))
+            .record(EntityRef.valueOf(commentAfter.getRecord()))
             .commentRec(EcosCommentUtils.commentIdToRecordRef(commentAfter.getId()))
             .textBefore(commentBefore.getText())
             .textAfter(commentAfter.getText())
@@ -140,6 +143,7 @@ public class EcosCommentServiceImpl implements EcosCommentService {
 
         ecosCommentEventService.sendDeleteEvent(EcosCommentEventDto.builder()
             .rec(RecordRef.valueOf(comment.getRecord()))
+            .record(EntityRef.valueOf(comment.getRecord()))
             .commentRec(EcosCommentUtils.commentIdToRecordRef(comment.getId()))
             .textBefore(comment.getText())
             .build()
