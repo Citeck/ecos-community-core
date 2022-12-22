@@ -9,6 +9,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import ru.citeck.ecos.action.group.impl.CustomTxnGroupAction;
 import ru.citeck.ecos.action.group.impl.GroupActionExecutor;
 import ru.citeck.ecos.action.group.impl.GroupActionExecutorFactory;
+import ru.citeck.ecos.context.lib.auth.AuthContext;
+import ru.citeck.ecos.context.lib.auth.data.AuthData;
 import ru.citeck.ecos.records.RecordsConfiguration;
 import ru.citeck.ecos.records3.record.request.RequestContext;
 import ru.citeck.ecos.utils.TransactionUtils;
@@ -68,8 +70,13 @@ public class GroupActionServiceImpl implements GroupActionService {
         }
 
         if (action.isAsync()) {
-
-            TransactionUtils.doAfterCommit(() -> executeImpl(execution));
+            final AuthData authData = AuthContext.getCurrentFullAuth();
+            TransactionUtils.doAfterCommit(() ->
+                // Execute action as user. Not as system
+                AuthContext.runAsJ(authData, () -> {
+                    executeImpl(execution);
+                })
+            );
             return new ActionResults<>();
         } else {
 
