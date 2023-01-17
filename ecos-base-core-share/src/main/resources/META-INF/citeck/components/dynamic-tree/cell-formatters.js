@@ -822,6 +822,24 @@ define([
             }
         },
 
+        webscriptLink: function (urlTemplate, label) {
+            return function (elCell, oRecord, oColumn, sData) {
+                if (sData) {
+                    var link = document.createElement('a');
+                    link.className = "document-link";
+                    link.href = '#';
+                    link.text = Alfresco.util.message(label);
+                    link.onclick = function (event) {
+                        event.stopPropagation();
+                        event.preventDefault();
+                        window.location = Alfresco.constants.PROXY_URI + YAHOO.lang.substitute(urlTemplate, sData);
+                    };
+
+                    elCell.appendChild(link);
+                }
+            }
+        },
+
         downloadContent: function (keyToNodeRef) {
             var downloadUrl = Alfresco.constants.PROXY_URI + "/citeck/print/content?nodeRef=",
                 downloadImage = Alfresco.constants.URL_RESCONTEXT + "/components/documentlibrary/actions/document-download-16.png",
@@ -1995,11 +2013,25 @@ define([
                 var childAssociations = oRecord.getData('childAssociations');
                 var childAssociation = _.find( childAssociations, function(item) { return item.name == associationName; });
                 if (childAssociation) {
-                    var property = childAssociation['attributes'][propertyName] ? childAssociation['attributes'][propertyName] : (options && options.anotherPropertyName ? childAssociation['attributes'][options.anotherPropertyName] : '');
-                    if (options && options.formatter && property) {
-                        options.formatter(elCell, oRecord, oColumn, property);
+                    var anotherPropertyName = (options || {}).anotherPropertyName;
+                    var formatter = (options || {}).formatter;
+
+                    var property = null;
+                    if (propertyName == 'nodeRef') {
+                        property = { nodeRef: childAssociation.nodeRef };
+                    } else if (childAssociation['attributes'][propertyName]) {
+                        property = childAssociation['attributes'][propertyName];
+                    } else if (anotherPropertyName) {
+                        property = childAssociation['attributes'][anotherPropertyName];
+                    }
+
+                    if (!property) {
                         return;
-                    } else if (property) {
+                    }
+
+                    if (formatter) {
+                        options.formatter(elCell, oRecord, oColumn, property);
+                    } else {
                         elCell.innerHTML = property;
                     }
                 }
