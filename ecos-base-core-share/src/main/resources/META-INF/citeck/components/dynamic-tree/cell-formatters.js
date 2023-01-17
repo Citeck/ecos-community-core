@@ -825,10 +825,6 @@ define([
         webscriptLink: function (urlTemplate, label) {
             return function (elCell, oRecord, oColumn, sData) {
                 if (sData) {
-                    if (_.isString(sData)) {
-                        sData = { nodeRef: sData };
-                    }
-
                     var link = document.createElement('a');
                     link.className = "document-link";
                     link.href = '#';
@@ -2022,11 +2018,11 @@ define([
 
                     var property = null;
                     if (propertyName == 'nodeRef') {
-                        property = childAssociation.nodeRef;
+                        property = { nodeRef: childAssociation.nodeRef };
                     } else if (childAssociation['attributes'][propertyName]) {
                         property = childAssociation['attributes'][propertyName];
                     } else if (anotherPropertyName) {
-                        childAssociation['attributes'][options.anotherPropertyName];
+                        property = childAssociation['attributes'][anotherPropertyName];
                     }
 
                     if (!property) {
