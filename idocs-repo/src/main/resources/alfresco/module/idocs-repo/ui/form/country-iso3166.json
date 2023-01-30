@@ -1,11 +1,29 @@
 {
   "id": "country-iso3166",
-  "title": "Country form",
   "formKey": "alf_idocs:countryISO3166",
-  "formMode": null,
-  "description": "",
+  "title": {
+    "en": "Country form",
+    "ru": "Форма страны"
+  },
+  "description": {},
   "customModule": null,
-  "i18n": null,
+  "width": "lg",
+  "i18n": {
+    "ru": {
+      "cm:title": "Заголовок",
+      "idocs:countryISO3166Name": "Название страны",
+      "idocs:countryISO31661Code": "Код страны",
+      "Submit": "Сохранить",
+      "Cancel": "Отмена"
+    },
+    "en": {
+      "cm:title": "Title",
+      "idocs:countryISO3166Name": "Country name",
+      "idocs:countryISO31661Code": "Country code",
+      "Submit": "Submit",
+      "Cancel": "Cancel"
+    }
+  },
   "definition": {
     "display": "form",
     "components": [
@@ -680,5 +698,6 @@
         "id": "ev3y00w"
       }
     ]
-  }
+  },
+  "attributes": {}
 }
