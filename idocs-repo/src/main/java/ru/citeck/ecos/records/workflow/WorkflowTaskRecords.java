@@ -54,6 +54,7 @@ import ru.citeck.ecos.utils.AuthorityUtils;
 import ru.citeck.ecos.utils.NodeUtils;
 import ru.citeck.ecos.utils.TransactionUtils;
 import ru.citeck.ecos.utils.WorkflowUtils;
+import ru.citeck.ecos.webapp.api.constants.AppName;
 import ru.citeck.ecos.workflow.mirror.WorkflowMirrorService;
 import ru.citeck.ecos.workflow.owner.OwnerAction;
 import ru.citeck.ecos.workflow.owner.OwnerService;
@@ -75,7 +76,6 @@ public class WorkflowTaskRecords extends LocalRecordsDao
 
     private static final String DOCUMENT_FIELD_PREFIX = "_ECM_";
     private static final String OUTCOME_PREFIX = "outcome_";
-    private static final String APP_ALFRESCO = "alfresco";
     private static final String APP_EPROC = "eproc";
 
 
@@ -821,12 +821,12 @@ public class WorkflowTaskRecords extends LocalRecordsDao
                 value = ((TemplateNode) value).getNodeRef();
             }
             if (value instanceof NodeRef) {
-                return RecordRef.valueOf(value.toString());
+                return RecordRef.create(AppName.ALFRESCO, "", value.toString());
             }
             if (value instanceof String) {
                 String valueStr = (String) value;
                 if (!valueStr.isEmpty() && valueStr.charAt(0) == 'w' && NodeRef.isNodeRef(valueStr)) {
-                    return RecordRef.valueOf(valueStr);
+                    return RecordRef.create(AppName.ALFRESCO, "", valueStr);
                 }
             }
             return value;
@@ -870,13 +870,13 @@ public class WorkflowTaskRecords extends LocalRecordsDao
 
                     log.debug("docNodeRef: " + docNodeRef);
 
-                    return RecordRef.create(APP_ALFRESCO, "", String.valueOf(docNodeRef));
+                    return RecordRef.create(AppName.ALFRESCO, "", String.valueOf(docNodeRef));
                 }
             }
 
             String id = documentRef.getId();
             if (nodeUtils.isNodeRef(id) && StringUtils.isBlank(documentRef.getAppName())) {
-                return RecordRef.create(APP_ALFRESCO, "", id);
+                return RecordRef.create(AppName.ALFRESCO, "", id);
             }
 
             return documentRef;
@@ -919,7 +919,7 @@ public class WorkflowTaskRecords extends LocalRecordsDao
                 .stream()
                 .map(actor -> actor.startsWith("workspace://") ? authorityUtils.getAuthorityName(new NodeRef(actor)) : actor)
                 .collect(Collectors.toList());
-            
+
             if (actors.contains(userName)) {
                 return true;
             }
