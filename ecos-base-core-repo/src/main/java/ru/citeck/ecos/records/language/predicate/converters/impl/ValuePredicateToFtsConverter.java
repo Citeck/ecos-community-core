@@ -17,7 +17,6 @@ import org.apache.commons.lang.StringUtils;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import ru.citeck.ecos.commons.data.DataValue;
 import ru.citeck.ecos.config.EcosConfigService;
@@ -41,7 +40,6 @@ import ru.citeck.ecos.search.ftsquery.FTSQuery;
 import ru.citeck.ecos.utils.AuthorityUtils;
 import ru.citeck.ecos.utils.DictUtils;
 
-import javax.annotation.PostConstruct;
 import javax.annotation.PostConstruct;
 import javax.xml.datatype.Duration;
 import java.io.Serializable;
@@ -621,7 +619,7 @@ public class ValuePredicateToFtsConverter implements PredicateToFtsConverter {
                 RecordsQuery recordsQuery = new RecordsQuery.Builder()
                     .withSourceId("emodel/type")
                     .withLanguage("predicate")
-                    .withQuery(Predicates.eq(configAtt, value))
+                    .withQuery(Predicates.contains(configAtt, value))
                     .build();
                 RecsQueryRes<RecordRef> typeResults = recordsService.query(recordsQuery);
                 query.open();
