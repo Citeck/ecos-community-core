@@ -613,7 +613,7 @@ public class ValuePredicateToFtsConverter implements PredicateToFtsConverter {
 
     private void processTypeConfigValues(FTSQuery query, String attribute, String value) {
         int configAttIdx = attribute.indexOf(".") + 1;
-        if (attribute.length()> configAttIdx){
+        if (attribute.length() > configAttIdx) {
             String configAtt = attribute.substring(configAttIdx);
             if (!configAtt.isEmpty()) {
                 RecordsQuery recordsQuery = new RecordsQuery.Builder()
