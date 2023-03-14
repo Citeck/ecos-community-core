@@ -156,6 +156,13 @@ class DelegateTaskNotificationSender extends AbstractNotificationSender<Delegate
         }
 
         Set<String> recipients = getRecipients(task, template, null);
+        if (recipients == null || recipients.isEmpty()) {
+            log.debug(
+                "Skipped notification sending. Empty recipients list. " +
+                "Template: " + template + " task: " + task.getId()
+            );
+            return;
+        }
         String notificationTemplate = (String) nodeService.getProperty(template, DmsModel.PROP_ECOS_NOTIFICATION_TEMPLATE);
         if (StringUtils.isNotBlank(notificationTemplate)) {
             send(task, notificationTemplate, recipients);
