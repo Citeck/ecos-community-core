@@ -469,7 +469,7 @@
                         "clearOnHide": false,
                         "onFileClick": "download",
                         "storage": "url",
-                        "url": " /share/proxy/alfresco/eform/file",
+                        "url": "/gateway/alfresco/alfresco/s/eform/file",
                         "options": "",
                         "validate": {
                           "required": true
