@@ -73,20 +73,19 @@ public class HistoryUtils {
 
     public static Object getKeyValue(QName qName, Object constraint, DictionaryService dictionaryService,
                                      NodeService nodeService) {
-        if (DataTypeDefinition.BOOLEAN.equals(dictionaryService.getProperty(qName).getDataType().getName())) {
-            if (constraint == null) {
-                return "—";
-            } else {
-                if (constraint.equals(false)) {
-                    return I18NUtil.getMessage("label.no");
-                } else {
-                    return I18NUtil.getMessage("label.yes");
-                }
-            }
-        }
         if (constraint == null) {
             return "—";
         }
+
+        if (DataTypeDefinition.BOOLEAN.equals(dictionaryService.getProperty(qName).getDataType().getName())) {
+            if (constraint.equals(false)) {
+                return I18NUtil.getMessage("label.no");
+            } else {
+                return I18NUtil.getMessage("label.yes");
+            }
+        }
+
+
         if (DataTypeDefinition.DATE.equals(dictionaryService.getProperty(qName).getDataType().getName())) {
             return new SimpleDateFormat("dd/MM/yyyy").format(constraint);
         }
