@@ -420,11 +420,9 @@ public class AlfNodesRecordsDAO extends LocalRecordsDao
                         }
                     }
                 }
-                if (StringUtils.isBlank(name) && typeDto != null) {
-                    name = typeDto.getName().get(Locale.ENGLISH);
-                }
+
                 if (StringUtils.isBlank(name)) {
-                    name = GUID.generate();
+                    name = getDefaultName(typeDto);
                 }
             }
 
@@ -601,12 +599,33 @@ public class AlfNodesRecordsDAO extends LocalRecordsDao
     }
 
     private void handleContentAttribute(ObjectData attributes) {
-
         DataValue attributeFieldValue = attributes.get(CONTENT_ATTRIBUTE_NAME);
         if (!attributeFieldValue.isNull()) {
             attributes.remove(CONTENT_ATTRIBUTE_NAME);
             attributes.set(CM_CONTENT_ATTRIBUTE_NAME, attributeFieldValue);
         }
+    }
+
+    private String getDefaultName(TypeDef typeDto) {
+        ObjectData typeProperties = typeDto == null ? null : typeDto.getProperties();
+        if (typeProperties != null) {
+            String alfDefaultNameStrategy = typeProperties.get("alfDefaultNameStrategy").asText();
+            if (StringUtils.isNotBlank(alfDefaultNameStrategy)) {
+                if ("UUID".equals(alfDefaultNameStrategy)) {
+                    return GUID.generate();
+                } else if ("TYPE_ID".equals(alfDefaultNameStrategy)) {
+                    return typeDto.getName().get(Locale.ENGLISH);
+                }
+            }
+        }
+        String defaultName = null;
+        if (typeDto != null) {
+            defaultName = typeDto.getName().get(Locale.ENGLISH);
+        }
+        if (StringUtils.isBlank(defaultName)) {
+            defaultName = GUID.generate();
+        }
+        return defaultName;
     }
 
     private String extractActualAttName(String name) {
