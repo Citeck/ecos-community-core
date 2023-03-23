@@ -73,16 +73,19 @@ public class HistoryUtils {
 
     public static Object getKeyValue(QName qName, Object constraint, DictionaryService dictionaryService,
                                      NodeService nodeService) {
+        if (constraint == null) {
+            return "—";
+        }
+
         if (DataTypeDefinition.BOOLEAN.equals(dictionaryService.getProperty(qName).getDataType().getName())) {
-            if (constraint == null || constraint.equals(false)) {
+            if (constraint.equals(false)) {
                 return I18NUtil.getMessage("label.no");
             } else {
                 return I18NUtil.getMessage("label.yes");
             }
         }
-        if (constraint == null) {
-            return "—";
-        }
+
+
         if (DataTypeDefinition.DATE.equals(dictionaryService.getProperty(qName).getDataType().getName())) {
             return new SimpleDateFormat("dd/MM/yyyy").format(constraint);
         }
@@ -263,7 +266,7 @@ public class HistoryUtils {
                     while (iterRemoved.hasNext()) {
                         AssociationRef associationRefRemoved = iterRemoved.next();
                         if (associationRefAdded.getTypeQName().equals(associationRefRemoved.getTypeQName())
-                                && !isEqualsAssocs(associationRefAdded, associationRefRemoved, nodeService)) {
+                            && !isEqualsAssocs(associationRefAdded, associationRefRemoved, nodeService)) {
                             historyService.persistEvent(
                                 HistoryModel.TYPE_BASIC_EVENT,
                                 eventProperties(
@@ -353,7 +356,7 @@ public class HistoryUtils {
                     while (iterRemoved.hasNext()) {
                         ChildAssociationRef childAssociationRefRemoved = iterRemoved.next();
                         if (childAssociationRefAdded.getTypeQName().equals(childAssociationRefRemoved.getTypeQName())
-                                && !isEqualsChildAssocs(childAssociationRefAdded, childAssociationRefRemoved,
+                            && !isEqualsChildAssocs(childAssociationRefAdded, childAssociationRefRemoved,
                             nodeService)) {
                             historyService.persistEvent(
                                 HistoryModel.TYPE_BASIC_EVENT,
@@ -371,7 +374,8 @@ public class HistoryUtils {
                                 )
                             );
                             iterAdded.remove();
-                            iterRemoved.remove();break;
+                            iterRemoved.remove();
+                            break;
                         }
                     }
                 }
@@ -452,26 +456,26 @@ public class HistoryUtils {
         }
     }
 
-    public static String getAssocCommentForSourceAndTarget (AssociationRef added,
-                                                            AssociationRef removed,
-                                                            boolean forSourceNode,
-                                                            DictionaryService dictionaryService,
-                                                            NodeService nodeService) {
+    public static String getAssocCommentForSourceAndTarget(AssociationRef added,
+                                                           AssociationRef removed,
+                                                           boolean forSourceNode,
+                                                           DictionaryService dictionaryService,
+                                                           NodeService nodeService) {
         if (added != null && removed != null) {
             return getAssocKeyValueForSourceAndTarget(added.getTypeQName(), forSourceNode, dictionaryService)
-                    + ": "
-                    + getCustomChangeValue(forSourceNode ? removed.getTargetRef() : removed.getSourceRef(), nodeService)
-                    + " -> "
-                    + getCustomChangeValue(forSourceNode ? added.getTargetRef() : added.getSourceRef(), nodeService);
+                + ": "
+                + getCustomChangeValue(forSourceNode ? removed.getTargetRef() : removed.getSourceRef(), nodeService)
+                + " -> "
+                + getCustomChangeValue(forSourceNode ? added.getTargetRef() : added.getSourceRef(), nodeService);
         } else if (added != null) {
             return getAssocKeyValueForSourceAndTarget(added.getTypeQName(), forSourceNode, dictionaryService)
-                    + ": — -> "
-                    + getCustomChangeValue(forSourceNode ? added.getTargetRef() : added.getSourceRef(), nodeService);
+                + ": — -> "
+                + getCustomChangeValue(forSourceNode ? added.getTargetRef() : added.getSourceRef(), nodeService);
         } else if (removed != null) {
             return getAssocKeyValueForSourceAndTarget(removed.getTypeQName(), forSourceNode, dictionaryService)
-                    + ": "
-                    + getCustomChangeValue(forSourceNode ? removed.getTargetRef() : removed.getSourceRef(), nodeService)
-                    + " -> —";
+                + ": "
+                + getCustomChangeValue(forSourceNode ? removed.getTargetRef() : removed.getSourceRef(), nodeService)
+                + " -> —";
         } else {
             return "Something went wrong... Contact the administrator.";
         }
@@ -483,14 +487,14 @@ public class HistoryUtils {
 
         if (added != null && removed != null) {
             return getAssocKeyValue(added.getTypeQName(), dictionaryService)
-                    + ": "
-                    + getCustomChangeValue(removed.getChildRef(), nodeService)
-                    + " -> "
-                    + getCustomChangeValue(added.getChildRef(), nodeService);
+                + ": "
+                + getCustomChangeValue(removed.getChildRef(), nodeService)
+                + " -> "
+                + getCustomChangeValue(added.getChildRef(), nodeService);
         } else if (added != null) {
             return getAssocKeyValue(added.getTypeQName(), dictionaryService)
-                    + ": — -> "
-                    + getCustomChangeValue(added.getChildRef(), nodeService);
+                + ": — -> "
+                + getCustomChangeValue(added.getChildRef(), nodeService);
         } else if (removed != null) {
             if (nodeRefName.isEmpty()) {
                 return getAssocKeyValue(removed.getTypeQName(), dictionaryService)
