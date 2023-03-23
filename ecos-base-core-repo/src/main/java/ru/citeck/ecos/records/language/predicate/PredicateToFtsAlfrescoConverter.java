@@ -97,7 +97,7 @@ public class PredicateToFtsAlfrescoConverter implements QueryLangConverter<Predi
                 valuePred.getType(),
                 mapAlfrescoNodeRefs(valuePred.getValue())
             );
-        }, true);
+        }, false);
 
         String type = IterUtils.first(typesInPredicates).orElse(null);
         RecordRef typeRef = RecordRef.valueOf(type);
