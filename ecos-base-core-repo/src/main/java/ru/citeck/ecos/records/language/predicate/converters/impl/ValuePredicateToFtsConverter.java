@@ -31,6 +31,9 @@ import ru.citeck.ecos.records.language.predicate.converters.impl.utils.TimeUtils
 import ru.citeck.ecos.records2.RecordConstants;
 import ru.citeck.ecos.records2.RecordRef;
 import ru.citeck.ecos.records2.predicate.model.*;
+import ru.citeck.ecos.records3.RecordsService;
+import ru.citeck.ecos.records3.record.dao.query.dto.query.RecordsQuery;
+import ru.citeck.ecos.records3.record.dao.query.dto.res.RecsQueryRes;
 import ru.citeck.ecos.search.AssociationIndexPropertyRegistry;
 import ru.citeck.ecos.search.ftsquery.BinOperator;
 import ru.citeck.ecos.search.ftsquery.FTSQuery;
@@ -66,6 +69,7 @@ public class ValuePredicateToFtsConverter implements PredicateToFtsConverter {
     private EcosTypeService ecosTypeService;
     private NamespaceService namespaceService;
     private EcosConfigService ecosConfigService;
+    private RecordsService recordsService;
     private AssociationIndexPropertyRegistry associationIndexPropertyRegistry;
     private final Map<QName, List<QName>> assocToCustomSearchFieldsRegistry = new ConcurrentHashMap<>();
 
@@ -174,10 +178,14 @@ public class ValuePredicateToFtsConverter implements PredicateToFtsConverter {
                 delegator.delegate(getOrPredicateForActors(actor), query, context);
                 break;
             default:
-                if (IN.equals(valuePredicate.getType())) {
-                    processInAttribute(query, valuePredicate, context);
+                if (attribute.startsWith(_TYPE_CONFIG)) {
+                    processTypeConfigValues(query, attribute, predicateValue);
                 } else {
-                    processDefaultAttribute(query, valuePredicate, context);
+                    if (IN.equals(valuePredicate.getType())) {
+                        processInAttribute(query, valuePredicate, context);
+                    } else {
+                        processDefaultAttribute(query, valuePredicate, context);
+                    }
                 }
                 break;
         }
@@ -603,6 +611,26 @@ public class ValuePredicateToFtsConverter implements PredicateToFtsConverter {
         }
     }
 
+    private void processTypeConfigValues(FTSQuery query, String attribute, String value) {
+        int configAttIdx = attribute.indexOf(".") + 1;
+        if (attribute.length() > configAttIdx) {
+            String configAtt = attribute.substring(configAttIdx);
+            if (!configAtt.isEmpty()) {
+                RecordsQuery recordsQuery = new RecordsQuery.Builder()
+                    .withSourceId("emodel/type")
+                    .withLanguage("predicate")
+                    .withQuery(Predicates.contains(configAtt, value))
+                    .build();
+                RecsQueryRes<RecordRef> typeResults = recordsService.query(recordsQuery);
+                query.open();
+                for (RecordRef typeRef : typeResults.getRecords()) {
+                    query.or().value(EcosTypeModel.PROP_TYPE, typeRef.getId(), true);
+                }
+                query.close();
+            }
+        }
+    }
+
     private void processLikeValuePredicate(FTSQuery query, String predicateValue, QName field,
                                            ClassAttributeDefinition attDef) {
 
@@ -889,6 +917,11 @@ public class ValuePredicateToFtsConverter implements PredicateToFtsConverter {
     @Autowired
     public void setNodeService(NodeService nodeService) {
         this.nodeService = nodeService;
+    }
+
+    @Autowired
+    public void setRecordsService(RecordsService recordsService) {
+        this.recordsService = recordsService;
     }
 
     @Autowired
