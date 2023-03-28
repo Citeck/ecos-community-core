@@ -17,8 +17,8 @@ import ru.citeck.ecos.locks.LockUtils;
 import ru.citeck.ecos.model.CiteckWorkflowModel;
 import ru.citeck.ecos.props.EcosPropertiesService;
 import ru.citeck.ecos.records2.RecordRef;
-import ru.citeck.ecos.workflow.owner.OwnerAction;
 import ru.citeck.ecos.workflow.owner.OwnerService;
+import ru.citeck.ecos.workflow.owner.OwnerAction;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
