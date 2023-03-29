@@ -610,12 +610,14 @@ public class AlfNodesRecordsDAO extends LocalRecordsDao
         ObjectData typeProperties = typeDto == null ? null : typeDto.getProperties();
         if (typeProperties != null) {
             String alfDefaultNameStrategy = typeProperties.get("alfDefaultNameStrategy").asText();
-            if (StringUtils.isNotBlank(alfDefaultNameStrategy)) {
-                if ("UUID".equals(alfDefaultNameStrategy)) {
+            switch (alfDefaultNameStrategy) {
+                case "UUID":
                     return GUID.generate();
-                } else if ("TYPE_ID".equals(alfDefaultNameStrategy)) {
-                    return typeDto.getName().get(Locale.ENGLISH);
-                }
+                case "TYPE_NAME":
+                    String defaultName = typeDto.getName().get(Locale.ENGLISH);
+                    return StringUtils.isBlank(defaultName) ? typeDto.getId() : defaultName;
+                default:
+                    break;
             }
         }
         String defaultName = null;
