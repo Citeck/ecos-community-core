@@ -66,7 +66,7 @@
       taskId: null,
 
       /**
-       * The referrer value query string parameter 
+       * The referrer value query string parameter
        *
        * @property referrerValue
        * @type String
@@ -108,7 +108,7 @@
             dateEls[i].innerHTML = Alfresco.util.formatDate(dateEls[i].innerHTML, Alfresco.util.message(formatString));
          };
 
-      },      
+      },
 
       /**
        * Called when the people finder template has been loaded.
@@ -215,15 +215,17 @@
             this.widgets.reassignButton = Alfresco.util.createYUIButton(this, "reassign", this.onReassignButtonClick);
             Dom.removeClass(Selector.query(".actions .reassign", this.id), "hidden");
          }
-         
+
          if (task.isClaimable)
          {
             // Task is claimable
             this.widgets.claimButton = Alfresco.util.createYUIButton(this, "claim", this.onClaimButtonClick);
             Dom.removeClass(Selector.query(".actions .claim", this.id), "hidden");
-            Dom.removeClass(Selector.query(".unassigned-message", this.id), "hidden");
+            if (!task.owner) {
+                Dom.removeClass(Selector.query(".unassigned-message", this.id), "hidden");
+            }
          }
-         
+
          if (task.isReleasable)
          {
             // Task is releasable
@@ -343,7 +345,7 @@
                            else
                            {
                               // Check referrer and fall back to user dashboard if unavailable.
-                              if(this.referrerValue) 
+                              if(this.referrerValue)
                               {
                                  // MNT-10182. The user may not have rights to see task details any more.
                                  if (this.referrerValue == 'tasks')
@@ -356,7 +358,7 @@
                                     this.navigateForward(true);
                                  }
                               } else {
-                                 // ALF-20001. If referrer isn't available, either because there was no previous page 
+                                 // ALF-20001. If referrer isn't available, either because there was no previous page
                                  // (because the user navigated directly to the page via an emailed link)
                                  // or because the referrer header has been blocked, fall back to user dashboard.
                                  document.location.href = this.getSiteDefaultUrl() || Alfresco.constants.URL_CONTEXT;
