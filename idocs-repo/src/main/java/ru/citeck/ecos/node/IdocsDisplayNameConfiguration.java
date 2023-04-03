@@ -1,11 +1,14 @@
 package ru.citeck.ecos.node;
 
+import org.alfresco.service.namespace.QName;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
-import ru.citeck.ecos.commons.utils.StringUtils;
 import ru.citeck.ecos.model.IdocsModel;
+import ru.citeck.ecos.commons.utils.StringUtils;
 
 import javax.annotation.PostConstruct;
+import java.io.Serializable;
+import java.util.Map;
 
 @Configuration
 public class IdocsDisplayNameConfiguration {
@@ -19,12 +22,14 @@ public class IdocsDisplayNameConfiguration {
     }
 
     public String evalContractorDisplayName(AlfNodeInfo info) {
-        String shortName = (String) info.getProperty(IdocsModel.PROP_SHORT_ORGANIZATION_NAME);
+
+        Map<QName, Serializable> props = info.getProperties();
+        String shortName = (String) props.get(IdocsModel.PROP_SHORT_ORGANIZATION_NAME);
         if (StringUtils.isNotBlank(shortName)) {
             return shortName;
         }
 
-        String fullName = (String) info.getProperty(IdocsModel.PROP_FULL_ORG_NAME);
+        String fullName = (String) props.get(IdocsModel.PROP_FULL_ORG_NAME);
         if (StringUtils.isNotBlank(fullName)) {
             return fullName;
         }

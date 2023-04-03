@@ -3,12 +3,14 @@ package ru.citeck.ecos.node;
 import org.alfresco.model.ContentModel;
 import org.alfresco.service.cmr.repository.MLText;
 import org.alfresco.service.cmr.security.AuthorityType;
+import org.alfresco.service.namespace.QName;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
 
 import javax.annotation.PostConstruct;
 import java.io.Serializable;
+import java.util.Map;
 
 @Configuration
 public class DisplayNameConfiguration {
@@ -25,8 +27,10 @@ public class DisplayNameConfiguration {
 
     private String evalPersonDisplayName(AlfNodeInfo info) {
 
-        String firstName = (String) info.getProperty(ContentModel.PROP_FIRSTNAME);
-        String lastName = (String) info.getProperty(ContentModel.PROP_LASTNAME);
+        Map<QName, Serializable> props = info.getProperties();
+
+        String firstName = (String) props.get(ContentModel.PROP_FIRSTNAME);
+        String lastName = (String) props.get(ContentModel.PROP_LASTNAME);
 
         StringBuilder result = new StringBuilder();
         if (StringUtils.isNotBlank(firstName)) {
@@ -40,7 +44,7 @@ public class DisplayNameConfiguration {
         }
 
         if (result.length() == 0) {
-            String userName = (String) info.getProperty(ContentModel.PROP_USERNAME);
+            String userName = (String) props.get(ContentModel.PROP_USERNAME);
             if (StringUtils.isNotBlank(userName)) {
                 result.append(userName);
             } else {
@@ -52,12 +56,15 @@ public class DisplayNameConfiguration {
     }
 
     private String evalAuthorityContainerDisplayName(AlfNodeInfo info) {
-        String displayName = (String) info.getProperty(ContentModel.PROP_AUTHORITY_DISPLAY_NAME);
+
+        Map<QName, Serializable> props = info.getProperties();
+
+        String displayName = (String) props.get(ContentModel.PROP_AUTHORITY_DISPLAY_NAME);
         if (StringUtils.isNotBlank(displayName)) {
             return displayName;
         }
 
-        String authorityName = (String) info.getProperty(ContentModel.PROP_AUTHORITY_NAME);
+        String authorityName = (String) props.get(ContentModel.PROP_AUTHORITY_NAME);
         String authNameWithoutPrefix;
         if (authorityName != null) {
             authNameWithoutPrefix = authorityName.replaceFirst(AuthorityType.GROUP.getPrefixString(), "");
@@ -68,7 +75,10 @@ public class DisplayNameConfiguration {
     }
 
     public String evalDefaultDisplayName(AlfNodeInfo info) {
-        Serializable titleValue = info.getProperty(ContentModel.PROP_TITLE);
+
+        Map<QName, Serializable> props = info.getProperties();
+
+        Serializable titleValue = props.get(ContentModel.PROP_TITLE);
         String title;
         if (titleValue instanceof MLText) {
             title = ((MLText) titleValue).getDefaultValue();
@@ -76,7 +86,7 @@ public class DisplayNameConfiguration {
             title = (String) titleValue;
         }
 
-        String name = (String) info.getProperty(ContentModel.PROP_NAME);
+        String name = (String) props.get(ContentModel.PROP_NAME);
 
         return StringUtils.isNotBlank(title) ? title : name;
     }

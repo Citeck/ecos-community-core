@@ -41,12 +41,4 @@ public class AlfNodeInfoImpl implements AlfNodeInfo {
         }
         return Collections.emptyMap();
     }
-
-    @Override
-    public Serializable getProperty(QName qName) {
-        if (AccessStatus.ALLOWED.equals(permissionService.hasPermission(nodeRef, PermissionService.READ))) {
-            return nodeService.getProperty(nodeRef, qName);
-        }
-        return null;
-    }
 }

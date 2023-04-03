@@ -6,6 +6,7 @@ import ecos.com.google.common.cache.LoadingCache;
 import org.alfresco.model.ContentModel;
 import org.alfresco.service.cmr.repository.NodeRef;
 import org.alfresco.service.cmr.repository.NodeService;
+import org.alfresco.service.namespace.QName;
 import org.alfresco.util.Pair;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,6 +16,8 @@ import ru.citeck.ecos.model.EcosTypeModel;
 import ru.citeck.ecos.records2.RecordRef;
 
 import javax.annotation.PostConstruct;
+import java.io.Serializable;
+import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
@@ -40,12 +43,15 @@ public class EcosTypeConfiguration {
     }
 
     private RecordRef evalDefaultEcosType(AlfNodeInfo info) {
-        String ecosTypeId = (String) info.getProperty(EcosTypeModel.PROP_TYPE);
+
+        Map<QName, Serializable> props = info.getProperties();
+
+        String ecosTypeId = (String) props.get(EcosTypeModel.PROP_TYPE);
 
         if (StringUtils.isBlank(ecosTypeId)) {
 
-            NodeRef type = (NodeRef) info.getProperty(ClassificationModel.PROP_DOCUMENT_TYPE);
-            NodeRef kind = (NodeRef) info.getProperty(ClassificationModel.PROP_DOCUMENT_KIND);
+            NodeRef type = (NodeRef) props.get(ClassificationModel.PROP_DOCUMENT_TYPE);
+            NodeRef kind = (NodeRef) props.get(ClassificationModel.PROP_DOCUMENT_KIND);
 
             ecosTypeId = typeByTK.getUnchecked(new Pair<>(type, kind)).orElse(null);
         }
