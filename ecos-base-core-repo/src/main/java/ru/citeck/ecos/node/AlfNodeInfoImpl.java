@@ -1,6 +1,5 @@
 package ru.citeck.ecos.node;
 
-import org.alfresco.repo.security.permissions.AccessDeniedException;
 import org.alfresco.service.ServiceRegistry;
 import org.alfresco.service.cmr.repository.NodeRef;
 import org.alfresco.service.cmr.repository.NodeService;
@@ -41,5 +40,13 @@ public class AlfNodeInfoImpl implements AlfNodeInfo {
             return nodeService.getProperties(nodeRef);
         }
         return Collections.emptyMap();
+    }
+
+    @Override
+    public Serializable getProperty(QName qName) {
+        if (AccessStatus.ALLOWED.equals(permissionService.hasPermission(nodeRef, PermissionService.READ))) {
+            return nodeService.getProperty(nodeRef, qName);
+        }
+        return null;
     }
 }

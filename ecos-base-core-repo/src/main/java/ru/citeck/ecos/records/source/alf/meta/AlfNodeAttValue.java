@@ -1,7 +1,6 @@
 package ru.citeck.ecos.records.source.alf.meta;
 
 import com.fasterxml.jackson.databind.util.ISO8601Utils;
-import java.io.ByteArrayOutputStream;
 import lombok.Getter;
 import org.alfresco.error.AlfrescoRuntimeException;
 import org.alfresco.model.ContentModel;
@@ -27,6 +26,7 @@ import ru.citeck.ecos.records2.graphql.meta.value.MetaField;
 import ru.citeck.ecos.records2.graphql.meta.value.MetaValue;
 import ru.citeck.ecos.utils.DictUtils;
 
+import java.io.ByteArrayOutputStream;
 import java.io.Serializable;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
@@ -313,6 +313,11 @@ public class AlfNodeAttValue implements MetaValue {
         @Override
         public Map<QName, Serializable> getProperties() {
             return alfNode.getProperties();
+        }
+
+        @Override
+        public Serializable getProperty(QName qName) {
+            return getProperties().get(qName);
         }
     }
 

@@ -527,6 +527,11 @@ public class AlfNodeRecord implements MetaValue {
 
             return result;
         }
+
+        @Override
+        public Serializable getProperty(QName qName) {
+            return getProperties().get(qName);
+        }
     }
 
     public static class KeyWithDisp implements MetaValue {

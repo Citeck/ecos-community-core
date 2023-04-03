@@ -13,4 +13,6 @@ public interface AlfNodeInfo {
     NodeRef getNodeRef();
 
     Map<QName, Serializable> getProperties();
+
+    Serializable getProperty(QName qName);
 }
