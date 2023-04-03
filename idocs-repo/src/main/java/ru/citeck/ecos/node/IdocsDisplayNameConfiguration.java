@@ -25,11 +25,12 @@ public class IdocsDisplayNameConfiguration {
 
         Map<QName, Serializable> props = info.getProperties();
         String shortName = (String) props.get(IdocsModel.PROP_SHORT_ORGANIZATION_NAME);
-        String fullName = (String) props.get(IdocsModel.PROP_FULL_ORG_NAME);
-
         if (StringUtils.isNotBlank(shortName)) {
             return shortName;
-        } else if (StringUtils.isNotBlank(fullName)) {
+        }
+
+        String fullName = (String) props.get(IdocsModel.PROP_FULL_ORG_NAME);
+        if (StringUtils.isNotBlank(fullName)) {
             return fullName;
         }
 

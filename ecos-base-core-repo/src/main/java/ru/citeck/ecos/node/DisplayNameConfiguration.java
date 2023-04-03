@@ -60,12 +60,18 @@ public class DisplayNameConfiguration {
         Map<QName, Serializable> props = info.getProperties();
 
         String displayName = (String) props.get(ContentModel.PROP_AUTHORITY_DISPLAY_NAME);
+        if (StringUtils.isNotBlank(displayName)) {
+            return displayName;
+        }
+
         String authorityName = (String) props.get(ContentModel.PROP_AUTHORITY_NAME);
-        String authNameWithoutPrefix = "";
+        String authNameWithoutPrefix;
         if (authorityName != null) {
             authNameWithoutPrefix = authorityName.replaceFirst(AuthorityType.GROUP.getPrefixString(), "");
+        } else {
+            authNameWithoutPrefix = "";
         }
-        return StringUtils.isNotBlank(displayName) ? displayName : authNameWithoutPrefix;
+        return authNameWithoutPrefix;
     }
 
     public String evalDefaultDisplayName(AlfNodeInfo info) {
