@@ -619,12 +619,17 @@ public class ValuePredicateToFtsConverter implements PredicateToFtsConverter {
                 RecordsQuery recordsQuery = new RecordsQuery.Builder()
                     .withSourceId("emodel/type")
                     .withLanguage("predicate")
-                    .withQuery(Predicates.contains(configAtt, value))
+                    .withQuery(value.contains("%") ? new ValuePredicate(configAtt, ValuePredicate.Type.LIKE, value) :
+                        Predicates.contains(configAtt, value))
                     .build();
                 RecsQueryRes<RecordRef> typeResults = recordsService.query(recordsQuery);
                 query.open();
-                for (RecordRef typeRef : typeResults.getRecords()) {
-                    query.or().value(EcosTypeModel.PROP_TYPE, typeRef.getId(), true);
+                if (!typeResults.getRecords().isEmpty()) {
+                    for (RecordRef typeRef : typeResults.getRecords()) {
+                        query.or().value(EcosTypeModel.PROP_TYPE, typeRef.getId(), true);
+                    }
+                } else {
+                    query.value(EcosTypeModel.PROP_TYPE, null, true);
                 }
                 query.close();
             }
