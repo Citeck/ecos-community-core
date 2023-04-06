@@ -1,0 +1,21 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+                           http://www.springframework.org/schema/beans/spring-beans-3.0.xsd">
+
+    <!-- Custom session factory to load the Ibatis configuration file -->
+    <bean id="customSqlSessionFactory" class="org.alfresco.ibatis.HierarchicalSqlSessionFactoryBean">
+        <property name="resourceLoader" ref="dialectResourceLoader"/>
+        <property name="dataSource" ref="dataSource"/>
+        <property name="configLocation">
+            <value>classpath:alfresco/module/ecos-base-core-repo/ibatis/custom-alfresco-SqlMapConfig.xml</value>
+        </property>
+    </bean>
+
+    <!-- Custom session template to be used in the canned query dao, etc -->
+    <bean id="customSqlSessionTemplate" class="org.mybatis.spring.SqlSessionTemplate">
+        <constructor-arg index="0" ref="customSqlSessionFactory"/>
+    </bean>
+
+</beans>
