@@ -1,0 +1,137 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="custom.alfresco.node.select.children">
+
+    <resultMap id="result_ChildAssocIds" type="ChildAssocLimit">
+        <result property="id" column="id" jdbcType="BIGINT" javaType="java.lang.Long"/>
+        <result property="childNode.id" column="child_node_id" jdbcType="BIGINT" javaType="java.lang.Long"/>
+    </resultMap>
+    <resultMap id="result_ChildAssoc" type="ChildAssocLimit">
+        <result property="id" column="id" jdbcType="BIGINT" javaType="java.lang.Long"/>
+        <result property="parentNode.id" column="parentNodeId" jdbcType="BIGINT" javaType="java.lang.Long"/>
+        <result property="parentNode.version" column="parentNodeVersion" jdbcType="BIGINT" javaType="java.lang.Long"/>
+        <result property="parentNode.store.protocol" column="parentNodeProtocol" jdbcType="VARCHAR" javaType="java.lang.String"/>
+        <result property="parentNode.store.identifier" column="parentNodeIdentifier" jdbcType="VARCHAR" javaType="java.lang.String"/>
+        <result property="parentNode.uuid" column="parentNodeUuid" jdbcType="VARCHAR" javaType="java.lang.String"/>
+        <result property="childNode.id" column="childNodeId" jdbcType="BIGINT" javaType="java.lang.Long"/>
+        <result property="childNode.version" column="childNodeVersion" jdbcType="BIGINT" javaType="java.lang.Long"/>
+        <result property="childNode.store.protocol" column="childNodeProtocol" jdbcType="VARCHAR" javaType="java.lang.String"/>
+        <result property="childNode.store.identifier" column="childNodeIdentifier" jdbcType="VARCHAR" javaType="java.lang.String"/>
+        <result property="childNode.uuid" column="childNodeUuid" jdbcType="VARCHAR" javaType="java.lang.String"/>
+        <result property="typeQNameId" column="type_qname_id" jdbcType="BIGINT" javaType="java.lang.Long"/>
+        <result property="childNodeNameCrc" column="child_node_name_crc" jdbcType="BIGINT" javaType="java.lang.Long"/>
+        <result property="childNodeName" column="child_node_name" jdbcType="VARCHAR" javaType="java.lang.String"/>
+        <result property="qnameNamespaceId" column="qname_ns_id" jdbcType="BIGINT" javaType="java.lang.Long"/>
+        <result property="qnameLocalName" column="qname_localname" jdbcType="VARCHAR" javaType="java.lang.String"/>
+        <result property="isPrimary" column="is_primary" jdbcType="BIT" javaType="java.lang.Boolean" />
+        <result property="assocIndex" column="assoc_index" jdbcType="INTEGER" javaType="java.lang.Integer"/>
+    </resultMap>
+
+    <!-- Common results for result_ChildAssoc -->
+    <sql id="select_ChildAssoc_Results">
+        select
+        assoc.id                    as id,
+        parentNode.id               as parentNodeId,
+        parentNode.version          as parentNodeVersion,
+        parentStore.protocol        as parentNodeProtocol,
+        parentStore.identifier      as parentNodeIdentifier,
+        parentNode.uuid             as parentNodeUuid,
+        childNode.id                as childNodeId,
+        childNode.version           as childNodeVersion,
+        childStore.protocol         as childNodeProtocol,
+        childStore.identifier       as childNodeIdentifier,
+        childNode.uuid              as childNodeUuid,
+        assoc.type_qname_id         as type_qname_id,
+        assoc.child_node_name_crc   as child_node_name_crc,
+        assoc.child_node_name       as child_node_name,
+        assoc.qname_ns_id           as qname_ns_id,
+        assoc.qname_localname       as qname_localname,
+        assoc.is_primary            as is_primary,
+        assoc.assoc_index           as assoc_index
+    </sql>
+
+    <sql id="select_ChildAssoc_FromSimple">
+        from
+        alf_child_assoc assoc
+        join alf_node parentNode on (parentNode.id = assoc.parent_node_id)
+        join alf_store parentStore on (parentStore.id = parentNode.store_id)
+        join alf_node childNode on (childNode.id = assoc.child_node_id)
+        join alf_store childStore on (childStore.id = childNode.store_id)
+    </sql>
+
+    <sql id="select_ChildAssoc_OrderBy">
+        order by
+        assoc.assoc_index ASC,
+        assoc.id ASC
+    </sql>
+
+    <sql id="select_ChildAssocsOfParent_Query">
+        <include refid="custom.alfresco.node.select.children.select_ChildAssoc_Results"/>
+        <include refid="custom.alfresco.node.select.children.select_ChildAssoc_FromSimple"/>
+        where
+        parentNode.id = #{parentNode.id}
+        <if test="id != null"><![CDATA[and assoc.id >= #{id}]]></if>
+        <if test="childNode != null">and assoc.child_node_id = #{childNode.id}</if>
+        <if test="typeQNameIds != null">
+            and assoc.type_qname_id in
+            <foreach item="item" index="index" collection="typeQNameIds" open="(" separator="," close=")">
+                #{item}
+            </foreach>
+        </if>
+        <if test="typeQNameId != null">and assoc.type_qname_id = #{typeQNameId}</if>
+        <if test="qnameCrc != null">and assoc.qname_crc = #{qnameCrc}</if>
+        <if test="qnameNamespaceId != null">and assoc.qname_ns_id = #{qnameNamespaceId}</if>
+        <if test="qnameLocalName != null">and assoc.qname_localname = #{qnameLocalName}</if>
+        <if test="isPrimary != null">and assoc.is_primary = #{isPrimary}</if>
+        <if test="childNodeName != null">and assoc.child_node_name = #{childNodeName}</if>
+        <if test="childNodeNameCrc != null">and assoc.child_node_name_crc = #{childNodeNameCrc}</if>
+        <if test="childNodeNameCrcs != null">
+            and child_node_name_crc in
+            <foreach item="item" index="index" collection="childNodeNameCrcs" open="(" separator="," close=")">
+                #{item}
+            </foreach>
+        </if>
+        <if test="childNodeTypeQNameIds != null">
+            and childNode.type_qname_id in
+            <foreach item="item" index="index" collection="childNodeTypeQNameIds" open="(" separator="," close=")">
+                #{item}
+            </foreach>
+        </if>
+        <if test="sameStore != null">
+            <if test="sameStore == true">and parentStore.id = childStore.id</if>
+            <if test="sameStore == false"><![CDATA[and parentStore.id <> childStore.id]]></if>
+        </if>
+    </sql>
+
+    <select id="select_ChildAssocsOfParent_Limited" parameterType="ChildAssocLimit" resultMap="result_ChildAssoc">
+        <include refid="custom.alfresco.node.select.children.select_ChildAssocsOfParent_Query"/>
+        <if test="ordered == true">
+            <include refid="custom.alfresco.node.select.children.select_ChildAssoc_OrderBy"/>
+        </if>
+        <if test="limit != null">
+            limit ${limit}
+        </if>
+    </select>
+
+    <select id="select_ChildNodeIds_Limited" parameterType="ChildAssocLimit" resultMap="result_ChildAssocIds">
+        <![CDATA[
+        select
+            ca.id               as id,
+            ca.child_node_id    as child_node_id
+        from
+            alf_child_assoc ca
+        where
+            ca.parent_node_id = #{parentNode.id} and
+            ca.is_primary = #{isPrimary} and
+            ca.id >= #{id}
+        order by
+            ca.id
+        ]]>
+        <if test="limit != null">
+            limit ${limit}
+        </if>
+    </select>
+
+</mapper>
