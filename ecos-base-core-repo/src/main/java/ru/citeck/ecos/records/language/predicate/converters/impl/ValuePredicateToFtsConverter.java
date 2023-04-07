@@ -15,6 +15,7 @@ import org.alfresco.service.namespace.QName;
 import org.alfresco.util.Pair;
 import org.apache.commons.lang.StringUtils;
 import org.jetbrains.annotations.Nullable;
+import org.json.simple.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -401,7 +402,12 @@ public class ValuePredicateToFtsConverter implements PredicateToFtsConverter {
         attribute = context.getAttsMapping().getOrDefault(attribute, attribute);
 
         DataValue objectPredicateValue = valuePredicate.getValue();
-        String predicateValue = objectPredicateValue.asText().replaceAll("\"", "\\\\\"");
+        String valuePredicateRawText = objectPredicateValue.asText();
+        String predicateValue = valuePredicateRawText;
+        if (!valuePredicateRawText.startsWith("workspace://")) {
+            JSONObject valueTextHelper = new JSONObject();
+            predicateValue = valueTextHelper.escape(objectPredicateValue.asText());
+        }
 
         ClassAttributeDefinition attDef = dictUtils.getAttDefinition(attribute);
         QName field = getQueryField(attDef);
