@@ -442,12 +442,22 @@ public class CaseRoleServiceImpl implements CaseRoleService {
 
     @Override
     public boolean isRoleMember(NodeRef caseRef, String roleName, NodeRef authorityRef) {
-        return isRoleMember(needRole(caseRef, roleName), authorityRef);
+        NodeRef role = getRole(caseRef, roleName);
+        if (role == null) {
+            return false;
+        }
+
+        return isRoleMember(role, authorityRef);
     }
 
     @Override
     public boolean isRoleMember(NodeRef caseRef, String roleName, NodeRef authorityRef, boolean immediate) {
-        return isRoleMember(needRole(caseRef, roleName), authorityRef, immediate);
+        NodeRef role = getRole(caseRef, roleName);
+        if (role == null) {
+            return false;
+        }
+
+        return isRoleMember(role, authorityRef, immediate);
     }
 
     @Override
