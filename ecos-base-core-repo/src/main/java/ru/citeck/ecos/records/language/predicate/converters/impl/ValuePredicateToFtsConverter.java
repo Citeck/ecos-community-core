@@ -40,6 +40,7 @@ import ru.citeck.ecos.search.ftsquery.BinOperator;
 import ru.citeck.ecos.search.ftsquery.FTSQuery;
 import ru.citeck.ecos.utils.AuthorityUtils;
 import ru.citeck.ecos.utils.DictUtils;
+import ru.citeck.ecos.utils.NodeUtils;
 
 import javax.annotation.PostConstruct;
 import javax.xml.datatype.Duration;
@@ -402,11 +403,9 @@ public class ValuePredicateToFtsConverter implements PredicateToFtsConverter {
         attribute = context.getAttsMapping().getOrDefault(attribute, attribute);
 
         DataValue objectPredicateValue = valuePredicate.getValue();
-        String valuePredicateRawText = objectPredicateValue.asText();
-        String predicateValue = valuePredicateRawText;
-        if (!valuePredicateRawText.startsWith("workspace://")) {
-            JSONObject valueTextHelper = new JSONObject();
-            predicateValue = valueTextHelper.escape(objectPredicateValue.asText());
+        String predicateValue = objectPredicateValue.asText();
+        if (!predicateValue.contains(NodeUtils.WORKSPACE_PREFIX)) {
+            predicateValue = JSONObject.escape(objectPredicateValue.asText());
         }
 
         ClassAttributeDefinition attDef = dictUtils.getAttDefinition(attribute);
