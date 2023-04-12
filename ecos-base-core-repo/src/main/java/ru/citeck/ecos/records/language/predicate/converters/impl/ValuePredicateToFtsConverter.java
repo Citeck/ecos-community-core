@@ -181,7 +181,7 @@ public class ValuePredicateToFtsConverter implements PredicateToFtsConverter {
                 break;
             default:
                 if (attribute.startsWith(_TYPE_CONFIG)) {
-                    processTypeConfigValues(query, attribute, predicateValue);
+                    processTypeConfigValues(query, attribute, predicateValue, valuePredicate.getType());
                 } else {
                     if (IN.equals(valuePredicate.getType())) {
                         processInAttribute(query, valuePredicate, context);
@@ -616,7 +616,8 @@ public class ValuePredicateToFtsConverter implements PredicateToFtsConverter {
         }
     }
 
-    private void processTypeConfigValues(FTSQuery query, String attribute, String value) {
+    private void processTypeConfigValues(FTSQuery query, String attribute, String value,
+                                         ValuePredicate.Type predicateType) {
         int configAttIdx = attribute.indexOf(".") + 1;
         if (attribute.length() > configAttIdx) {
             String configAtt = attribute.substring(configAttIdx);
@@ -624,12 +625,18 @@ public class ValuePredicateToFtsConverter implements PredicateToFtsConverter {
                 RecordsQuery recordsQuery = new RecordsQuery.Builder()
                     .withSourceId("emodel/type")
                     .withLanguage("predicate")
-                    .withQuery(Predicates.contains(configAtt, value))
+                    .withQuery(ValuePredicate.Type.LIKE.equals(predicateType) ?
+                        new ValuePredicate(configAtt, predicateType, value) :
+                        Predicates.contains(configAtt, value))
                     .build();
                 RecsQueryRes<RecordRef> typeResults = recordsService.query(recordsQuery);
                 query.open();
-                for (RecordRef typeRef : typeResults.getRecords()) {
-                    query.or().value(EcosTypeModel.PROP_TYPE, typeRef.getId(), true);
+                if (!typeResults.getRecords().isEmpty()) {
+                    for (RecordRef typeRef : typeResults.getRecords()) {
+                        query.or().value(EcosTypeModel.PROP_TYPE, typeRef.getId(), true);
+                    }
+                } else {
+                    query.value(EcosTypeModel.PROP_TYPE, null, true);
                 }
                 query.close();
             }
