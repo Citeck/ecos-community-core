@@ -15,7 +15,7 @@ import org.alfresco.service.namespace.QName;
 import org.alfresco.util.Pair;
 import org.apache.commons.lang.StringUtils;
 import org.jetbrains.annotations.Nullable;
-import org.json.simple.JSONObject;
+import org.json.simple.JSONValue;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -405,7 +405,7 @@ public class ValuePredicateToFtsConverter implements PredicateToFtsConverter {
         DataValue objectPredicateValue = valuePredicate.getValue();
         String predicateValue = objectPredicateValue.asText();
         if (!predicateValue.contains(NodeUtils.WORKSPACE_PREFIX)) {
-            predicateValue = JSONObject.escape(objectPredicateValue.asText());
+            predicateValue = JSONValue.escape(predicateValue);
         }
 
         ClassAttributeDefinition attDef = dictUtils.getAttDefinition(attribute);
