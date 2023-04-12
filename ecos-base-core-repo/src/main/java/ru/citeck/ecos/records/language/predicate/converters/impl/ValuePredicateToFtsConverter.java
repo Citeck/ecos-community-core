@@ -15,6 +15,7 @@ import org.alfresco.service.namespace.QName;
 import org.alfresco.util.Pair;
 import org.apache.commons.lang.StringUtils;
 import org.jetbrains.annotations.Nullable;
+import org.json.simple.JSONValue;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -39,6 +40,7 @@ import ru.citeck.ecos.search.ftsquery.BinOperator;
 import ru.citeck.ecos.search.ftsquery.FTSQuery;
 import ru.citeck.ecos.utils.AuthorityUtils;
 import ru.citeck.ecos.utils.DictUtils;
+import ru.citeck.ecos.utils.NodeUtils;
 
 import javax.annotation.PostConstruct;
 import javax.xml.datatype.Duration;
@@ -401,7 +403,10 @@ public class ValuePredicateToFtsConverter implements PredicateToFtsConverter {
         attribute = context.getAttsMapping().getOrDefault(attribute, attribute);
 
         DataValue objectPredicateValue = valuePredicate.getValue();
-        String predicateValue = objectPredicateValue.asText().replaceAll("\"", "\\\\\"");
+        String predicateValue = objectPredicateValue.asText();
+        if (!predicateValue.contains(NodeUtils.WORKSPACE_PREFIX)) {
+            predicateValue = JSONValue.escape(predicateValue);
+        }
 
         ClassAttributeDefinition attDef = dictUtils.getAttDefinition(attribute);
         QName field = getQueryField(attDef);
