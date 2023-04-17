@@ -256,6 +256,20 @@ public class HistoryUtils {
         AlfrescoTransactionSupport.bindResource(resourceKey, listAssocRef);
     }
 
+    private static void doBeforeCommitInSecureContext(String actionId, Runnable runnable) {
+        TransactionUtils.doBeforeCommit(actionId, () -> {
+            String currentUser = AuthenticationUtil.getFullyAuthenticatedUser();
+            if (StringUtils.isBlank(currentUser)) {
+                AuthenticationUtil.runAsSystem(() -> {
+                    runnable.run();
+                    return null;
+                });
+            } else {
+                runnable.run();
+            }
+        });
+    }
+
     @Deprecated
     public static void addUpdateResourseToTransaction(final Serializable resourceKey,
                                                       final HistoryService historyService,
@@ -268,24 +282,14 @@ public class HistoryUtils {
                                                       final HistoryService historyService,
                                                       final DictionaryService dictionaryService,
                                                       final NodeService nodeService) {
-
-        TransactionUtils.doBeforeCommit("HistoryUtils.addUpdateResourceToTransaction", () -> {
-            String currentUser = AuthenticationUtil.getFullyAuthenticatedUser();
-            if (StringUtils.isBlank(currentUser)) {
-                AuthenticationUtil.runAsSystem(() -> {
-                    _addUpdateResourceToTransaction(resourceKey, historyService, dictionaryService, nodeService);
-                    return null;
-                });
-            } else {
-                _addUpdateResourceToTransaction(resourceKey, historyService, dictionaryService, nodeService);
-            }
-        });
+        doBeforeCommitInSecureContext("HistoryUtils.addUpdateResourceToTransaction",
+            () -> runAssocFromTransaction(resourceKey, historyService, dictionaryService, nodeService));
     }
 
-    private static void _addUpdateResourceToTransaction(Serializable resourceKey,
-                                                        HistoryService historyService,
-                                                        DictionaryService dictionaryService,
-                                                        NodeService nodeService) {
+    private static void runAssocFromTransaction(Serializable resourceKey,
+                                                HistoryService historyService,
+                                                DictionaryService dictionaryService,
+                                                NodeService nodeService) {
         List<AssociationRef> added = new ArrayList<>();
         List<AssociationRef> removed = new ArrayList<>();
 
@@ -372,35 +376,24 @@ public class HistoryUtils {
                                                                  final DictionaryService dictionaryService,
                                                                  final NodeService nodeService,
                                                                  final String nodeRefName) {
-        addUpdateChildAssocsResourceToTransaction(resourceKey, historyService, dictionaryService, nodeService, nodeRefName);
+        addUpdateChildAssocResourceToTransaction(resourceKey, historyService, dictionaryService, nodeService, nodeRefName);
     }
 
-    public static void addUpdateChildAssocsResourceToTransaction(final Serializable resourceKey,
-                                                                 final HistoryService historyService,
-                                                                 final DictionaryService dictionaryService,
-                                                                 final NodeService nodeService,
-                                                                 final String nodeRefName) {
-
-        TransactionUtils.doBeforeCommit("HistoryUtils.addUpdateChildAssocsResourceToTransaction", () -> {
-            String currentUser = AuthenticationUtil.getFullyAuthenticatedUser();
-            if (StringUtils.isBlank(currentUser)) {
-                AuthenticationUtil.runAsSystem(() -> {
-                    _addUpdateChildAssocsResourceToTransaction(resourceKey, historyService, dictionaryService,
-                        nodeService, nodeRefName);
-                    return null;
-                });
-            } else {
-                _addUpdateChildAssocsResourceToTransaction(resourceKey, historyService, dictionaryService, nodeService,
-                    nodeRefName);
-            }
-        });
+    public static void addUpdateChildAssocResourceToTransaction(final Serializable resourceKey,
+                                                                final HistoryService historyService,
+                                                                final DictionaryService dictionaryService,
+                                                                final NodeService nodeService,
+                                                                final String nodeRefName) {
+        doBeforeCommitInSecureContext("HistoryUtils.addUpdateChildAssocsResourceToTransaction",
+            () -> runChildAssocFromTransaction(resourceKey, historyService, dictionaryService, nodeService,
+                nodeRefName));
     }
 
-    private static void _addUpdateChildAssocsResourceToTransaction(Serializable resourceKey,
-                                                                   HistoryService historyService,
-                                                                   DictionaryService dictionaryService,
-                                                                   NodeService nodeService,
-                                                                   String nodeRefName) {
+    private static void runChildAssocFromTransaction(Serializable resourceKey,
+                                                     HistoryService historyService,
+                                                     DictionaryService dictionaryService,
+                                                     NodeService nodeService,
+                                                     String nodeRefName) {
         List<ChildAssociationRef> added = new ArrayList<>();
         List<ChildAssociationRef> removed = new ArrayList<>();
 
