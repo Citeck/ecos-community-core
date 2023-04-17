@@ -311,7 +311,7 @@ public class HistoricalPropertiesBehaviour implements
 						nodeService.getProperty(nodeTarget, ClassificationModel.PROP_DOCUMENT_TYPE),
 						nodeService.getProperty(nodeTarget, ClassificationModel.PROP_DOCUMENT_KIND)
 				));
-                HistoryUtils.addUpdateChildAssocsResourceToTransaction(HistoryUtils.CHILD_ASSOC_ADDED, historyService,
+                HistoryUtils.addUpdateChildAssocResourceToTransaction(HistoryUtils.CHILD_ASSOC_ADDED, historyService,
                     dictionaryService, nodeService, "");
 			}
 		}
@@ -343,7 +343,7 @@ public class HistoricalPropertiesBehaviour implements
 						nodeService.getProperty(nodeTarget, ClassificationModel.PROP_DOCUMENT_TYPE),
 						nodeService.getProperty(nodeTarget, ClassificationModel.PROP_DOCUMENT_KIND)
 				));
-                HistoryUtils.addUpdateChildAssocsResourceToTransaction(
+                HistoryUtils.addUpdateChildAssocResourceToTransaction(
                     HistoryUtils.CHILD_ASSOC_REMOVED,
                     historyService,
                     dictionaryService,
@@ -384,7 +384,7 @@ public class HistoricalPropertiesBehaviour implements
 						nodeService.getProperty(nodeTarget, ClassificationModel.PROP_DOCUMENT_TYPE),
 						nodeService.getProperty(nodeTarget, ClassificationModel.PROP_DOCUMENT_KIND)
 				));
-				HistoryUtils.addUpdateChildAssocsResourceToTransaction(
+				HistoryUtils.addUpdateChildAssocResourceToTransaction(
 				    HistoryUtils.CHILD_ASSOC_REMOVED,
                     historyService,
                     dictionaryService,
