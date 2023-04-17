@@ -31,13 +31,11 @@ import org.alfresco.service.cmr.repository.NodeService;
 import org.alfresco.service.namespace.QName;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import ru.citeck.ecos.behavior.JavaBehaviour;
 import ru.citeck.ecos.history.HistoryService;
 import ru.citeck.ecos.history.HistoryUtils;
 import ru.citeck.ecos.model.ClassificationModel;
 import ru.citeck.ecos.model.HistoryModel;
-import ru.citeck.ecos.node.DisplayNameService;
 
 import java.io.Serializable;
 import java.util.HashMap;
@@ -56,7 +54,6 @@ public class HistoricalPropertiesBehaviour implements
 	private PolicyComponent policyComponent;
 	private NodeService nodeService;
 	private HistoryService historyService;
-    private DisplayNameService displayNameService;
 
 	private QName className;
 	private List<QName> allowedProperties;
@@ -235,8 +232,7 @@ public class HistoricalPropertiesBehaviour implements
                                 nodeAssocRef,
                                 null,
                                 dictionaryService,
-                                nodeService,
-                                displayNameService),
+                                nodeService),
                             null,
                             null
 						));
@@ -244,8 +240,7 @@ public class HistoricalPropertiesBehaviour implements
 				    HistoryUtils.ASSOC_ADDED,
                     historyService,
                     dictionaryService,
-                    nodeService,
-                    displayNameService);
+                    nodeService);
 			}
 		}
 	}
@@ -278,13 +273,12 @@ public class HistoricalPropertiesBehaviour implements
                                 null,
                                 nodeAssocRef,
                                 dictionaryService,
-                                nodeService,
-                                displayNameService),
+                                nodeService),
                             null,
                             null
 						));
 				HistoryUtils.addUpdateResourceToTransaction(
-				    HistoryUtils.ASSOC_REMOVED, historyService, dictionaryService, nodeService, displayNameService);
+				    HistoryUtils.ASSOC_REMOVED, historyService, dictionaryService, nodeService);
 			}
 		}
 	}
@@ -318,7 +312,7 @@ public class HistoricalPropertiesBehaviour implements
 						nodeService.getProperty(nodeTarget, ClassificationModel.PROP_DOCUMENT_KIND)
 				));
                 HistoryUtils.addUpdateChildAssocsResourceToTransaction(HistoryUtils.CHILD_ASSOC_ADDED, historyService,
-                    dictionaryService, nodeService, displayNameService, "");
+                    dictionaryService, nodeService, "");
 			}
 		}
 	}
@@ -354,7 +348,6 @@ public class HistoricalPropertiesBehaviour implements
                     historyService,
                     dictionaryService,
                     nodeService,
-                    displayNameService,
                     ""
                 );
 			}
@@ -396,9 +389,8 @@ public class HistoricalPropertiesBehaviour implements
                     historyService,
                     dictionaryService,
                     nodeService,
-                    displayNameService,
                     HistoryUtils.getChildAssocComment(null, childAssociationRef, dictionaryService, nodeService,
-                        displayNameService, "")
+                        "")
                 );
 			}
 		}
@@ -436,9 +428,4 @@ public class HistoricalPropertiesBehaviour implements
 	public void setEnableHistoryOnDeleteChildAssocs(Boolean enableHistoryOnDeleteChildAssocs) {
 		this.enableHistoryOnDeleteChildAssocs = enableHistoryOnDeleteChildAssocs;
 	}
-
-    @Autowired
-    public void setDisplayNameService(DisplayNameService displayNameService) {
-        this.displayNameService = displayNameService;
-    }
 }
