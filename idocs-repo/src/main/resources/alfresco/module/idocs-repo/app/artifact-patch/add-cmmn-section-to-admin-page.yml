@@ -1,0 +1,23 @@
+id: add-cmmn-section-to-admin-page
+
+name:
+  ru: Добавить раздел "Сценарии CMMN" на страницу администратора
+  en: Add section "CMMN models" to admin page
+
+target: ui/admin-sections-group$process
+
+type: json
+config:
+  operations:
+    - op: add
+      path: '$.sections'
+      value:
+        name:
+          ru: Сценарии CMMN
+          en: CMMN models
+        shortName:
+          ru: CMMN
+          en: CMMN
+        type: JOURNAL
+        config:
+          journalId: cmmn-process-def
