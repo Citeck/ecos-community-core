@@ -233,17 +233,6 @@
                   "config": {
                     "url": "/share/page/site/cases/documentlibrary"
                   }
-                },
-                {
-                  "id": "fcacac98-a502-468c-b2a3-cfd91dea4859",
-                  "label": {
-                    "ru": "Календарь"
-                  },
-                  "hidden": false,
-                  "type": "ARBITRARY",
-                  "config": {
-                    "url": "/share/page/site/cases/calendar"
-                  }
                 }
               ]
             },
@@ -278,17 +267,6 @@
                   "config": {
                     "url": "/share/page/site/common-documents/documentlibrary"
                   }
-                },
-                {
-                  "id": "fb6c8df4-9ab6-4b37-aa86-70e6474e320f",
-                  "label": {
-                    "ru": "Календарь"
-                  },
-                  "hidden": false,
-                  "type": "ARBITRARY",
-                  "config": {
-                    "url": "/share/page/site/common-documents/calendar"
-                  }
                 }
               ]
             },
@@ -311,17 +289,6 @@
                   "type": "ARBITRARY",
                   "config": {
                     "url": "/share/page/site/personal-documents/documentlibrary"
-                  }
-                },
-                {
-                  "id": "606ebd8f-1dd6-43b0-ba15-01f17e3213f6",
-                  "label": {
-                    "ru": "Календарь"
-                  },
-                  "hidden": false,
-                  "type": "ARBITRARY",
-                  "config": {
-                    "url": "/share/page/site/personal-documents/calendar"
                   }
                 }
               ]
@@ -357,17 +324,6 @@
                   "type": "ARBITRARY",
                   "config": {
                     "url": "/share/page/site/meetings/documentlibrary"
-                  }
-                },
-                {
-                  "id": "f94e88dd-8b2b-44f9-a904-cd4985f0f531",
-                  "label": {
-                    "ru": "Календарь"
-                  },
-                  "hidden": false,
-                  "type": "ARBITRARY",
-                  "config": {
-                    "url": "/share/page/site/meetings/calendar"
                   }
                 }
               ]
@@ -426,17 +382,6 @@
                   "config": {
                     "url": "/share/page/site/ecos-tr/documentlibrary"
                   }
-                },
-                {
-                  "id": "48542876-a5a8-40a5-8a0b-6c8a39973254",
-                  "label": {
-                    "ru": "Календарь"
-                  },
-                  "hidden": false,
-                  "type": "ARBITRARY",
-                  "config": {
-                    "url": "/share/page/site/ecos-tr/calendar"
-                  }
                 }
               ]
             },
@@ -484,17 +429,6 @@
                   "type": "ARBITRARY",
                   "config": {
                     "url": "/share/page/site/letters/documentlibrary"
-                  }
-                },
-                {
-                  "id": "0ed2cbd9-49d0-4e96-9303-cdc6e499fb04",
-                  "label": {
-                    "ru": "Календарь"
-                  },
-                  "hidden": false,
-                  "type": "ARBITRARY",
-                  "config": {
-                    "url": "/share/page/site/letters/calendar"
                   }
                 }
               ]
@@ -564,17 +498,6 @@
                   "config": {
                     "url": "/share/page/site/contracts/documentlibrary"
                   }
-                },
-                {
-                  "id": "f70af52a-a6f4-4c90-a8e4-e50084fea401",
-                  "label": {
-                    "ru": "Календарь"
-                  },
-                  "hidden": false,
-                  "type": "ARBITRARY",
-                  "config": {
-                    "url": "/share/page/site/contracts/calendar"
-                  }
                 }
               ]
             },
@@ -609,17 +532,6 @@
                   "type": "ARBITRARY",
                   "config": {
                     "url": "/share/page/site/ecos-finance/documentlibrary"
-                  }
-                },
-                {
-                  "id": "215defee-bf07-420e-84ae-47c8c77dd834",
-                  "label": {
-                    "ru": "Календарь"
-                  },
-                  "hidden": false,
-                  "type": "ARBITRARY",
-                  "config": {
-                    "url": "/share/page/site/ecos-finance/calendar"
                   }
                 }
               ]
@@ -656,17 +568,6 @@
                   "config": {
                     "url": "/share/page/site/attorneys/documentlibrary"
                   }
-                },
-                {
-                  "id": "15f9e0f7-621c-48f5-b800-d5198f5fe5d0",
-                  "label": {
-                    "ru": "Календарь"
-                  },
-                  "hidden": false,
-                  "type": "ARBITRARY",
-                  "config": {
-                    "url": "/share/page/site/attorneys/calendar"
-                  }
                 }
               ]
             },
@@ -701,17 +602,6 @@
                   "type": "ARBITRARY",
                   "config": {
                     "url": "/share/page/site/order-pass/documentlibrary"
-                  }
-                },
-                {
-                  "id": "dc8f162d-1db5-471d-9ac7-da67e1066da7",
-                  "label": {
-                    "ru": "Календарь"
-                  },
-                  "hidden": false,
-                  "type": "ARBITRARY",
-                  "config": {
-                    "url": "/share/page/site/order-pass/calendar"
                   }
                 }
               ]
@@ -770,17 +660,6 @@
                   "config": {
                     "url": "/share/page/site/hr/documentlibrary"
                   }
-                },
-                {
-                  "id": "0972f9df-bafe-4a8f-bb73-0e791071bf5c",
-                  "label": {
-                    "ru": "Календарь"
-                  },
-                  "hidden": false,
-                  "type": "ARBITRARY",
-                  "config": {
-                    "url": "/share/page/site/hr/calendar"
-                  }
                 }
               ]
             },
@@ -815,17 +694,6 @@
                   "type": "ARBITRARY",
                   "config": {
                     "url": "/share/page/site/orders/documentlibrary"
-                  }
-                },
-                {
-                  "id": "413b1854-383b-43e9-b106-2ece3d543020",
-                  "label": {
-                    "ru": "Календарь"
-                  },
-                  "hidden": false,
-                  "type": "ARBITRARY",
-                  "config": {
-                    "url": "/share/page/site/orders/calendar"
                   }
                 }
               ]
