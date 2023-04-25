@@ -12,6 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
 import ru.citeck.ecos.context.lib.ContextServiceFactory;
 import ru.citeck.ecos.context.lib.auth.AuthContext;
+import ru.citeck.ecos.context.lib.auth.AuthRole;
 import ru.citeck.ecos.context.lib.auth.AuthUser;
 import ru.citeck.ecos.context.lib.auth.component.AuthComponent;
 import ru.citeck.ecos.context.lib.auth.component.SimpleAuthComponent;
@@ -96,7 +97,10 @@ public class AlfContextLibConfig extends ContextServiceFactory {
             if (AuthenticationUtil.SYSTEM_USER_NAME.equalsIgnoreCase(userName)) {
                 return AuthContext.getSystemAuthorities();
             } else {
-                return new ArrayList<>(authorityService.getAuthoritiesForUser(userName));
+                Set<String> userAuthorities = authorityService.getAuthoritiesForUser(userName);
+                userAuthorities.add(AuthRole.USER);
+
+                return new ArrayList<>(userAuthorities);
             }
         }
 
@@ -119,9 +123,9 @@ public class AlfContextLibConfig extends ContextServiceFactory {
                     try {
                         return action.invoke();
                     } finally {
-                       if (alfAuthRequired) {
-                           AuthenticationUtil.setFullAuthentication(fullAuthBefore);
-                       }
+                        if (alfAuthRequired) {
+                            AuthenticationUtil.setFullAuthentication(fullAuthBefore);
+                        }
                     }
                 } else {
                     return AuthenticationUtil.runAs(action::invoke, user);
