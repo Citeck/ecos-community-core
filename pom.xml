@@ -709,7 +709,7 @@
                     </executions>
                 </plugin>
 
- <!--               <plugin>
+                <plugin>
                     <groupId>com.github.eirslett</groupId>
                     <artifactId>frontend-maven-plugin</artifactId>
                     <version>1.6</version>
@@ -738,7 +738,7 @@
                             </goals>
                             <phase>process-resources</phase>
                             <configuration>
-                                <arguments>run-script build &#45;&#45; &#45;&#45;artifactId=${project.artifactId} &#45;&#45;skipCompression=${web.compression.skip}</arguments>
+                                <arguments>run-script build -- --artifactId=${project.artifactId} --skipCompression=${web.compression.skip}</arguments>
                             </configuration>
                         </execution>
                     </executions>
@@ -747,7 +747,7 @@
                         <installDirectory>../nodejs</installDirectory>
                         <nodeVersion>v8.11.2</nodeVersion>
                     </configuration>
-                </plugin>-->
+                </plugin>
 
             </plugins>
         </pluginManagement>
