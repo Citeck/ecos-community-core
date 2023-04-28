@@ -276,12 +276,22 @@ public class FlowableWorkflowComponent implements WorkflowComponent, Initializin
         String processDefinitionId = getLocalValue(workflowDefinitionId);
         ProcessInstanceBuilder processInstanceBuilder = runtimeService.createProcessInstanceBuilder();
         processInstanceBuilder.processDefinitionId(processDefinitionId);
+
         if (parameters != null) {
             Map<String, Object> transformedParameters = workflowPropertyHandlerRegistry.handleVariablesToSet(parameters,
                     workflowDefinition.getStartTaskDefinition().getMetadata(), null, Void.class);
             processInstanceBuilder.variables(transformedParameters);
         }
+
         ProcessInstance processInstance = processInstanceBuilder.start();
+
+        // In case the process ends immediately (e.g. it doesn't have user tasks)
+        if (processInstance.isEnded()) {
+            String processId = processInstance.getId();
+            HistoricProcessInstance historicProcessInstance = flowableHistoryService.getProcessInstanceById(processId);
+            return flowableTransformService.transformHistoryProcessInstanceToWorkflowPath(historicProcessInstance);
+        }
+
         return flowableTransformService.transformProcessInstanceToWorkflowPath(processInstance);
     }
 
