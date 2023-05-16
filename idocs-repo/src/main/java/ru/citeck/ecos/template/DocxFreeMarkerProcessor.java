@@ -18,6 +18,7 @@
  */
 package ru.citeck.ecos.template;
 
+import com.google.common.collect.ImmutableMap;
 import lombok.extern.slf4j.Slf4j;
 import org.alfresco.model.ContentModel;
 import org.alfresco.repo.processor.BaseProcessor;
@@ -30,12 +31,16 @@ import org.docx4j.jaxb.XPathBinderAssociationIsPartialException;
 import org.docx4j.openpackaging.exceptions.Docx4JException;
 import org.docx4j.openpackaging.io3.Save;
 import org.docx4j.openpackaging.packages.WordprocessingMLPackage;
+import org.docx4j.openpackaging.parts.CustomXmlDataStoragePart;
 import org.docx4j.openpackaging.parts.JaxbXmlPartXPathAware;
 import org.docx4j.openpackaging.parts.Part;
 import org.docx4j.openpackaging.parts.PartName;
 import org.docx4j.wml.ContentAccessor;
 import org.docx4j.wml.P;
 import org.docx4j.wml.Text;
+import org.mozilla.javascript.NativeJavaObject;
+import org.w3c.dom.Element;
+import ru.citeck.ecos.model.DmsModel;
 
 import javax.xml.bind.JAXBElement;
 import javax.xml.bind.JAXBException;
@@ -44,6 +49,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 /**
  * DOCX template processor with support of FreeMarker tags.
@@ -115,6 +121,8 @@ public class DocxFreeMarkerProcessor extends BaseProcessor implements TemplatePr
         NodeRef templateNodeRef = new NodeRef(template);
         WordprocessingMLPackage wpMLPackage = getWordTemplate(templateNodeRef);
 
+        prepareModel(wpMLPackage, model);
+
         // process each part of document, that has texts
         HashMap<PartName, Part> parts = wpMLPackage.getParts().getParts();
         for(Part part : parts.values()) {
@@ -150,6 +158,45 @@ public class DocxFreeMarkerProcessor extends BaseProcessor implements TemplatePr
         } catch (Docx4JException e) {
             log.error(e.getLocalizedMessage(), e);
         }
+    }
+
+    @SuppressWarnings("unchecked")
+    private void prepareModel(WordprocessingMLPackage wpMLPackage, Object model) {
+        if (!(model instanceof Map)) {
+            return;
+        }
+
+        List<String> scripts = wpMLPackage
+            .getCustomXmlDataStorageParts()
+            .values()
+            .stream()
+            .filter(customXmlPart -> customXmlPart instanceof CustomXmlDataStoragePart)
+            .map(customXmlPart -> {
+                try {
+                    Element documentElement = ((CustomXmlDataStoragePart) customXmlPart).getData().getDocument().getDocumentElement();
+                    if (!DmsModel.DMS_NAMESPACE.equals(documentElement.getNamespaceURI())) {
+                        return null;
+                    }
+                    return documentElement.getTextContent();
+                } catch (Docx4JException e) {
+                    log.error("Unable to read custom xml part data", e);
+                    return null;
+                }
+            })
+            .filter(Objects::nonNull)
+            .collect(Collectors.toList());
+
+        if (scripts.size() == 0) {
+            return;
+        }
+
+        Map<Object, Object> modelMap = (Map<Object, Object>) model;
+        Map<String, Object> scriptModel = ImmutableMap.of(
+            "document", modelMap.get("document"),
+            "model", modelMap
+        );
+        scripts.forEach(script -> scriptService.executeScriptString(script, scriptModel));
+        modelMap.replaceAll((key, value) -> value instanceof NativeJavaObject? ((NativeJavaObject) value).unwrap() : value);
     }
 
     protected void postProcess(WordprocessingMLPackage wpMLPackage) {

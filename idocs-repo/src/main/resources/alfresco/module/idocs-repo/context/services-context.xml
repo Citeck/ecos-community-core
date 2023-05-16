@@ -338,6 +338,7 @@
         <property name="processor" ref="freeMarkerProcessor"/>
         <property name="name" value="wordDocument" />
         <property name="extension" value="docx" />
+        <property name="scriptService" ref="scriptService" />
     </bean>
 
     <bean id="templateFormFilter" class="ru.citeck.ecos.template.TemplateFormFilter"
