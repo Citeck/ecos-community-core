@@ -6,6 +6,7 @@ import org.alfresco.repo.security.authentication.AuthenticationUtil;
 import org.alfresco.repo.transaction.RetryingTransactionHelper;
 import org.alfresco.service.transaction.TransactionService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.extensions.surf.util.I18NUtil;
 import ru.citeck.ecos.action.group.impl.CustomTxnGroupAction;
 import ru.citeck.ecos.action.group.impl.GroupActionExecutor;
 import ru.citeck.ecos.action.group.impl.GroupActionExecutorFactory;
@@ -25,8 +26,7 @@ import java.util.function.Function;
  */
 public class GroupActionServiceImpl implements GroupActionService {
 
-    private static final String ALREADY_RUNNING_MSG = "The action is already running. " +
-                                                      "You can not start several identical actions!";
+    private static final String ALREADY_RUNNING_MSG = "message.error-already-running";
 
     private final TransactionService transactionService;
     private final RecordsConfiguration recordsConfiguration;
@@ -50,7 +50,7 @@ public class GroupActionServiceImpl implements GroupActionService {
                 activeActions.remove(execution);
             }
         } else {
-            throw new IllegalStateException(ALREADY_RUNNING_MSG);
+            throw new IllegalStateException(I18NUtil.getMessage(ALREADY_RUNNING_MSG));
         }
     }
 
@@ -66,7 +66,7 @@ public class GroupActionServiceImpl implements GroupActionService {
         ActionExecution<T> execution = new ActionExecution<>(nodes, action, author);
 
         if (activeActions.contains(execution)) {
-            throw new IllegalStateException(ALREADY_RUNNING_MSG);
+            throw new IllegalStateException(I18NUtil.getMessage(ALREADY_RUNNING_MSG));
         }
 
         if (action.isAsync()) {
