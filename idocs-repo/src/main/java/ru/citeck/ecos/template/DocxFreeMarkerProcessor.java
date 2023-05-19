@@ -160,7 +160,6 @@ public class DocxFreeMarkerProcessor extends BaseProcessor implements TemplatePr
         }
     }
 
-    @SuppressWarnings("unchecked")
     private Object prepareModel(WordprocessingMLPackage wpMLPackage, Object originModel) {
 
         if (!(originModel instanceof Map)) {
@@ -191,14 +190,14 @@ public class DocxFreeMarkerProcessor extends BaseProcessor implements TemplatePr
             return originModel;
         }
 
-        Map<Object, Object> resultModel = new HashMap<>((Map<Object, Object>)originModel);
+        Map<Object, Object> resultModel = new HashMap<>((Map<?, ?>) originModel);
 
         Map<String, Object> scriptModel = ImmutableMap.of(
             "document", resultModel.get("document"),
             "model", resultModel
         );
         scripts.forEach(script -> scriptService.executeScriptString(script, scriptModel));
-        resultModel.replaceAll((key, value) -> value instanceof NativeJavaObject? ((NativeJavaObject) value).unwrap() : value);
+        resultModel.replaceAll((key, value) -> value instanceof NativeJavaObject ? ((NativeJavaObject) value).unwrap() : value);
         return resultModel;
     }
 
