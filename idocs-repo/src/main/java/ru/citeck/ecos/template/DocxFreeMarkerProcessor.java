@@ -121,7 +121,7 @@ public class DocxFreeMarkerProcessor extends BaseProcessor implements TemplatePr
         NodeRef templateNodeRef = new NodeRef(template);
         WordprocessingMLPackage wpMLPackage = getWordTemplate(templateNodeRef);
 
-        prepareModel(wpMLPackage, model);
+        model = prepareModel(wpMLPackage, model);
 
         // process each part of document, that has texts
         HashMap<PartName, Part> parts = wpMLPackage.getParts().getParts();
@@ -161,9 +161,10 @@ public class DocxFreeMarkerProcessor extends BaseProcessor implements TemplatePr
     }
 
     @SuppressWarnings("unchecked")
-    private void prepareModel(WordprocessingMLPackage wpMLPackage, Object model) {
-        if (!(model instanceof Map)) {
-            return;
+    private Object prepareModel(WordprocessingMLPackage wpMLPackage, Object originModel) {
+
+        if (!(originModel instanceof Map)) {
+            return originModel;
         }
 
         List<String> scripts = wpMLPackage
@@ -187,16 +188,18 @@ public class DocxFreeMarkerProcessor extends BaseProcessor implements TemplatePr
             .collect(Collectors.toList());
 
         if (scripts.size() == 0) {
-            return;
+            return originModel;
         }
 
-        Map<Object, Object> modelMap = (Map<Object, Object>) model;
+        Map<Object, Object> resultModel = new HashMap<>((Map<Object, Object>)originModel);
+
         Map<String, Object> scriptModel = ImmutableMap.of(
-            "document", modelMap.get("document"),
-            "model", modelMap
+            "document", resultModel.get("document"),
+            "model", resultModel
         );
         scripts.forEach(script -> scriptService.executeScriptString(script, scriptModel));
-        modelMap.replaceAll((key, value) -> value instanceof NativeJavaObject? ((NativeJavaObject) value).unwrap() : value);
+        resultModel.replaceAll((key, value) -> value instanceof NativeJavaObject? ((NativeJavaObject) value).unwrap() : value);
+        return resultModel;
     }
 
     protected void postProcess(WordprocessingMLPackage wpMLPackage) {
