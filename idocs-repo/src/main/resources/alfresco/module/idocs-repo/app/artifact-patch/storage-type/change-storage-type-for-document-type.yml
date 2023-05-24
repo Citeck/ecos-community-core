@@ -10,3 +10,4 @@ type: json
 config:
   operations:
     - { op: set, path: '$.storageType', value: 'ALFRESCO' }
+    - { op: set, path: '$.properties.alfType', value: 'ecos:document' }
