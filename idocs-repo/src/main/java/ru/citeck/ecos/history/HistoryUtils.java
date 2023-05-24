@@ -94,7 +94,6 @@ public class HistoryUtils {
             }
         }
 
-
         if (DataTypeDefinition.DATE.equals(dictionaryService.getProperty(qName).getDataType().getName())) {
             return new SimpleDateFormat("dd/MM/yyyy").format(constraint);
         }
