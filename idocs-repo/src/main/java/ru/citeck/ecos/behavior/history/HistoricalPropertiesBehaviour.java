@@ -21,7 +21,6 @@ package ru.citeck.ecos.behavior.history;
 import org.alfresco.model.ContentModel;
 import org.alfresco.repo.node.NodeServicePolicies;
 import org.alfresco.repo.policy.Behaviour.NotificationFrequency;
-import ru.citeck.ecos.behavior.JavaBehaviour;
 import org.alfresco.repo.policy.PolicyComponent;
 import org.alfresco.service.cmr.dictionary.AssociationDefinition;
 import org.alfresco.service.cmr.dictionary.DictionaryService;
@@ -32,6 +31,7 @@ import org.alfresco.service.cmr.repository.NodeService;
 import org.alfresco.service.namespace.QName;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import ru.citeck.ecos.behavior.JavaBehaviour;
 import ru.citeck.ecos.history.HistoryService;
 import ru.citeck.ecos.history.HistoryUtils;
 import ru.citeck.ecos.model.ClassificationModel;
@@ -175,14 +175,16 @@ public class HistoricalPropertiesBehaviour implements
                             || (propBefore == null && (propAfter != null && !"".equals(propAfter)))) {
 
 							logger.debug("onUpdateProperties propBefore "+propBefore+" propAfter "+propAfter);
-							String comment = HistoryUtils.getKeyValue(entry.getKey(), dictionaryService)
-									+ ": "
-									+ HistoryUtils.getKeyValue(entry.getKey(), propBefore, dictionaryService, nodeService)
-									+ " -> "
-									+ HistoryUtils.getKeyValue(entry.getKey(), propAfter, dictionaryService, nodeService);
-							if ("content".equals(entry.getKey().getLocalName())) {
+                            String comment;
+                            if (ContentModel.PROP_CONTENT.equals(entry.getKey())) {
 								comment = HistoryUtils.getKeyValue(entry.getKey(), dictionaryService);
-							}
+							} else {
+                                comment = HistoryUtils.getKeyValue(entry.getKey(), dictionaryService)
+                                    + ": "
+                                    + HistoryUtils.getKeyValue(entry.getKey(), propBefore, dictionaryService, nodeService)
+                                    + " -> "
+                                    + HistoryUtils.getKeyValue(entry.getKey(), propAfter, dictionaryService, nodeService);
+                            }
 							historyService.persistEvent(HistoryModel.TYPE_BASIC_EVENT, HistoryUtils.eventProperties(
 								HistoryUtils.NODE_UPDATED,
                                 nodeRef,
@@ -230,17 +232,15 @@ public class HistoricalPropertiesBehaviour implements
                                 nodeAssocRef,
                                 null,
                                 dictionaryService,
-                                nodeService
-                            ),
+                                nodeService),
                             null,
                             null
 						));
-				HistoryUtils.addUpdateResourseToTransaction(
+				HistoryUtils.addUpdateResourceToTransaction(
 				    HistoryUtils.ASSOC_ADDED,
                     historyService,
                     dictionaryService,
-                    nodeService
-                );
+                    nodeService);
 			}
 		}
 	}
@@ -273,12 +273,11 @@ public class HistoricalPropertiesBehaviour implements
                                 null,
                                 nodeAssocRef,
                                 dictionaryService,
-                                nodeService
-                            ),
+                                nodeService),
                             null,
                             null
 						));
-				HistoryUtils.addUpdateResourseToTransaction(
+				HistoryUtils.addUpdateResourceToTransaction(
 				    HistoryUtils.ASSOC_REMOVED, historyService, dictionaryService, nodeService);
 			}
 		}
@@ -312,8 +311,8 @@ public class HistoricalPropertiesBehaviour implements
 						nodeService.getProperty(nodeTarget, ClassificationModel.PROP_DOCUMENT_TYPE),
 						nodeService.getProperty(nodeTarget, ClassificationModel.PROP_DOCUMENT_KIND)
 				));
-                HistoryUtils.addUpdateChildAsscosResourseToTransaction(
-                    HistoryUtils.CHILD_ASSOC_ADDED, historyService, dictionaryService, nodeService, "");
+                HistoryUtils.addUpdateChildAssocResourceToTransaction(HistoryUtils.CHILD_ASSOC_ADDED, historyService,
+                    dictionaryService, nodeService, "");
 			}
 		}
 	}
@@ -344,7 +343,7 @@ public class HistoricalPropertiesBehaviour implements
 						nodeService.getProperty(nodeTarget, ClassificationModel.PROP_DOCUMENT_TYPE),
 						nodeService.getProperty(nodeTarget, ClassificationModel.PROP_DOCUMENT_KIND)
 				));
-                HistoryUtils.addUpdateChildAsscosResourseToTransaction(
+                HistoryUtils.addUpdateChildAssocResourceToTransaction(
                     HistoryUtils.CHILD_ASSOC_REMOVED,
                     historyService,
                     dictionaryService,
@@ -385,12 +384,13 @@ public class HistoricalPropertiesBehaviour implements
 						nodeService.getProperty(nodeTarget, ClassificationModel.PROP_DOCUMENT_TYPE),
 						nodeService.getProperty(nodeTarget, ClassificationModel.PROP_DOCUMENT_KIND)
 				));
-				HistoryUtils.addUpdateChildAsscosResourseToTransaction(
+				HistoryUtils.addUpdateChildAssocResourceToTransaction(
 				    HistoryUtils.CHILD_ASSOC_REMOVED,
                     historyService,
                     dictionaryService,
                     nodeService,
-                    HistoryUtils.getChildAssocComment(null, childAssociationRef, dictionaryService, nodeService, "")
+                    HistoryUtils.getChildAssocComment(null, childAssociationRef, dictionaryService, nodeService,
+                        "")
                 );
 			}
 		}
