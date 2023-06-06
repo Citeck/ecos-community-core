@@ -18,3 +18,5 @@ ecos:
           corePoolSize: 10
         rabbitmq:
           corePoolSize: 16
+        txn-actions:
+          corePoolSize: 1
