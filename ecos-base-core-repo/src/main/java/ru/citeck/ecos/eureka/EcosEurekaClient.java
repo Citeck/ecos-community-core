@@ -6,6 +6,7 @@ import com.netflix.appinfo.HealthCheckHandler;
 import com.netflix.appinfo.InstanceInfo;
 import com.netflix.discovery.DiscoveryManager;
 import com.netflix.discovery.EurekaClient;
+import com.netflix.discovery.shared.Application;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.Getter;
@@ -17,6 +18,7 @@ import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 
@@ -59,6 +61,7 @@ public class EcosEurekaClient {
     }
 
     public InstanceInfo getInstanceInfo(String instanceName) {
+
         ServerInfo info = serversInfo.computeIfAbsent(instanceName, this::getServerInfo);
         if (System.currentTimeMillis() - info.resolvedTimeMs > INFO_CACHE_AGE) {
             serversInfo.remove(instanceName);
@@ -70,9 +73,21 @@ public class EcosEurekaClient {
     private ServerInfo getServerInfo(String serverName) {
         InstanceInfo info;
         try {
-            info = getClient().getNextServerFromEureka(serverName, false);
-            if (info == null) {
-                info = getShareClient().getNextServerFromEureka(serverName, false);
+            if (serverName.contains(":")) {
+                String[] appNameAndInstanceId = serverName.split(":");
+                Application application = getClient().getApplication(appNameAndInstanceId[0]);
+                if (application == null) {
+                    throw new RuntimeException("Application doesn't found: '" + appNameAndInstanceId[0] + "'");
+                }
+                info = application.getByInstanceId(appNameAndInstanceId[1]);
+                if (info == null) {
+                    info = application.getByInstanceId(serverName);
+                }
+            } else {
+                info = getClient().getNextServerFromEureka(serverName, false);
+                if (info == null) {
+                    info = getShareClient().getNextServerFromEureka(serverName, false);
+                }
             }
         } catch (Exception e) {
             throw new RuntimeException(String.format(ERROR_MSG, serverName), e);

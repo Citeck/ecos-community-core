@@ -6,7 +6,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
 import ru.citeck.ecos.utils.InetUtils;
-import ru.citeck.ecos.webapp.api.properties.EcosWebAppProperties;
+import ru.citeck.ecos.webapp.api.properties.EcosWebAppProps;
 
 import java.util.Properties;
 
@@ -22,7 +22,7 @@ public class EcosEurekaConfiguration {
     @Autowired
     private InetUtils inetUtils;
     @Autowired
-    private EcosWebAppProperties ecosWebAppProperties;
+    private EcosWebAppProps ecosWebAppProperties;
 
     @Primary
     @Bean(name = ALF_INSTANCE_CONFIG)

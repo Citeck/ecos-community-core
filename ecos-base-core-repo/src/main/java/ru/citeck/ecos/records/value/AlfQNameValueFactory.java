@@ -29,6 +29,11 @@ public class AlfQNameValueFactory implements AttValueFactory<QName> {
     public void init(@NotNull AttValuesConverter attValuesConverter) {
     }
 
+    @Override
+    public int getPriority() {
+        return 0;
+    }
+
     @RequiredArgsConstructor
     private static class QNameValue implements AttValue {
 

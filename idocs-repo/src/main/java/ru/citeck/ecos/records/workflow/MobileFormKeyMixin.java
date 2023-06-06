@@ -12,6 +12,7 @@ import ru.citeck.ecos.records2.RecordRef;
 import ru.citeck.ecos.records3.record.atts.schema.annotation.AttName;
 import ru.citeck.ecos.records3.record.atts.value.AttValueCtx;
 import ru.citeck.ecos.records3.record.mixin.AttMixin;
+import ru.citeck.ecos.webapp.api.entity.EntityRef;
 import ru.citeck.ecos.webapp.lib.model.type.dto.TypeDef;
 
 import java.util.*;
@@ -48,8 +49,8 @@ public class MobileFormKeyMixin implements AttMixin {
         RecordRef typeRef = TypeUtils.getTypeRef(documentType);
         TypeDef typeDef = ecosTypeService.getTypeDef(typeRef);
         int counter = 0;
-        while (++counter < 3 && typeDef != null && RecordRef.isNotEmpty(typeDef.getParentRef())) {
-            types.add(typeDef.getParentRef().getId());
+        while (++counter < 3 && typeDef != null && EntityRef.isNotEmpty(typeDef.getParentRef())) {
+            types.add(typeDef.getParentRef().getLocalId());
             typeDef = ecosTypeService.getTypeDef(typeDef.getParentRef());
         }
 

@@ -445,4 +445,9 @@
           parent="webscript">
     </bean>
 
+    <bean id="webscript.ru.citeck.webapi.ecos-webapi.post"
+          class="ru.citeck.ecos.webapp.web.api.EcosWebApiPost"
+          parent="webscript">
+    </bean>
+
 </beans>

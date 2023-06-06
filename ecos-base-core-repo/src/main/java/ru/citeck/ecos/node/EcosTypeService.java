@@ -27,6 +27,7 @@ import ru.citeck.ecos.utils.DictUtils;
 import ru.citeck.ecos.webapp.api.entity.EntityRef;
 import ru.citeck.ecos.webapp.lib.model.type.dto.TypeDef;
 
+import javax.swing.text.html.parser.Entity;
 import java.util.*;
 import java.util.function.Function;
 
@@ -148,7 +149,7 @@ public class EcosTypeService {
     @Nullable
     public Long getNumberForDocument(@NotNull RecordRef docRef, @Nullable RecordRef numTemplateRef) {
 
-        if (RecordRef.isEmpty(numTemplateRef)) {
+        if (EntityRef.isEmpty(numTemplateRef)) {
             return null;
         }
 
@@ -168,16 +169,16 @@ public class EcosTypeService {
 
     @Nullable
     public RecordRef getNumTemplateByTypeRef(@Nullable RecordRef typeRef) {
-        if (typeRef == null || RecordRef.isEmpty(typeRef)) {
+        if (typeRef == null || EntityRef.isEmpty(typeRef)) {
             return null;
         }
         TypeDef typeDef = getTypeDef(typeRef);
-        return typeDef != null ? typeDef.getNumTemplateRef() : null;
+        return typeDef != null ? RecordRef.valueOf(typeDef.getNumTemplateRef()) : null;
     }
 
     @Nullable
     private RecordRef getNumTemplateByRecord(RecordRef recordRef) {
-        if (RecordRef.isEmpty(recordRef)) {
+        if (EntityRef.isEmpty(recordRef)) {
             return null;
         }
         RecordRef typeRef = recordsService.getAttribute(recordRef, "_type?id").getAs(RecordRef.class);
@@ -228,7 +229,7 @@ public class EcosTypeService {
 
     public void forEachAsc(RecordRef typeRef, Function<TypeDef, Boolean> action) {
 
-        if (RecordRef.isEmpty(typeRef) || typesManager == null) {
+        if (EntityRef.isEmpty(typeRef) || typesManager == null) {
             return;
         }
 
@@ -239,7 +240,7 @@ public class EcosTypeService {
         }
 
         while (typeDto != null && !action.apply(typeDto)) {
-            typeDto = RecordRef.isNotEmpty(typeDto.getParentRef()) ?
+            typeDto = EntityRef.isNotEmpty(typeDto.getParentRef()) ?
                 typesManager.getType(typeDto.getParentRef()) : null;
         }
     }

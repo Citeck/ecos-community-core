@@ -23,6 +23,7 @@ import ru.citeck.ecos.records3.RecordsService;
 import ru.citeck.ecos.records3.RecordsServiceFactory;
 import ru.citeck.ecos.records3.record.atts.schema.annotation.AttName;
 import ru.citeck.ecos.records3.record.request.RequestContext;
+import ru.citeck.ecos.webapp.api.entity.EntityRef;
 
 import javax.xml.namespace.QName;
 import java.util.Base64;
@@ -62,7 +63,7 @@ public class CmmnLegacyEditorService {
 
         RecordRef originalTemplateRef = templateDao.getOriginalTemplateRef(tempCaseNode);
 
-        if (RecordRef.isEmpty(originalTemplateRef)) {
+        if (EntityRef.isEmpty(originalTemplateRef)) {
             throw new RuntimeException(
                 "Incorrect original template ref: " + originalTemplateRef + " template nodeRef: " + tempCaseNode);
         }

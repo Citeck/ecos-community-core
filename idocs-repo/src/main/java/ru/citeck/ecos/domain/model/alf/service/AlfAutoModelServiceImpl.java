@@ -20,6 +20,7 @@ import ru.citeck.ecos.model.lib.type.service.TypeRefService;
 import ru.citeck.ecos.model.lib.type.service.utils.TypeUtils;
 import ru.citeck.ecos.node.EcosTypeService;
 import ru.citeck.ecos.records2.RecordRef;
+import ru.citeck.ecos.webapp.api.entity.EntityRef;
 import ru.citeck.ecos.webapp.lib.model.type.dto.TypeDef;
 
 import java.util.*;
@@ -54,7 +55,7 @@ public class AlfAutoModelServiceImpl implements AlfAutoModelService {
     @Override
     public Map<String, String> getPropsMapping(RecordRef typeRef) {
 
-        if (RecordRef.isEmpty(typeRef)) {
+        if (EntityRef.isEmpty(typeRef)) {
             return Collections.emptyMap();
         }
 
@@ -74,7 +75,7 @@ public class AlfAutoModelServiceImpl implements AlfAutoModelService {
     @Override
     public Map<String, String> getPropsMapping(RecordRef typeRef, Collection<String> attributes, boolean isWriteMode) {
 
-        if (RecordRef.isEmpty(typeRef)) {
+        if (EntityRef.isEmpty(typeRef)) {
             return Collections.emptyMap();
         }
         Set<String> attsSet = new HashSet<>(attributes);

@@ -17,6 +17,7 @@ import ru.citeck.ecos.utils.AuthorityUtils;
 import ru.citeck.ecos.utils.NodeUtils;
 import ru.citeck.ecos.utils.PersonUtils;
 import ru.citeck.ecos.utils.RepoUtils;
+import ru.citeck.ecos.webapp.api.entity.EntityRef;
 
 import java.util.Collections;
 import java.util.HashSet;
@@ -154,7 +155,7 @@ public class FlowableRecipientsServiceImpl implements FlowableRecipientsService 
                                           QName recipientType,
                                           QName recipientNameProp) {
 
-        if (RecordRef.isEmpty(document)) {
+        if (EntityRef.isEmpty(document)) {
             throw new IllegalArgumentException("Document does not exist: " + document);
         }
         if (StringUtils.isBlank(caseRoleName)) {

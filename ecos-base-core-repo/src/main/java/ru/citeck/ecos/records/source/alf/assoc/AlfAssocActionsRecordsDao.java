@@ -19,6 +19,7 @@ import ru.citeck.ecos.records3.record.atts.dto.LocalRecordAtts;
 import ru.citeck.ecos.records3.record.dao.AbstractRecordsDao;
 import ru.citeck.ecos.records3.record.dao.mutate.RecordMutateDao;
 import ru.citeck.ecos.utils.NodeUtils;
+import ru.citeck.ecos.webapp.api.entity.EntityRef;
 
 import java.util.*;
 
@@ -69,10 +70,10 @@ public class AlfAssocActionsRecordsDao extends AbstractRecordsDao implements Rec
         if (action.action == null) {
             throw new RuntimeException("Action is null");
         }
-        if (RecordRef.isEmpty(action.sourceRef)) {
+        if (EntityRef.isEmpty(action.sourceRef)) {
             throw new RuntimeException("sourceRef is empty");
         }
-        if (RecordRef.isEmpty(action.targetRef)) {
+        if (EntityRef.isEmpty(action.targetRef)) {
             throw new RuntimeException("targetRef is empty");
         }
         if (StringUtils.isBlank(action.association)) {

@@ -15,7 +15,7 @@ import ru.citeck.ecos.commands.timer.dto.result.CancelTimerCommandRes;
 import ru.citeck.ecos.commands.timer.dto.result.CreateTimerCommandRes;
 import ru.citeck.ecos.commons.data.ObjectData;
 import ru.citeck.ecos.utils.TransactionUtils;
-import ru.citeck.ecos.webapp.api.properties.EcosWebAppProperties;
+import ru.citeck.ecos.webapp.api.properties.EcosWebAppProps;
 
 import java.time.Instant;
 import java.util.UUID;
@@ -28,7 +28,7 @@ public class RemoteTimerServiceImpl implements RemoteTimerService {
     private static final String EPROC_TARGET_APP_NAME = "eproc";
 
     private final CommandsService commandsService;
-    private final EcosWebAppProperties webAppProperties;
+    private final EcosWebAppProps webAppProperties;
 
     @Override
     public <T> String scheduleTimer(Instant triggerTime, String commandType, T callbackData) {

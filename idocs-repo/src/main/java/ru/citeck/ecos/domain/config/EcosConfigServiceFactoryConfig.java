@@ -12,7 +12,7 @@ import ru.citeck.ecos.config.lib.provider.EcosConfigProvider;
 import ru.citeck.ecos.config.lib.service.EcosConfigService;
 import ru.citeck.ecos.config.lib.service.EcosConfigServiceFactory;
 import ru.citeck.ecos.config.lib.zookeeper.ZkConfigProvider;
-import ru.citeck.ecos.webapp.api.properties.EcosWebAppProperties;
+import ru.citeck.ecos.webapp.api.properties.EcosWebAppProps;
 import ru.citeck.ecos.zookeeper.EcosZooKeeper;
 
 import java.util.Arrays;
@@ -24,7 +24,7 @@ public class EcosConfigServiceFactoryConfig extends EcosConfigServiceFactory {
     @Autowired
     private LocalAppService localAppService;
     @Autowired
-    private EcosWebAppProperties webAppProperties;
+    private EcosWebAppProps webAppProperties;
     @Autowired
     private EcosZooKeeper ecosZooKeeper;
 

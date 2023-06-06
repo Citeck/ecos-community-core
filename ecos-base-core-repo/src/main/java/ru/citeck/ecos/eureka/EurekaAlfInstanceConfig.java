@@ -5,7 +5,7 @@ import com.netflix.appinfo.EurekaInstanceConfig;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.StringUtils;
 import ru.citeck.ecos.utils.InetUtils;
-import ru.citeck.ecos.webapp.api.properties.EcosWebAppProperties;
+import ru.citeck.ecos.webapp.api.properties.EcosWebAppProps;
 import ru.citeck.ecos.webapp.lib.utils.EcosEnvUtils;
 
 import java.util.HashMap;
@@ -27,11 +27,11 @@ public class EurekaAlfInstanceConfig extends AbstractEurekaConfig implements Eur
     private static final String HEALTH_URL = "/alfresco/service/citeck/ecos/eureka-status";
 
     private final InetUtils.HostInfo hostInfo;
-    private final EcosWebAppProperties webAppProperties;
+    private final EcosWebAppProps webAppProperties;
 
     public EurekaAlfInstanceConfig(Properties globalProperties,
                                    InetUtils inetUtils,
-                                   EcosWebAppProperties webAppProperties) {
+                                   EcosWebAppProps webAppProperties) {
         super(globalProperties);
         hostInfo = inetUtils.findFirstNonLoopbackHostInfo();
         this.webAppProperties = webAppProperties;

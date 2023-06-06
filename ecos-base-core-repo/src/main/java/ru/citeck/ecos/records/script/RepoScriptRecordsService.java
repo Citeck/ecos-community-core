@@ -18,6 +18,7 @@ import ru.citeck.ecos.records3.record.dao.query.dto.query.RecordsQuery;
 import ru.citeck.ecos.records3.record.dao.query.dto.res.RecsQueryRes;
 import ru.citeck.ecos.utils.AlfrescoScopableProcessorExtension;
 import ru.citeck.ecos.utils.JsUtils;
+import ru.citeck.ecos.webapp.api.entity.EntityRef;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -72,7 +73,7 @@ public class RepoScriptRecordsService extends AlfrescoScopableProcessorExtension
         } else {
             throw new RuntimeException("Incorrect record: " + javaRecord);
         }
-        if (RecordRef.isEmpty(recordRef)) {
+        if (EntityRef.isEmpty(recordRef)) {
             return new Record(recordRef);
         }
         Map<RecordRef, Record> txnRecsMap = TransactionalResourceHelper.getMap(TXN_RECORDS_KEY);
@@ -257,7 +258,7 @@ public class RepoScriptRecordsService extends AlfrescoScopableProcessorExtension
 
             RecordAtts result;
 
-            if (RecordRef.isEmpty(recordRef)) {
+            if (EntityRef.isEmpty(recordRef)) {
 
                 result = new RecordAtts();
                 attributesMap.keySet().forEach(k -> result.setAtt(k, null));

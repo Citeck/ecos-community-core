@@ -23,7 +23,7 @@ import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 import ru.citeck.ecos.constants.DocumentHistoryConstants;
-import ru.citeck.ecos.eureka.EcosServiceDiscovery;
+import ru.citeck.ecos.eureka.EcosAlfServiceDiscovery;
 import ru.citeck.ecos.eureka.EcosServiceInstanceInfo;
 import ru.citeck.ecos.history.HistoryRemoteService;
 import ru.citeck.ecos.model.ActivityModel;
@@ -120,7 +120,7 @@ public class HistoryRemoteServiceImpl implements HistoryRemoteService {
     @Autowired(required = false)
     private JmsTemplate jmsTemplate;
 
-    private EcosServiceDiscovery ecosServiceDiscovery;
+    private EcosAlfServiceDiscovery ecosServiceDiscovery;
 
     private String getHistoryServiceHost() {
         EcosServiceInstanceInfo instanceInfo = ecosServiceDiscovery.getInstanceInfo("history");
@@ -512,7 +512,7 @@ public class HistoryRemoteServiceImpl implements HistoryRemoteService {
     }
 
     @Autowired
-    public void setEcosServiceDiscovery(EcosServiceDiscovery ecosServiceDiscovery) {
+    public void setEcosServiceDiscovery(EcosAlfServiceDiscovery ecosServiceDiscovery) {
         this.ecosServiceDiscovery = ecosServiceDiscovery;
     }
 }

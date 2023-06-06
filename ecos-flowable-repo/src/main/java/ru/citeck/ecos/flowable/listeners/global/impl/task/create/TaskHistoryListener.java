@@ -43,6 +43,7 @@ import ru.citeck.ecos.records3.RecordsService;
 import ru.citeck.ecos.role.CaseRoleAssocsDao;
 import ru.citeck.ecos.role.CaseRoleService;
 import ru.citeck.ecos.utils.NodeUtils;
+import ru.citeck.ecos.webapp.api.entity.EntityRef;
 import ru.citeck.ecos.workflow.listeners.TaskDataListenerUtils;
 import ru.citeck.ecos.workflow.tasks.EcosTaskService;
 import ru.citeck.ecos.workflow.tasks.TaskInfo;
@@ -363,11 +364,11 @@ public class TaskHistoryListener implements GlobalCreateTaskListener, GlobalAssi
     @NotNull
     private String getRoleFromCandidates(RecordRef documentRef, DelegateTask delegateTask) {
 
-        if (RecordRef.isEmpty(documentRef)) {
+        if (EntityRef.isEmpty(documentRef)) {
             return "";
         }
         RecordRef ecosType = RecordRef.valueOf(recordsService.getAtt(documentRef, "_type?id").asText());
-        if (RecordRef.isEmpty(ecosType)) {
+        if (EntityRef.isEmpty(ecosType)) {
             return "";
         }
         TaskInfo taskInfo = ecosTaskService.getTaskInfo(ENGINE_PREFIX + delegateTask.getId()).orElse(null);

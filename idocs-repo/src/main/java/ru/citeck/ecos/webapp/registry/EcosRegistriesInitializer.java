@@ -1,11 +1,12 @@
 package ru.citeck.ecos.webapp.registry;
 
+import kotlin.Unit;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import ru.citeck.ecos.commons.promise.Promises;
-import ru.citeck.ecos.webapp.api.context.EcosWebAppContext;
+import ru.citeck.ecos.webapp.api.EcosWebAppApi;
 import ru.citeck.ecos.webapp.api.promise.Promise;
 import ru.citeck.ecos.webapp.lib.registry.EcosRegistry;
 
@@ -18,7 +19,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor(onConstructor_={@Autowired})
 public class EcosRegistriesInitializer {
 
-    private final EcosWebAppContext webAppCtx;
+    private final EcosWebAppApi webAppCtx;
     private final List<EcosRegistry<?>> registries;
 
     @PostConstruct
@@ -31,7 +32,8 @@ public class EcosRegistriesInitializer {
                 .map(EcosRegistry::initializationPromise)
                 .collect(Collectors.toList());
 
-            return Promises.all(promises).get();
+            Promises.all(promises).get();
+            return Unit.INSTANCE;
         });
     }
 }

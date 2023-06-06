@@ -3,7 +3,7 @@ package ru.citeck.ecos.webapp.context;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import ru.citeck.ecos.webapp.api.context.EcosWebAppContext;
+import ru.citeck.ecos.webapp.api.EcosWebAppApi;
 import ru.citeck.ecos.webapp.lib.context.EcosWebAppContextAware;
 
 import javax.annotation.PostConstruct;
@@ -13,7 +13,7 @@ import java.util.List;
 @RequiredArgsConstructor(onConstructor_={@Autowired})
 public class ContextAwareInitComponent {
 
-    private final EcosWebAppContext context;
+    private final EcosWebAppApi context;
     private final List<EcosWebAppContextAware> webAppContextAware;
 
     @PostConstruct

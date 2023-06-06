@@ -7,7 +7,7 @@ import ru.citeck.ecos.apps.app.service.LocalAppService;
 import ru.citeck.ecos.model.lib.ModelServiceFactory;
 import ru.citeck.ecos.model.lib.num.dto.NumTemplateDef;
 import ru.citeck.ecos.model.lib.type.dto.TypePermsDef;
-import ru.citeck.ecos.webapp.api.context.EcosWebAppContext;
+import ru.citeck.ecos.webapp.api.EcosWebAppApi;
 import ru.citeck.ecos.webapp.lib.model.num.registry.NumTemplatesRegistry;
 import ru.citeck.ecos.webapp.lib.model.perms.registry.TypePermissionsRegistry;
 import ru.citeck.ecos.webapp.lib.model.type.dto.TypeDef;
@@ -15,6 +15,7 @@ import ru.citeck.ecos.webapp.lib.model.type.records.TypeRecordsDao;
 import ru.citeck.ecos.webapp.lib.model.type.registry.DefaultTypesInitializer;
 import ru.citeck.ecos.webapp.lib.model.type.registry.EcosTypesRegistry;
 import ru.citeck.ecos.webapp.lib.model.type.registry.TypeArtifactsInitializer;
+import ru.citeck.ecos.webapp.lib.registry.EcosRegistryProps;
 import ru.citeck.ecos.webapp.lib.registry.init.EcosRegistryInitializer;
 import ru.citeck.ecos.webapp.lib.registry.init.ZkRegistryInitializer;
 import ru.citeck.ecos.zookeeper.EcosZooKeeper;
@@ -37,48 +38,55 @@ public class EcosRegistriesConfig {
     @Bean
     public EcosTypesRegistry ecosTypesRegistry(
         EcosZooKeeper zookeeper,
-        EcosWebAppContext webAppContext,
+        EcosWebAppApi webAppContext,
         LocalAppService localAppService
     ) {
         List<EcosRegistryInitializer<TypeDef>> initializers = new ArrayList<>();
         initializers.add(new DefaultTypesInitializer());
         initializers.add(new TypeArtifactsInitializer(localAppService));
         initializers.add(new ZkRegistryInitializer<>(
-            webAppContext.getAppLockService(),
+            webAppContext.getAppLockApi(),
             zookeeper,
+            true,
             true,
             webAppContext.getTasksApi().getMainScheduler()
         ));
-        return new EcosTypesRegistry(initializers);
+        return new EcosTypesRegistry(
+            webAppContext.getProperties().getAppName(),
+            EcosRegistryProps.Companion.getDEFAULT(),
+            initializers
+        );
     }
 
     @Bean
     public TypePermissionsRegistry ecosPermsRegistry(
         EcosZooKeeper zookeeper,
-        EcosWebAppContext webAppContext
+        EcosWebAppApi webAppContext
     ) {
         List<EcosRegistryInitializer<TypePermsDef>> initializers = new ArrayList<>();
         initializers.add(new ZkRegistryInitializer<>(
-            webAppContext.getAppLockService(),
+            webAppContext.getAppLockApi(),
             zookeeper,
+            true,
             true,
             webAppContext.getTasksApi().getMainScheduler()
         ));
-        return new TypePermissionsRegistry(initializers);
+        return new TypePermissionsRegistry(EcosRegistryProps.Companion.getDEFAULT(), initializers);
     }
 
     @Bean
     public NumTemplatesRegistry numTemplatesRegistry(
         EcosZooKeeper zookeeper,
-        EcosWebAppContext webAppContext
+        EcosWebAppApi webAppContext
     ) {
         List<EcosRegistryInitializer<NumTemplateDef>> initializers = new ArrayList<>();
         initializers.add(new ZkRegistryInitializer<>(
-            webAppContext.getAppLockService(),
+            webAppContext.getAppLockApi(),
             zookeeper,
+            true,
             true,
             webAppContext.getTasksApi().getMainScheduler()
         ));
-        return new NumTemplatesRegistry(initializers);
+        return new NumTemplatesRegistry(EcosRegistryProps.Companion.getDEFAULT(), initializers);
     }
 }

@@ -64,7 +64,7 @@ import ru.citeck.ecos.security.EcosPermissionService;
 import ru.citeck.ecos.utils.AuthorityUtils;
 import ru.citeck.ecos.utils.NodeUtils;
 import ru.citeck.ecos.webapp.api.entity.EntityRef;
-import ru.citeck.ecos.webapp.api.properties.EcosWebAppProperties;
+import ru.citeck.ecos.webapp.api.properties.EcosWebAppProps;
 import ru.citeck.ecos.webapp.lib.model.type.dto.TypeDef;
 
 import java.io.Serializable;
@@ -101,7 +101,7 @@ public class AlfNodesRecordsDAO extends LocalRecordsDao
     private final Map<String, AlfNodesSearch> searchByLanguage = new ConcurrentHashMap<>();
 
     private AuthorityUtils authorityUtils;
-    private EcosWebAppProperties webAppProperties;
+    private EcosWebAppProps webAppProperties;
     private NodeUtils nodeUtils;
     private NodeService nodeService;
     private SearchService searchService;
@@ -222,7 +222,7 @@ public class AlfNodesRecordsDAO extends LocalRecordsDao
 
         handleContentAttribute(attributes);
         RecordRef ecosTypeRef = handleETypeAttribute(attributes, props);
-        if (RecordRef.isEmpty(ecosTypeRef) && record.getId().getId().startsWith("workspace")) {
+        if (EntityRef.isEmpty(ecosTypeRef) && record.getId().getId().startsWith("workspace")) {
             ecosTypeRef = RecordRef.valueOf(
                 recordsService.getAtt(record.getId(), RecordConstants.ATT_TYPE + "?id").asText());
         }
@@ -581,7 +581,7 @@ public class AlfNodesRecordsDAO extends LocalRecordsDao
             }
         }
 
-        if (RecordRef.isEmpty(etype)) {
+        if (EntityRef.isEmpty(etype)) {
             String typeRefFromOptions = attributes.get("/_formOptions/typeRef").asText();
             if (StringUtils.isNotBlank(typeRefFromOptions)) {
                 etype = RecordRef.valueOf(typeRefFromOptions);
@@ -642,13 +642,13 @@ public class AlfNodesRecordsDAO extends LocalRecordsDao
 
     public boolean updateNodeDispName(RecordRef recordRef) {
 
-        if (RecordRef.isEmpty(recordRef) || !NodeRef.isNodeRef(recordRef.getId())) {
+        if (EntityRef.isEmpty(recordRef) || !NodeRef.isNodeRef(recordRef.getId())) {
             return false;
         }
         NodeRef nodeRef = new NodeRef(recordRef.getId());
         RecordRef ecosType = ecosTypeService.getEcosType(nodeRef);
 
-        if (RecordRef.isEmpty(ecosType)) {
+        if (EntityRef.isEmpty(ecosType)) {
             return false;
         }
 
@@ -973,7 +973,7 @@ public class AlfNodesRecordsDAO extends LocalRecordsDao
     }
 
     @Autowired
-    public void setWebAppProperties(EcosWebAppProperties webAppProperties) {
+    public void setWebAppProperties(EcosWebAppProps webAppProperties) {
         this.webAppProperties = webAppProperties;
     }
 }

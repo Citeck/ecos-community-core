@@ -1,0 +1,9 @@
+<webscript>
+    <shortname>ECOS WebApi</shortname>
+    <description>ECOS WebApi</description>
+    <url>/citeck/ecos/webapi</url>
+    <authentication>none</authentication>
+    <lifecycle>public_api</lifecycle>
+    <formdata multipart-processing="false" />
+    <transaction>none</transaction>
+</webscript>

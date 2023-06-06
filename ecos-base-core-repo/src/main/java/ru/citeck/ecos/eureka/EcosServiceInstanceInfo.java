@@ -10,6 +10,8 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class EcosServiceInstanceInfo {
 
+    private final String appName;
+    private final String appInstanceId;
     private final String host;
     private final String ip;
     private final Integer port;
@@ -19,6 +21,8 @@ public class EcosServiceInstanceInfo {
     public EcosServiceInstanceInfo apply(EcosServiceInstanceInfo info) {
 
         return new EcosServiceInstanceInfo(
+            appName,
+            appInstanceId,
             StringUtils.isNotBlank(info.host) ? info.host : host,
             StringUtils.isNotBlank(info.ip) ? info.ip : ip,
             info.port != null ? info.port : port,

@@ -1,12 +1,11 @@
 package ru.citeck.ecos.webapp.task;
 
-import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import ru.citeck.ecos.webapp.api.task.EcosTasksApi;
-import ru.citeck.ecos.webapp.api.task.executor.EcosTaskExecutor;
-import ru.citeck.ecos.webapp.api.task.scheduler.EcosTaskScheduler;
+import ru.citeck.ecos.webapp.api.task.executor.EcosTaskExecutorApi;
+import ru.citeck.ecos.webapp.api.task.scheduler.EcosTaskSchedulerApi;
 import ru.citeck.ecos.webapp.lib.env.EcosWebAppEnvironment;
 import ru.citeck.ecos.webapp.lib.task.EcosTaskComponentsFactory;
 import ru.citeck.ecos.webapp.lib.task.EcosTasksManager;
@@ -25,12 +24,12 @@ public class EcosTasksApiConfig {
     }
 
     @Bean
-    public EcosTaskScheduler ecosTaskScheduler(EcosTasksApi tasksApi) {
+    public EcosTaskSchedulerApi ecosTaskScheduler(EcosTasksApi tasksApi) {
         return tasksApi.getMainScheduler();
     }
 
     @Bean
-    public EcosTaskExecutor ecosTaskExecutor(EcosTasksApi tasksApi) {
+    public EcosTaskExecutorApi ecosTaskExecutor(EcosTasksApi tasksApi) {
         return tasksApi.getMainExecutor();
     }
 }

@@ -3,7 +3,7 @@ package ru.citeck.ecos.eureka;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.StringUtils;
 import ru.citeck.ecos.utils.InetUtils;
-import ru.citeck.ecos.webapp.api.properties.EcosWebAppProperties;
+import ru.citeck.ecos.webapp.api.properties.EcosWebAppProps;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -19,11 +19,11 @@ public class EurekaAlfShareInstanceConfig extends EurekaAlfInstanceConfig {
     private static final String ENV_PROP_IP = "ECOS_EUREKA_INSTANCE_SHARE_IP";
     private static final String ENV_PROP_HOST = "ECOS_EUREKA_INSTANCE_SHARE_HOST";
 
-    private final EcosWebAppProperties webAppProperties;
+    private final EcosWebAppProps webAppProperties;
 
     public EurekaAlfShareInstanceConfig(Properties globalProperties,
                                         InetUtils inetUtils,
-                                        EcosWebAppProperties webAppProperties) {
+                                        EcosWebAppProps webAppProperties) {
         super(globalProperties, inetUtils, webAppProperties);
         this.webAppProperties = webAppProperties;
     }

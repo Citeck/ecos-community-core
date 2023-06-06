@@ -27,7 +27,7 @@ import ru.citeck.ecos.records3.record.resolver.LocalRecordsResolver;
 import ru.citeck.ecos.records2.source.dao.local.meta.MetaRecordsDaoAttsProvider;
 import ru.citeck.ecos.records3.rest.RestHandlerAdapter;
 import ru.citeck.ecos.records3.txn.RecordsTxnService;
-import ru.citeck.ecos.webapp.api.context.EcosWebAppContext;
+import ru.citeck.ecos.webapp.api.EcosWebAppApi;
 
 import javax.annotation.PostConstruct;
 import java.util.ArrayList;
@@ -45,7 +45,7 @@ public class RecordsConfiguration extends RecordsServiceFactory {
     private TransactionService transactionService;
 
     @Autowired(required = false)
-    private EcosWebAppContext webAppContext;
+    private EcosWebAppApi webAppApi;
 
     @PostConstruct
     public void init() {
@@ -87,8 +87,8 @@ public class RecordsConfiguration extends RecordsServiceFactory {
 
     @Nullable
     @Override
-    public EcosWebAppContext getEcosWebAppContext() {
-        return webAppContext;
+    public EcosWebAppApi getEcosWebAppApi() {
+        return webAppApi;
     }
 
     @NotNull

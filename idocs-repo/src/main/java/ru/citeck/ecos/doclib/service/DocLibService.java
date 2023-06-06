@@ -100,7 +100,7 @@ public class DocLibService {
         EntityId parentEntityId = getEntityId(RecordRef.valueOf(parent));
 
         RecordRef docLibTypeRef = parentEntityId.getTypeRef();
-        if (RecordRef.isEmpty(docLibTypeRef)) {
+        if (EntityRef.isEmpty(docLibTypeRef)) {
             throw new IllegalStateException("Incorrect parent entity id: '" + parent + "'. Type info is missing.");
         }
 
@@ -177,7 +177,7 @@ public class DocLibService {
         List<DocLibNodeInfo> resultPath = new ArrayList<>();
 
         EntityId entityId = getEntityId(docLibRef);
-        if (RecordRef.isEmpty(entityId.getTypeRef()) || StringUtils.isBlank(entityId.getLocalId())) {
+        if (EntityRef.isEmpty(entityId.getTypeRef()) || StringUtils.isBlank(entityId.getLocalId())) {
             return resultPath;
         }
 
@@ -204,7 +204,7 @@ public class DocLibService {
         String parentRefStr = recordsService.getAtt(entityRecordRef, PARENT_LOCAL_ID_ATT).asText();
         while (NodeRef.isNodeRef(parentRefStr) && !rootNodeRefStr.equals(parentRefStr)) {
             DocLibNodeInfo nodeInfo = getDocLibNodeInfo(getEntityRef(entityId.getTypeRef(), parentRefStr));
-            if (RecordRef.isEmpty(nodeInfo.getTypeRef())) {
+            if (EntityRef.isEmpty(nodeInfo.getTypeRef())) {
                 break;
             }
             invPath.add(nodeInfo);
@@ -234,7 +234,7 @@ public class DocLibService {
 
         EntityId entityId = getEntityId(docLibRef);
 
-        if (RecordRef.isEmpty(entityId.typeRef)) {
+        if (EntityRef.isEmpty(entityId.typeRef)) {
             return EMPTY_NODE;
         }
 
@@ -269,7 +269,7 @@ public class DocLibService {
 
         DocLibEntityInfo info = recordsService.getAtts(RecordRef.create("", nodeRef), DocLibEntityInfo.class);
 
-        if (RecordRef.isEmpty(info.typeRef)) {
+        if (EntityRef.isEmpty(info.typeRef)) {
             return EMPTY_NODE;
         }
 
@@ -313,7 +313,7 @@ public class DocLibService {
 
         EntityId entityId = getEntityId(query.getParentRef());
 
-        if (RecordRef.isEmpty(entityId.typeRef)) {
+        if (EntityRef.isEmpty(entityId.typeRef)) {
             return new RecsQueryRes<>();
         }
         if (page == null) {

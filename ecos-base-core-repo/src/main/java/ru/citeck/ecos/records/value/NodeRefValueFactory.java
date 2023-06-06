@@ -30,6 +30,11 @@ public class NodeRefValueFactory implements AttValueFactory<NodeRef> {
     public void init(@NotNull AttValuesConverter attValuesConverter) {
     }
 
+    @Override
+    public int getPriority() {
+        return 0;
+    }
+
     @RequiredArgsConstructor
     private static class NodeRefValue implements AttValue {
 

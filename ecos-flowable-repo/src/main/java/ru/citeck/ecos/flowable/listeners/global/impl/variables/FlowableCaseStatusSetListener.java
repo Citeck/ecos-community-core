@@ -10,6 +10,7 @@ import ru.citeck.ecos.records2.RecordRef;
 import ru.citeck.ecos.records3.RecordsService;
 import ru.citeck.ecos.records3.record.atts.schema.annotation.AttName;
 import ru.citeck.ecos.utils.NodeUtils;
+import ru.citeck.ecos.webapp.api.entity.EntityRef;
 
 /**
  * This class is flowable task/execution listener, which fills case status, case status names before to execution variable.
@@ -28,7 +29,7 @@ public class FlowableCaseStatusSetListener extends AbstractFlowableSaveToExecuti
 
     @Override
     public boolean saveIsRequired(RecordRef document) {
-        if (RecordRef.isEmpty(document)) {
+        if (EntityRef.isEmpty(document)) {
             return false;
         }
         if (document.getId().contains(NodeUtils.WORKSPACE_PREFIX)) {

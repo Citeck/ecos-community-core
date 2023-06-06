@@ -18,7 +18,7 @@ import ru.citeck.ecos.commands.remote.RemoteCommandsService;
 import ru.citeck.ecos.commands.transaction.TransactionManager;
 import ru.citeck.ecos.rabbitmq.RabbitMqConn;
 import ru.citeck.ecos.rabbitmq.RabbitMqConnProvider;
-import ru.citeck.ecos.webapp.api.context.EcosWebAppContext;
+import ru.citeck.ecos.webapp.api.EcosWebAppApi;
 
 import java.util.Properties;
 import java.util.concurrent.Callable;
@@ -41,7 +41,7 @@ public class CommandsServiceFactoryConfig extends CommandsServiceFactory {
     private RabbitMqConnProvider connProvider;
 
     @Autowired
-    private EcosWebAppContext ecosWebAppContext;
+    private EcosWebAppApi ecosWebAppContext;
 
     @Bean
     @Override
@@ -73,7 +73,7 @@ public class CommandsServiceFactoryConfig extends CommandsServiceFactory {
 
     @Nullable
     @Override
-    public EcosWebAppContext getEcosWebAppContext() {
+    public EcosWebAppApi getEcosWebAppApi() {
         return ecosWebAppContext;
     }
 
@@ -150,7 +150,7 @@ public class CommandsServiceFactoryConfig extends CommandsServiceFactory {
     }
 
     @Autowired
-    public void setEcosWebAppContext(EcosWebAppContext ecosWebAppContext) {
+    public void setEcosWebAppApi(EcosWebAppApi ecosWebAppContext) {
         this.ecosWebAppContext = ecosWebAppContext;
     }
 }

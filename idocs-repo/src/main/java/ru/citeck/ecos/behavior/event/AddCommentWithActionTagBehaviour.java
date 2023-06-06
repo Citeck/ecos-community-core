@@ -31,6 +31,7 @@ import ru.citeck.ecos.records2.RecordRef;
 import ru.citeck.ecos.spring.registry.MappingRegistry;
 import ru.citeck.ecos.utils.DictUtils;
 import ru.citeck.ecos.utils.RepoUtils;
+import ru.citeck.ecos.webapp.api.entity.EntityRef;
 
 import javax.annotation.PostConstruct;
 import java.util.Map;
@@ -116,7 +117,7 @@ public class AddCommentWithActionTagBehaviour implements EventPolicies.BeforeEve
         }
 
         RecordRef caseRef = eventRef.getProcessId();
-        if (RecordRef.isEmpty(caseRef)) {
+        if (EntityRef.isEmpty(caseRef)) {
             return;
         }
 
@@ -131,7 +132,7 @@ public class AddCommentWithActionTagBehaviour implements EventPolicies.BeforeEve
     }
 
     private void addCommentWithTag(NodeRef additionalDataRef, RecordRef caseRef) {
-        if (RecordRef.isEmpty(caseRef)) {
+        if (EntityRef.isEmpty(caseRef)) {
             return;
         }
 

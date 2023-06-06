@@ -6,8 +6,9 @@ import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import ru.citeck.ecos.context.lib.auth.AuthGroup;
+import ru.citeck.ecos.context.lib.auth.AuthRole;
 import ru.citeck.ecos.utils.AuthorityUtils;
-import ru.citeck.ecos.webapp.api.authority.EcosAuthorityService;
+import ru.citeck.ecos.webapp.api.authority.EcosAuthoritiesApi;
 import ru.citeck.ecos.webapp.api.constants.AppName;
 import ru.citeck.ecos.webapp.api.entity.EntityRef;
 
@@ -16,9 +17,39 @@ import java.util.stream.Collectors;
 
 @Component
 @RequiredArgsConstructor(onConstructor_={@Autowired})
-public class EcosAuthorityServiceImpl implements EcosAuthorityService {
+public class EcosAuthorityServiceImpl implements EcosAuthoritiesApi {
 
     private final AuthorityUtils authorityUtils;
+
+    @NotNull
+    @Override
+    public EntityRef getGroupRef(@NotNull String value) {
+        return EntityRef.create(AppName.EMODEL, "authority-group", value);
+    }
+
+    @NotNull
+    @Override
+    public EntityRef getPersonRef(@NotNull String value) {
+        return EntityRef.create(AppName.EMODEL, "person", value);
+    }
+
+    @Override
+    public boolean isGroup(@Nullable Object value) {
+        String name = authorityUtils.getAuthorityName(value);
+        return name != null && name.startsWith(AuthGroup.PREFIX);
+    }
+
+    @Override
+    public boolean isPerson(@Nullable Object value) {
+        String name = authorityUtils.getAuthorityName(value);
+        return name != null && !name.startsWith(AuthGroup.PREFIX) && !name.startsWith(AuthRole.PREFIX);
+    }
+
+    @Override
+    public boolean isRole(@Nullable Object value) {
+        String name = authorityUtils.getAuthorityName(value);
+        return name != null && name.startsWith(AuthRole.PREFIX);
+    }
 
     @NotNull
     @Override

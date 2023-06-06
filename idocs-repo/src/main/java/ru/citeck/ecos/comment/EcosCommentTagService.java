@@ -11,6 +11,7 @@ import ru.citeck.ecos.commons.data.ObjectData;
 import ru.citeck.ecos.config.EcosConfigService;
 import ru.citeck.ecos.records2.RecordRef;
 import ru.citeck.ecos.records3.RecordsService;
+import ru.citeck.ecos.webapp.api.entity.EntityRef;
 
 import java.util.Collections;
 import java.util.HashMap;
@@ -49,7 +50,7 @@ public class EcosCommentTagService {
             throw new IllegalArgumentException("Comment cannot be blank");
         }
 
-        if (RecordRef.isEmpty(document)) {
+        if (EntityRef.isEmpty(document)) {
             throw new IllegalArgumentException("Document recordRef cannot be empty");
         }
 

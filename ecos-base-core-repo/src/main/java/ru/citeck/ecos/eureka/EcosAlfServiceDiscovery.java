@@ -12,7 +12,7 @@ import java.util.Properties;
 import java.util.concurrent.ConcurrentHashMap;
 
 @Component
-public class EcosServiceDiscovery {
+public class EcosAlfServiceDiscovery {
 
     private static final String APP_INFO_PREFIX = "ecos.service.discovery.";
     private static final String APP_INFO_PORT = APP_INFO_PREFIX + "%s.port";
@@ -27,8 +27,8 @@ public class EcosServiceDiscovery {
     private final Map<String, EcosServiceInstanceInfo> infoFromConfig = new ConcurrentHashMap<>();
 
     @Autowired
-    public EcosServiceDiscovery(EcosEurekaClient client,
-                                @Qualifier("global-properties") Properties globalProps) {
+    public EcosAlfServiceDiscovery(EcosEurekaClient client,
+                                   @Qualifier("global-properties") Properties globalProps) {
 
         this.eurekaClient = client;
         this.globalProps = globalProps;
@@ -40,25 +40,45 @@ public class EcosServiceDiscovery {
     }
 
     public EcosServiceInstanceInfo getInstanceInfo(String appName) {
-        return getInfoFromEureka(appName)
+        String appNameWithoutInstance = appName;
+        if (appName.contains(":")) {
+            appNameWithoutInstance = appName.substring(0, appName.indexOf(':'));
+        }
+        return getInfoFromEureka(appNameWithoutInstance)
             .apply(infoForAll)
-            .apply(infoFromConfig.computeIfAbsent(appName, this::getInfoFromParams));
+            .apply(infoFromConfig.computeIfAbsent(appNameWithoutInstance, this::getInfoFromParams));
     }
 
     private EcosServiceInstanceInfo getInfoFromEureka(String appName) {
 
         InstanceInfo eurekaInstanceInfo;
         try {
+
             eurekaInstanceInfo = eurekaClient.getInstanceInfo(appName);
         } catch (Exception e) {
             eurekaInstanceInfo = null;
         }
 
         if (eurekaInstanceInfo == null) {
-            return new EcosServiceInstanceInfo(null, null, null, null, null);
+            return new EcosServiceInstanceInfo(
+                appName,
+                "",
+                null,
+                null,
+                null,
+                null,
+                null
+            );
+        }
+
+        String instanceId = eurekaInstanceInfo.getInstanceId();
+        if (instanceId.contains(":")) {
+            instanceId = instanceId.substring(instanceId.indexOf(':') + 1);
         }
 
         return new EcosServiceInstanceInfo(
+            appName,
+            instanceId,
             eurekaInstanceInfo.getHostName(),
             eurekaInstanceInfo.getIPAddr(),
             eurekaInstanceInfo.getPort(),
@@ -73,7 +93,7 @@ public class EcosServiceDiscovery {
         String host = getStrParam(String.format(APP_INFO_HOST, appName));
         Integer port = getIntParam(String.format(APP_INFO_PORT, appName));
 
-        return new EcosServiceInstanceInfo(host, ip, port, null, null);
+        return new EcosServiceInstanceInfo(appName, "", host, ip, port, null, null);
     }
 
     private String getStrParam(String key) {

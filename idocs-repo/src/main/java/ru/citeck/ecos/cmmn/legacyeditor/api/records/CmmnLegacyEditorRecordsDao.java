@@ -12,6 +12,7 @@ import ru.citeck.ecos.records3.record.dao.RecordsDao;
 import ru.citeck.ecos.records3.record.dao.delete.DelStatus;
 import ru.citeck.ecos.records3.record.dao.delete.RecordDeleteDao;
 import ru.citeck.ecos.records3.record.dao.mutate.RecordMutateDao;
+import ru.citeck.ecos.webapp.api.entity.EntityRef;
 
 /**
  * Mutate without
@@ -36,7 +37,7 @@ public class CmmnLegacyEditorRecordsDao implements RecordsDao, RecordMutateDao, 
         }
 
         if (localRecordAtts.getId().isEmpty()) {
-            if (RecordRef.isEmpty(atts.templateRef)) {
+            if (EntityRef.isEmpty(atts.templateRef)) {
                 throw new RuntimeException("Template ref is a mandatory attribute " +
                     "for record with empty ID. Atts: " + localRecordAtts);
             }

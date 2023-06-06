@@ -51,6 +51,7 @@ import ru.citeck.ecos.records3.RecordsService;
 import ru.citeck.ecos.utils.NodeUtils;
 import ru.citeck.ecos.utils.RepoUtils;
 import ru.citeck.ecos.utils.TransactionUtils;
+import ru.citeck.ecos.webapp.api.entity.EntityRef;
 
 import javax.transaction.UserTransaction;
 import java.io.Serializable;
@@ -229,7 +230,7 @@ public class HistoryService {
         Map<String, Object> requestParams = new HashMap<>();
         /* Document */
         RecordRef documentRecordRef = getDocument(properties);
-        if (RecordRef.isEmpty(documentRecordRef)) {
+        if (EntityRef.isEmpty(documentRecordRef)) {
             return;
         }
         NodeRef documentNodeRef = nodeUtils.getNodeRefOrNull(documentRecordRef);

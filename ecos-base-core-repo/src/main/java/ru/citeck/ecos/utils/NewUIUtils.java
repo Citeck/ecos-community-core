@@ -19,6 +19,7 @@ import ru.citeck.ecos.config.EcosConfigService;
 import ru.citeck.ecos.node.EcosTypeService;
 import ru.citeck.ecos.records2.RecordRef;
 import ru.citeck.ecos.records2.RecordsService;
+import ru.citeck.ecos.webapp.api.entity.EntityRef;
 
 import java.util.*;
 import java.util.concurrent.TimeUnit;
@@ -177,7 +178,7 @@ public class NewUIUtils {
 
     private DataValue getUiTypeFromParent(RecordRef recordRef) {
         RecordRef ecosTypeRef = ecosTypeService.getEcosType(new NodeRef(recordRef.getId()));
-        if (RecordRef.isEmpty(ecosTypeRef)) {
+        if (EntityRef.isEmpty(ecosTypeRef)) {
             return DataValue.NULL;
         }
         AtomicReference<String> uiType = new AtomicReference<>();

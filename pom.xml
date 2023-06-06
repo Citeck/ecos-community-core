@@ -47,6 +47,8 @@
         <maven.compiler.source>1.8</maven.compiler.source>
         <maven.compiler.target>1.8</maven.compiler.target>
 
+        <java.version>1.8</java.version>
+
         <maven.build.timestamp.format>yy.MM.dd.HH.mm</maven.build.timestamp.format>
         <timestamp>${maven.build.timestamp}</timestamp>
 
@@ -60,6 +62,8 @@
         <spring.jms.version>3.2.8.RELEASE</spring.jms.version>
         <activemq.version>5.10.0</activemq.version>
 
+        <okhttp.version>4.10.0</okhttp.version>
+
         <maven.alfresco.edition>community</maven.alfresco.edition>
         <ecos.project.classifier>${alfresco.platform.version}-com</ecos.project.classifier>
 
@@ -68,7 +72,7 @@
         <default.locale>en</default.locale>
         <yuicompressor.compress.skip>false</yuicompressor.compress.skip>
 
-        <ecos.webapp-lib.version>1.13.7</ecos.webapp-lib.version>
+        <ecos.webapp-lib.version>1.25.1</ecos.webapp-lib.version>
 
         <ecos.flowable.version>3.0.5.4</ecos.flowable.version>
         <spring.retry.version>1.2.4.RELEASE</spring.retry.version>
@@ -79,6 +83,7 @@
         <web.compression.skip>false</web.compression.skip>
 
         <ecos.community.tomcat.port>8080</ecos.community.tomcat.port>
+
     </properties>
 
     <profiles>
@@ -377,6 +382,11 @@
             <scope>provided</scope>
         </dependency>
 
+        <dependency>
+            <groupId>com.squareup.okhttp3</groupId>
+            <artifactId>okhttp</artifactId>
+        </dependency>
+
     </dependencies>
 
     <dependencyManagement>
@@ -598,6 +608,14 @@
                 <artifactId>spring-retry</artifactId>
                 <version>${spring.retry.version}</version>
                 <scope>provided</scope>
+            </dependency>
+
+            <dependency>
+                <groupId>com.squareup.okhttp3</groupId>
+                <artifactId>okhttp-bom</artifactId>
+                <version>${okhttp.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
             </dependency>
 
         </dependencies>
@@ -847,6 +865,61 @@
                         </goals>
                     </execution>
                 </executions>
+            </plugin>
+
+            <plugin>
+                <groupId>org.jetbrains.kotlin</groupId>
+                <artifactId>kotlin-maven-plugin</artifactId>
+                <version>${kotlin.version}</version>
+                <configuration>
+                    <jvmTarget>${java.version}</jvmTarget>
+                    <args>
+                        <arg>-Xjsr305=strict</arg>
+                    </args>
+                    <compilerPlugins>
+                        <plugin>spring</plugin>
+                        <plugin>jpa</plugin>
+                        <plugin>all-open</plugin>
+                    </compilerPlugins>
+                    <pluginOptions>
+                        <option>all-open:annotation=javax.persistence.Entity</option>
+                        <option>all-open:annotation=javax.persistence.Embeddable</option>
+                        <option>all-open:annotation=javax.persistence.MappedSuperclass</option>
+                    </pluginOptions>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>compile</id>
+                        <phase>process-sources</phase>
+                        <goals>
+                            <goal>compile</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>test-compile</id>
+                        <goals>
+                            <goal>test-compile</goal>
+                        </goals>
+                        <configuration>
+                            <sourceDirs>
+                                <sourceDir>${project.basedir}/src/test/kotlin</sourceDir>
+                                <sourceDir>${project.basedir}/src/test/java</sourceDir>
+                            </sourceDirs>
+                        </configuration>
+                    </execution>
+                </executions>
+                <dependencies>
+                    <dependency>
+                        <groupId>org.jetbrains.kotlin</groupId>
+                        <artifactId>kotlin-maven-allopen</artifactId>
+                        <version>${kotlin.version}</version>
+                    </dependency>
+                    <dependency>
+                        <groupId>org.jetbrains.kotlin</groupId>
+                        <artifactId>kotlin-maven-noarg</artifactId>
+                        <version>${kotlin.version}</version>
+                    </dependency>
+                </dependencies>
             </plugin>
 
             <!--

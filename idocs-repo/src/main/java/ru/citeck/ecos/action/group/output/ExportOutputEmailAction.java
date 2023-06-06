@@ -14,6 +14,7 @@ import ru.citeck.ecos.records.source.PeopleRecordsDao;
 import ru.citeck.ecos.records2.RecordRef;
 import ru.citeck.ecos.records3.RecordsService;
 import ru.citeck.ecos.utils.RepoUtils;
+import ru.citeck.ecos.webapp.api.entity.EntityRef;
 
 import java.util.Collections;
 
@@ -32,7 +33,7 @@ public class ExportOutputEmailAction implements ExportOutputAction<ExportOutputE
     public void execute(NodeRef outputFile, Config config) {
 
         RecordRef templateRef = config.templateRef;
-        if (RecordRef.isEmpty(templateRef)) {
+        if (EntityRef.isEmpty(templateRef)) {
             templateRef = DEFAULT_TEMPLATE_REF;
         }
 

@@ -63,6 +63,7 @@ import ru.citeck.ecos.utils.ReflectionUtils;
 import ru.citeck.ecos.utils.RepoUtils;
 import ru.citeck.ecos.utils.TransactionUtils;
 import ru.citeck.ecos.utils.UrlUtils;
+import ru.citeck.ecos.webapp.api.entity.EntityRef;
 
 import java.io.Serializable;
 import java.util.*;
@@ -442,7 +443,7 @@ public abstract class AbstractNotificationSender<ItemType> implements Notificati
             )).build();
 
         RecordRef recordRef = recordsService.queryOne(query);
-        if (RecordRef.isEmpty(recordRef) || StringUtils.isBlank(recordRef.getId())) {
+        if (EntityRef.isEmpty(recordRef) || StringUtils.isBlank(recordRef.getId())) {
             return Optional.empty();
         }
         return Optional.ofNullable(getEnabledTemplate(RecordsUtils.toNodeRef(recordRef)));

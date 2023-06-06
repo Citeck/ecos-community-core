@@ -5,11 +5,11 @@ import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import ru.citeck.ecos.eureka.EcosEurekaClient;
-import ru.citeck.ecos.webapp.api.apps.EcosWebAppsApi;
+import ru.citeck.ecos.webapp.api.apps.EcosRemoteWebAppsApi;
 
 @Component
 @RequiredArgsConstructor(onConstructor_={@Autowired})
-public class EcosWebAppApiImpl implements EcosWebAppsApi {
+public class EcosRemoteWebAppsApiImpl implements EcosRemoteWebAppsApi {
 
     private final EcosEurekaClient eurekaClient;
 

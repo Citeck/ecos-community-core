@@ -7,9 +7,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import ru.citeck.ecos.commands.CommandsService;
 import ru.citeck.ecos.commands.dto.CommandResult;
+import ru.citeck.ecos.commons.task.schedule.Schedules;
 import ru.citeck.ecos.icase.activity.service.eproc.commands.dto.request.GetProcDefCache;
 import ru.citeck.ecos.icase.activity.service.eproc.commands.dto.response.GetProcDefCacheResp;
-import ru.citeck.ecos.webapp.api.task.scheduler.EcosTaskScheduler;
+import ru.citeck.ecos.webapp.api.task.scheduler.EcosTaskSchedulerApi;
 
 import javax.annotation.PostConstruct;
 import java.time.Duration;
@@ -21,7 +22,7 @@ import java.util.concurrent.atomic.AtomicReference;
 @RequiredArgsConstructor(onConstructor_={@Autowired})
 public class EProcProcDefCacheResetJob {
 
-    private final EcosTaskScheduler ecosTaskScheduler;
+    private final EcosTaskSchedulerApi ecosTaskScheduler;
     private final EProcActivityServiceImpl eProcActivityService;
     private final CommandsService commandsService;
 
@@ -29,9 +30,9 @@ public class EProcProcDefCacheResetJob {
 
     @PostConstruct
     public void init() {
-        ecosTaskScheduler.scheduleWithFixedDelay(
+        ecosTaskScheduler.schedule(
             "eproc-cache-reset",
-            Duration.ofSeconds(5),
+            Schedules.fixedDelay(Duration.ofSeconds(5)),
             this::updateCacheIfRequired
         );
     }

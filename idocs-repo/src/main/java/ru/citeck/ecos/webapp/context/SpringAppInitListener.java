@@ -15,7 +15,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 @RequiredArgsConstructor(onConstructor_={@Autowired})
 public class SpringAppInitListener extends AbstractLifecycleBean implements EcosReqContextRequestFilterListener {
 
-    private final EcosWebAppContextImpl context;
+    private final EcosWebAppApiImpl context;
 
     private final AtomicBoolean ctxWasRefreshed = new AtomicBoolean();
     private final AtomicBoolean filterInitialized = new AtomicBoolean();

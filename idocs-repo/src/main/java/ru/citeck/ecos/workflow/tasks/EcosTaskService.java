@@ -22,6 +22,7 @@ import ru.citeck.ecos.locks.LockUtils;
 import ru.citeck.ecos.model.CiteckWorkflowModel;
 import ru.citeck.ecos.props.EcosPropertiesService;
 import ru.citeck.ecos.records2.RecordRef;
+import ru.citeck.ecos.webapp.api.entity.EntityRef;
 import ru.citeck.ecos.workflow.owner.OwnerAction;
 import ru.citeck.ecos.workflow.owner.OwnerService;
 
@@ -153,7 +154,7 @@ public class EcosTaskService {
 
     private void addCommentToDocument(RecordRef taskDocument, org.alfresco.service.cmr.repository.MLText taskMlTitle,
                                       String comment) {
-        if (StringUtils.isBlank(comment) || RecordRef.isEmpty(taskDocument)) {
+        if (StringUtils.isBlank(comment) || EntityRef.isEmpty(taskDocument)) {
             return;
         }
 
@@ -163,7 +164,7 @@ public class EcosTaskService {
 
 
     private void addLastCompletedTaskDate(RecordRef documentRef) {
-        if (RecordRef.isEmpty(documentRef)) {
+        if (EntityRef.isEmpty(documentRef)) {
             return;
         }
         String nodeRefStr = documentRef.getId();

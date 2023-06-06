@@ -16,6 +16,7 @@ import ru.citeck.ecos.node.EcosTypeService;
 import ru.citeck.ecos.records2.RecordConstants;
 import ru.citeck.ecos.records2.RecordRef;
 import ru.citeck.ecos.records3.RecordsService;
+import ru.citeck.ecos.webapp.api.entity.EntityRef;
 
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
@@ -33,11 +34,11 @@ public class EcosTypeChildAssocService {
                                @Nullable RecordRef childTypeRef,
                                @NotNull ObjectData childAtts) {
 
-        if (childTypeRef == null || RecordRef.isEmpty(childTypeRef)) {
+        if (childTypeRef == null || EntityRef.isEmpty(childTypeRef)) {
             return tryToEvalChildAssoc(parentRef, childAtts);
         }
         RecordRef parentTypeRef = ecosTypeService.getEcosType(parentRef);
-        if (RecordRef.isEmpty(parentTypeRef)) {
+        if (EntityRef.isEmpty(parentTypeRef)) {
             return tryToEvalChildAssoc(parentRef, childAtts);
         }
         Map<String, String> alfChildAssocs = recordsService.getAtt(

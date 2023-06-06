@@ -55,6 +55,7 @@ import ru.citeck.ecos.utils.NodeUtils;
 import ru.citeck.ecos.utils.TransactionUtils;
 import ru.citeck.ecos.utils.WorkflowUtils;
 import ru.citeck.ecos.webapp.api.constants.AppName;
+import ru.citeck.ecos.webapp.api.entity.EntityRef;
 import ru.citeck.ecos.workflow.mirror.WorkflowMirrorService;
 import ru.citeck.ecos.workflow.owner.OwnerAction;
 import ru.citeck.ecos.workflow.owner.OwnerService;
@@ -376,7 +377,7 @@ public class WorkflowTaskRecords extends LocalRecordsDao
         RecordRef docRef = RecordRef.valueOf(query.document);
         String workflowId = null;
 
-        if (RecordRef.isEmpty(docRef)) {
+        if (EntityRef.isEmpty(docRef)) {
             workflowId = query.getWorkflowId();
         }
 

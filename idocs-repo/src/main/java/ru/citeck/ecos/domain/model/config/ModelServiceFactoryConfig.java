@@ -22,7 +22,7 @@ import ru.citeck.ecos.model.lib.type.repo.TypesRepo;
 import ru.citeck.ecos.model.lib.type.service.TypeRefService;
 import ru.citeck.ecos.records3.RecordsServiceFactory;
 import ru.citeck.ecos.service.CiteckServices;
-import ru.citeck.ecos.webapp.api.context.EcosWebAppContext;
+import ru.citeck.ecos.webapp.api.EcosWebAppApi;
 import ru.citeck.ecos.webapp.api.entity.EntityRef;
 import ru.citeck.ecos.webapp.lib.model.num.registry.NumTemplatesRegistry;
 import ru.citeck.ecos.webapp.lib.model.perms.registry.TypePermissionsRegistry;
@@ -34,7 +34,7 @@ import java.util.List;
 public class ModelServiceFactoryConfig extends ModelServiceFactory {
 
     private EcosTypesRegistry typesRegistry;
-    private EcosWebAppContext ecosWebAppContext;
+    private EcosWebAppApi ecosWebAppApi;
     private NumTemplatesRegistry numTemplatesRegistry;
     private CommandsServiceFactory commandsServiceFactory;
     private TypePermissionsRegistry typePermissionsRegistry;
@@ -97,8 +97,8 @@ public class ModelServiceFactoryConfig extends ModelServiceFactory {
 
     @Nullable
     @Override
-    public EcosWebAppContext getEcosWebAppContext() {
-        return ecosWebAppContext;
+    public EcosWebAppApi getEcosWebAppApi() {
+        return ecosWebAppApi;
     }
 
     @NotNull
@@ -141,8 +141,8 @@ public class ModelServiceFactoryConfig extends ModelServiceFactory {
     }
 
     @Autowired
-    public void setEcosWebAppContext(EcosWebAppContext ecosWebAppContext) {
-        this.ecosWebAppContext = ecosWebAppContext;
+    public void setEcosWebAppApi(EcosWebAppApi ecosWebAppApi) {
+        this.ecosWebAppApi = ecosWebAppApi;
     }
 
     @Autowired

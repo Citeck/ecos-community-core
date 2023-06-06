@@ -35,7 +35,8 @@ import ru.citeck.ecos.search.ftsquery.FTSQuery;
 import ru.citeck.ecos.utils.AuthorityUtils;
 import ru.citeck.ecos.utils.DictUtils;
 import ru.citeck.ecos.utils.NodeUtils;
-import ru.citeck.ecos.webapp.api.properties.EcosWebAppProperties;
+import ru.citeck.ecos.webapp.api.entity.EntityRef;
+import ru.citeck.ecos.webapp.api.properties.EcosWebAppProps;
 
 import java.io.Serializable;
 import java.util.*;
@@ -61,7 +62,7 @@ public class CaseDocumentRecordsDao extends LocalRecordsDao implements LocalReco
     private final EcosTypeService ecosTypeService;
     private final AuthorityUtils authorityUtils;
     private final RecordsProperties recordsProperties;
-    private final EcosWebAppProperties ecosWebAppProperties;
+    private final EcosWebAppProps ecosWebAppProperties;
 
     private final Map<QName, Map<RecordRef, QName>> assocTypesRegistry = new ConcurrentHashMap<>();
     private final LoadingCache<QName, Map<RecordRef, QName>> assocTypesByCaseAlfTypeCache;
@@ -76,7 +77,7 @@ public class CaseDocumentRecordsDao extends LocalRecordsDao implements LocalReco
                                   NodeUtils nodeUtils,
                                   DictUtils dictUtils,
                                   RecordsProperties recordsProperties,
-                                  EcosWebAppProperties ecosWebAppProperties) {
+                                  EcosWebAppProps ecosWebAppProperties) {
         setId(ID);
         this.caseCompletenessService = caseCompletenessService;
         this.ecosTypeService = ecosTypeService;
@@ -247,7 +248,7 @@ public class CaseDocumentRecordsDao extends LocalRecordsDao implements LocalReco
 
     @Nullable
     private NodeRef convertRecordRefToNodeRef(RecordRef recordRef) {
-        if (RecordRef.isEmpty(recordRef)) {
+        if (EntityRef.isEmpty(recordRef)) {
             return null;
         }
         if (authorityUtils.isAuthorityRef(recordRef)) {

@@ -9,7 +9,7 @@ import ru.citeck.ecos.audit.lib.EcosAuditService;
 import ru.citeck.ecos.audit.lib.EcosAuditServiceImpl;
 import ru.citeck.ecos.audit.lib.output.EcosAuditOutputsServiceImpl;
 import ru.citeck.ecos.audit.lib.processor.EcosAuditProcessorsServiceImpl;
-import ru.citeck.ecos.webapp.api.properties.EcosWebAppProperties;
+import ru.citeck.ecos.webapp.api.properties.EcosWebAppProps;
 import ru.citeck.ecos.webapp.lib.lock.EcosAppLockService;
 import ru.citeck.ecos.zookeeper.EcosZooKeeper;
 import ru.citeck.ecos.zookeeper.lock.EcosZkLockService;
@@ -18,7 +18,7 @@ import ru.citeck.ecos.zookeeper.lock.EcosZkLockService;
 public class EcosWebAppConfig {
 
     @Autowired
-    private EcosWebAppProperties props;
+    private EcosWebAppProps props;
     @Autowired
     private EcosAuditProperties auditProps;
     @Autowired

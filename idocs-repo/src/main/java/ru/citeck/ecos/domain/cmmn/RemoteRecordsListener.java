@@ -27,6 +27,7 @@ import ru.citeck.ecos.records2.predicate.model.Predicates;
 import ru.citeck.ecos.records3.record.atts.schema.annotation.AttName;
 import ru.citeck.ecos.records3.record.request.RequestContext;
 import ru.citeck.ecos.utils.TransactionUtils;
+import ru.citeck.ecos.webapp.api.entity.EntityRef;
 
 import javax.annotation.PostConstruct;
 import java.util.Set;
@@ -92,7 +93,7 @@ public class RemoteRecordsListener {
                 + " type: " + event.typeRef
                 + " new record: " + isNewRec
         );
-        if (RecordRef.isEmpty(event.recordRef) || RecordRef.isEmpty(event.typeRef)) {
+        if (EntityRef.isEmpty(event.recordRef) || EntityRef.isEmpty(event.typeRef)) {
             return;
         }
 
