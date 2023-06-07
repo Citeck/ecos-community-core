@@ -67,7 +67,7 @@
         <default.locale>en</default.locale>
         <yuicompressor.compress.skip>false</yuicompressor.compress.skip>
 
-        <ecos.flowable.version>2.0.8</ecos.flowable.version>
+        <ecos.flowable.version>2.0.9-SNAPSHOT</ecos.flowable.version>
         <ecos.records.version>1.36.1</ecos.records.version>
         <ecos.apps.lib.version>2.9.0</ecos.apps.lib.version>
         <ecos.jackson.version>2.10.4.3</ecos.jackson.version>
