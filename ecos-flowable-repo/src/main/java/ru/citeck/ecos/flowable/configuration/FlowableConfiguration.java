@@ -73,6 +73,7 @@ public class FlowableConfiguration {
     private static final String FLOWABLE_MAIL_SERVER_USERNAME = "flowable.mail.server.username";
     private static final String FLOWABLE_MAIL_SERVER_PASSWORD = "flowable.mail.server.password";
     private static final String FLOWABLE_MAIL_SERVER_DEFAULT_FROM = "flowable.mail.server.default.from";
+    private static final String FLOWABLE_MAIL_SERVER_FORCE_DEFAULT_FROM = "flowable.mail.server.force.default.from";
     private static final String FLOWABLE_MAIL_SERVER_USE_TLS = "flowable.mail.server.use.tls";
     private static final String FLOWABLE_MAIL_SERVER_USE_SSL = "flowable.mail.server.use.ssl";
 
@@ -287,7 +288,7 @@ public class FlowableConfiguration {
 
         String mailPort = properties.getProperty(FLOWABLE_MAIL_SERVER_PORT);
         if (mailPort != null) {
-            processEngineConfiguration.setMailServerPort(Integer.valueOf(mailPort));
+            processEngineConfiguration.setMailServerPort(Integer.parseInt(mailPort));
         }
 
         String mailUsername = properties.getProperty(FLOWABLE_MAIL_SERVER_USERNAME);
@@ -305,13 +306,18 @@ public class FlowableConfiguration {
             processEngineConfiguration.setMailServerDefaultFrom(mailDefaultFrom);
         }
 
+        String mailForceDefaultFrom = properties.getProperty(FLOWABLE_MAIL_SERVER_FORCE_DEFAULT_FROM);
+        if (mailForceDefaultFrom != null) {
+            processEngineConfiguration.setMailServerForceDefaultFrom(Boolean.parseBoolean(mailForceDefaultFrom));
+        }
+
         String mailUseTLS = properties.getProperty(FLOWABLE_MAIL_SERVER_USE_TLS);
         if (mailUseTLS != null) {
-            processEngineConfiguration.setMailServerUseTLS(Boolean.valueOf(mailUseTLS));
+            processEngineConfiguration.setMailServerUseTLS(Boolean.parseBoolean(mailUseTLS));
         }
         String mailUseSSL = properties.getProperty(FLOWABLE_MAIL_SERVER_USE_SSL);
         if (mailUseSSL != null) {
-            processEngineConfiguration.setMailServerUseSSL(Boolean.valueOf(mailUseSSL));
+            processEngineConfiguration.setMailServerUseSSL(Boolean.parseBoolean(mailUseSSL));
         }
     }
 
