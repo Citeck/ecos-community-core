@@ -3,8 +3,8 @@ id: templates
 name: { ru: Шаблоны Документов, en: Document templates }
 
 actions:
-  - uiserv/action@view
-  - uiserv/action@download
+  - uiserv/action@view-dashboard
+  - uiserv/action@content-download
   - uiserv/action@edit
 
 typeRef: emodel/type@document-template
