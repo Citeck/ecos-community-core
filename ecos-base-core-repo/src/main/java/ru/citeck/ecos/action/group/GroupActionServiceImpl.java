@@ -26,7 +26,7 @@ import java.util.function.Function;
  */
 public class GroupActionServiceImpl implements GroupActionService {
 
-    private static final String ALREADY_RUNNING_MSG = "message.action-is-already-running";
+    private static final String ALREADY_RUNNING_MSG = "message.error-already-running";
 
     private final TransactionService transactionService;
     private final RecordsConfiguration recordsConfiguration;
