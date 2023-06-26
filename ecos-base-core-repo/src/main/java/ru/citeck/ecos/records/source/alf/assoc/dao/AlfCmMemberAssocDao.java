@@ -2,7 +2,6 @@ package ru.citeck.ecos.records.source.alf.assoc.dao;
 
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
-import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.alfresco.model.ContentModel;
 import org.alfresco.service.cmr.dictionary.AssociationDefinition;
@@ -10,11 +9,10 @@ import org.alfresco.service.cmr.repository.NodeRef;
 import org.alfresco.service.namespace.QName;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 import ru.citeck.ecos.commons.data.ObjectData;
-import ru.citeck.ecos.records3.record.atts.dto.LocalRecordAtts;
-import ru.citeck.ecos.records3.record.dao.mutate.RecordMutateDao;
+import ru.citeck.ecos.records2.RecordRef;
+import ru.citeck.ecos.records3.RecordsService;
 import ru.citeck.ecos.utils.AuthorityUtils;
 
 import java.util.Collections;
@@ -22,34 +20,29 @@ import java.util.Set;
 
 @Slf4j
 @Component
+@RequiredArgsConstructor(onConstructor_={@Autowired})
 public class AlfCmMemberAssocDao implements AlfAssocDao {
 
     private static final Set<QName> Q_NAMES = Collections.singleton(ContentModel.ASSOC_MEMBER);
 
     private final AuthorityUtils authorityUtils;
-    private final RecordMutateDao authorityActionDao;
-
-    @Autowired
-    public AlfCmMemberAssocDao(AuthorityUtils authorityUtils,
-                               @Qualifier("authorityGroupManagerActionRecordsDao") RecordMutateDao authorityActionDao) {
-        this.authorityUtils = authorityUtils;
-        this.authorityActionDao = authorityActionDao;
-    }
+    private final RecordsService recordsService;
 
     @Override
-    @SneakyThrows
     public void create(NodeRef sourceRef, NodeRef targetRef, AssociationDefinition assoc) {
         AuthoritiesActionInfo authoritiesActionInfo = getAuthoritiesInfo(sourceRef, targetRef, true);
-        LocalRecordAtts recordAtts = new LocalRecordAtts("", ObjectData.create(authoritiesActionInfo));
-        authorityActionDao.mutate(recordAtts);
+        executeAction(authoritiesActionInfo);
     }
 
     @Override
-    @SneakyThrows
     public void remove(NodeRef sourceRef, NodeRef targetRef, AssociationDefinition assoc) {
         AuthoritiesActionInfo authoritiesActionInfo = getAuthoritiesInfo(sourceRef, targetRef, false);
-        LocalRecordAtts recordAtts = new LocalRecordAtts("", ObjectData.create(authoritiesActionInfo));
-        authorityActionDao.mutate(recordAtts);
+        executeAction(authoritiesActionInfo);
+    }
+
+    private void executeAction(AuthoritiesActionInfo authoritiesActionInfo) {
+        recordsService.mutate(RecordRef.create("authority-group-manager-action", ""),
+                ObjectData.create(authoritiesActionInfo));
     }
 
     private AuthoritiesActionInfo getAuthoritiesInfo(NodeRef sourceRef, NodeRef targetRef, boolean add) {
