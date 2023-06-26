@@ -2,6 +2,7 @@ package ru.citeck.ecos.records.source.alf.assoc.dao;
 
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.alfresco.model.ContentModel;
 import org.alfresco.service.cmr.dictionary.AssociationDefinition;
@@ -36,25 +37,19 @@ public class AlfCmMemberAssocDao implements AlfAssocDao {
     }
 
     @Override
+    @SneakyThrows
     public void create(NodeRef sourceRef, NodeRef targetRef, AssociationDefinition assoc) {
         AuthoritiesActionInfo authoritiesActionInfo = getAuthoritiesInfo(sourceRef, targetRef, true);
         LocalRecordAtts recordAtts = new LocalRecordAtts("", ObjectData.create(authoritiesActionInfo));
-        try {
-            authorityActionDao.mutate(recordAtts);
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
+        authorityActionDao.mutate(recordAtts);
     }
 
     @Override
+    @SneakyThrows
     public void remove(NodeRef sourceRef, NodeRef targetRef, AssociationDefinition assoc) {
         AuthoritiesActionInfo authoritiesActionInfo = getAuthoritiesInfo(sourceRef, targetRef, false);
         LocalRecordAtts recordAtts = new LocalRecordAtts("", ObjectData.create(authoritiesActionInfo));
-        try {
-            authorityActionDao.mutate(recordAtts);
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
+        authorityActionDao.mutate(recordAtts);
     }
 
     private AuthoritiesActionInfo getAuthoritiesInfo(NodeRef sourceRef, NodeRef targetRef, boolean add) {
