@@ -126,6 +126,7 @@ public class PeopleRecordsDao extends LocalRecordsDao
         for (RecordMeta record : mutation.getRecords()) {
 
             String personUserName = record.getId().getId();
+            boolean isNewRecord = StringUtils.isBlank(personUserName);
 
             RecordMeta handledMeta = this.handleMetaBeforeMutation(record);
             RecordsMutation newMutation = new RecordsMutation(mutation);
@@ -139,6 +140,9 @@ public class PeopleRecordsDao extends LocalRecordsDao
                 mutResult = alfNodesRecordsDao.mutate(newMutation);
 
             } else {
+                if (isNewRecord) {
+                    throw new PermissionDeniedException();
+                }
                 UserValue userValue = new UserValue(record.getId());
                 userValue.init(QueryContext.getCurrent(), EmptyMetaField.INSTANCE);
                 if (userValue.getPermissions().has(PERMS_WRITE)) {
