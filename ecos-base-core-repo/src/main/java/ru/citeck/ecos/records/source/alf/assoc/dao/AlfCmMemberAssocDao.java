@@ -11,9 +11,9 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import ru.citeck.ecos.commons.data.ObjectData;
-import ru.citeck.ecos.records2.RecordRef;
 import ru.citeck.ecos.records3.RecordsService;
 import ru.citeck.ecos.utils.AuthorityUtils;
+import ru.citeck.ecos.webapp.api.entity.EntityRef;
 
 import java.util.Collections;
 import java.util.Set;
@@ -41,7 +41,7 @@ public class AlfCmMemberAssocDao implements AlfAssocDao {
     }
 
     private void executeAction(AuthoritiesActionInfo authoritiesActionInfo) {
-        recordsService.mutate(RecordRef.create("authority-group-manager-action", ""),
+        recordsService.mutate(EntityRef.create("authority-group-manager-action", ""),
                 ObjectData.create(authoritiesActionInfo));
     }
 
