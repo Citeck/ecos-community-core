@@ -32,6 +32,7 @@ import ru.citeck.ecos.utils.RepoUtils;
 import javax.annotation.PostConstruct;
 import java.io.*;
 import java.nio.charset.StandardCharsets;
+import java.text.ParseException;
 import java.time.Instant;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -48,6 +49,7 @@ import java.util.stream.Collectors;
 public abstract class AbstractExportActionFactory<T> implements GroupActionFactory<RecordRef> {
 
     private static final FastDateFormat DATE_FORMAT = FastDateFormat.getInstance("dd.MM.yyyy");
+    private static final FastDateFormat DEFAULT_DATE_FORMAT = FastDateFormat.getInstance("yyyyMMdd");
     private static final FastDateFormat DATE_TIME_FORMAT = FastDateFormat.getInstance("dd.MM.yyyy HH:mm:ss");
 
     protected RecordsService recordsService;
@@ -63,6 +65,8 @@ public abstract class AbstractExportActionFactory<T> implements GroupActionFacto
     protected static final String PARAM_TEMPLATE = "template";
     protected static final String PARAM_REPORT_TITLE = "reportTitle";
     protected static final String PARAM_REPORT_COLUMNS = "columns";
+    protected static final String PARAM_REPORT_DATE_FORMAT = "dateFormat";
+    protected static final String PARAM_REPORT_DECIMAL_FORMAT = "decimalFormat";
     protected static final String REPORT = "Report";
     protected static final NodeRef ROOT_NODE_REF = new NodeRef("workspace://SpacesStore/attachments-root");
 
@@ -182,6 +186,7 @@ public abstract class AbstractExportActionFactory<T> implements GroupActionFacto
 
         private final List<ReportColumnDef> columns;
         private final Map<String, String> attributesToRequest;
+        private FastDateFormat configDateFormat;
 
         private final T environment;
         private int nodesRowIdx = 1;
@@ -193,6 +198,11 @@ public abstract class AbstractExportActionFactory<T> implements GroupActionFacto
             super(config);
 
             this.outputConfig = outputConfig;
+
+            String dateFormatParam = config.getStrParam(PARAM_REPORT_DATE_FORMAT);
+            if (StringUtils.isNotEmpty(dateFormatParam)) {
+                configDateFormat = FastDateFormat.getInstance(dateFormatParam);
+            }
 
             JsonNode columnsParam = config.getParams().get(PARAM_REPORT_COLUMNS);
             List<ReportColumnDef> columnsFromParam = DataValue.create(columnsParam).asList(ReportColumnDef.class);
@@ -279,7 +289,7 @@ public abstract class AbstractExportActionFactory<T> implements GroupActionFacto
 
             FastDateFormat dateFormat = null;
             if (AttributeType.DATE.equals(type)) {
-                dateFormat = DATE_FORMAT;
+                dateFormat = configDateFormat != null ? configDateFormat : DATE_FORMAT;
             } else if (AttributeType.DATETIME.equals(type)) {
                 dateFormat = DATE_TIME_FORMAT;
             }
@@ -289,6 +299,10 @@ public abstract class AbstractExportActionFactory<T> implements GroupActionFacto
                 }
                 String valueStr = value.asText();
                 if (StringUtils.isBlank(valueStr) || !valueStr.endsWith("Z") || !valueStr.contains("T")) {
+                    try {
+                        return DataValue.createStr(dateFormat.format(DEFAULT_DATE_FORMAT.parse(valueStr)));
+                    } catch (ParseException e) {
+                    }
                     return value;
                 }
                 Instant instant = Json.getMapper().convert(valueStr, Instant.class);
@@ -296,6 +310,12 @@ public abstract class AbstractExportActionFactory<T> implements GroupActionFacto
                     return value;
                 }
                 return DataValue.createStr(dateFormat.format(Date.from(instant)));
+            }
+            if (AttributeType.NUMBER.equals(type) && value.isNotNull()) {
+                try {
+                    return DataValue.create(Double.valueOf(value.asText()));
+                } catch (NumberFormatException e) {
+                }
             }
             if (AttributeType.BOOLEAN.equals(type)) {
                 String text = value.asText();

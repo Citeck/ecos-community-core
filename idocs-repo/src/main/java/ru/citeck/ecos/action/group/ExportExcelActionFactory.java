@@ -11,7 +11,6 @@ import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Component;
 import ru.citeck.ecos.commons.data.DataValue;
-import ru.citeck.ecos.records3.record.atts.dto.RecordAtts;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -68,8 +67,8 @@ public class ExportExcelActionFactory extends AbstractExportActionFactory<Export
             }
         }
         createColumnTitlesRow(columns, workbook, sheet);
-
-        ExcelEnvironment excelEnvironment = new ExcelEnvironment(workbook, sheet);
+        String decimalFormat = config.getStrParam(PARAM_REPORT_DECIMAL_FORMAT);
+        ExcelEnvironment excelEnvironment = new ExcelEnvironment(workbook, sheet, decimalFormat);
         createCellStyles(excelEnvironment);
         return excelEnvironment;
     }
@@ -137,7 +136,6 @@ public class ExportExcelActionFactory extends AbstractExportActionFactory<Export
         CellStyle valueCellStyle = environment.getWorkbook().createCellStyle();
         CellStyle doubleCellStyle = environment.getWorkbook().createCellStyle();
         DataFormat dataFormat = environment.getWorkbook().createDataFormat();
-        doubleCellStyle.setDataFormat(dataFormat.getFormat("0.0"));
 
         Row sourceRow = environment.getSheet().getRow(1);
         if (sourceRow != null) {
@@ -147,6 +145,10 @@ public class ExportExcelActionFactory extends AbstractExportActionFactory<Export
         }
         valueCellStyle.setWrapText(true);
         valueCellStyle.setVerticalAlignment(CellStyle.VERTICAL_CENTER);
+
+        String doubleFormat = environment.getDecimalFormat() != null ?
+            environment.getDecimalFormat() : "0.0";
+        doubleCellStyle.setDataFormat(dataFormat.getFormat(doubleFormat));
 
         environment.setValueCellStyle(valueCellStyle);
         environment.setDoubleCellStyle(doubleCellStyle);
@@ -179,10 +181,14 @@ public class ExportExcelActionFactory extends AbstractExportActionFactory<Export
         private Sheet sheet;
         private CellStyle valueCellStyle;
         private CellStyle doubleCellStyle;
+        private String decimalFormat;
 
-        public ExcelEnvironment(Workbook workbook, Sheet sheet) {
+        public ExcelEnvironment(Workbook workbook, Sheet sheet, String decimalFormat) {
             this.workbook = workbook;
             this.sheet = sheet;
+            if (StringUtils.isNotEmpty(decimalFormat)) {
+                this.decimalFormat = decimalFormat;
+            }
         }
     }
 }
