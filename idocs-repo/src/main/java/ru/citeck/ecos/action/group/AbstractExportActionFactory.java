@@ -49,8 +49,10 @@ import java.util.stream.Collectors;
 public abstract class AbstractExportActionFactory<T> implements GroupActionFactory<RecordRef> {
 
     private static final FastDateFormat DATE_FORMAT = FastDateFormat.getInstance("dd.MM.yyyy");
-    private static final FastDateFormat DEFAULT_DATE_FORMAT = FastDateFormat.getInstance("yyyyMMdd");
     private static final FastDateFormat DATE_TIME_FORMAT = FastDateFormat.getInstance("dd.MM.yyyy HH:mm:ss");
+
+    public static final List<FastDateFormat> DATE_SYSTEM_FORMATS =
+        Arrays.asList(FastDateFormat.getInstance("yyyyMMdd"), FastDateFormat.getInstance("yyyy-MM-dd"));
 
     protected RecordsService recordsService;
     protected ContentService contentService;
@@ -299,9 +301,11 @@ public abstract class AbstractExportActionFactory<T> implements GroupActionFacto
                 }
                 String valueStr = value.asText();
                 if (StringUtils.isBlank(valueStr) || !valueStr.endsWith("Z") || !valueStr.contains("T")) {
-                    try {
-                        return DataValue.createStr(dateFormat.format(DEFAULT_DATE_FORMAT.parse(valueStr)));
-                    } catch (ParseException e) {
+                    for (FastDateFormat dateSystemFormat : DATE_SYSTEM_FORMATS) {
+                        try {
+                            return DataValue.createStr(dateFormat.format(dateSystemFormat.parse(valueStr)));
+                        } catch (ParseException e) {
+                        }
                     }
                     return value;
                 }
