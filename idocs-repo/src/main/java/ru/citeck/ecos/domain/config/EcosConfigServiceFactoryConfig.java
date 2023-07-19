@@ -15,6 +15,7 @@ import ru.citeck.ecos.config.lib.zookeeper.ZkConfigProvider;
 import ru.citeck.ecos.webapp.api.properties.EcosWebAppProps;
 import ru.citeck.ecos.zookeeper.EcosZooKeeper;
 
+import javax.annotation.PostConstruct;
 import java.util.Arrays;
 import java.util.List;
 
@@ -28,6 +29,12 @@ public class EcosConfigServiceFactoryConfig extends EcosConfigServiceFactory {
     @Autowired
     private EcosZooKeeper ecosZooKeeper;
 
+    @PostConstruct
+    public void init() {
+        // initialize all providers
+        getEcosConfigProviders();
+    }
+
     @Bean
     @NotNull
     @Override
@@ -39,7 +46,7 @@ public class EcosConfigServiceFactoryConfig extends EcosConfigServiceFactory {
     @Override
     protected List<EcosConfigProvider> createEcosConfigProviders() {
         return Arrays.asList(
-            new ZkConfigProvider(ecosZooKeeper, this),
+            new ZkConfigProvider(ecosZooKeeper),
             new ArtifactsConfigProvider(this, localAppService)
         );
     }
