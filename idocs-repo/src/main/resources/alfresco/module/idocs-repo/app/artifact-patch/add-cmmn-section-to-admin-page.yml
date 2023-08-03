@@ -15,9 +15,6 @@ config:
         name:
           ru: Сценарии CMMN
           en: CMMN models
-        shortName:
-          ru: CMMN
-          en: CMMN
         type: JOURNAL
         config:
           journalId: cmmn-process-def
