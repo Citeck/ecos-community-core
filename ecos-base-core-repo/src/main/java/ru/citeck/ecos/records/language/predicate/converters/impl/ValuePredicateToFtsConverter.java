@@ -522,7 +522,7 @@ public class ValuePredicateToFtsConverter implements PredicateToFtsConverter {
 
     private ComposedPredicate getIntervalPredicate(String predicateValue, String attribute,
                                                    ClassAttributeDefinition attDef) {
-        String[] interval = predicateValue.split(SLASH_DELIMITER);
+        String[] interval = predicateValue.split("\\\\" + SLASH_DELIMITER);
 
         if (interval.length != 2) {
             return null;
