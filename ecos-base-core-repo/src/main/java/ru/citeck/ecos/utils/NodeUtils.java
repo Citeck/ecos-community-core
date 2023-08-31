@@ -110,13 +110,8 @@ public class NodeUtils {
     }
 
     private boolean isNodeIdLengthValid(String prefix, String val) {
-        String id = getIdFromNodeRef(prefix, val);
-        return id.length() <= UUID_SIZE;
-    }
-
-    private String getIdFromNodeRef(String prefix, String val) {
-        int firstCharOfId = val.indexOf('/', prefix.length()) + 1;
-        return val.substring(firstCharOfId);
+        int idLength = val.length() - val.indexOf('/', prefix.length()) - 1;
+        return idLength <= UUID_SIZE;
     }
 
     /**
