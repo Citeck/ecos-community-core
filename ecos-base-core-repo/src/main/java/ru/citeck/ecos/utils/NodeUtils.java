@@ -99,13 +99,19 @@ public class NodeUtils {
         if (value instanceof String) {
             String valueStr = (String) value;
             for (String prefix : NODE_REF_PREFIXES) {
-                if (valueStr.startsWith(prefix) && NodeRef.isNodeRef(valueStr)) {
+                if (valueStr.startsWith(prefix) && NodeRef.isNodeRef(valueStr)
+                        && isNodeIdLengthValid(prefix, valueStr)) {
                     return true;
                 }
             }
             return false;
         }
         return false;
+    }
+
+    private boolean isNodeIdLengthValid(String prefix, String val) {
+        int idLength = val.length() - val.indexOf('/', prefix.length()) - 1;
+        return idLength <= UUID_SIZE;
     }
 
     /**
