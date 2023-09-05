@@ -2136,6 +2136,12 @@ define([
             return function (elCell, oRecord, oColumn, sData) {
                 eval(expression);
             }
+        },
+
+        functionFormatter: function (f) {
+            return function (elCell, oRecord, oColumn, sData) {
+                f(elCell, oRecord, oColumn, sData);
+            }
         }
     });
 
