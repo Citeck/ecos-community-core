@@ -12,6 +12,7 @@ import org.springframework.extensions.webscripts.Status;
 import org.springframework.extensions.webscripts.WebScriptRequest;
 import ru.citeck.ecos.eform.model.EcosEformFileModel;
 import ru.citeck.ecos.search.ftsquery.FTSQuery;
+import ru.citeck.ecos.utils.RepoUtils;
 
 import java.util.HashMap;
 import java.util.List;
@@ -67,7 +68,8 @@ public class FileEformDelete extends DeclarativeWebScript {
         }
 
         NodeRef nodeToDelete = query.get(0);
-        nodeService.deleteNode(nodeToDelete);
+        //delete temp file without moving to archive
+        RepoUtils.deleteNode(nodeToDelete, nodeService);
 
         if (log.isDebugEnabled()) {
             log.debug(String.format("Delete file with id <%s>, nodeRef <%s>", fileId, nodeToDelete));
