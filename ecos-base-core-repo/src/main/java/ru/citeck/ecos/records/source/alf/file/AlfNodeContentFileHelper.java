@@ -276,7 +276,8 @@ public class AlfNodeContentFileHelper {
 
         QName contentFileType = nodeService.getType(contentFile);
         if (contentFileType.getLocalName().equals("tempFile")) {
-            nodeService.deleteNode(contentFile);
+            //delete temp file without moving to archive
+            RepoUtils.deleteNode(contentFile, nodeService);
         }
     }
 
