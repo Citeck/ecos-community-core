@@ -405,7 +405,7 @@ public class ValuePredicateToFtsConverter implements PredicateToFtsConverter {
         DataValue objectPredicateValue = valuePredicate.getValue();
         String predicateValue = objectPredicateValue.asText();
         if (!predicateValue.contains(NodeUtils.WORKSPACE_PREFIX)) {
-            predicateValue = JSONValue.escape(predicateValue);
+            predicateValue = customEscape(predicateValue);
         }
 
         ClassAttributeDefinition attDef = dictUtils.getAttDefinition(attribute);
@@ -898,6 +898,21 @@ public class ValuePredicateToFtsConverter implements PredicateToFtsConverter {
             return associationIndexPropertyRegistry.getAssociationIndexProperty(definitionName);
         }
         return definitionName;
+    }
+
+    public static String customEscape(String predicateValue) {
+        if (predicateValue == null) {
+            return null;
+        }
+        StringBuilder sb = new StringBuilder();
+        for (char c : predicateValue.toCharArray()) {
+            if (c == '/') {
+                sb.append(c);
+            } else {
+                sb.append(JSONValue.escape(Character.toString(c)));
+            }
+        }
+        return sb.toString();
     }
 
     /**
