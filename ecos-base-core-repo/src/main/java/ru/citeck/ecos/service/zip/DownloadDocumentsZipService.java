@@ -47,7 +47,7 @@ public class DownloadDocumentsZipService {
 
     private boolean isNotEmptyRecordRef(RecordRef recordRef) {
         if (RecordRef.isEmpty(recordRef)) {
-            log.error("RecordRef is empty!");
+            log.warn("RecordRef is empty!");
             return false;
         }
         return true;
@@ -61,13 +61,10 @@ public class DownloadDocumentsZipService {
     }
 
     private void packageDocumentsToZip(List<DocumentData> documents, OutputStream outputStream) {
-        ZipOutputStream zipOutputStream = new ZipOutputStream(outputStream);
-        try {
+        try (ZipOutputStream zipOutputStream = new ZipOutputStream(outputStream)) {
             zipDocumentsFiles(zipOutputStream, documents);
         } catch (IOException e) {
             throw new RuntimeException(e);
-        } finally {
-            IOUtils.closeQuietly(zipOutputStream);
         }
     }
 
@@ -78,11 +75,13 @@ public class DownloadDocumentsZipService {
             zipOutputStream.putNextEntry(zipEntry);
 
             ContentReader content = documentsFile.getContent();
-            InputStream contentInputStream = content.getContentInputStream();
-            IOUtils.copy(contentInputStream, zipOutputStream);
+            try (InputStream contentInputStream = content.getContentInputStream()) {
+                IOUtils.copy(contentInputStream, zipOutputStream);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
 
             zipOutputStream.closeEntry();
-            IOUtils.closeQuietly(contentInputStream);
         }
     }
 

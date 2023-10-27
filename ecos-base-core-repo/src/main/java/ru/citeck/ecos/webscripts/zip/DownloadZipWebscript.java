@@ -1,8 +1,5 @@
 package ru.citeck.ecos.webscripts.zip;
 
-import ecos.com.google.gson.JsonArray;
-import ecos.com.google.gson.JsonObject;
-import ecos.com.google.gson.JsonParser;
 import org.apache.commons.compress.utils.IOUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.alfresco.repo.content.MimetypeMap;
@@ -10,15 +7,16 @@ import org.json.simple.parser.ParseException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.extensions.webscripts.*;
 import org.springframework.stereotype.Component;
+import ru.citeck.ecos.commons.json.Json;
 import ru.citeck.ecos.records2.RecordRef;
 import ru.citeck.ecos.server.utils.Utils;
 import ru.citeck.ecos.service.zip.DownloadDocumentsZipService;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 @Slf4j
 @Component
@@ -89,15 +87,8 @@ public class DownloadZipWebscript extends AbstractWebScript {
 
     private List<RecordRef> getRecordRefsFromJSON(WebScriptRequest webScriptRequest)
         throws IOException, ParseException {
-        JsonParser jsonParser = new JsonParser();
-        JsonObject json = (JsonObject) jsonParser.parse(webScriptRequest.getContent().getContent());
-        JsonArray documentsRef = (JsonArray) json.get("documentsRef");
-
-        List<RecordRef> recordRefs = new ArrayList<>();
-        documentsRef.forEach(document -> {
-            RecordRef recordRef = RecordRef.valueOf(document.getAsString());
-            recordRefs.add(recordRef);
-        });
-        return recordRefs;
+        DownloadZipWebscriptDto read =
+            Json.getMapper().read(webScriptRequest.getContent().getContent(), DownloadZipWebscriptDto.class);
+        return Objects.requireNonNull(read).getDocumentsRef();
     }
 }
