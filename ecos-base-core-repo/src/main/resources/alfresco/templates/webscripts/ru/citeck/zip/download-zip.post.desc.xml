@@ -1,8 +1,0 @@
-<webscript>
-    <shortname>Download zip</shortname>
-    <description>Download zip</description>
-    <url>/citeck/zip/download</url>
-    <format default="json"/>
-    <authentication>user</authentication>
-    <transaction>required</transaction>
-</webscript>

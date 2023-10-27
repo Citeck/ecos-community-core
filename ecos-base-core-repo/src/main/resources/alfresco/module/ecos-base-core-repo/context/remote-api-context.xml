@@ -357,9 +357,4 @@
           parent="webscript">
     </bean>
 
-    <bean id="webscript.ru.citeck.ecos.zip.download-zip.post"
-          class="ru.citeck.ecos.webscripts.zip.DownloadZipWebscript"
-          parent="webscript">
-    </bean>
-
 </beans>
