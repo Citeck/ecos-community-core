@@ -48,10 +48,13 @@ public class DownloadDocumentsZipService {
             String newFullName = document.getName();
             int indexOfExtension = newFullName.lastIndexOf(".");
             String extension = "";
+            String name;
             if (indexOfExtension != -1) {
                 extension = newFullName.substring(indexOfExtension);
+                name = newFullName.substring(0, indexOfExtension);
+            } else {
+                name =  newFullName;
             }
-            String name = newFullName.substring(0, indexOfExtension);
 
             int i = 0;
             while (documentsNames.contains(newFullName)) {
