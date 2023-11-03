@@ -53,7 +53,7 @@ public class DownloadDocumentsZipService {
                 extension = newFullName.substring(indexOfExtension);
                 name = newFullName.substring(0, indexOfExtension);
             } else {
-                name =  newFullName;
+                name = newFullName;
             }
 
             int i = 0;
