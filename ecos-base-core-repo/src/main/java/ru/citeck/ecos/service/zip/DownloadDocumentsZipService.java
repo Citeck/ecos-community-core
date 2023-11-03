@@ -14,7 +14,9 @@ import ru.citeck.ecos.records3.RecordsService;
 
 import java.io.*;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
@@ -41,15 +43,18 @@ public class DownloadDocumentsZipService {
     }
 
     private static void renameDuplicateNames(List<DocumentData> documents) {
-        List<String> documentsNames = new ArrayList<>();
-        for (DocumentData document: documents) {
+        Set<String> documentsNames = new HashSet<>();
+        for (DocumentData document : documents) {
             String newFullName = document.getName();
             int indexOfExtension = newFullName.lastIndexOf(".");
+            String extension = "";
+            if (indexOfExtension != -1) {
+                extension = newFullName.substring(indexOfExtension);
+            }
             String name = newFullName.substring(0, indexOfExtension);
-            String extension = newFullName.substring(indexOfExtension);
 
             int i = 0;
-            while(documentsNames.contains(newFullName)) {
+            while (documentsNames.contains(newFullName)) {
                 i++;
                 newFullName = name + " (" + i + ")" + extension;
             }
