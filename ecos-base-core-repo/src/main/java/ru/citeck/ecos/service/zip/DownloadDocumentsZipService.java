@@ -13,7 +13,10 @@ import ru.citeck.ecos.records2.RecordRef;
 import ru.citeck.ecos.records3.RecordsService;
 
 import java.io.*;
+import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
@@ -35,7 +38,34 @@ public class DownloadDocumentsZipService {
 
     public void getZip(List<RecordRef> documentsRef, OutputStream outputStream) {
         List<DocumentData> documents = getDocuments(documentsRef);
+        renameDuplicateNames(documents);
         packageDocumentsToZip(documents, outputStream);
+    }
+
+    private static void renameDuplicateNames(List<DocumentData> documents) {
+        Set<String> documentsNames = new HashSet<>();
+        for (DocumentData document : documents) {
+            String newFullName = document.getName();
+            int indexOfExtension = newFullName.lastIndexOf(".");
+            String extension = "";
+            String name;
+            if (indexOfExtension != -1) {
+                extension = newFullName.substring(indexOfExtension);
+                name = newFullName.substring(0, indexOfExtension);
+            } else {
+                name = newFullName;
+            }
+
+            int i = 0;
+            while (documentsNames.contains(newFullName)) {
+                i++;
+                newFullName = name + " (" + i + ")" + extension;
+            }
+            if (i > 0) {
+                document.setName(newFullName);
+            }
+            documentsNames.add(document.getName());
+        }
     }
 
     private List<DocumentData> getDocuments(List<RecordRef> documentsRef) {
