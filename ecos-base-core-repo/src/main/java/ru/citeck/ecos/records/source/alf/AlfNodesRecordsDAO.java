@@ -330,6 +330,12 @@ public class AlfNodesRecordsDAO extends LocalRecordsDao
                         if (!(converted instanceof Serializable)) {
                             converted = null;
                         }
+
+                        if (ContentModel.PROP_TITLE.equals(fieldName) && converted instanceof Map) {
+                            MLText mlText = new MLText();
+                            ((Map<String, String>) converted).forEach((k, v) -> mlText.put(new Locale(k), v));
+                            converted = mlText;
+                        }
                     }
 
                     props.put(fieldName, (Serializable) converted);
