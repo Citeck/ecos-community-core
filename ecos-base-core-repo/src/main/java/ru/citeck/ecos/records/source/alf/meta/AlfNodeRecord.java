@@ -192,7 +192,7 @@ public class AlfNodeRecord implements MetaValue {
 
         Attribute nodeAtt = node.attribute(name);
 
-        if (Attribute.Type.UNKNOWN.equals(nodeAtt.type())) {
+        if (nodeAtt == null || Attribute.Type.UNKNOWN.equals(nodeAtt.type())) {
             return false;
         }
 
