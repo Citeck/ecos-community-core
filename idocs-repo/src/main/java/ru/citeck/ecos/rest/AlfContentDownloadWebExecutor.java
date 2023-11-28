@@ -1,6 +1,7 @@
 package ru.citeck.ecos.rest;
 
 import kotlin.Pair;
+import lombok.Data;
 import org.alfresco.model.ContentModel;
 import org.alfresco.repo.node.NodeUtils;
 import org.alfresco.service.cmr.repository.ContentReader;
@@ -13,23 +14,24 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.annotation.Secured;
 import org.springframework.stereotype.Component;
 import ru.citeck.ecos.context.lib.auth.AuthRole;
+import ru.citeck.ecos.webapp.api.entity.EntityRef;
 import ru.citeck.ecos.webapp.api.web.executor.EcosWebExecutor;
 import ru.citeck.ecos.webapp.api.web.executor.EcosWebExecutorReq;
 import ru.citeck.ecos.webapp.api.web.executor.EcosWebExecutorResp;
 
 @Component
-public class ContentDownloadWebExecutor implements EcosWebExecutor {
+public class AlfContentDownloadWebExecutor implements EcosWebExecutor {
 
-    public static final String PATH = "/content/download";
+    private static final String PATH = "/content/download";
 
     private final ContentService contentService;
     private final NodeService nodeService;
     private final TransactionService transactionService;
 
     @Autowired
-    public ContentDownloadWebExecutor(ContentService contentService,
-                                      NodeService nodeService,
-                                      TransactionService transactionService) {
+    public AlfContentDownloadWebExecutor(ContentService contentService,
+                                         NodeService nodeService,
+                                         TransactionService transactionService) {
         this.contentService = contentService;
         this.nodeService = nodeService;
         this.transactionService = transactionService;
@@ -39,19 +41,24 @@ public class ContentDownloadWebExecutor implements EcosWebExecutor {
     @Secured(AuthRole.SYSTEM)
     public void execute(@NotNull EcosWebExecutorReq ecosWebExecutorReq, @NotNull EcosWebExecutorResp ecosWebExecutorResp) {
 
-        NodeRef contentRef = ecosWebExecutorReq.getBodyReader().readDto(NodeRef.class);
-        if (!NodeUtils.exists(contentRef, nodeService)) {
-            return;
+        Body requestBody = ecosWebExecutorReq.getBodyReader().readDto(Body.class);
+        if (EntityRef.isEmpty(requestBody.entityRef)) {
+            throw new IllegalArgumentException("Request entity ref must be not empty");
         }
 
-        transactionService.getRetryingTransactionHelper().doInTransaction(() -> {
-            ContentReader reader = contentService.getReader(contentRef, ContentModel.PROP_CONTENT);
-            if (reader == null || !reader.exists()) {
-                return null;
-            }
-            reader.getContent(ecosWebExecutorResp.getBodyWriter().getOutputStream());
-            return null;
-        }, true, true);
+        String contentRefStr = requestBody.entityRef.getLocalId();
+        NodeRef contentRef = NodeRef.isNodeRef(contentRefStr) ? new NodeRef(contentRefStr) : null;
+        if (!NodeUtils.exists(contentRef, nodeService)) {
+            throw new IllegalArgumentException("NodeRef " + contentRefStr + " does not exist");
+        }
+
+        ContentReader reader = transactionService.getRetryingTransactionHelper().doInTransaction(() ->
+            contentService.getReader(contentRef, ContentModel.PROP_CONTENT), true, true);
+        if (reader == null || !reader.exists()) {
+            throw new RuntimeException("NodeRef " + contentRefStr + " has no content");
+        }
+
+        reader.getContent(ecosWebExecutorResp.getBodyWriter().getOutputStream());
     }
 
     @NotNull
@@ -69,5 +76,12 @@ public class ContentDownloadWebExecutor implements EcosWebExecutor {
     @Override
     public boolean isReadOnly() {
         return true;
+    }
+
+    @Data
+    public static class Body {
+        private EntityRef entityRef;
+        private String attribute = "";
+        private Integer index = 0;
     }
 }
