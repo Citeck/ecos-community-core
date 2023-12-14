@@ -6,6 +6,9 @@ import ecos.com.google.common.cache.LoadingCache;
 import org.alfresco.model.ContentModel;
 import org.alfresco.repo.node.NodeServicePolicies.OnCreateChildAssociationPolicy;
 import org.alfresco.repo.policy.Behaviour.NotificationFrequency;
+import org.alfresco.service.cmr.dictionary.AssociationDefinition;
+import org.alfresco.service.cmr.dictionary.ChildAssociationDefinition;
+import org.alfresco.service.cmr.dictionary.DictionaryService;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import ru.citeck.ecos.behavior.OrderedBehaviour;
@@ -40,6 +43,7 @@ public class SplitChildrenBehaviour implements OnCreateChildAssociationPolicy {
     private NodeService nodeService;
     private MimetypeService mimetypeService;
     private EcosNodeService ecosNodeService;
+    private DictionaryService dictionaryService;
 
     private int order = 250;
 
@@ -53,6 +57,7 @@ public class SplitChildrenBehaviour implements OnCreateChildAssociationPolicy {
     private QName containerType = ContentModel.TYPE_FOLDER;
     private QName childAssocType = ContentModel.ASSOC_CONTAINS;
     private QName rootType = null;
+    private boolean filterByQName = false;
 
     private LoadingCache<Pair<NodeRef, String>, Optional<NodeRef>> containersCache;
 
@@ -60,6 +65,15 @@ public class SplitChildrenBehaviour implements OnCreateChildAssociationPolicy {
 
         if (rootType == null) {
             rootType = containerType;
+        }
+
+        AssociationDefinition assocDef = dictionaryService.getAssociation(childAssocType);
+        if (assocDef != null && assocDef.isChild()) {
+            if (assocDef instanceof ChildAssociationDefinition) {
+                if (((ChildAssociationDefinition) assocDef).getDuplicateChildNamesAllowed()) {
+                    filterByQName = true;
+                }
+            }
         }
 
         containersCache = CacheBuilder.newBuilder()
@@ -159,7 +173,7 @@ public class SplitChildrenBehaviour implements OnCreateChildAssociationPolicy {
 
             if (child == null) {
                 if (createIfNotExist) {
-                    Map<QName, Serializable> props = new HashMap<>();
+                    Map<QName, Serializable> props = new HashMap<>(1);
                     props.put(ContentModel.PROP_NAME, name);
                     child = nodeService.createNode(folderRef, childAssocType,
                                                    QName.createQName(NamespaceService.CONTENT_MODEL_1_0_URI, name),
@@ -194,8 +208,16 @@ public class SplitChildrenBehaviour implements OnCreateChildAssociationPolicy {
 
     public Optional<NodeRef> queryContainerByName(NodeRef parent, String childName) {
 
-        List<ChildAssociationRef> entities = ecosNodeService.getChildAssocsLimited(parent, childAssocType, null,
-            childName, 1, false);
+        List<ChildAssociationRef> entities;
+        if (filterByQName) {
+            //fix create node with GUID name: ChildAssocEntity.getChildNameUnique():165
+            entities = ecosNodeService.getChildAssocsLimited(parent, childAssocType,
+                QName.createQName(NamespaceService.CONTENT_MODEL_1_0_URI, childName),
+                null, 1, false);
+        } else {
+            entities = ecosNodeService.getChildAssocsLimited(parent, childAssocType, null,
+                childName, 1, false);
+        }
 
         ChildAssociationRef childAssocEntity = entities.size() > 0 ? entities.get(0) : null;
 
@@ -250,6 +272,7 @@ public class SplitChildrenBehaviour implements OnCreateChildAssociationPolicy {
         mimetypeService = serviceRegistry.getMimetypeService();
         namespaceService = serviceRegistry.getNamespaceService();
         policyComponent = (PolicyComponent) serviceRegistry.getService(AlfrescoServices.POLICY_COMPONENT);
+        dictionaryService = serviceRegistry.getDictionaryService();
     }
 
     public interface SplitBehaviour {
