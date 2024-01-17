@@ -75,6 +75,7 @@ public class AlfNodeRecord implements MetaValue {
     private static final String ATTR_IS_CONTAINER = "attr:isContainer";
     private static final String ATTR_PARENT = "attr:parent";
     private static final String ATTR_PARENT_ASSOC = "attr:parentassoc";
+    private static final String ATTR_AUTHORITY_NAME = "authorityName";
     private static final String ATTR_PERMISSIONS = "permissions";
     private static final String ATTR_PENDING_UPDATE = "pendingUpdate";
     private static final String ATTR_VERSION = "version";
@@ -270,6 +271,17 @@ public class AlfNodeRecord implements MetaValue {
         } else if (RecordConstants.ATT_DOC_NUM.equals(name)) {
 
             name = EcosModel.PROP_DOC_NUM.toPrefixString(context.getNamespaceService());
+
+        } else if (ATTR_AUTHORITY_NAME.equals(name)) {
+
+            QName nodeType = node.getType();
+            if (nodeType != null) {
+                if (ContentModel.TYPE_PERSON.equals(nodeType)) {
+                    name = "cm:userName";
+                } else {
+                    name = "cm:authorityName";
+                }
+            }
         }
 
         switch (name) {
