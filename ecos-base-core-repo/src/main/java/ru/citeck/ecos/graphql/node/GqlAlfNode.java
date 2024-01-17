@@ -37,6 +37,8 @@ public class GqlAlfNode {
     private final List<GqlQName> aspects = evalAspects();
     @Getter(lazy = true)
     private final GqlAlfNode parent = evalParent();
+    @Getter(lazy = true)
+    private final ChildAssociationRef parentAssoc = evalParentAssoc();
 
     private final Map<QName, List<NodeRef>> assocs = new ConcurrentHashMap<>();
     private final Map<QName, Attribute> attributes = new ConcurrentHashMap<>();
@@ -219,8 +221,11 @@ public class GqlAlfNode {
     }
 
     private GqlAlfNode evalParent() {
-        ChildAssociationRef assoc = context.getNodeService().getPrimaryParent(nodeRef);
-        return new GqlAlfNode(assoc.getParentRef(), context);
+        return new GqlAlfNode(getParentAssoc().getParentRef(), context);
+    }
+
+    private ChildAssociationRef evalParentAssoc() {
+        return context.getNodeService().getPrimaryParent(nodeRef);
     }
 
     private List<GqlQName> evalAspects() {

@@ -5,6 +5,7 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import org.alfresco.model.ContentModel;
 import org.alfresco.repo.node.MLPropertyInterceptor;
+import org.alfresco.service.cmr.repository.ChildAssociationRef;
 import org.alfresco.service.cmr.repository.MLText;
 import org.alfresco.service.cmr.repository.NodeRef;
 import org.alfresco.service.cmr.security.AccessStatus;
@@ -73,6 +74,7 @@ public class AlfNodeRecord implements MetaValue {
     private static final String ATTR_IS_DOCUMENT = "attr:isDocument";
     private static final String ATTR_IS_CONTAINER = "attr:isContainer";
     private static final String ATTR_PARENT = "attr:parent";
+    private static final String ATTR_PARENT_ASSOC = "attr:parentassoc";
     private static final String ATTR_PERMISSIONS = "permissions";
     private static final String ATTR_PENDING_UPDATE = "pendingUpdate";
     private static final String ATTR_VERSION = "version";
@@ -318,6 +320,17 @@ public class AlfNodeRecord implements MetaValue {
             case ATTR_IS_DOCUMENT:
 
                 attribute = MetaUtils.toMetaValues(node.isDocument(), context, field);
+                break;
+
+            case ATTR_PARENT_ASSOC:
+            case RecordConstants.ATT_PARENT_ATT:
+
+                ChildAssociationRef parentAssoc = node.getParentAssoc();
+                if (parentAssoc == null || parentAssoc.getTypeQName() == null) {
+                    break;
+                }
+                String assocName = parentAssoc.getTypeQName().toPrefixString(context.getNamespaceService());
+                attribute = MetaUtils.toMetaValues(assocName, context, field);
                 break;
 
             case ATTR_PARENT:
