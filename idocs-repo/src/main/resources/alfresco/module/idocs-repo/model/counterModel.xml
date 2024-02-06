@@ -11,7 +11,7 @@
 	<namespaces>
 		<namespace uri="http://www.citeck.ru/model/counter/1.0" prefix="count" />
 	</namespaces>
-	
+
 	<types>
 		<type name="count:counter">
 			<parent>cm:cmobject</parent>
@@ -21,9 +21,12 @@
 					<mandatory>true</mandatory>
 					<default>0</default>
 				</property>
+                <property name="count:emodelNumCounterId">
+                    <type>d:text</type>
+                </property>
 			</properties>
 		</type>
-		
+
 		<type name="count:autonumberTemplate">
 			<parent>cm:content</parent>
 			<properties>
@@ -49,7 +52,7 @@
 			</properties>
 		</type>
 	</types>
-	
+
 	<aspects>
 		<aspect name="count:abbreviated">
 			<properties>

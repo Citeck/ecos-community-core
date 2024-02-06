@@ -21,13 +21,18 @@ package ru.citeck.ecos.counter;
 public interface CounterService {
 
     /**
+     * Switch alfresco counter to using emodel counter
+     */
+    void switchToEmodelCounter(String alfCounterName, String emodelNumTemplateId, String emodelCounterKey);
+
+    /**
      * Sets current value for specified counter.
      * This value can be further retrieved by getCounterLast function.
      *
      * @param counterName
      * @param value
      */
-    public void setCounterLast(String counterName, long value);
+    void setCounterLast(String counterName, long value);
 
     /**
      * Gets last number, that was given by this counter or null, if counter does not exist.
@@ -35,7 +40,7 @@ public interface CounterService {
      * @param counterName
      * @return
      */
-    public Long getCounterLast(String counterName);
+    Long getCounterLast(String counterName);
 
     /**
      * Gets next number, that would be given by this counter.
@@ -44,6 +49,6 @@ public interface CounterService {
      * @param increment   - if true, increment counter, if false - just give the value or null
      * @return Note: if increment == false and counter does not exist, null should be returned.
      */
-    public Long getCounterNext(String counterName, boolean increment);
+    Long getCounterNext(String counterName, boolean increment);
 
 }

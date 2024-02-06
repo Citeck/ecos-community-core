@@ -23,10 +23,10 @@ import org.alfresco.service.namespace.QName;
 public interface CounterModel {
 
 	public static final String NAMESPACE = "http://www.citeck.ru/model/counter/1.0";
-	
+
 	public static final QName TYPE_COUNTER = QName.createQName(NAMESPACE, "counter");
 	public static final QName PROP_VALUE = QName.createQName(NAMESPACE, "value");
-	
+
 	public static final QName TYPE_AUTONUMBER_TEMPLATE = QName.createQName(NAMESPACE, "autonumberTemplate");
 	public static final QName PROP_COMMON_TEMPLATE = QName.createQName(NAMESPACE, "commonTemplate");
 	public static final QName PROP_COUNTER_TEMPLATE = QName.createQName(NAMESPACE, "counterTemplate");
@@ -35,5 +35,5 @@ public interface CounterModel {
 	public static final QName PROP_ERROR_MESSAGE_CONFIG = QName.createQName(NAMESPACE, "errorMessageConfig");
 	public static final QName PROP_CHILDREN_COUNT_VALUE = QName.createQName(NAMESPACE, "childrenCountValue");
 
-	
+	public static final QName PROP_EMODEL_NUM_COUNTER_ID = QName.createQName(NAMESPACE, "emodelNumCounterId");
 }
