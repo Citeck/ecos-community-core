@@ -50,7 +50,6 @@ public class EcosEventsConfig extends EventsServiceFactory {
     @NotNull
     @Override
     public RecordEventsService createRecordEventsService() {
-        log.info("RecordEventsService init");
         return super.createRecordEventsService();
     }
 
