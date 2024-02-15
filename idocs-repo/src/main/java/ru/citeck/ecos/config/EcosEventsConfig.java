@@ -10,6 +10,8 @@ import ru.citeck.ecos.events2.EventsService;
 import ru.citeck.ecos.events2.EventsServiceFactory;
 import ru.citeck.ecos.events2.rabbitmq.RabbitMqEventsService;
 import ru.citeck.ecos.events2.remote.RemoteEventsService;
+import ru.citeck.ecos.events2.type.RecordEventsService;
+import ru.citeck.ecos.model.lib.ModelServiceFactory;
 import ru.citeck.ecos.rabbitmq.RabbitMqConn;
 import ru.citeck.ecos.rabbitmq.RabbitMqConnProvider;
 import ru.citeck.ecos.records3.RecordsServiceFactory;
@@ -44,6 +46,13 @@ public class EcosEventsConfig extends EventsServiceFactory {
         return super.createEventsService();
     }
 
+    @Bean(name = "recordEventsService")
+    @NotNull
+    @Override
+    public RecordEventsService createRecordEventsService() {
+        return super.createRecordEventsService();
+    }
+
     @Nullable
     @Override
     public RemoteEventsService createRemoteEvents() {
@@ -57,5 +66,10 @@ public class EcosEventsConfig extends EventsServiceFactory {
     @Autowired
     public void setRecordsServiceFactory(RecordsServiceFactory recordsServiceFactory) {
         super.recordsServices = recordsServiceFactory;
+    }
+
+    @Autowired
+    public void setModelServiceFactory(ModelServiceFactory modelServiceFactory) {
+        super.modelServices = modelServiceFactory;
     }
 }
