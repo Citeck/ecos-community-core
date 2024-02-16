@@ -829,16 +829,6 @@
         <property name="order" value="${behavior.order.classified.enumeration}"/>
     </bean>
 
-    <bean id="ecos.attachments-root.split-children" parent="ecos.splitChildrenBehaviour">
-        <property name="node" value="workspace://SpacesStore/attachments-root" />
-        <property name="splitBehaviour">
-            <bean class="ru.citeck.ecos.behavior.common.SplitChildrenBehaviour.DateSplit" />
-        </property>
-        <property name="containerType" value="{http://www.alfresco.org/model/system/1.0}container" />
-        <property name="childAssocType" value="{http://www.alfresco.org/model/system/1.0}children" />
-        <property name="order" value="400" />
-    </bean>
-
     <bean id="ecos.history-root.split-children" parent="ecos.splitChildrenBehaviour">
         <property name="node" value="workspace://SpacesStore/history-events-root" />
         <property name="splitBehaviour">
