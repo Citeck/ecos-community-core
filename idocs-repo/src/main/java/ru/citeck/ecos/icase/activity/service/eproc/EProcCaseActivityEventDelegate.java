@@ -40,9 +40,15 @@ public class EProcCaseActivityEventDelegate implements CaseActivityEventDelegate
     }
 
     @Override
-    public void fireEvent(ActivityRef activityRef, String eventType) {
+    public void fireConcreteEvent(EventRef eventRef) {
+        SentryDefinition sentryDefinition = eprocActivityService.getSentryDefinition(eventRef);
+        fireConcreteEventImpl(eventRef.getProcessId(), sentryDefinition);
+    }
+
+    @Override
+    public void fireEvent(ActivityRef activityRef, String eventType, boolean procDefRequired) {
         List<SentryDefinition> sentryDefs = eprocActivityService.findSentriesBySourceRefAndEventType(
-                activityRef.getProcessId(), activityRef.getId(), eventType);
+            activityRef.getProcessId(), activityRef.getId(), eventType, procDefRequired);
         if (CollectionUtils.isEmpty(sentryDefs)) {
             return;
         }
@@ -50,12 +56,6 @@ public class EProcCaseActivityEventDelegate implements CaseActivityEventDelegate
         for (SentryDefinition sentryDef : sentryDefs) {
             fireConcreteEventImpl(activityRef.getProcessId(), sentryDef);
         }
-    }
-
-    @Override
-    public void fireConcreteEvent(EventRef eventRef) {
-        SentryDefinition sentryDefinition = eprocActivityService.getSentryDefinition(eventRef);
-        fireConcreteEventImpl(eventRef.getProcessId(), sentryDefinition);
     }
 
     private void fireConcreteEventImpl(RecordRef caseRef, SentryDefinition sentryDefinition) {

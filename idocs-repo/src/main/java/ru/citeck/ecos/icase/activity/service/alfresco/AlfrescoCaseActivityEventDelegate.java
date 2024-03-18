@@ -69,7 +69,7 @@ public class AlfrescoCaseActivityEventDelegate implements CaseActivityEventDeleg
     }
 
     @Override
-    public void fireEvent(ActivityRef activityRef, String eventType) {
+    public void fireEvent(ActivityRef activityRef, String eventType, boolean procDefRequired) {
         NodeRef activityNodeRef = alfActivityUtils.getActivityNodeRef(activityRef);
         fireEventImpl(activityNodeRef, activityRef.getProcessId(), eventType);
     }

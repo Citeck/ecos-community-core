@@ -106,11 +106,20 @@ public class RemoteRecordsListener {
         Set<RecordRef> newRecordsSet = TransactionalResourceHelper.getSet(EVENT_NEW_RECORDS_TXN_KEY);
 
         if (isNewRec && newRecordsSet.add(event.recordRef)) {
-            eProcCaseImporter.importCase(event.recordRef);
-            caseActivityEventService.fireEvent(activityRef, ICaseEventModel.CONSTR_CASE_CREATED);
+            if (eProcCaseImporter.importCase(event.recordRef)) {
+                caseActivityEventService.fireEvent(
+                    activityRef,
+                    ICaseEventModel.CONSTR_CASE_CREATED,
+                    false
+                );
+            }
         }
         TransactionUtils.processBeforeCommit(EVENT_RECORDS_TO_PROC_TXN_KEY, event.recordRef, recordRef ->
-            caseActivityEventService.fireEvent(activityRef, ICaseEventModel.CONSTR_CASE_PROPERTIES_CHANGED)
+            caseActivityEventService.fireEvent(
+                activityRef,
+                ICaseEventModel.CONSTR_CASE_PROPERTIES_CHANGED,
+                false
+            )
         );
     }
 

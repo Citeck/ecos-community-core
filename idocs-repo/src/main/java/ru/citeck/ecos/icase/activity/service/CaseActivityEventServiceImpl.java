@@ -15,11 +15,11 @@ public class CaseActivityEventServiceImpl implements CaseActivityEventService {
     private EProcCaseActivityEventDelegate eprocDelegate;
 
     @Override
-    public void fireEvent(ActivityRef activityRef, String eventType) {
+    public void fireEvent(ActivityRef activityRef, String eventType, boolean procDefRequired) {
         if (isAlfrescoCase(activityRef)) {
-            alfDelegate.fireEvent(activityRef, eventType);
+            alfDelegate.fireEvent(activityRef, eventType, procDefRequired);
         } else {
-            eprocDelegate.fireEvent(activityRef, eventType);
+            eprocDelegate.fireEvent(activityRef, eventType, procDefRequired);
         }
     }
 
