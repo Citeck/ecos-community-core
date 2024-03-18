@@ -1,9 +1,9 @@
 package ru.citeck.ecos.behavior.common;
 
-import org.alfresco.model.ContentModel;
+import lombok.Setter;
+import lombok.extern.slf4j.Slf4j;
 import org.alfresco.repo.node.NodeServicePolicies;
 import org.alfresco.repo.policy.Behaviour;
-import ru.citeck.ecos.behavior.JavaBehaviour;
 import org.alfresco.repo.policy.PolicyComponent;
 import org.alfresco.repo.security.authentication.AuthenticationUtil;
 import org.alfresco.service.cmr.repository.AssociationRef;
@@ -11,14 +11,17 @@ import org.alfresco.service.cmr.repository.NodeRef;
 import org.alfresco.service.cmr.repository.NodeService;
 import org.alfresco.service.cmr.repository.StoreRef;
 import org.alfresco.service.namespace.QName;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import ru.citeck.ecos.behavior.JavaBehaviour;
 import ru.citeck.ecos.currency.Currency;
 import ru.citeck.ecos.currency.CurrencyService;
+import ru.citeck.ecos.icase.CaseStatusService;
 import ru.citeck.ecos.model.ICaseModel;
 
 import java.io.Serializable;
 import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
@@ -26,17 +29,20 @@ import java.util.Map;
  * @author alexander.nemerov
  *         date 01.11.2016.
  */
+@Setter
+@Slf4j
 public class TotalDocumentsSumBehaviour implements
-        NodeServicePolicies.OnUpdatePropertiesPolicy,
-        NodeServicePolicies.OnCreateAssociationPolicy,
-        NodeServicePolicies.OnDeleteAssociationPolicy {
-
-    private static Log logger = LogFactory.getLog(FieldAutoFillBehaviour.class);
+    NodeServicePolicies.OnUpdatePropertiesPolicy,
+    NodeServicePolicies.OnCreateAssociationPolicy,
+    NodeServicePolicies.OnDeleteAssociationPolicy {
 
     // common properties
     private PolicyComponent policyComponent;
     private NodeService nodeService;
     private CurrencyService currencyService;
+
+    @Autowired
+    private CaseStatusService caseStatusService;
 
     // distinct properties
     private QName className;
@@ -50,25 +56,25 @@ public class TotalDocumentsSumBehaviour implements
 
     public void init() {
         JavaBehaviour updateBehaviour = new JavaBehaviour(this, "onUpdateProperties",
-                Behaviour.NotificationFrequency.TRANSACTION_COMMIT);
+            Behaviour.NotificationFrequency.TRANSACTION_COMMIT);
         policyComponent.bindClassBehaviour(NodeServicePolicies.OnUpdatePropertiesPolicy.QNAME,
-                className, updateBehaviour);
+            className, updateBehaviour);
         JavaBehaviour createAssocBehaviour = new JavaBehaviour(this, "onCreateAssociation",
-                Behaviour.NotificationFrequency.TRANSACTION_COMMIT);
+            Behaviour.NotificationFrequency.TRANSACTION_COMMIT);
         policyComponent.bindAssociationBehaviour(NodeServicePolicies.OnCreateAssociationPolicy.QNAME,
-                className, assocName, createAssocBehaviour);
+            className, assocName, createAssocBehaviour);
         JavaBehaviour deleteAssocBehaviour = new JavaBehaviour(this, "onDeleteAssociation",
-                Behaviour.NotificationFrequency.TRANSACTION_COMMIT);
+            Behaviour.NotificationFrequency.TRANSACTION_COMMIT);
         policyComponent.bindAssociationBehaviour(NodeServicePolicies.OnDeleteAssociationPolicy.QNAME,
-                className, assocName, deleteAssocBehaviour);
+            className, assocName, deleteAssocBehaviour);
         JavaBehaviour createCurrencyBehaviour = new JavaBehaviour(this, "onCreateCurrency",
-                Behaviour.NotificationFrequency.TRANSACTION_COMMIT);
+            Behaviour.NotificationFrequency.TRANSACTION_COMMIT);
         policyComponent.bindAssociationBehaviour(NodeServicePolicies.OnCreateAssociationPolicy.QNAME,
-                className, sumCurrencyField, createCurrencyBehaviour);
+            className, sumCurrencyField, createCurrencyBehaviour);
         JavaBehaviour createStatusBehaviour = new JavaBehaviour(this, "onCreateStatus",
-                Behaviour.NotificationFrequency.TRANSACTION_COMMIT);
+            Behaviour.NotificationFrequency.TRANSACTION_COMMIT);
         policyComponent.bindAssociationBehaviour(NodeServicePolicies.OnCreateAssociationPolicy.QNAME,
-                className, ICaseModel.ASSOC_CASE_STATUS, createStatusBehaviour);
+            className, ICaseModel.ASSOC_CASE_STATUS, createStatusBehaviour);
     }
 
     @Override
@@ -95,7 +101,7 @@ public class TotalDocumentsSumBehaviour implements
         } else {
             NodeRef archivedNode = new NodeRef(StoreRef.STORE_REF_ARCHIVE_SPACESSTORE, nodeRef.getId());
             if (!nodeService.exists(archivedNode)) {
-                logger.error("Document" + nodeRef + "is not in archive. We can't calculate total sum");
+                log.error("Document `" + nodeRef + "` is not in archive. We can't calculate total sum");
                 return;
             }
             QName assocNameAdded = QName.createQName(assocName.toString() + "_added");
@@ -124,18 +130,28 @@ public class TotalDocumentsSumBehaviour implements
     }
 
     private String getNodeCaseStatus(NodeRef nodeRef) {
-        List<AssociationRef> caseAssocs = nodeService.getTargetAssocs(nodeRef, ICaseModel.ASSOC_CASE_STATUS);
-        if (caseAssocs == null || caseAssocs.size() != 1) {
-            return null;
-        }
-        NodeRef statusRef = caseAssocs.get(0).getTargetRef();
-        if(!nodeService.exists(statusRef)) {
-            return null;
-        }
-        return (String) nodeService.getProperty(statusRef, ContentModel.PROP_NAME);
+        return caseStatusService.getStatus(nodeRef);
     }
 
-    private void recalculateBranch(final NodeRef nodeRef) {
+    private void recalculateBranch(NodeRef nodeRef) {
+        List<NodeRef> stackOverflowFix = new ArrayList<>();
+        recalculateBranch(nodeRef, stackOverflowFix, null);
+    }
+
+    private void recalculateBranch(final NodeRef nodeRef, List<NodeRef> stackOverflowFix, NodeRef initRef) {
+        log.debug("nodeRef: " + nodeRef);
+        if (stackOverflowFix.contains(nodeRef)) {
+            return;//skip
+        }
+        if (initRef != null) {
+            stackOverflowFix.add(nodeRef);
+            if (stackOverflowFix.contains(initRef)) {
+                log.error("stackOverflowFix: " + Arrays.toString(stackOverflowFix.toArray()) + " contains nodeRef: " + initRef);
+                throw new IllegalStateException("Looping document links.");
+            }
+        } else {
+            initRef = nodeRef;
+        }
         List<AssociationRef> refs = nodeService.getSourceAssocs(nodeRef, assocName);
         BigDecimal total = BigDecimal.ZERO;
         if (statusesForFiltering == null || !statusesForFiltering.contains(getNodeCaseStatus(nodeRef))) {
@@ -156,8 +172,8 @@ public class TotalDocumentsSumBehaviour implements
             }
             Currency currentCurrency = getCurrencyByAssocName(nodeRef, sumCurrencyField);
             BigDecimal currentSum = (nodeService.getProperty(nodeRef, sumField) != null)
-                    ? new BigDecimal((Double) nodeService.getProperty(nodeRef, sumField))
-                    : BigDecimal.ZERO;
+                ? new BigDecimal((Double) nodeService.getProperty(nodeRef, sumField))
+                : BigDecimal.ZERO;
             total = total.add(currencyService.transferFromOneCurrencyToOther(currentCurrency, currencyTo, currentSum));
             total = total.setScale(2, BigDecimal.ROUND_HALF_UP);
         }
@@ -168,7 +184,7 @@ public class TotalDocumentsSumBehaviour implements
         });
         List<AssociationRef> targetRefs = nodeService.getTargetAssocs(nodeRef, assocName);
         for (AssociationRef targetRef : targetRefs) {
-            recalculateBranch(targetRef.getTargetRef());
+            recalculateBranch(targetRef.getTargetRef(), stackOverflowFix, initRef);
         }
     }
 
@@ -182,47 +198,4 @@ public class TotalDocumentsSumBehaviour implements
 
     //spring
 
-    public void setPolicyComponent(PolicyComponent policyComponent) {
-        this.policyComponent = policyComponent;
-    }
-
-    public void setNodeService(NodeService nodeService) {
-        this.nodeService = nodeService;
-    }
-
-    public void setClassName(QName className) {
-        this.className = className;
-    }
-
-    public void setAssocName(QName assocName) {
-        this.assocName = assocName;
-    }
-
-    public void setSumField(QName sumField) {
-        this.sumField = sumField;
-    }
-
-    public void setTotalSumField(QName totalSumField) {
-        this.totalSumField = totalSumField;
-    }
-
-    public void setCurrencyService(CurrencyService currencyService) {
-        this.currencyService = currencyService;
-    }
-
-    public void setSumCurrencyField(QName sumCurrencyField) {
-        this.sumCurrencyField = sumCurrencyField;
-    }
-
-    public void setTotalSumCurrencyField(QName totalSumCurrencyField) {
-        this.totalSumCurrencyField = totalSumCurrencyField;
-    }
-
-    public void setTotalSumCurrencyDefault(String totalSumCurrencyDefault) {
-        this.totalSumCurrencyDefault = totalSumCurrencyDefault;
-    }
-
-    public void setStatusesForFiltering(List statusesForFiltering) {
-        this.statusesForFiltering = statusesForFiltering;
-    }
 }
