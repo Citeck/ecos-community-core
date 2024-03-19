@@ -5,7 +5,11 @@ import ru.citeck.ecos.icase.activity.dto.EventRef;
 
 public interface CaseActivityEventDelegate {
 
-    void fireEvent(ActivityRef activityRef, String eventType);
+    default void fireEvent(ActivityRef activityRef, String eventType) {
+        fireEvent(activityRef, eventType, true);
+    }
+
+    void fireEvent(ActivityRef activityRef, String eventType, boolean procDefRequired);
 
     void fireConcreteEvent(EventRef eventRef);
 

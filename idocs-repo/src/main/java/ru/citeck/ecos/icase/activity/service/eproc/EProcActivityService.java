@@ -32,4 +32,11 @@ public interface EProcActivityService {
     SentryDefinition getSentryDefinition(EventRef eventRef);
 
     List<SentryDefinition> findSentriesBySourceRefAndEventType(RecordRef caseRef, String sourceRef, String eventType);
+
+    List<SentryDefinition> findSentriesBySourceRefAndEventType(
+        RecordRef caseRef,
+        String sourceRef,
+        String eventType,
+        boolean procDefRequired
+    );
 }

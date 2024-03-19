@@ -26,6 +26,7 @@ import ru.citeck.ecos.records.RecordsUtils;
 import ru.citeck.ecos.records2.RecordRef;
 import ru.citeck.ecos.utils.NodeUtils;
 
+import java.util.Optional;
 import java.util.Set;
 
 @Slf4j
@@ -59,9 +60,15 @@ public class EProcCaseImporter {
         this.utils = utils;
     }
 
-    public void importCase(RecordRef caseRef) {
-        eprocActivityService.getOptimizedDefinitionWithRevisionId(caseRef)
-            .ifPresent(definition -> importCaseImpl(caseRef, definition));
+    public boolean importCase(RecordRef caseRef) {
+        Optional<Pair<String, OptimizedProcessDefinition>> def =
+            eprocActivityService.getOptimizedDefinitionWithRevisionId(caseRef);
+        if (def.isPresent()) {
+            importCaseImpl(caseRef, def.get());
+            return true;
+        } else {
+            return false;
+        }
     }
 
     private void importCaseImpl(RecordRef caseRef, Pair<String, OptimizedProcessDefinition> data) {

@@ -600,12 +600,27 @@ public class EProcActivityServiceImpl implements EProcActivityService {
     public List<SentryDefinition> findSentriesBySourceRefAndEventType(RecordRef caseRef,
                                                                       String sourceRef,
                                                                       String eventType) {
+        return findSentriesBySourceRefAndEventType(caseRef, sourceRef, eventType, true);
+    }
 
-        OptimizedProcessDefinition optimizedProcessDefinition = getFullDefinitionImpl(caseRef)
-                .orElseThrow(() -> new IllegalStateException("Process definition is not found!. "
-                        + "CaseRef: " + caseRef
-                        + " sourceRef: " + sourceRef
-                        + " eventType: " + eventType));
+    @Override
+    public List<SentryDefinition> findSentriesBySourceRefAndEventType(RecordRef caseRef,
+                                                                      String sourceRef,
+                                                                      String eventType,
+                                                                      boolean procDefRequired) {
+
+        Optional<OptimizedProcessDefinition> fullDef = getFullDefinitionImpl(caseRef);
+        if (!fullDef.isPresent()) {
+            if (procDefRequired) {
+                throw new IllegalStateException("Process definition is not found!. "
+                    + "CaseRef: " + caseRef
+                    + " sourceRef: " + sourceRef
+                    + " eventType: " + eventType);
+            } else {
+                return Collections.emptyList();
+            }
+        }
+        OptimizedProcessDefinition optimizedProcessDefinition = fullDef.get();
 
         SourceRef sourceRefObj = new SourceRef();
         sourceRefObj.setRef(sourceRef);
