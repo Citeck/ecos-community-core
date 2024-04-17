@@ -1,32 +1,55 @@
 package ru.citeck.ecos.records.source.common;
 
+import lombok.SneakyThrows;
 import org.alfresco.service.cmr.repository.MLText;
-import org.springframework.extensions.surf.util.I18NUtil;
+import org.jetbrains.annotations.NotNull;
 import ru.citeck.ecos.records2.graphql.meta.value.MetaField;
 import ru.citeck.ecos.records2.graphql.meta.value.MetaValue;
-
-import java.util.Locale;
+import ru.citeck.ecos.records3.record.atts.value.AttValue;
+import ru.citeck.ecos.records3.record.atts.value.factory.MLTextValueFactory;
 
 public class MLTextValue implements MetaValue {
 
-    private MLText text;
+    private static final MLTextValueFactory factory = new MLTextValueFactory();
+
+    private final AttValue value;
 
     public MLTextValue(MLText text) {
-        this.text = text;
+        this.value = factory.getValue(new ru.citeck.ecos.commons.data.MLText(text));
     }
 
     @Override
+    @SneakyThrows
     public String getString() {
-        return text.getClosestValue(I18NUtil.getLocale());
+        return value.asText();
     }
 
     @Override
-    public Object getAttribute(String name, MetaField field) {
-        return text.getClosestValue(new Locale(name));
+    public Object getAttribute(@NotNull String name, @NotNull MetaField field) throws Exception {
+        return value.getAtt(name);
     }
 
     @Override
-    public boolean has(String name) {
-        return text.containsKey(new Locale(name));
+    @SneakyThrows
+    public Object getJson() {
+        return value.asJson();
+    }
+
+    @Override
+    @SneakyThrows
+    public boolean has(@NotNull String name) throws Exception {
+        return value.has(name);
+    }
+
+    @Override
+    @SneakyThrows
+    public Object getRaw() {
+        return value.asRaw();
+    }
+
+    @Override
+    @SneakyThrows
+    public Object getAs(@NotNull String type, @NotNull MetaField field) {
+        return value.getAs(type);
     }
 }
