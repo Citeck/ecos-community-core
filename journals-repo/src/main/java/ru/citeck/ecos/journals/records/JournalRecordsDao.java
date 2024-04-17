@@ -14,6 +14,8 @@ import ru.citeck.ecos.records2.request.query.RecordsQuery;
 import ru.citeck.ecos.records2.request.query.RecordsQueryResult;
 import ru.citeck.ecos.records2.request.query.SortBy;
 
+import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -29,7 +31,12 @@ public class JournalRecordsDao {
                                                              boolean debug) {
 
         RecordsQuery recordsQuery = createQuery(journalType.getDataSource(), query, language, pageInfo, debug);
-        return recordsService.queryRecords(recordsQuery, journalType.getAttributes());
+        Map<String, String> attsToLoad = new LinkedHashMap<>();
+        for (String att : journalType.getAttributes()) {
+            attsToLoad.put(att, att);
+        }
+        attsToLoad.put("attr:aspects", "attr:aspects[]?str");
+        return recordsService.queryRecords(recordsQuery, attsToLoad);
     }
 
     public String getJournalGqlSchema(JournalType type) {
