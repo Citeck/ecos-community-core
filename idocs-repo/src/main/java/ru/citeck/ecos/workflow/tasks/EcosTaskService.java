@@ -98,7 +98,7 @@ public class EcosTaskService {
         TaskInfo taskInfo = taskService.getTaskInfo(task.getLocalId());
         String assignee = taskInfo.getAssignee();
 
-        String user = AuthenticationUtil.getFullyAuthenticatedUser();
+        String user = AuthenticationUtil.getRunAsUser();
         if (assignee != null && !AuthenticationUtil.isRunAsUserTheSystemUser()) {
             if (!assignee.equals(user)) {
                 throw new IllegalStateException(I18NUtil.getMessage(ASSIGNEE_NOT_MATCH_ERR_MSG_KEY));
