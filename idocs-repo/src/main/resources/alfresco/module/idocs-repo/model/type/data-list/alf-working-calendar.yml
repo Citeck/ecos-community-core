@@ -1,9 +1,9 @@
 ---
-id: working-calendar
+id: alf-working-calendar
 name: { ru: Производственный календарь, en: Working Calendar }
 
 parentRef: emodel/type@data-list
-journalRef: uiserv/journal@working-calendar
+journalRef: uiserv/journal@alf-working-calendar
 
 properties:
   alfType: wcal:calendar
