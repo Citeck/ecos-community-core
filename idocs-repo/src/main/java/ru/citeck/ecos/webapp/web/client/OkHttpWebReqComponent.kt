@@ -5,9 +5,9 @@ import okhttp3.*
 import okhttp3.MediaType.Companion.toMediaType
 import okio.BufferedSink
 import org.apache.http.conn.ssl.NoopHostnameVerifier
-import ru.citeck.ecos.webapp.lib.web.client.props.EcosWebClientProps
-import ru.citeck.ecos.webapp.lib.web.client.props.EcosWebClientTlsProps
 import ru.citeck.ecos.webapp.lib.web.webapi.client.EcosWebReqComponent
+import ru.citeck.ecos.webapp.lib.web.webapi.client.props.EcosWebClientProps
+import ru.citeck.ecos.webapp.lib.web.webapi.client.props.EcosWebClientTlsProps
 import ru.citeck.ecos.webapp.web.client.tls.EcosTlsUtils
 import ru.citeck.ecos.webapp.web.client.tls.TrustAllX509TrustManager
 import java.io.IOException

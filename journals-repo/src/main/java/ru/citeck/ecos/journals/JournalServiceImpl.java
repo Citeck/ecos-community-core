@@ -61,6 +61,7 @@ import ru.citeck.ecos.records2.request.query.RecordsQueryResult;
 import ru.citeck.ecos.search.SearchCriteria;
 import ru.citeck.ecos.search.SearchCriteriaSettingsRegistry;
 import ru.citeck.ecos.utils.*;
+import ru.citeck.ecos.webapp.api.entity.EntityRef;
 
 import javax.xml.bind.Unmarshaller;
 import java.io.InputStream;
@@ -143,7 +144,7 @@ class JournalServiceImpl implements JournalService {
         JGqlPageInfoInput page = new JGqlPageInfoInput(null, 1, Collections.emptyList(), 0);
 
         String query = buildJournalQuery(journalRef);
-        RecordsQueryResult<RecordRef> result = getRecords(journalId, query, null, page);
+        RecordsQueryResult<EntityRef> result = getRecords(journalId, query, null, page);
         return result.getTotalCount();
     }
 
@@ -313,7 +314,7 @@ class JournalServiceImpl implements JournalService {
     }
 
     @Override
-    public RecordsQueryResult<RecordRef> getRecords(String journalId,
+    public RecordsQueryResult<EntityRef> getRecords(String journalId,
                                                     String query,
                                                     String language,
                                                     JGqlPageInfoInput pageInfo,

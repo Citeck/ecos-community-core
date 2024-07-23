@@ -28,6 +28,7 @@ import ru.citeck.ecos.records3.RecordsService;
 import ru.citeck.ecos.records3.record.dao.query.dto.query.RecordsQuery;
 import ru.citeck.ecos.records3.record.dao.query.dto.res.RecsQueryRes;
 import ru.citeck.ecos.spring.registry.MappingRegistry;
+import ru.citeck.ecos.webapp.api.entity.EntityRef;
 
 import java.io.Serializable;
 import java.util.Collections;
@@ -86,7 +87,7 @@ class StatusRecordsUtils {
     }
 
     private RecsQueryRes<StatusRecord> getAllExistingCaseStatuses(String type) {
-        RecordRef ecosType = ecosTypeService.getEcosType(type);
+        EntityRef ecosType = ecosTypeService.getEcosType(type);
         Map<String, StatusDef> statuses = ecosType != null ? statusService.getStatusesByType(ecosType) : null;
 
         RecordsQuery query = RecordsQuery.create()
@@ -101,7 +102,7 @@ class StatusRecordsUtils {
             .stream()
             .map(value -> {
                 String ref = value.getAtt("id").asText();
-                NodeRef nodeRef = RecordsUtils.toNodeRef(RecordRef.valueOf(ref));
+                NodeRef nodeRef = RecordsUtils.toNodeRef(EntityRef.valueOf(ref));
                 return getByStatusRef(nodeRef, statuses, ecosType);
             })
             .map(StatusRecord::new)
@@ -239,7 +240,7 @@ class StatusRecordsUtils {
         return getByStatusRef(statusRef, null, null);
     }
 
-    private StatusDto getByStatusRef(NodeRef statusRef, Map<String, StatusDef> statuses, RecordRef etype) {
+    private StatusDto getByStatusRef(NodeRef statusRef, Map<String, StatusDef> statuses, EntityRef etype) {
         if (caseStatusService.isAlfRef(statusRef)) {
             return getAlfrescoStatusDto(statusRef);
         } else {
@@ -264,7 +265,7 @@ class StatusRecordsUtils {
         return dto;
     }
 
-    private StatusDto getEcosStatusDto(NodeRef statusRef, Map<String, StatusDef> statuses, RecordRef etype) {
+    private StatusDto getEcosStatusDto(NodeRef statusRef, Map<String, StatusDef> statuses, EntityRef etype) {
         if (statuses == null) {
             return null;
         }
@@ -278,8 +279,8 @@ class StatusRecordsUtils {
         dto.setName(statusDef.getName().getClosestValue(I18NUtil.getLocale()));
         dto.setType(StatusType.ECOS_CASE_STATUS.toString());
 
-        String id = StringUtils.isNoneBlank(etype.getId())
-            ? etype.getId() + "/" + statusDef.getId()
+        String id = StringUtils.isNoneBlank(etype.getLocalId())
+            ? etype.getLocalId() + "/" + statusDef.getId()
             : statusDef.getId();
         dto.setId(id);
         return dto;

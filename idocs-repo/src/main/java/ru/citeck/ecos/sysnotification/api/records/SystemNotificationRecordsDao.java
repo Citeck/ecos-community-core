@@ -25,9 +25,9 @@ import ru.citeck.ecos.records2.source.dao.local.v2.LocalRecordsMetaDao;
 import ru.citeck.ecos.records2.source.dao.local.v2.LocalRecordsQueryWithMetaDao;
 import ru.citeck.ecos.sysnotification.dto.SystemNotificationDto;
 import ru.citeck.ecos.sysnotification.service.SystemNotificationService;
+import ru.citeck.ecos.webapp.api.entity.EntityRef;
 
 import java.time.Instant;
-import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
@@ -58,11 +58,11 @@ public class SystemNotificationRecordsDao extends LocalRecordsDao
 
     @NotNull
     @Override
-    public List<SystemNotificationRecord> getValuesToMutate(@NotNull List<RecordRef> recordRefs) {
+    public List<SystemNotificationRecord> getValuesToMutate(@NotNull List<EntityRef> recordRefs) {
         List<SystemNotificationRecord> result = new ArrayList<>();
 
-        for (RecordRef recordRef: recordRefs) {
-            String id = recordRef.getId();
+        for (EntityRef recordRef: recordRefs) {
+            String id = recordRef.getLocalId();
             SystemNotificationRecord record = StringUtils.isBlank(id)
                 ? new SystemNotificationRecord()
                 : new SystemNotificationRecord(systemNotificationService.get(id));
@@ -98,8 +98,8 @@ public class SystemNotificationRecordsDao extends LocalRecordsDao
     public RecordsDelResult delete(@NotNull RecordsDeletion recordsDeletion) {
         RecordsDelResult result = new RecordsDelResult();
 
-        for (RecordRef recordRef: recordsDeletion.getRecords()) {
-            systemNotificationService.delete(recordRef.getId());
+        for (EntityRef recordRef: recordsDeletion.getRecords()) {
+            systemNotificationService.delete(recordRef.getLocalId());
             result.addRecord(new RecordMeta(recordRef));
         }
 
@@ -107,10 +107,10 @@ public class SystemNotificationRecordsDao extends LocalRecordsDao
     }
 
     @Override
-    public List<SystemNotificationRecord> getLocalRecordsMeta(@NotNull List<RecordRef> list,
+    public List<SystemNotificationRecord> getLocalRecordsMeta(@NotNull List<EntityRef> list,
                                                            @NotNull MetaField metaField) {
         return list.stream()
-            .map(r -> systemNotificationService.get(r.getId()))
+            .map(r -> systemNotificationService.get(r.getLocalId()))
             .map(SystemNotificationRecord::new)
             .collect(Collectors.toList());
     }

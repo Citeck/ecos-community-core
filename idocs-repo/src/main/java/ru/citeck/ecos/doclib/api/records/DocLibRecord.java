@@ -18,6 +18,7 @@ import ru.citeck.ecos.records2.RecordConstants;
 import ru.citeck.ecos.records2.RecordRef;
 import ru.citeck.ecos.records3.record.atts.schema.annotation.AttName;
 import ru.citeck.ecos.records3.record.atts.value.AttValue;
+import ru.citeck.ecos.webapp.api.entity.EntityRef;
 
 import java.util.Date;
 import java.util.List;
@@ -25,7 +26,7 @@ import java.util.stream.Collectors;
 
 public class DocLibRecord {
 
-    private final RecordRef recordRef;
+    private final EntityRef recordRef;
 
     private DocLibNodeInfo docLibNodeInfo;
 
@@ -37,7 +38,7 @@ public class DocLibRecord {
         this.docLibNodeInfo = info;
     }
 
-    public DocLibRecord(@NotNull RecordRef recordRef, @NotNull DocLibRecords docLibRecords) {
+    public DocLibRecord(@NotNull EntityRef recordRef, @NotNull DocLibRecords docLibRecords) {
 
         this.recordRef = recordRef;
 
@@ -46,7 +47,7 @@ public class DocLibRecord {
     }
 
     @AttName("?id")
-    public RecordRef getId() {
+    public EntityRef getId() {
         return recordRef;
     }
 
@@ -75,11 +76,11 @@ public class DocLibRecord {
     }
 
     @AttName("_type")
-    public RecordRef getTypeRef() {
+    public EntityRef getTypeRef() {
         return getDocLibNodeInfo().getTypeRef();
     }
 
-    public RecordRef getDocLibTypeRef() {
+    public EntityRef getDocLibTypeRef() {
         return getDocLibNodeInfo().getDocLibTypeRef();
     }
 
@@ -97,7 +98,7 @@ public class DocLibRecord {
 
         DocLibNodeInfo nodeInfo = getDocLibNodeInfo();
 
-        String recordRefId = nodeInfo.getRecordRef().getId();
+        String recordRefId = nodeInfo.getRecordRef().getLocalId();
         if (!recordRefId.contains("$") || recordRefId.charAt(recordRefId.length() - 1) == '$') {
             return null;
         }

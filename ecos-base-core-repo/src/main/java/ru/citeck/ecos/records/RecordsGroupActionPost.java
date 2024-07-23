@@ -13,9 +13,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.extensions.webscripts.*;
 import ru.citeck.ecos.action.group.ActionResults;
 import ru.citeck.ecos.action.group.GroupActionConfig;
-import ru.citeck.ecos.records2.RecordRef;
+import ru.citeck.ecos.utils.json.mixin.EntityRefMixin;
 import ru.citeck.ecos.utils.json.mixin.NodeRefMixIn;
 import ru.citeck.ecos.utils.json.mixin.QNameMixIn;
+import ru.citeck.ecos.webapp.api.entity.EntityRef;
 
 import javax.annotation.PostConstruct;
 import java.io.IOException;
@@ -35,6 +36,7 @@ public class RecordsGroupActionPost extends AbstractWebScript {
     public void init() {
         objectMapper.addMixInAnnotations(NodeRef.class, NodeRefMixIn.class);
         objectMapper.addMixInAnnotations(QName.class, QNameMixIn.class);
+        objectMapper.addMixInAnnotations(EntityRef.class, EntityRefMixin.class);
     }
 
     @Override
@@ -67,7 +69,7 @@ public class RecordsGroupActionPost extends AbstractWebScript {
         }
     }
 
-    private ActionResults<RecordRef> executeAction(ActionData actionData) {
+    private ActionResults<EntityRef> executeAction(ActionData actionData) {
         RetryingTransactionHelper helper = transactionService.getRetryingTransactionHelper();
         return helper.doInTransaction(() -> {
             try {
@@ -93,7 +95,7 @@ public class RecordsGroupActionPost extends AbstractWebScript {
     public static class ActionData {
 
         public GroupActionConfig config;
-        public List<RecordRef> nodes;
+        public List<EntityRef> nodes;
 
         @Override
         public String toString() {
@@ -105,6 +107,6 @@ public class RecordsGroupActionPost extends AbstractWebScript {
     }
 
     public static class Response {
-        public ActionResults<RecordRef> results;
+        public ActionResults<EntityRef> results;
     }
 }

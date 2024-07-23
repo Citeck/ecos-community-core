@@ -10,9 +10,9 @@ import org.alfresco.service.namespace.RegexQNamePattern;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import ru.citeck.ecos.records.source.alf.AlfNodesRecordsDAO;
-import ru.citeck.ecos.records2.RecordRef;
 import ru.citeck.ecos.records2.request.query.RecordsQuery;
 import ru.citeck.ecos.records2.request.query.RecordsQueryResult;
+import ru.citeck.ecos.webapp.api.entity.EntityRef;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -33,7 +33,7 @@ public class ChildrenAlfNodesSearch implements AlfNodesSearch {
     }
 
     @Override
-    public RecordsQueryResult<RecordRef> queryRecords(RecordsQuery query, Long afterDbId, Date afterCreated) {
+    public RecordsQueryResult<EntityRef> queryRecords(RecordsQuery query, Long afterDbId, Date afterCreated) {
 
         Query assocsQuery = query.getQuery(Query.class);
 
@@ -42,9 +42,9 @@ public class ChildrenAlfNodesSearch implements AlfNodesSearch {
 
         List<NodeRef> children = fillChildren(parentRef, assocQName, new ArrayList<>(), assocsQuery.recursive);
 
-        RecordsQueryResult<RecordRef> results = new RecordsQueryResult<>();
+        RecordsQueryResult<EntityRef> results = new RecordsQueryResult<>();
         results.setRecords(children.stream()
-                                   .map(r -> RecordRef.valueOf(r.toString()))
+                                   .map(r -> EntityRef.valueOf(r.toString()))
                                    .collect(Collectors.toList()));
         results.setHasMore(false);
         results.setTotalCount(children.size());

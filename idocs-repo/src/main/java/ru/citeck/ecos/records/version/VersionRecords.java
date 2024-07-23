@@ -29,6 +29,7 @@ import ru.citeck.ecos.records2.request.query.RecordsQuery;
 import ru.citeck.ecos.records2.request.query.RecordsQueryResult;
 import ru.citeck.ecos.records2.source.dao.local.v2.LocalRecordsCrudDao;
 import ru.citeck.ecos.security.EcosPermissionService;
+import ru.citeck.ecos.webapp.api.entity.EntityRef;
 
 import java.io.Serializable;
 import java.util.*;
@@ -69,20 +70,20 @@ public class VersionRecords extends LocalRecordsCrudDao<VersionDTO> {
     }
 
     @Override
-    public List<VersionDTO> getValuesToMutate(List<RecordRef> list) {
+    public List<VersionDTO> getValuesToMutate(List<EntityRef> list) {
         return getValues(list);
     }
 
     @Override
-    public List<VersionDTO> getLocalRecordsMeta(List<RecordRef> list, MetaField metaField) {
+    public List<VersionDTO> getLocalRecordsMeta(List<EntityRef> list, MetaField metaField) {
         return getValues(list);
     }
 
-    private List<VersionDTO> getValues(List<RecordRef> list) {
+    private List<VersionDTO> getValues(List<EntityRef> list) {
         List<VersionDTO> result = new ArrayList<>();
 
-        for (RecordRef recordRef : list) {
-            String id = recordRef.getId();
+        for (EntityRef recordRef : list) {
+            String id = recordRef.getLocalId();
             if (StringUtils.isBlank(id)) {
                 result.add(new VersionDTO());
                 continue;
@@ -105,7 +106,7 @@ public class VersionRecords extends LocalRecordsCrudDao<VersionDTO> {
 
         for (RecordMeta meta : mutation.getRecords()) {
             if (isRevertAction(meta)) {
-                String id = meta.getId().getId();
+                String id = meta.getId().getLocalId();
 
                 NodeRef document = getBaseDocumentFromVersion(new NodeRef(id));
 

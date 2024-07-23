@@ -1,13 +1,11 @@
 package ru.citeck.ecos.records.actions;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import ru.citeck.ecos.action.group.*;
 import ru.citeck.ecos.action.group.impl.BaseGroupAction;
 import ru.citeck.ecos.records.RecordGroupActionsService;
-import ru.citeck.ecos.records2.RecordRef;
+import ru.citeck.ecos.webapp.api.entity.EntityRef;
 
 import javax.annotation.PostConstruct;
 import java.io.IOException;
@@ -17,7 +15,7 @@ import java.util.stream.Collectors;
 /**
  * Action factory to work with mixed remote/local records
  */
-public abstract class RecordsActionFactory implements GroupActionFactory<RecordRef> {
+public abstract class RecordsActionFactory implements GroupActionFactory<EntityRef> {
 
     private RecordGroupActionsService recordsService;
     private GroupActionService groupActionService;
@@ -29,7 +27,7 @@ public abstract class RecordsActionFactory implements GroupActionFactory<RecordR
     }
 
     @Override
-    public final GroupAction<RecordRef> createAction(GroupActionConfig config) {
+    public final GroupAction<EntityRef> createAction(GroupActionConfig config) {
         return new Action(config);
     }
 
@@ -45,12 +43,12 @@ public abstract class RecordsActionFactory implements GroupActionFactory<RecordR
     /**
      * Create action to process local records
      */
-    protected abstract GroupAction<RecordRef> createRecordsAction(GroupActionConfig config);
+    protected abstract GroupAction<EntityRef> createRecordsAction(GroupActionConfig config);
 
     /**
      * Create local action to process results returned by action from "createRecordsAction"
      */
-    protected GroupAction<ActionResult<RecordRef>> createResultsAction(GroupActionConfig baseConfig,
+    protected GroupAction<ActionResult<EntityRef>> createResultsAction(GroupActionConfig baseConfig,
                                                                        GroupActionConfig recordsActionConfig) {
         return null;
     }
@@ -59,10 +57,10 @@ public abstract class RecordsActionFactory implements GroupActionFactory<RecordR
         return getActionId() + "-local-records";
     }
 
-    class RecordsActionLocalFactory implements GroupActionFactory<RecordRef> {
+    class RecordsActionLocalFactory implements GroupActionFactory<EntityRef> {
 
         @Override
-        public GroupAction<RecordRef> createAction(GroupActionConfig config) {
+        public GroupAction<EntityRef> createAction(GroupActionConfig config) {
             return createRecordsAction(config);
         }
 
@@ -72,9 +70,9 @@ public abstract class RecordsActionFactory implements GroupActionFactory<RecordR
         }
     }
 
-    class Action extends BaseGroupAction<RecordRef> {
+    class Action extends BaseGroupAction<EntityRef> {
 
-        private GroupAction<ActionResult<RecordRef>> resultsAction;
+        private GroupAction<ActionResult<EntityRef>> resultsAction;
         private GroupActionConfig recordsActionConfig;
 
         public Action(GroupActionConfig config) {
@@ -87,7 +85,7 @@ public abstract class RecordsActionFactory implements GroupActionFactory<RecordR
             resultsAction = createResultsAction(config, recordsActionConfig);
             if (resultsAction != null) {
                 resultsAction.addListener(results -> {
-                    List<ActionResult<RecordRef>> recordsResults = results.stream().map(a ->
+                    List<ActionResult<EntityRef>> recordsResults = results.stream().map(a ->
                             new ActionResult<>(a.getData().getData(), a.getStatus())).collect(Collectors.toList());
                     onProcessed(recordsResults);
                 });
@@ -95,8 +93,8 @@ public abstract class RecordsActionFactory implements GroupActionFactory<RecordR
         }
 
         @Override
-        protected void processNodesImpl(List<RecordRef> nodes) {
-            ActionResults<RecordRef> results = recordsService.executeAction(nodes, recordsActionConfig);
+        protected void processNodesImpl(List<EntityRef> nodes) {
+            ActionResults<EntityRef> results = recordsService.executeAction(nodes, recordsActionConfig);
             if (results.getCancelCause() != null) {
                 throw new RuntimeException(results.getCancelCause());
             }

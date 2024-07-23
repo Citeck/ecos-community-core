@@ -7,7 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import ru.citeck.ecos.model.ClassificationModel;
 import ru.citeck.ecos.model.EcosTypeModel;
 import ru.citeck.ecos.node.EcosTypeService;
-import ru.citeck.ecos.records2.RecordRef;
+import ru.citeck.ecos.webapp.api.entity.EntityRef;
 
 import java.io.Serializable;
 import java.util.*;
@@ -66,9 +66,9 @@ public class TypeKindContentDAO<T> extends RepoContentDAOImpl<T> {
         List<ContentData<T>> configs = Collections.emptyList();
 
         // ECOS type
-        RecordRef ecosTypeRef = ecosTypeService.getEcosType(nodeRef);
+        EntityRef ecosTypeRef = ecosTypeService.getEcosType(nodeRef);
 
-        if (RecordRef.isNotEmpty(ecosTypeRef)) {
+        if (EntityRef.isNotEmpty(ecosTypeRef)) {
 
             AtomicReference<List<ContentData<T>>> configsByType = new AtomicReference<>();
 

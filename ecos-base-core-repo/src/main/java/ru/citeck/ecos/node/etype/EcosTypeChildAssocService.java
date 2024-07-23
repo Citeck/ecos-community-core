@@ -14,7 +14,6 @@ import org.springframework.stereotype.Service;
 import ru.citeck.ecos.commons.data.ObjectData;
 import ru.citeck.ecos.node.EcosTypeService;
 import ru.citeck.ecos.records2.RecordConstants;
-import ru.citeck.ecos.records2.RecordRef;
 import ru.citeck.ecos.records3.RecordsService;
 import ru.citeck.ecos.webapp.api.entity.EntityRef;
 
@@ -31,13 +30,13 @@ public class EcosTypeChildAssocService {
     private final NamespaceService namespaceService;
 
     public QName getChildAssoc(@NotNull NodeRef parentRef,
-                               @Nullable RecordRef childTypeRef,
+                               @Nullable EntityRef childTypeRef,
                                @NotNull ObjectData childAtts) {
 
         if (childTypeRef == null || EntityRef.isEmpty(childTypeRef)) {
             return tryToEvalChildAssoc(parentRef, childAtts);
         }
-        RecordRef parentTypeRef = ecosTypeService.getEcosType(parentRef);
+        EntityRef parentTypeRef = ecosTypeService.getEcosType(parentRef);
         if (EntityRef.isEmpty(parentTypeRef)) {
             return tryToEvalChildAssoc(parentRef, childAtts);
         }

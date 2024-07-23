@@ -19,6 +19,7 @@ import ru.citeck.ecos.records2.request.mutation.RecordsMutResult;
 import ru.citeck.ecos.records2.request.query.RecordsQuery;
 import ru.citeck.ecos.records2.request.query.RecordsQueryResult;
 import ru.citeck.ecos.records2.source.dao.local.v2.LocalRecordsCrudDao;
+import ru.citeck.ecos.webapp.api.entity.EntityRef;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -44,20 +45,20 @@ public class CommentRecords extends LocalRecordsCrudDao<CommentDto> {
     }
 
     @Override
-    public List<CommentDto> getValuesToMutate(List<RecordRef> list) {
+    public List<CommentDto> getValuesToMutate(List<EntityRef> list) {
         return getValues(list);
     }
 
     @Override
-    public List<CommentDto> getLocalRecordsMeta(List<RecordRef> list, MetaField metaField) {
+    public List<CommentDto> getLocalRecordsMeta(List<EntityRef> list, MetaField metaField) {
         return getValues(list);
     }
 
-    private List<CommentDto> getValues(List<RecordRef> list) {
+    private List<CommentDto> getValues(List<EntityRef> list) {
         List<CommentDto> result = new ArrayList<>();
 
-        for (RecordRef recordRef : list) {
-            String id = recordRef.getId();
+        for (EntityRef recordRef : list) {
+            String id = recordRef.getLocalId();
             if (StringUtils.isBlank(id)) {
                 result.add(new CommentDto());
                 continue;
@@ -96,7 +97,7 @@ public class CommentRecords extends LocalRecordsCrudDao<CommentDto> {
         List<RecordMeta> resultRecords = new ArrayList<>();
         recordsDeletion.getRecords()
                 .forEach(commentRef -> {
-                    ecosCommentServiceImpl.delete(commentRef.getId());
+                    ecosCommentServiceImpl.delete(commentRef.getLocalId());
                     resultRecords.add(new RecordMeta(commentRef));
                 });
 

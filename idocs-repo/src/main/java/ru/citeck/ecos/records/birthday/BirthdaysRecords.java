@@ -4,7 +4,6 @@ import org.alfresco.service.cmr.repository.NodeRef;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import ru.citeck.ecos.records.models.UserWithAvatarDto;
-import ru.citeck.ecos.records2.RecordRef;
 import ru.citeck.ecos.records2.RecordsService;
 import ru.citeck.ecos.records2.graphql.meta.value.MetaField;
 import ru.citeck.ecos.records2.request.delete.RecordsDelResult;
@@ -13,6 +12,7 @@ import ru.citeck.ecos.records2.request.mutation.RecordsMutResult;
 import ru.citeck.ecos.records2.request.query.RecordsQuery;
 import ru.citeck.ecos.records2.request.query.RecordsQueryResult;
 import ru.citeck.ecos.records2.source.dao.local.v2.LocalRecordsCrudDao;
+import ru.citeck.ecos.webapp.api.entity.EntityRef;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -59,7 +59,7 @@ public class BirthdaysRecords extends LocalRecordsCrudDao<UserWithAvatarDto> {
     }
 
     private UserWithAvatarDto toUserDTO(NodeRef user) {
-        return recordsService.getMeta(RecordRef.create("", user.toString()), UserWithAvatarDto.class);
+        return recordsService.getMeta(EntityRef.create("", user.toString()), UserWithAvatarDto.class);
     }
 
     @Override
@@ -73,12 +73,12 @@ public class BirthdaysRecords extends LocalRecordsCrudDao<UserWithAvatarDto> {
     }
 
     @Override
-    public List<UserWithAvatarDto> getValuesToMutate(List<RecordRef> list) {
+    public List<UserWithAvatarDto> getValuesToMutate(List<EntityRef> list) {
         throw new IllegalArgumentException(ERROR_UNSUPPORTED_OPERATION);
     }
 
     @Override
-    public List<UserWithAvatarDto> getLocalRecordsMeta(List<RecordRef> list, MetaField metaField) {
+    public List<UserWithAvatarDto> getLocalRecordsMeta(List<EntityRef> list, MetaField metaField) {
         throw new IllegalArgumentException(ERROR_UNSUPPORTED_OPERATION);
     }
 }

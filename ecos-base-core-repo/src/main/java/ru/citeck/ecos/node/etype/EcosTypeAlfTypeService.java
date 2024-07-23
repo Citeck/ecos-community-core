@@ -10,8 +10,8 @@ import org.springframework.stereotype.Service;
 import ru.citeck.ecos.commons.data.ObjectData;
 import ru.citeck.ecos.node.EcosTypeService;
 import ru.citeck.ecos.records.source.alf.meta.AlfNodeRecord;
-import ru.citeck.ecos.records2.RecordRef;
 import ru.citeck.ecos.records3.RecordsService;
+import ru.citeck.ecos.webapp.api.entity.EntityRef;
 import ru.citeck.ecos.webapp.lib.model.type.dto.TypeDef;
 
 @Service
@@ -37,11 +37,11 @@ public class EcosTypeAlfTypeService {
     }
 
     @Nullable
-    public QName getAlfTypeToCreate(RecordRef typeRef, ObjectData attributes) {
+    public QName getAlfTypeToCreate(EntityRef typeRef, ObjectData attributes) {
 
         String alfType;
 
-        if (RecordRef.isNotEmpty(typeRef)) {
+        if (EntityRef.isNotEmpty(typeRef)) {
             alfType = getExactAlfTypeFromProps(typeRef);
             if (StringUtils.isNotBlank(alfType)) {
                 return QName.resolveToQName(namespaceService, alfType);
@@ -64,11 +64,11 @@ public class EcosTypeAlfTypeService {
     }
 
     @Nullable
-    public String getAlfTypeToSearch(RecordRef typeRef) {
+    public String getAlfTypeToSearch(EntityRef typeRef) {
         return getExactAlfTypeFromProps(typeRef);
     }
 
-    private String getExactAlfTypeFromProps(@Nullable RecordRef typeRef) {
+    private String getExactAlfTypeFromProps(@Nullable EntityRef typeRef) {
 
         TypeDef typeDef = ecosTypeService.getTypeDef(typeRef);
         if (typeDef == null) {

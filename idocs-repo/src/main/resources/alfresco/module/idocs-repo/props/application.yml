@@ -1,6 +1,8 @@
 ---
 ecos:
   webapp:
+    txn:
+      commitCoordinatorApp: emodel
     web:
       authenticators:
         jwt:

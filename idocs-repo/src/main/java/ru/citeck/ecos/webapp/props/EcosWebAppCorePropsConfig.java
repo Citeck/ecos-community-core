@@ -7,9 +7,9 @@ import org.springframework.context.annotation.Configuration;
 import ru.citeck.ecos.audit.lib.EcosAuditProperties;
 import ru.citeck.ecos.notifications.lib.NotificationsProperties;
 import ru.citeck.ecos.webapp.lib.env.EcosWebAppEnvironment;
-import ru.citeck.ecos.webapp.lib.web.client.props.EcosWebClientProps;
-import ru.citeck.ecos.webapp.lib.web.client.props.EcosWebClientTlsProps;
 import ru.citeck.ecos.webapp.lib.web.server.EcosWebServerProperties;
+import ru.citeck.ecos.webapp.lib.web.webapi.client.props.EcosWebClientProps;
+import ru.citeck.ecos.webapp.lib.web.webapi.client.props.EcosWebClientTlsProps;
 
 import java.util.Locale;
 

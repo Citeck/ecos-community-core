@@ -30,6 +30,7 @@ import ru.citeck.ecos.records3.record.request.RequestContext;
 import ru.citeck.ecos.records3.record.request.msg.MsgLevel;
 import ru.citeck.ecos.utils.AuthorityUtils;
 import ru.citeck.ecos.utils.NodeUtils;
+import ru.citeck.ecos.webapp.api.entity.EntityRef;
 
 import java.util.*;
 import java.util.function.Supplier;
@@ -86,7 +87,7 @@ public class SearchServiceAlfNodesSearch {
         recordsSource.register(new SearchWithLanguage(SearchService.LANGUAGE_XPATH));
     }
 
-    private RecordsQueryResult<RecordRef> queryRecordsImpl(RecordsQuery recordsQuery, Long afterDbId, Date afterCreated) {
+    private RecordsQueryResult<EntityRef> queryRecordsImpl(RecordsQuery recordsQuery, Long afterDbId, Date afterCreated) {
 
         val reqCtx = RequestContext.getCurrent();
 
@@ -95,7 +96,7 @@ public class SearchServiceAlfNodesSearch {
             .split(ECOS_TYPE_DELIM_REGEXP);
 
         String query = queryWithType[0];
-        RecordRef ecosTypeRef = RecordRef.valueOf(queryWithType.length > 1 ? queryWithType[1] : null);
+        EntityRef ecosTypeRef = EntityRef.valueOf(queryWithType.length > 1 ? queryWithType[1] : null);
 
         SearchParameters searchParameters = new SearchParameters();
         searchParameters.addStore(StoreRef.STORE_REF_WORKSPACE_SPACESSTORE);
@@ -169,10 +170,10 @@ public class SearchServiceAlfNodesSearch {
             }
             resultSet = searchService.query(searchParameters);
 
-            RecordsQueryResult<RecordRef> result = new RecordsQueryResult<>();
+            RecordsQueryResult<EntityRef> result = new RecordsQueryResult<>();
             result.setRecords(resultSet.getNodeRefs()
                                        .stream()
-                                       .map(r -> RecordRef.valueOf(r.toString()))
+                                       .map(r -> EntityRef.valueOf(r.toString()))
                                        .collect(Collectors.toList()));
             result.setHasMore(resultSet.hasMore());
             result.setTotalCount(resultSet.getNumberFound());
@@ -231,7 +232,7 @@ public class SearchServiceAlfNodesSearch {
         }
 
         @Override
-        public RecordsQueryResult<RecordRef> queryRecords(RecordsQuery query, Long afterDbId, Date afterCreated) {
+        public RecordsQueryResult<EntityRef> queryRecords(RecordsQuery query, Long afterDbId, Date afterCreated) {
             return queryRecordsImpl(query, afterDbId, afterCreated);
         }
 

@@ -9,9 +9,9 @@ import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import ru.citeck.ecos.node.EcosTypeService;
-import ru.citeck.ecos.records2.RecordRef;
 import ru.citeck.ecos.utils.NodeUtils;
 import ru.citeck.ecos.utils.RepoUtils;
+import ru.citeck.ecos.webapp.api.entity.EntityRef;
 
 import java.io.Serializable;
 import java.util.*;
@@ -54,9 +54,9 @@ public class CaseStatusAssocDao {
     public NodeRef getStatusByAssoc(NodeRef nodeRef, QName assocName) {
         QName propName = assocToProp(assocName);
 
-        RecordRef typeRef = ecosTypeService.getEcosType(nodeRef);
+        EntityRef typeRef = ecosTypeService.getEcosType(nodeRef);
         String ecosStatusName = (String) nodeService.getProperty(nodeRef, propName);
-        NodeRef node = getVirtualStatus(typeRef.getId(), ecosStatusName);
+        NodeRef node = getVirtualStatus(typeRef.getLocalId(), ecosStatusName);
 
         if (node == null) {
             node = nodeUtils.getNodeRefByObject(RepoUtils.getFirstTargetAssoc(nodeRef, assocName, nodeService));
@@ -69,9 +69,9 @@ public class CaseStatusAssocDao {
         QName propName = assocToProp(assoc);
         List<NodeRef> result = new ArrayList<>();
 
-        RecordRef typeRef = ecosTypeService.getEcosType(nodeRef);
+        EntityRef typeRef = ecosTypeService.getEcosType(nodeRef);
         String ecosStatusName = (String) nodeService.getProperty(nodeRef, propName);
-        NodeRef virtualStatus = getVirtualStatus(typeRef.getId(), ecosStatusName);
+        NodeRef virtualStatus = getVirtualStatus(typeRef.getLocalId(), ecosStatusName);
 
         nodeUtils.fillNodeRefsList(virtualStatus, result);
         nodeUtils.fillNodeRefsList(nodeService.getTargetAssocs(nodeRef, assoc), result);

@@ -25,6 +25,7 @@ import ru.citeck.ecos.records2.source.dao.local.LocalRecordsDao;
 import ru.citeck.ecos.records2.source.dao.local.MutableRecordsLocalDao;
 import ru.citeck.ecos.records2.source.dao.local.v2.LocalRecordsMetaDao;
 import ru.citeck.ecos.records2.source.dao.local.v2.LocalRecordsQueryWithMetaDao;
+import ru.citeck.ecos.webapp.api.entity.EntityRef;
 
 import java.util.Date;
 import java.util.List;
@@ -52,16 +53,16 @@ public class CurrencyRateRecordsDao extends LocalRecordsDao implements
     }
 
     @Override
-    public List<CurrencyRateRecord> getLocalRecordsMeta(List<RecordRef> list, MetaField metaField) {
+    public List<CurrencyRateRecord> getLocalRecordsMeta(List<EntityRef> list, MetaField metaField) {
         return list.stream()
-                .map(recordRef -> RecordRef.create(AlfNodesRecordsDAO.ID, recordRef.getId()))
+                .map(recordRef -> RecordRef.create(AlfNodesRecordsDAO.ID, recordRef.getLocalId()))
                 .map(recordRef -> recordsService.getMeta(recordRef, CurrencyRateRecord.class))
                 .collect(Collectors.toList());
     }
 
     @Override
     public RecordsQueryResult<CurrencyRateRecord> queryLocalRecords(RecordsQuery recordsQuery, MetaField metaField) {
-        RecordsQueryResult<RecordRef> records = queryRecords(recordsQuery);
+        RecordsQueryResult<EntityRef> records = queryRecords(recordsQuery);
 
         RecordsQueryResult<CurrencyRateRecord> result = new RecordsQueryResult<>();
         result.merge(records);
@@ -78,7 +79,7 @@ public class CurrencyRateRecordsDao extends LocalRecordsDao implements
     }
 
     @Override
-    public List<CurrencyRateRecord> getValuesToMutate(List<RecordRef> list) {
+    public List<CurrencyRateRecord> getValuesToMutate(List<EntityRef> list) {
         return getLocalRecordsMeta(list, EmptyMetaField.INSTANCE);
     }
 
@@ -98,9 +99,9 @@ public class CurrencyRateRecordsDao extends LocalRecordsDao implements
             query.setLanguage(PredicateService.LANGUAGE_PREDICATE);
             query.setQuery(predicate);
 
-            Optional<RecordRef> recordRef = recordsService.queryRecord(query);
+            Optional<EntityRef> recordRef = recordsService.queryRecord(query);
             if (recordRef.isPresent()) {
-                recordsMutation.getRecords().add(composeCurrencyRecordMeta(recordRef.get().getId(), currencyRate));
+                recordsMutation.getRecords().add(composeCurrencyRecordMeta(recordRef.get().getLocalId(), currencyRate));
             } else {
                 recordsMutation.getRecords().add(composeCurrencyRecordMeta(null, currencyRate));
             }

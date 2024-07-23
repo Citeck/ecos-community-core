@@ -27,7 +27,6 @@ import ru.citeck.ecos.utils.DictUtils;
 import ru.citeck.ecos.webapp.api.entity.EntityRef;
 import ru.citeck.ecos.webapp.lib.model.type.dto.TypeDef;
 
-import javax.swing.text.html.parser.Entity;
 import java.util.*;
 import java.util.function.Function;
 
@@ -36,12 +35,12 @@ import java.util.function.Function;
 public class EcosTypeService {
 
     public static final QName QNAME = QName.createQName("", "ecosTypeService");
-    private static final RecordRef DEFAULT_TYPE = RecordRef.create("emodel", "type", "base");
+    private static final EntityRef DEFAULT_TYPE = EntityRef.create("emodel", "type", "base");
 
     private final RecordsService recordsService;
     private final DictUtils dictUtils;
 
-    private final EvaluatorsByAlfNode<RecordRef> evaluators;
+    private final EvaluatorsByAlfNode<EntityRef> evaluators;
 
     private TypesManager typesManager;
 
@@ -55,16 +54,16 @@ public class EcosTypeService {
         this.dictUtils = dictUtils;
     }
 
-    public void register(QName nodeType, Function<AlfNodeInfo, RecordRef> evaluator) {
+    public void register(QName nodeType, Function<AlfNodeInfo, EntityRef> evaluator) {
         evaluators.register(nodeType, evaluator);
     }
 
     @NotNull
-    public List<RecordRef> expandTypeWithChildren(@Nullable EntityRef typeRef) {
+    public List<EntityRef> expandTypeWithChildren(@Nullable EntityRef typeRef) {
         if (EntityRef.isEmpty(typeRef) || typesManager == null) {
             return Collections.singletonList(RecordRef.valueOf(typeRef));
         }
-        List<RecordRef> result = new ArrayList<>();
+        List<EntityRef> result = new ArrayList<>();
         forEachDesc(typeRef, typeDto -> {
             result.add(TypeUtils.getTypeRef(typeDto.getId()));
             return false;
@@ -73,7 +72,7 @@ public class EcosTypeService {
     }
 
     @NotNull
-    public DocLibDef getDocLib(RecordRef typeRef) {
+    public DocLibDef getDocLib(EntityRef typeRef) {
         TypeDef typeDef = getTypeDef(typeRef);
         if (typeDef == null) {
             return DocLibDef.EMPTY;
@@ -82,7 +81,7 @@ public class EcosTypeService {
     }
 
     @NotNull
-    public ObjectData getResolvedProperties(RecordRef typeRef) {
+    public ObjectData getResolvedProperties(EntityRef typeRef) {
         return recordsService.getAttribute(typeRef, "inhProperties?json").asObjectData();
     }
 
@@ -95,19 +94,19 @@ public class EcosTypeService {
     }
 
     @NotNull
-    public RecordRef getEcosType(NodeRef nodeRef) {
-        RecordRef result = evaluators.eval(nodeRef);
-        return result != null ? result : RecordRef.EMPTY;
+    public EntityRef getEcosType(NodeRef nodeRef) {
+        EntityRef result = evaluators.eval(nodeRef);
+        return result != null ? result : EntityRef.EMPTY;
     }
 
     @NotNull
-    public RecordRef getEcosType(AlfNodeInfo nodeInfo) {
-        RecordRef result = evaluators.eval(nodeInfo);
-        return result != null ? result : RecordRef.EMPTY;
+    public EntityRef getEcosType(AlfNodeInfo nodeInfo) {
+        EntityRef result = evaluators.eval(nodeInfo);
+        return result != null ? result : EntityRef.EMPTY;
     }
 
     @Nullable
-    public RecordRef getEcosType(String alfrescoType) {
+    public EntityRef getEcosType(String alfrescoType) {
         PropertyDefinition propDef = dictUtils.getPropDef(alfrescoType, ClassificationModel.PROP_DOCUMENT_TYPE);
         if (propDef == null) {
             return null;
@@ -119,35 +118,35 @@ public class EcosTypeService {
         }
 
         NodeRef typeNodeRef = new NodeRef(value);
-        return RecordRef.create("emodel", "type", typeNodeRef.getId());
+        return EntityRef.create("emodel", "type", typeNodeRef.getId());
     }
 
-    public List<RecordRef> getDescendantTypes(RecordRef typeRef) {
-        List<RecordRef> result = new ArrayList<>();
+    public List<EntityRef> getDescendantTypes(EntityRef typeRef) {
+        List<EntityRef> result = new ArrayList<>();
         forEachDesc(typeRef, type -> {
-            result.add(RecordRef.create("emodel", "type", type.getId()));
+            result.add(EntityRef.create("emodel", "type", type.getId()));
             return false;
         });
         return result;
     }
 
-    public <T> T getEcosTypeConfig(RecordRef configRef, Class<T> configClass) {
+    public <T> T getEcosTypeConfig(EntityRef configRef, Class<T> configClass) {
         EcosTypeConfig typeConfig = recordsService.getMeta(configRef, EcosTypeConfig.class);
         return typeConfig.getData().getAs(configClass);
     }
 
     public <T> T getEcosTypeConfig(NodeRef documentRef, Class<T> configClass) {
-        RecordRef ecosType = getEcosType(documentRef);
+        EntityRef ecosType = getEcosType(documentRef);
         return getEcosTypeConfig(ecosType, configClass);
     }
 
     @Nullable
-    public Long getNumberForDocument(@NotNull RecordRef docRef) {
+    public Long getNumberForDocument(@NotNull EntityRef docRef) {
         return getNumberForDocument(docRef, getNumTemplateByRecord(docRef));
     }
 
     @Nullable
-    public Long getNumberForDocument(@NotNull RecordRef docRef, @Nullable RecordRef numTemplateRef) {
+    public Long getNumberForDocument(@NotNull EntityRef docRef, @Nullable EntityRef numTemplateRef) {
 
         if (EntityRef.isEmpty(numTemplateRef)) {
             return null;
@@ -168,20 +167,20 @@ public class EcosTypeService {
     }
 
     @Nullable
-    public RecordRef getNumTemplateByTypeRef(@Nullable RecordRef typeRef) {
+    public EntityRef getNumTemplateByTypeRef(@Nullable EntityRef typeRef) {
         if (typeRef == null || EntityRef.isEmpty(typeRef)) {
             return null;
         }
         TypeDef typeDef = getTypeDef(typeRef);
-        return typeDef != null ? RecordRef.valueOf(typeDef.getNumTemplateRef()) : null;
+        return typeDef != null ? EntityRef.valueOf(typeDef.getNumTemplateRef()) : null;
     }
 
     @Nullable
-    private RecordRef getNumTemplateByRecord(RecordRef recordRef) {
+    private EntityRef getNumTemplateByRecord(EntityRef recordRef) {
         if (EntityRef.isEmpty(recordRef)) {
             return null;
         }
-        RecordRef typeRef = recordsService.getAttribute(recordRef, "_type?id").getAs(RecordRef.class);
+        EntityRef typeRef = recordsService.getAttribute(recordRef, "_type?id").getAs(EntityRef.class);
         return getNumTemplateByTypeRef(typeRef);
     }
 
@@ -193,14 +192,14 @@ public class EcosTypeService {
         forEachDesc(Collections.singletonList(typeRef), action);
     }
 
-    public void forEachAscRef(RecordRef typeRef, Function<RecordRef, Boolean> action) {
+    public void forEachAscRef(EntityRef typeRef, Function<EntityRef, Boolean> action) {
         forEachAsc(typeRef, dto -> {
-            RecordRef ref = RecordRef.create("emodel", "type", dto.getId());
+            EntityRef ref = EntityRef.create("emodel", "type", dto.getId());
             return action.apply(ref);
         });
     }
 
-    public List<RecordRef> getChildren(EntityRef typeRef) {
+    public List<EntityRef> getChildren(EntityRef typeRef) {
 
         RecordsQuery query = new RecordsQuery();
         query.setSourceId("emodel/type");
@@ -227,7 +226,7 @@ public class EcosTypeService {
         }
     }
 
-    public void forEachAsc(RecordRef typeRef, Function<TypeDef, Boolean> action) {
+    public void forEachAsc(EntityRef typeRef, Function<TypeDef, Boolean> action) {
 
         if (EntityRef.isEmpty(typeRef) || typesManager == null) {
             return;

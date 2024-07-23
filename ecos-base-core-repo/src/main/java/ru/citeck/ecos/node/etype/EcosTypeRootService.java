@@ -18,9 +18,9 @@ import org.springframework.stereotype.Service;
 import ru.citeck.ecos.commons.data.ObjectData;
 import ru.citeck.ecos.model.EcosTypeModel;
 import ru.citeck.ecos.node.EcosTypeService;
-import ru.citeck.ecos.records2.RecordRef;
 import ru.citeck.ecos.search.ftsquery.FTSQuery;
 import ru.citeck.ecos.utils.NodeUtils;
+import ru.citeck.ecos.webapp.api.entity.EntityRef;
 
 import java.io.Serializable;
 import java.util.Arrays;
@@ -61,11 +61,11 @@ public class EcosTypeRootService {
         this.permissionService = permissionService;
     }
 
-    public NodeRef getRootForType(RecordRef typeRef, boolean createIfNotExists) {
+    public NodeRef getRootForType(EntityRef typeRef, boolean createIfNotExists) {
         return AuthenticationUtil.runAsSystem(() -> getRootForTypeImpl(typeRef, createIfNotExists));
     }
 
-    private NodeRef getRootForTypeImpl(RecordRef typeRef, boolean createIfNotExists) {
+    private NodeRef getRootForTypeImpl(EntityRef typeRef, boolean createIfNotExists) {
 
         // todo: add tenant support
         String currentTenant = "";
@@ -84,7 +84,7 @@ public class EcosTypeRootService {
                     setTypesRootPermissions(rootRef);
                     Map<QName, Serializable> props = new HashMap<>();
                     props.put(EcosTypeModel.PROP_TENANT, "");
-                    props.put(EcosTypeModel.PROP_ROOT_FOR_TYPE, typeRef.getId());
+                    props.put(EcosTypeModel.PROP_ROOT_FOR_TYPE, typeRef.getLocalId());
 
                     nodeService.addAspect(rootRef, EcosTypeModel.ASPECT_TYPE_ROOT, props);
                 }
@@ -95,7 +95,7 @@ public class EcosTypeRootService {
 
         NodeRef rootRef = FTSQuery.create()
             .exact(EcosTypeModel.PROP_TENANT, currentTenant).and()
-            .exact(EcosTypeModel.PROP_ROOT_FOR_TYPE, typeRef.getId())
+            .exact(EcosTypeModel.PROP_ROOT_FOR_TYPE, typeRef.getLocalId())
             .transactional()
             .queryOne(searchService)
             .orElse(null);
@@ -133,10 +133,10 @@ public class EcosTypeRootService {
         );
 
         Map<QName, Serializable> props = new HashMap<>();
-        props.put(EcosTypeModel.PROP_ROOT_FOR_TYPE, typeRef.getId());
+        props.put(EcosTypeModel.PROP_ROOT_FOR_TYPE, typeRef.getLocalId());
         props.put(EcosTypeModel.PROP_TENANT, currentTenant);
 
-        return findOrCreateFolder(typesFolder, typeRef.getId(), props, props, false);
+        return findOrCreateFolder(typesFolder, typeRef.getLocalId(), props, props, false);
     }
 
     private NodeRef findOrCreateFolder(NodeRef parent,

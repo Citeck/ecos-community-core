@@ -67,7 +67,7 @@ public class AuthorityGroupRecordsDao implements RecordMutateDao, RecordAttsDao 
         RecordRef ref = RecordRef.create("", nodeRef.toString());
         mutation.setRecords(Collections.singletonList(new RecordMeta(ref, atts.getAttributes())));
 
-        return alfNodesRecordsDao.mutate(mutation).getRecords().get(0).getId().getId();
+        return alfNodesRecordsDao.mutate(mutation).getRecords().get(0).getId().getLocalId();
     }
 
     @Nullable

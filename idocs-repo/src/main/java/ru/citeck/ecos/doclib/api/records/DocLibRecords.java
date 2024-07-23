@@ -18,6 +18,7 @@ import ru.citeck.ecos.records3.record.dao.query.RecordsQueryDao;
 import ru.citeck.ecos.records3.record.dao.query.dto.query.QueryPage;
 import ru.citeck.ecos.records3.record.dao.query.dto.query.RecordsQuery;
 import ru.citeck.ecos.records3.record.dao.query.dto.res.RecsQueryRes;
+import ru.citeck.ecos.webapp.api.entity.EntityRef;
 
 import java.util.stream.Collectors;
 
@@ -78,7 +79,7 @@ public class DocLibRecords extends AbstractRecordsDao
 
     public RecsQueryRes<DocLibRecord> getChildren(DocLibChildrenQuery query, QueryPage page) {
 
-        RecsQueryRes<RecordRef> childrenRes = docLibService.getChildren(query, page);
+        RecsQueryRes<EntityRef> childrenRes = docLibService.getChildren(query, page);
         if (childrenRes.getRecords().isEmpty() && childrenRes.getTotalCount() == 0) {
             return new RecsQueryRes<>();
         }

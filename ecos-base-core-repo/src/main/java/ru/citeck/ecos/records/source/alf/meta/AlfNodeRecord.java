@@ -52,6 +52,7 @@ import ru.citeck.ecos.records2.graphql.meta.value.MetaValue;
 import ru.citeck.ecos.state.ItemsUpdateState;
 import ru.citeck.ecos.utils.NewUIUtils;
 import ru.citeck.ecos.utils.NodeUtils;
+import ru.citeck.ecos.webapp.api.entity.EntityRef;
 import ru.citeck.ecos.webapp.lib.model.type.dto.TypeDef;
 
 import java.io.Serializable;
@@ -99,7 +100,7 @@ public class AlfNodeRecord implements MetaValue {
     }
 
     private NodeRef nodeRef;
-    private final RecordRef recordRef;
+    private final EntityRef recordRef;
     private GqlAlfNode node;
     private AlfGqlContext context;
     private final Map<String, AttributeDef> attributesDef = new HashMap<>();
@@ -110,7 +111,7 @@ public class AlfNodeRecord implements MetaValue {
     private final Permissions permissions = new Permissions();
     private boolean isValidNode = true;
 
-    public AlfNodeRecord(RecordRef recordRef) {
+    public AlfNodeRecord(EntityRef recordRef) {
         this.recordRef = recordRef;
     }
 
@@ -125,9 +126,9 @@ public class AlfNodeRecord implements MetaValue {
         }
         this.node = this.context.getNode(nodeRef).orElse(null);
 
-        RecordRef typeRef = getRecordType();
+        EntityRef typeRef = getRecordType();
 
-        if (RecordRef.isNotEmpty(typeRef)) {
+        if (EntityRef.isNotEmpty(typeRef)) {
 
             AlfGqlContext alfContext = (AlfGqlContext) context;
             AlfAutoModelService autoModelService = alfContext.getService(AlfAutoModelService.QNAME);
@@ -219,9 +220,9 @@ public class AlfNodeRecord implements MetaValue {
     }
 
     @Override
-    public RecordRef getRecordType() {
+    public EntityRef getRecordType() {
         if (!isValidNode) {
-            return RecordRef.EMPTY;
+            return EntityRef.EMPTY;
         }
         NodeRef nodeRef = new NodeRef(node.nodeRef());
         EcosTypeService ecosTypeService = context.getService(EcosTypeService.QNAME);

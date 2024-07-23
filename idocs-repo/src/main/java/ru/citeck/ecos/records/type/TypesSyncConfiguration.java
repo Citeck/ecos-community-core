@@ -44,7 +44,7 @@ public class TypesSyncConfiguration {
 
         return new TypesManager() {
 
-            private final LoadingCache<QName, RecordRef> ecosTypeByAlfTypeCache = CacheBuilder.newBuilder()
+            private final LoadingCache<QName, EntityRef> ecosTypeByAlfTypeCache = CacheBuilder.newBuilder()
                 .maximumSize(300)
                 .expireAfterAccess(30, TimeUnit.SECONDS)
                 .build(CacheLoader.from(this::getEcosTypeImpl));
@@ -55,12 +55,12 @@ public class TypesSyncConfiguration {
             }
 
             @Override
-            public NumTemplateDef getNumTemplate(RecordRef templateRef) {
-                return numTemplatesRegistry.getValue(templateRef.getId());
+            public NumTemplateDef getNumTemplate(EntityRef templateRef) {
+                return numTemplatesRegistry.getValue(templateRef.getLocalId());
             }
 
             @Override
-            public Long getNextNumber(RecordRef templateRef, ObjectData model) {
+            public Long getNextNumber(EntityRef templateRef, ObjectData model) {
 
                 Object command = new GetNextNumberCommand(templateRef, model);
                 CommandResult numberRes = commandsService.executeSync(command, "emodel");
@@ -86,18 +86,18 @@ public class TypesSyncConfiguration {
 
             @NotNull
             @Override
-            public RecordRef getEcosTypeByAlfType(@Nullable QName alfType) {
+            public EntityRef getEcosTypeByAlfType(@Nullable QName alfType) {
                 if (alfType == null) {
-                    return RecordRef.EMPTY;
+                    return EntityRef.EMPTY;
                 }
                 return ecosTypeByAlfTypeCache.getUnchecked(alfType);
             }
 
             @NotNull
-            private RecordRef getEcosTypeImpl(@Nullable QName alfType) {
+            private EntityRef getEcosTypeImpl(@Nullable QName alfType) {
 
                 if (alfType == null) {
-                    return RecordRef.EMPTY;
+                    return EntityRef.EMPTY;
                 }
 
                 String typeShortName = alfType.toPrefixString(namespaceService);
@@ -110,7 +110,7 @@ public class TypesSyncConfiguration {
                         return TypeUtils.getTypeRef(typeDto.getId());
                     }
                 }
-                return RecordRef.EMPTY;
+                return EntityRef.EMPTY;
             }
         };
     }

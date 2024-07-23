@@ -19,8 +19,10 @@ import org.springframework.http.converter.StringHttpMessageConverter;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.social.support.URIBuilder;
 import org.springframework.web.client.RestTemplate;
+import ru.citeck.ecos.utils.json.mixin.EntityRefMixin;
 import ru.citeck.ecos.utils.json.mixin.NodeRefMixIn;
 import ru.citeck.ecos.utils.json.mixin.QNameMixIn;
+import ru.citeck.ecos.webapp.api.entity.EntityRef;
 
 import javax.annotation.PostConstruct;
 import java.net.URI;
@@ -61,6 +63,7 @@ public class RestConnection {
 
         objectMapper.addMixInAnnotations(NodeRef.class, NodeRefMixIn.class);
         objectMapper.addMixInAnnotations(QName.class, QNameMixIn.class);
+        objectMapper.addMixInAnnotations(EntityRef.class, EntityRefMixin.class);
 
         List<HttpMessageConverter<?>> messageConverters = new ArrayList<>();
 

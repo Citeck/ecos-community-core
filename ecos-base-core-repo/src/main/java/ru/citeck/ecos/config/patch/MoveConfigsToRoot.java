@@ -23,10 +23,10 @@ import ru.citeck.ecos.config.EcosConfigService;
 import ru.citeck.ecos.model.ConfigModel;
 import ru.citeck.ecos.records.RecordsUtils;
 import ru.citeck.ecos.records2.IterableRecords;
-import ru.citeck.ecos.records2.RecordRef;
 import ru.citeck.ecos.records2.RecordsService;
 import ru.citeck.ecos.records2.request.query.QueryConsistency;
 import ru.citeck.ecos.records2.request.query.RecordsQuery;
+import ru.citeck.ecos.webapp.api.entity.EntityRef;
 
 import java.io.Serializable;
 import java.util.List;
@@ -63,7 +63,7 @@ public class MoveConfigsToRoot extends AbstractModuleComponent {
         query.setLanguage(SearchService.LANGUAGE_CMIS_STRICT);
         query.setConsistency(QueryConsistency.TRANSACTIONAL);
         query.setQuery("select * from config:ecosConfig");
-        Iterable<RecordRef> ecosConfigs = new IterableRecords(recordsService, query);
+        Iterable<EntityRef> ecosConfigs = new IterableRecords(recordsService, query);
 
         GroupActionConfig config = new GroupActionConfig();
         config.setBatchSize(10);

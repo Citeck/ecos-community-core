@@ -1,12 +1,12 @@
 package ru.citeck.ecos.records.script;
 
-import ru.citeck.ecos.records2.RecordRef;
+import ru.citeck.ecos.webapp.api.entity.EntityRef;
 
 public interface RepoScriptAttValueCtx {
 
     String getId();
 
-    RecordRef getRef();
+    EntityRef getRef();
 
     String getLocalId();
 

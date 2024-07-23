@@ -7,12 +7,12 @@ import ru.citeck.ecos.graphql.journal.JGqlPageInfoInput;
 import ru.citeck.ecos.journals.JournalType;
 import ru.citeck.ecos.records.source.alf.search.CriteriaAlfNodesSearch;
 import ru.citeck.ecos.records2.RecordMeta;
-import ru.citeck.ecos.records2.RecordRef;
 import ru.citeck.ecos.records2.RecordsService;
 import ru.citeck.ecos.records2.request.query.QueryConsistency;
 import ru.citeck.ecos.records2.request.query.RecordsQuery;
 import ru.citeck.ecos.records2.request.query.RecordsQueryResult;
 import ru.citeck.ecos.records2.request.query.SortBy;
+import ru.citeck.ecos.webapp.api.entity.EntityRef;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -43,7 +43,7 @@ public class JournalRecordsDao {
         return gqlQueryGenerator.generate(type);
     }
 
-    public RecordsQueryResult<RecordRef> getRecords(JournalType journalType,
+    public RecordsQueryResult<EntityRef> getRecords(JournalType journalType,
                                                     String query,
                                                     String language,
                                                     JGqlPageInfoInput pageInfo,

@@ -11,7 +11,6 @@ import ru.citeck.ecos.action.group.ActionResult;
 import ru.citeck.ecos.action.group.ActionResults;
 import ru.citeck.ecos.action.group.GroupActionConfig;
 import ru.citeck.ecos.commons.json.Json;
-import ru.citeck.ecos.records2.RecordRef;
 import ru.citeck.ecos.records2.request.rest.QueryBody;
 import ru.citeck.ecos.records2.request.rest.RestHandler;
 import ru.citeck.ecos.records3.RecordsService;
@@ -22,6 +21,7 @@ import ru.citeck.ecos.records3.record.dao.query.dto.query.RecordsQuery;
 import ru.citeck.ecos.records3.record.dao.query.dto.res.RecsQueryRes;
 import ru.citeck.ecos.utils.AlfrescoScopableProcessorExtension;
 import ru.citeck.ecos.utils.JsUtils;
+import ru.citeck.ecos.webapp.api.entity.EntityRef;
 
 import java.util.*;
 
@@ -38,9 +38,9 @@ public class RecordsServiceJS extends AlfrescoScopableProcessorExtension {
 
     private JsUtils jsUtils;
 
-    public ActionResult<RecordRef>[] executeAction(Object nodes, Object config) {
+    public ActionResult<EntityRef>[] executeAction(Object nodes, Object config) {
 
-        List<RecordRef> records = jsUtils.getList(nodes, jsUtils::getRecordRef);
+        List<EntityRef> records = jsUtils.getList(nodes, jsUtils::getRecordRef);
         GroupActionConfig actionConfig = jsUtils.toJava(config, GroupActionConfig.class);
 
         return toArray(groupActionsService.executeAction(records, actionConfig));
@@ -68,7 +68,7 @@ public class RecordsServiceJS extends AlfrescoScopableProcessorExtension {
         }
     }
 
-    private Object getRecordAttributes(RecordRef recordRef, Object attributes) {
+    private Object getRecordAttributes(EntityRef recordRef, Object attributes) {
 
         if (attributes instanceof Collection) {
             return recordsServiceV1.getAtts(recordRef, (Collection<String>) attributes);
@@ -80,7 +80,7 @@ public class RecordsServiceJS extends AlfrescoScopableProcessorExtension {
         return null;
     }
 
-    private Object getRecordsAttributes(Collection<RecordRef> records, Object attributes) {
+    private Object getRecordsAttributes(Collection<EntityRef> records, Object attributes) {
 
         if (attributes instanceof Collection) {
             return recordsServiceV1.getAtts(records, (Collection<String>) attributes);
@@ -110,12 +110,12 @@ public class RecordsServiceJS extends AlfrescoScopableProcessorExtension {
         return recordsServiceV1.query(convertedQuery, schemaClass);
     }
 
-    public Iterable<RecordRef> getIterableRecords(Object recordsQuery) {
+    public Iterable<EntityRef> getIterableRecords(Object recordsQuery) {
         RecordsQuery query = jsUtils.toJava(recordsQuery, RecordsQuery.class);
         return new IterableRecordRefs(query, IterableRecordsConfig.create(b -> Unit.INSTANCE), recordsServiceV1);
     }
 
-    public Iterable<RecordRef> getIterableRecordsForGroupAction(Object recordsQuery, Object groupActionConfig) {
+    public Iterable<EntityRef> getIterableRecordsForGroupAction(Object recordsQuery, Object groupActionConfig) {
 
         GroupActionConfig config = jsUtils.toJava(groupActionConfig, GroupActionConfig.class);
 
@@ -131,20 +131,20 @@ public class RecordsServiceJS extends AlfrescoScopableProcessorExtension {
         return new IterableRecordRefs(query, iterRecsConfig, recordsServiceV1);
     }
 
-    public Iterable<RecordRef> getIterableRecordsForGroupAction(Object recordsQuery,
+    public Iterable<EntityRef> getIterableRecordsForGroupAction(Object recordsQuery,
                                                                 Object groupActionConfig,
                                                                 Object options) {
-        Iterable<RecordRef> recordRefs = getIterableRecordsForGroupAction(recordsQuery, groupActionConfig);
+        Iterable<EntityRef> recordRefs = getIterableRecordsForGroupAction(recordsQuery, groupActionConfig);
         return filteredOptions(recordRefs, options);
     }
 
-    public Iterable<RecordRef> getIterableRecords(Object recordsQuery, Object options) {
-        Iterable<RecordRef> recordRefs = getIterableRecords(recordsQuery);
+    public Iterable<EntityRef> getIterableRecords(Object recordsQuery, Object options) {
+        Iterable<EntityRef> recordRefs = getIterableRecords(recordsQuery);
         return filteredOptions(recordRefs, options);
     }
 
     @SuppressWarnings("unchecked")
-    private Iterable<RecordRef> filteredOptions(Iterable<RecordRef> recordRefs, Object options) {
+    private Iterable<EntityRef> filteredOptions(Iterable<EntityRef> recordRefs, Object options) {
         if (options == null) {
             return recordRefs;
         }
@@ -154,7 +154,7 @@ public class RecordsServiceJS extends AlfrescoScopableProcessorExtension {
         }
         return () -> IteratorUtils.filteredIterator(
             recordRefs.iterator(),
-            recordRef -> !convertedOptions.getExcludedRecords().contains((RecordRef) recordRef));
+            recordRef -> !convertedOptions.getExcludedRecords().contains((EntityRef) recordRef));
     }
 
     private static <T> ActionResult<T>[] toArray(ActionResults<T> results) {
@@ -190,6 +190,6 @@ public class RecordsServiceJS extends AlfrescoScopableProcessorExtension {
 
     @Data
     public static class IterableRecordsOptions {
-        private Set<RecordRef> excludedRecords;
+        private Set<EntityRef> excludedRecords;
     }
 }

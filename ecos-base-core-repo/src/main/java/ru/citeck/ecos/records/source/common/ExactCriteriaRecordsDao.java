@@ -17,6 +17,7 @@ import ru.citeck.ecos.records2.predicate.RecordElements;
 import ru.citeck.ecos.records2.request.query.RecordsQuery;
 import ru.citeck.ecos.records3.RecordsServiceFactory;
 import ru.citeck.ecos.search.*;
+import ru.citeck.ecos.webapp.api.entity.EntityRef;
 
 import java.util.*;
 import java.util.function.BiFunction;
@@ -56,7 +57,7 @@ public class ExactCriteriaRecordsDao extends FilteredRecordsDao implements Servi
     }
 
     @Override
-    protected Function<List<RecordRef>, List<RecordRef>> getFilter(RecordsQuery query) {
+    protected Function<List<EntityRef>, List<EntityRef>> getFilter(RecordsQuery query) {
         if (PredicateService.LANGUAGE_PREDICATE.equals(query.getLanguage())) {
 
             Predicate predicate = query.getQuery(Predicate.class);

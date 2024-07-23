@@ -4,7 +4,6 @@ import org.alfresco.service.cmr.repository.NodeRef;
 import ru.citeck.ecos.icase.activity.dto.ActivityInstance;
 import ru.citeck.ecos.icase.activity.service.eproc.EProcUtils;
 import ru.citeck.ecos.icase.activity.service.eproc.importer.parser.CmmnDefinitionConstants;
-import ru.citeck.ecos.icase.activity.service.eproc.importer.parser.CmmnInstanceConstants;
 import ru.citeck.ecos.model.CaseTimerModel;
 import ru.citeck.ecos.records2.RecordRef;
 

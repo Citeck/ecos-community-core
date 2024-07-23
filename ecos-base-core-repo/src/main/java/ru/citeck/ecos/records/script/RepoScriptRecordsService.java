@@ -103,7 +103,7 @@ public class RepoScriptRecordsService extends AlfrescoScopableProcessorExtension
             return getEmptyRes();
         }
 
-        RecsQueryRes<RecordRef> result = recordsService.query(recordsQuery);
+        RecsQueryRes<EntityRef> result = recordsService.query(recordsQuery);
 
         Map<String, Object> resultMap = new LinkedHashMap<>();
         resultMap.put("hasMore", result.getHasMore());
@@ -226,11 +226,11 @@ public class RepoScriptRecordsService extends AlfrescoScopableProcessorExtension
 
     private class Record implements RepoScriptAttValueCtx {
 
-        private final RecordRef recordRef;
+        private final EntityRef recordRef;
         private ObjectData mutateAtts;
         private final Map<String, DataValue> loadedAttsCache = new HashMap<>();
 
-        public Record(RecordRef recordRef) {
+        public Record(EntityRef recordRef) {
             this.recordRef = recordRef;
         }
 
@@ -239,12 +239,12 @@ public class RepoScriptRecordsService extends AlfrescoScopableProcessorExtension
             return recordRef.toString();
         }
 
-        public RecordRef getRef() {
+        public EntityRef getRef() {
             return recordRef;
         }
 
         public String getLocalId() {
-            return recordRef.getId();
+            return recordRef.getLocalId();
         }
 
         @Override

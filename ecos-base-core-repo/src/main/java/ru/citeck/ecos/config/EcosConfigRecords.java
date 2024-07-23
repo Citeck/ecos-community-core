@@ -3,10 +3,10 @@ package ru.citeck.ecos.config;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
-import ru.citeck.ecos.records2.RecordRef;
 import ru.citeck.ecos.records2.graphql.meta.value.MetaField;
 import ru.citeck.ecos.records2.source.dao.local.LocalRecordsDao;
 import ru.citeck.ecos.records2.source.dao.local.v2.LocalRecordsMetaDao;
+import ru.citeck.ecos.webapp.api.entity.EntityRef;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -23,11 +23,11 @@ public class EcosConfigRecords extends LocalRecordsDao implements LocalRecordsMe
     }
 
     @Override
-    public List<String> getLocalRecordsMeta(List<RecordRef> records, MetaField metaField) {
+    public List<String> getLocalRecordsMeta(List<EntityRef> records, MetaField metaField) {
 
         List<String> result = new ArrayList<>();
-        for (RecordRef ref : records) {
-            Object value = ecosConfigService.getParamValue(ref.getId());
+        for (EntityRef ref : records) {
+            Object value = ecosConfigService.getParamValue(ref.getLocalId());
             result.add(value == null ? null : value.toString());
         }
         return result;

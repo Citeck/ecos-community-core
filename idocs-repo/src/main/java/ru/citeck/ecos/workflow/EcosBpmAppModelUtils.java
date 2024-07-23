@@ -22,6 +22,7 @@ import ru.citeck.ecos.records3.RecordsService;
 import ru.citeck.ecos.records3.record.atts.schema.annotation.AttName;
 import ru.citeck.ecos.records3.record.dao.query.dto.query.Consistency;
 import ru.citeck.ecos.records3.record.dao.query.dto.query.RecordsQuery;
+import ru.citeck.ecos.webapp.api.entity.EntityRef;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -46,7 +47,7 @@ public class EcosBpmAppModelUtils {
         if (StringUtils.isBlank(processDto.processId)) {
             throw new RuntimeException("Process ID is blank. NodeRef: " + nodeRef);
         }
-        RecordRef existingDeployment = recordsService.queryOne(RecordsQuery.create(b -> {
+        EntityRef existingDeployment = recordsService.queryOne(RecordsQuery.create(b -> {
             b.withSourceId("alfresco/");
             b.withQuery(Predicates.and(
                 Predicates.eq("PARENT", nodeRef.toString()),
@@ -57,7 +58,7 @@ public class EcosBpmAppModelUtils {
             return Unit.INSTANCE;
         }));
         if (existingDeployment != null) {
-            log.info("Workflow " + nodeRef + " already deployed. DeploymentRef: " + existingDeployment.getId());
+            log.info("Workflow " + nodeRef + " already deployed. DeploymentRef: " + existingDeployment.getLocalId());
             return;
         }
 
@@ -80,8 +81,8 @@ public class EcosBpmAppModelUtils {
             deploymentProps.put("ecosbpm:deploymentEngine", engineId);
             deploymentProps.put("ecosbpm:deploymentVersion", deployment.getDefinition().getVersion());
 
-            RecordRef deploymentRef = recordsService.create("alfresco/", deploymentProps);
-            log.info("Deployment was created: " + deploymentRef.getId()
+            EntityRef deploymentRef = recordsService.create("alfresco/", deploymentProps);
+            log.info("Deployment was created: " + deploymentRef.getLocalId()
                 + " with props: " + Json.getMapper().toString(deploymentProps));
 
         } catch (IOException e) {

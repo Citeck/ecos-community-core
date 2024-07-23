@@ -9,7 +9,6 @@ import ru.citeck.ecos.graphql.journal.JGqlPageInfoInput;
 import ru.citeck.ecos.graphql.journal.JGqlSortBy;
 import ru.citeck.ecos.graphql.journal.record.JGqlRecordsConnection;
 import ru.citeck.ecos.records2.QueryContext;
-import ru.citeck.ecos.records2.RecordRef;
 import ru.citeck.ecos.records2.ServiceFactoryAware;
 import ru.citeck.ecos.records2.request.query.RecordsQuery;
 import ru.citeck.ecos.records2.request.query.RecordsQueryResult;
@@ -22,6 +21,7 @@ import ru.citeck.ecos.records3.record.atts.dto.RecordAtts;
 import ru.citeck.ecos.records3.record.atts.schema.SchemaAtt;
 import ru.citeck.ecos.records3.record.atts.schema.write.AttSchemaWriter;
 import ru.citeck.ecos.search.SortOrder;
+import ru.citeck.ecos.webapp.api.entity.EntityRef;
 
 import javax.annotation.PostConstruct;
 import java.util.ArrayList;
@@ -64,8 +64,8 @@ public class JournalDatasourceRecordsDAO extends AbstractRecordsDao
             sortBy.add(new JGqlSortBy(sort.getAttribute(), order));
         }
 
-        RecordRef afterId = query.getAfterId();
-        JGqlPageInfoInput pageInfo = new JGqlPageInfoInput(afterId != RecordRef.EMPTY ? afterId.getId() : null,
+        EntityRef afterId = query.getAfterId();
+        JGqlPageInfoInput pageInfo = new JGqlPageInfoInput(afterId != EntityRef.EMPTY ? afterId.getLocalId() : null,
                                                            query.getMaxItems(),
                                                            sortBy,
                                                            query.getSkipCount());

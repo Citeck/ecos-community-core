@@ -16,6 +16,7 @@ import ru.citeck.ecos.records2.predicate.PredicateService;
 import ru.citeck.ecos.records2.predicate.RecordElement;
 import ru.citeck.ecos.records2.predicate.model.Predicate;
 import ru.citeck.ecos.search.ftsquery.FTSQuery;
+import ru.citeck.ecos.webapp.api.entity.EntityRef;
 
 import java.util.Collections;
 import java.util.Comparator;
@@ -41,7 +42,7 @@ public class EcosSelectTemplateService {
     private SearchService searchService;
 
     public List<NodeRef> getNodeOrderedTemplates(NodeRef nodeRef) {
-        RecordRef ecosType = ecosTypeService.getEcosType(nodeRef);
+        EntityRef ecosType = ecosTypeService.getEcosType(nodeRef);
         if (ecosType == null) {
             return Collections.emptyList();
         }
@@ -51,7 +52,7 @@ public class EcosSelectTemplateService {
             return Collections.emptyList();
         }
 
-        RecordElement element = new RecordElement(recordsService, RecordRef.valueOf(nodeRef.toString()));
+        RecordElement element = new RecordElement(recordsService, EntityRef.valueOf(nodeRef.toString()));
         return templateBasedOnType.stream()
             .filter(tNodeRef -> filter(element, tNodeRef))
             .sorted(Comparator.comparingInt(item -> {
@@ -76,8 +77,8 @@ public class EcosSelectTemplateService {
         return false;
     }
 
-    private List<NodeRef> getTemplateBasedOnType(RecordRef ecosType) {
-        String categoryId = ecosType.getId();
+    private List<NodeRef> getTemplateBasedOnType(EntityRef ecosType) {
+        String categoryId = ecosType.getLocalId();
         int index = categoryId.indexOf("/");
         if (index != -1) {
             categoryId = categoryId.substring(0, index);

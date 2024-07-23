@@ -20,6 +20,7 @@ import ru.citeck.ecos.records2.RecordRef;
 import ru.citeck.ecos.utils.DictionaryUtils;
 import ru.citeck.ecos.utils.LazyNodeRef;
 import ru.citeck.ecos.utils.RepoUtils;
+import ru.citeck.ecos.webapp.api.entity.EntityRef;
 
 import java.util.*;
 
@@ -139,12 +140,12 @@ public class CaseStatusServiceImpl implements CaseStatusService {
             return getStatusByName(statusName);
         }
 
-        RecordRef typeRef = ecosTypeService.getEcosType(node);
+        EntityRef typeRef = ecosTypeService.getEcosType(node);
         return getStatusByNameAndType(statusName, typeRef);
     }
 
     @Override
-    public NodeRef getStatusByNameAndType(String statusName, RecordRef etype) {
+    public NodeRef getStatusByNameAndType(String statusName, EntityRef etype) {
         if (statusName == null || etype == null) {
             return null;
         }
@@ -154,7 +155,7 @@ public class CaseStatusServiceImpl implements CaseStatusService {
             return getStatusByName(statusName);
         }
 
-        return caseStatusAssocDao.getVirtualStatus(etype.getId(), statusDef.getId());
+        return caseStatusAssocDao.getVirtualStatus(etype.getLocalId(), statusDef.getId());
     }
 
     @Override
@@ -220,7 +221,7 @@ public class CaseStatusServiceImpl implements CaseStatusService {
         if (StringUtils.isBlank(statusId)) {
             return null;
         }
-        RecordRef ecosTypeRef = ecosTypeService.getEcosType(caseRef);
+        EntityRef ecosTypeRef = ecosTypeService.getEcosType(caseRef);
         return statusService.getStatusDefByType(ecosTypeRef, statusId);
     }
 

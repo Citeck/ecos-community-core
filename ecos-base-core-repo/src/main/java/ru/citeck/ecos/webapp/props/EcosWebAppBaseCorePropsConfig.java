@@ -31,7 +31,7 @@ public class EcosWebAppBaseCorePropsConfig {
             appname = this.appName;
         }
         String instanceId = AppUtils.generateAppInstanceId();
-        return new EcosWebAppProps(
+        return EcosWebAppProps.Companion.create(
             appname,
             instanceId,
             false,

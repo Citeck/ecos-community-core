@@ -12,10 +12,10 @@ import org.springframework.stereotype.Component;
 import ru.citeck.ecos.action.group.ActionResult;
 import ru.citeck.ecos.action.group.ActionStatus;
 import ru.citeck.ecos.records2.RecordMeta;
-import ru.citeck.ecos.records2.RecordRef;
 import ru.citeck.ecos.records2.graphql.meta.value.MetaValue;
 import ru.citeck.ecos.records2.request.query.RecordsQueryResult;
 import ru.citeck.ecos.records2.request.result.RecordsResult;
+import ru.citeck.ecos.webapp.api.entity.EntityRef;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.*;
@@ -28,16 +28,16 @@ public class RecordsUtils {
 
     private static final Log logger = LogFactory.getLog(RecordsUtils.class);
 
-    public static <T> List<ActionResult<RecordRef>> processList(List<RecordRef> records,
-                                                                Function<RecordRef, T> toNode,
+    public static <T> List<ActionResult<EntityRef>> processList(List<EntityRef> records,
+                                                                Function<EntityRef, T> toNode,
                                                                 Function<List<T>, Map<T, ActionStatus>> process) {
 
-        List<ActionResult<RecordRef>> results = new ArrayList<>();
+        List<ActionResult<EntityRef>> results = new ArrayList<>();
 
-        Map<T, RecordRef> mapping = new HashMap<>();
+        Map<T, EntityRef> mapping = new HashMap<>();
 
         List<T> nodes = new ArrayList<>();
-        for (RecordRef recordRef : records) {
+        for (EntityRef recordRef : records) {
             T node = toNode.apply(recordRef);
             if (node == null) {
                 ActionStatus status = new ActionStatus(ActionStatus.STATUS_SKIPPED);
@@ -57,16 +57,16 @@ public class RecordsUtils {
         return results;
     }
 
-    public static RecordRef getRecordId(ObjectNode recordMeta) {
+    public static EntityRef getRecordId(ObjectNode recordMeta) {
         JsonNode idNode = recordMeta.get("id");
         String id = idNode != null && idNode.isTextual() ? idNode.asText() : null;
-        return RecordRef.valueOf(id);
+        return EntityRef.valueOf(id);
     }
 
     @Nullable
-    public static NodeRef toNodeRef(RecordRef recordRef) {
-        String nodeRefStr = recordRef.getId();
-        int sourceDelimIdx = nodeRefStr.lastIndexOf(RecordRef.SOURCE_DELIMITER);
+    public static NodeRef toNodeRef(EntityRef recordRef) {
+        String nodeRefStr = recordRef.getLocalId();
+        int sourceDelimIdx = nodeRefStr.lastIndexOf(EntityRef.SOURCE_ID_DELIMITER);
         if (sourceDelimIdx > -1) {
             nodeRefStr = nodeRefStr.substring(sourceDelimIdx + 1);
         }
@@ -76,17 +76,17 @@ public class RecordsUtils {
         return null;
     }
 
-    public static List<RecordRef> toLocalRecords(Collection<RecordRef> records) {
+    public static List<EntityRef> toLocalRecords(Collection<EntityRef> records) {
         return records.stream()
-                      .map(r -> RecordRef.valueOf(r.getId()))
+                      .map(r -> EntityRef.valueOf(r.getLocalId()))
                       .collect(Collectors.toList());
     }
 
-    public static List<NodeRef> toNodeRefs(List<RecordRef> records) {
+    public static List<NodeRef> toNodeRefs(List<EntityRef> records) {
         return records.stream()
                       .map(r -> {
-                          String id = r.getId();
-                          int lastDelim = id.lastIndexOf(RecordRef.SOURCE_DELIMITER);
+                          String id = r.getLocalId();
+                          int lastDelim = id.lastIndexOf(EntityRef.SOURCE_ID_DELIMITER);
                           if (lastDelim > -1) {
                               id = id.substring(lastDelim + 1);
                           }
@@ -116,37 +116,37 @@ public class RecordsUtils {
             return records;
         }
         return records.stream()
-                      .map(n -> new RecordMeta(RecordRef.create(sourceId, n.getId()), n.getAttributes()))
+                      .map(n -> new RecordMeta(EntityRef.create(sourceId, n.getId().toString()), n.getAttributes()))
                       .collect(Collectors.toList());
     }
 
-    public static RecordsResult<RecordRef> toScoped(String sourceId, RecordsResult<RecordRef> result) {
-        return new RecordsResult<>(result, r -> RecordRef.create(sourceId, r));
+    public static RecordsResult<EntityRef> toScoped(String sourceId, RecordsResult<EntityRef> result) {
+        return new RecordsResult<>(result, r -> EntityRef.create(sourceId, r.toString()));
     }
 
-    public static RecordsQueryResult<RecordRef> toScoped(String sourceId, RecordsQueryResult<RecordRef> result) {
-        return new RecordsQueryResult<>(result, r -> RecordRef.create(sourceId, r));
+    public static RecordsQueryResult<EntityRef> toScoped(String sourceId, RecordsQueryResult<EntityRef> result) {
+        return new RecordsQueryResult<>(result, r -> EntityRef.create(sourceId, r.toString()));
     }
 
-    public static List<RecordRef> toScopedRecords(String sourceId, List<RecordRef> records) {
+    public static List<EntityRef> toScopedRecords(String sourceId, List<EntityRef> records) {
         return records.stream()
-                      .map(r -> RecordRef.create(sourceId, r))
+                      .map(r -> EntityRef.create(sourceId, r.toString()))
                       .collect(Collectors.toList());
     }
 
-    public static List<RecordRef> strToRecords(String sourceId, List<String> records) {
+    public static List<EntityRef> strToRecords(String sourceId, List<String> records) {
         return records.stream()
-                      .map(r -> RecordRef.create(sourceId, r))
+                      .map(r -> EntityRef.create(sourceId, r))
                       .collect(Collectors.toList());
     }
 
-    public static List<RecordRef> nodeRefsToRecords(String sourceId, List<NodeRef> records) {
+    public static List<EntityRef> nodeRefsToRecords(String sourceId, List<NodeRef> records) {
         return records.stream()
-                      .map(r -> RecordRef.create(sourceId, r.toString()))
+                      .map(r -> EntityRef.create(sourceId, r.toString()))
                       .collect(Collectors.toList());
     }
 
-    public static Map<String, List<RecordRef>> groupRefBySource(Collection<RecordRef> records) {
+    public static Map<String, List<EntityRef>> groupRefBySource(Collection<EntityRef> records) {
         return groupBySource(records, r -> r, (r, d) -> r);
     }
 
@@ -158,15 +158,15 @@ public class RecordsUtils {
         return groupBySource(records, RecordMeta::getId, (r, d) -> d);
     }
 
-    public static <V> Map<RecordRef, V> convertToRefs(Map<String, V> data) {
-        Map<RecordRef, V> result = new HashMap<>();
-        data.forEach((id, recMeta) -> result.put(RecordRef.valueOf(id), recMeta));
+    public static <V> Map<EntityRef, V> convertToRefs(Map<String, V> data) {
+        Map<EntityRef, V> result = new HashMap<>();
+        data.forEach((id, recMeta) -> result.put(EntityRef.valueOf(id), recMeta));
         return result;
     }
 
-    public static <V> Map<RecordRef, V> convertToRefs(String sourceId, Map<String, V> data) {
-        Map<RecordRef, V> result = new HashMap<>();
-        data.forEach((id, recMeta) -> result.put(RecordRef.create(sourceId, id), recMeta));
+    public static <V> Map<EntityRef, V> convertToRefs(String sourceId, Map<String, V> data) {
+        Map<EntityRef, V> result = new HashMap<>();
+        data.forEach((id, recMeta) -> result.put(EntityRef.create(sourceId, id), recMeta));
         return result;
     }
 
@@ -175,11 +175,11 @@ public class RecordsUtils {
     }
 
     private static <I, O> Map<String, List<O>> groupBySource(Collection<I> records,
-                                                            Function<I, RecordRef> getRecordRef,
-                                                            BiFunction<RecordRef, I, O> toOutput) {
+                                                            Function<I, EntityRef> getRecordRef,
+                                                            BiFunction<EntityRef, I, O> toOutput) {
         Map<String, List<O>> result = new HashMap<>();
         for (I recordData : records) {
-            RecordRef record = getRecordRef.apply(recordData);
+            EntityRef record = getRecordRef.apply(recordData);
             String sourceId = record.getSourceId();
             List<O> outList = result.computeIfAbsent(sourceId, key -> new ArrayList<>());
             outList.add(toOutput.apply(record, recordData));
@@ -187,7 +187,7 @@ public class RecordsUtils {
         return result;
     }
 
-    public static List<RecordRef> toRecords(Collection<String> strRecords) {
-        return strRecords.stream().map(RecordRef::valueOf).collect(Collectors.toList());
+    public static List<EntityRef> toRecords(Collection<String> strRecords) {
+        return strRecords.stream().map(EntityRef::valueOf).collect(Collectors.toList());
     }
 }

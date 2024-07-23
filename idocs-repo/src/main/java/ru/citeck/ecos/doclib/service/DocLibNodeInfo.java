@@ -6,7 +6,7 @@ import org.alfresco.service.cmr.repository.ContentData;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import ru.citeck.ecos.commons.data.ObjectData;
-import ru.citeck.ecos.records2.RecordRef;
+import ru.citeck.ecos.webapp.api.entity.EntityRef;
 
 import java.util.Date;
 import java.util.function.Supplier;
@@ -15,11 +15,11 @@ import java.util.function.Supplier;
 @AllArgsConstructor
 public class DocLibNodeInfo {
 
-    private RecordRef recordRef;
+    private EntityRef recordRef;
     private DocLibNodeType nodeType;
     private String displayName;
-    private RecordRef typeRef;
-    private RecordRef docLibTypeRef;
+    private EntityRef typeRef;
+    private EntityRef docLibTypeRef;
     private Date modified;
     private Date created;
     private String modifier;

@@ -44,6 +44,7 @@ import ru.citeck.ecos.records3.record.dao.query.dto.query.Consistency;
 import ru.citeck.ecos.utils.AuthorityUtils;
 import ru.citeck.ecos.utils.NodeUtils;
 import ru.citeck.ecos.utils.WorkflowUtils;
+import ru.citeck.ecos.webapp.api.entity.EntityRef;
 import ru.citeck.ecos.workflow.EcosWorkflowService;
 
 import java.util.*;
@@ -91,35 +92,35 @@ public class WorkflowRecordsDao extends LocalRecordsDao
 
     @NotNull
     @Override
-    public List<MetaValue> getLocalRecordsMeta(List<RecordRef> list, @NotNull MetaField metaField) {
+    public List<MetaValue> getLocalRecordsMeta(List<EntityRef> list, @NotNull MetaField metaField) {
 
-        if (list.size() == 1 && list.get(0).getId().isEmpty()) {
+        if (list.size() == 1 && list.get(0).getLocalId().isEmpty()) {
             return Collections.singletonList(EmptyValue.INSTANCE);
         }
 
         return list.stream()
             .map(ref -> {
-                if (ref.getId().isEmpty()) {
+                if (ref.getLocalId().isEmpty()) {
                     return EmptyValue.INSTANCE;
                 }
-                if (StringUtils.startsWith(ref.getId(), DEFINITION_PREFIX)) {
-                    WorkflowDefinition definition = ecosWorkflowService.getDefinitionByName(ref.getId()
+                if (StringUtils.startsWith(ref.getLocalId(), DEFINITION_PREFIX)) {
+                    WorkflowDefinition definition = ecosWorkflowService.getDefinitionByName(ref.getLocalId()
                         .replaceFirst(DEFINITION_PREFIX, ""));
                     if (definition != null) {
                         return new WorkflowDefinitionRecord(
                             recordsServiceV1,
                             ecosWorkflowService.getDefinitionByName(
-                                ref.getId().replaceFirst(DEFINITION_PREFIX, "")
+                                ref.getLocalId().replaceFirst(DEFINITION_PREFIX, "")
                             ),
-                            ref.getId()
+                            ref.getLocalId()
                         );
                     } else {
                         return EmptyValue.INSTANCE;
                     }
                 }
-                WorkflowInstance instance = ecosWorkflowService.getInstanceById(ref.getId());
+                WorkflowInstance instance = ecosWorkflowService.getInstanceById(ref.getLocalId());
                 if (instance != null) {
-                    return new WorkflowRecord(ecosWorkflowService.getInstanceById(ref.getId()));
+                    return new WorkflowRecord(ecosWorkflowService.getInstanceById(ref.getLocalId()));
                 } else {
                     return EmptyValue.INSTANCE;
                 }
@@ -180,7 +181,7 @@ public class WorkflowRecordsDao extends LocalRecordsDao
 
         List<RecordMeta> handledMeta = mutation.getRecords().stream()
             .map(meta -> {
-                if (StringUtils.isBlank(meta.getId().getId())){
+                if (StringUtils.isBlank(meta.getId().getLocalId())){
                     String processDef = meta.getAttribute(PROCESS_DEF_ATTR).asText();
                     if (StringUtils.isNotBlank(processDef)){
                         return handleDefWorkflow(meta, RecordRef.valueOf(processDef));
@@ -188,7 +189,7 @@ public class WorkflowRecordsDao extends LocalRecordsDao
                         return cancelWorkflowIfRequired(meta);
                     }
                 }
-                else if (StringUtils.startsWith(meta.getId().getId(), DEFINITION_PREFIX)) {
+                else if (StringUtils.startsWith(meta.getId().getLocalId(), DEFINITION_PREFIX)) {
                     return handleDefWorkflow(meta, meta.getId());
                 } else {
                     return cancelWorkflowIfRequired(meta);
@@ -205,25 +206,25 @@ public class WorkflowRecordsDao extends LocalRecordsDao
             boolean cancel = meta.getAttribute("cancel").asBoolean();
             if (cancel) {
                 // Temporarily we always cancel root workflow.
-                WorkflowInstance mutatedInstance = ecosWorkflowService.cancelWorkflowRootInstance(meta.getId().getId());
+                WorkflowInstance mutatedInstance = ecosWorkflowService.cancelWorkflowRootInstance(meta.getId().getLocalId());
                 meta.setId(mutatedInstance.getId());
             }
         }
         if (meta.hasAttribute("cancel-root")) {
             boolean cancel = meta.getAttribute("cancel-root").asBoolean();
             if (cancel) {
-                WorkflowInstance mutatedInstance = ecosWorkflowService.cancelWorkflowRootInstance(meta.getId().getId());
+                WorkflowInstance mutatedInstance = ecosWorkflowService.cancelWorkflowRootInstance(meta.getId().getLocalId());
                 meta.setId(mutatedInstance.getId());
             }
         }
         return meta;
     }
 
-    private RecordMeta handleDefWorkflow(RecordMeta meta, RecordRef workflowRef) {
+    private RecordMeta handleDefWorkflow(RecordMeta meta, EntityRef workflowRef) {
         WorkflowDefinition definition = ecosWorkflowService.getDefinitionByName(
-            workflowRef.getId().replaceFirst(DEFINITION_PREFIX, ""));
+            workflowRef.getLocalId().replaceFirst(DEFINITION_PREFIX, ""));
         String id = ecosWorkflowService.startFormWorkflow(definition.getId(), prepareProps(meta.getAttributes()));
-        return StringUtils.isNotBlank(id) ? new RecordMeta(ID + "@" + id) : new RecordMeta(workflowRef.getId());
+        return StringUtils.isNotBlank(id) ? new RecordMeta(ID + "@" + id) : new RecordMeta(workflowRef.getLocalId());
     }
 
     private Map<String, Object> prepareProps(ObjectData metaAttributes) {

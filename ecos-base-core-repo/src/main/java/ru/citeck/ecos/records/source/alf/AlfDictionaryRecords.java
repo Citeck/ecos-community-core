@@ -17,6 +17,7 @@ import ru.citeck.ecos.records2.request.mutation.RecordsMutation;
 import ru.citeck.ecos.records2.source.dao.MutableRecordsDao;
 import ru.citeck.ecos.records2.source.dao.local.LocalRecordsDao;
 import ru.citeck.ecos.records2.source.dao.local.v2.LocalRecordsMetaDao;
+import ru.citeck.ecos.webapp.api.entity.EntityRef;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -38,11 +39,11 @@ public class AlfDictionaryRecords extends LocalRecordsDao
     }
 
     @Override
-    public List<MetaValue> getLocalRecordsMeta(List<RecordRef> records, MetaField metaField) {
+    public List<MetaValue> getLocalRecordsMeta(List<EntityRef> records, MetaField metaField) {
 
         return records.stream().map(r -> {
-            QName typeName = QName.resolveToQName(namespaceService, r.getId());
-            return new DictRecord(typeName, r.getId(), "alf_" + r.getId());
+            QName typeName = QName.resolveToQName(namespaceService, r.getLocalId());
+            return new DictRecord(typeName, r.getLocalId(), "alf_" + r.getLocalId());
 
         }).collect(Collectors.toList());
     }
@@ -52,7 +53,7 @@ public class AlfDictionaryRecords extends LocalRecordsDao
 
         RecordsMutation alfNodesMut = new RecordsMutation(mutation, m -> {
             RecordMeta alfNodeMeta = new RecordMeta(m, id -> RecordRef.EMPTY);
-            alfNodeMeta.setAttribute(AlfNodeRecord.ATTR_TYPE, m.getId().getId());
+            alfNodeMeta.setAttribute(AlfNodeRecord.ATTR_TYPE, m.getId().getLocalId());
             return alfNodeMeta;
         });
         return alfNodesRecordsDao.mutate(alfNodesMut);

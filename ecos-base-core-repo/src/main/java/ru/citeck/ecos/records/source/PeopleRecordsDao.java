@@ -46,6 +46,7 @@ import ru.citeck.ecos.records3.record.atts.value.AttValueCtx;
 import ru.citeck.ecos.records3.record.mixin.AttMixin;
 import ru.citeck.ecos.utils.AuthorityUtils;
 import ru.citeck.ecos.utils.NodeUtils;
+import ru.citeck.ecos.webapp.api.entity.EntityRef;
 
 import java.io.Serializable;
 import java.net.URLEncoder;
@@ -125,7 +126,7 @@ public class PeopleRecordsDao extends LocalRecordsDao
 
         for (RecordMeta record : mutation.getRecords()) {
 
-            String personUserName = record.getId().getId();
+            String personUserName = record.getId().getLocalId();
             boolean isNewRecord = StringUtils.isBlank(personUserName);
 
             RecordMeta handledMeta = this.handleMetaBeforeMutation(record);
@@ -162,7 +163,7 @@ public class PeopleRecordsDao extends LocalRecordsDao
 
     private RecordMeta handleMetaBeforeMutation(RecordMeta meta) {
 
-        String username = meta.getId().getId();
+        String username = meta.getId().getLocalId();
         boolean createIfNotExists = false;
 
         if (username.isEmpty()) {
@@ -233,7 +234,7 @@ public class PeopleRecordsDao extends LocalRecordsDao
     }
 
     @Override
-    public List<Object> getLocalRecordsMeta(List<RecordRef> records, MetaField metaField) {
+    public List<Object> getLocalRecordsMeta(List<EntityRef> records, MetaField metaField) {
         return records.stream()
             .map(r -> {
                 String authName = r.toString();
@@ -251,7 +252,7 @@ public class PeopleRecordsDao extends LocalRecordsDao
 
         if (SearchService.LANGUAGE_FTS_ALFRESCO.equals(query.getLanguage())) {
 
-            RecordsQueryResult<RecordRef> records = alfNodesRecordsDao.queryRecords(query);
+            RecordsQueryResult<EntityRef> records = alfNodesRecordsDao.queryRecords(query);
             return new RecordsQueryResult<>(records, UserValue::new);
         }
 
@@ -289,7 +290,7 @@ public class PeopleRecordsDao extends LocalRecordsDao
             this.alfNode = new AlfNodeRecord(RecordRef.create("", nodeRef.toString()));
         }
 
-        UserValue(RecordRef recordRef) {
+        UserValue(EntityRef recordRef) {
             this.alfNode = new AlfNodeRecord(recordRef);
         }
 
@@ -496,7 +497,7 @@ public class PeopleRecordsDao extends LocalRecordsDao
         @Override
         public Object getAtt(@NotNull String att, @NotNull AttValueCtx value) throws Exception {
             if (att.equals(PERSON_AVATAR)) {
-                String nodeRef = value.getRef().getId();
+                String nodeRef = value.getRef().getLocalId();
                 if (nodeUtils.isNodeRef(nodeRef)) {
                     return new AvatarValue(nodeRef);
                 }

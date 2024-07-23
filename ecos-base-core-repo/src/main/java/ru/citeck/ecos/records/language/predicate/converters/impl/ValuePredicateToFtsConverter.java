@@ -41,6 +41,7 @@ import ru.citeck.ecos.search.ftsquery.FTSQuery;
 import ru.citeck.ecos.utils.AuthorityUtils;
 import ru.citeck.ecos.utils.DictUtils;
 import ru.citeck.ecos.utils.NodeUtils;
+import ru.citeck.ecos.webapp.api.entity.EntityRef;
 
 import javax.annotation.PostConstruct;
 import java.io.Serializable;
@@ -353,7 +354,7 @@ public class ValuePredicateToFtsConverter implements PredicateToFtsConverter {
         query.or().value(EcosTypeModel.PROP_TYPE, typeRecId, EQ.equals(predicateType));
 
         ecosTypeService.getDescendantTypes(typeRef).forEach(type ->
-            query.or().value(EcosTypeModel.PROP_TYPE, type.getId(), EQ.equals(predicateType))
+            query.or().value(EcosTypeModel.PROP_TYPE, type.getLocalId(), EQ.equals(predicateType))
         );
 
         query.close();
@@ -629,11 +630,11 @@ public class ValuePredicateToFtsConverter implements PredicateToFtsConverter {
                         new ValuePredicate(configAtt, predicateType, value) :
                         Predicates.contains(configAtt, value))
                     .build();
-                RecsQueryRes<RecordRef> typeResults = recordsService.query(recordsQuery);
+                RecsQueryRes<EntityRef> typeResults = recordsService.query(recordsQuery);
                 query.open();
                 if (!typeResults.getRecords().isEmpty()) {
-                    for (RecordRef typeRef : typeResults.getRecords()) {
-                        query.or().value(EcosTypeModel.PROP_TYPE, typeRef.getId(), true);
+                    for (EntityRef typeRef : typeResults.getRecords()) {
+                        query.or().value(EcosTypeModel.PROP_TYPE, typeRef.getLocalId(), true);
                     }
                 } else {
                     query.value(EcosTypeModel.PROP_TYPE, null, true);

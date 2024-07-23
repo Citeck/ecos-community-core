@@ -30,6 +30,7 @@ import ru.citeck.ecos.records2.request.query.RecordsQueryResult;
 import ru.citeck.ecos.search.CriteriaSearchResults;
 import ru.citeck.ecos.search.CriteriaSearchService;
 import ru.citeck.ecos.search.SearchCriteria;
+import ru.citeck.ecos.webapp.api.entity.EntityRef;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -80,12 +81,12 @@ public class ExecuteSearchQuery extends AbstractDataBundleLine {
         query.setConsistency(QueryConsistency.EVENTUAL);
         query.setLanguage(PREDICATE);
 
-        RecordsQueryResult<RecordRef> result = recordsService.queryRecords(query);
-        List<RecordRef> recordRefs = result.getRecords();
+        RecordsQueryResult<EntityRef> result = recordsService.queryRecords(query);
+        List<EntityRef> recordRefs = result.getRecords();
 
         List<NodeRef> nodeRefs = new ArrayList<>();
-        for (RecordRef recordRef : recordRefs) {
-            nodeRefs.add(new NodeRef(recordRef.getId()));
+        for (EntityRef recordRef : recordRefs) {
+            nodeRefs.add(new NodeRef(recordRef.getLocalId()));
         }
 
         return getNewModel(oldModel, result.getHasMore(), result.getTotalCount(), nodeRefs);

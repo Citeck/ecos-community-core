@@ -37,7 +37,7 @@ public class AddDeletedEventBehaviour extends AbstractBehaviour
         frequency = Behaviour.NotificationFrequency.EVERY_EVENT, runAsSystem = true)
     public void beforeDeleteNode(NodeRef nodeRef) {
 
-        RecordRef typeRef = ecosTypeService.getEcosType(nodeRef);
+        EntityRef typeRef = ecosTypeService.getEcosType(nodeRef);
         if (typeRef.isEmpty()) {
             log.warn("Deleted node = " + nodeRef + ", but ecosType is null.");
             return;

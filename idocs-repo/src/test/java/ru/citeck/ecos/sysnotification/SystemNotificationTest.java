@@ -4,7 +4,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.junit.Test;
 import ru.citeck.ecos.records2.RecordMeta;
-import ru.citeck.ecos.records2.RecordRef;
 import ru.citeck.ecos.records2.RecordsService;
 import ru.citeck.ecos.records2.request.delete.RecordsDeletion;
 import ru.citeck.ecos.records2.request.query.RecordsQuery;
@@ -14,6 +13,7 @@ import ru.citeck.ecos.sysnotification.api.records.SystemNotificationRecordsDao;
 import ru.citeck.ecos.sysnotification.dao.SystemNotificationDao;
 import ru.citeck.ecos.sysnotification.dto.SystemNotificationDto;
 import ru.citeck.ecos.sysnotification.service.impl.SystemNotificationServiceImpl;
+import ru.citeck.ecos.webapp.api.entity.EntityRef;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
@@ -45,7 +45,7 @@ public class SystemNotificationTest {
         query.setSourceId(SOURCE_ID);
 
         // First query (empty)
-        RecordsQueryResult<RecordRef> result1 = recordsService.queryRecords(query);
+        RecordsQueryResult<EntityRef> result1 = recordsService.queryRecords(query);
         assertTrue("Result list should be empty", result1.getRecords().isEmpty());
         assertFalse("'hasMore' property should be false", result1.getHasMore());
         assertEquals("'totalCount' property should be 0", 0, result1.getTotalCount());
@@ -54,7 +54,7 @@ public class SystemNotificationTest {
         String expectedMessage = "some message";
         Instant expectedTime = Instant.now().plus(1, ChronoUnit.DAYS);
 
-        RecordMeta meta = new RecordMeta(RecordRef.create(SOURCE_ID, ""));
+        RecordMeta meta = new RecordMeta(EntityRef.create(SOURCE_ID, ""));
         meta.setAttribute(MESSAGE_ATTR, expectedMessage);
         meta.setAttribute(TIME_ATTR, expectedTime);
         recordsService.mutate(meta);
@@ -72,7 +72,7 @@ public class SystemNotificationTest {
         assertEquals("Expected time should be equals actual time", expectedTime, actualTime);
 
         // Third query (deletion)
-        RecordsQueryResult<RecordRef> result3 = recordsService.queryRecords(query);
+        RecordsQueryResult<EntityRef> result3 = recordsService.queryRecords(query);
         RecordsDeletion recordsDeletion = new RecordsDeletion();
         recordsDeletion.setRecords(result3.getRecords());
         recordsService.delete(recordsDeletion);

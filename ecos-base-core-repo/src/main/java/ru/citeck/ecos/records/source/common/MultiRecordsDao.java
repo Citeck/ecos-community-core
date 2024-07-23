@@ -11,6 +11,7 @@ import ru.citeck.ecos.records2.request.query.RecordsQuery;
 import ru.citeck.ecos.records2.request.query.RecordsQueryResult;
 import ru.citeck.ecos.records2.source.dao.AbstractRecordsDao;
 import ru.citeck.ecos.records2.source.dao.RecordsQueryDao;
+import ru.citeck.ecos.webapp.api.entity.EntityRef;
 
 import java.util.List;
 import java.util.Map;
@@ -27,15 +28,15 @@ public class MultiRecordsDao extends AbstractRecordsDao
     private final Map<String, RecordsQueryDao> daoBySource = new ConcurrentHashMap<>();
 
     @Override
-    public RecordsQueryResult<RecordRef> queryRecords(RecordsQuery query) {
+    public RecordsQueryResult<EntityRef> queryRecords(RecordsQuery query) {
 
-        RecordsQueryResult<RecordRef> result = new RecordsQueryResult<>();
+        RecordsQueryResult<EntityRef> result = new RecordsQueryResult<>();
 
         RecordsQuery localQuery = new RecordsQuery(query);
 
         int sourceIdx = 0;
-        RecordRef afterId = localQuery.getAfterId();
-        if (afterId != RecordRef.EMPTY) {
+        EntityRef afterId = localQuery.getAfterId();
+        if (afterId != EntityRef.EMPTY) {
             String source = afterId.getSourceId();
             while (sourceIdx < recordsDao.size() && !recordsDao.get(sourceIdx).getId().equals(source)) {
                 sourceIdx++;
@@ -46,7 +47,7 @@ public class MultiRecordsDao extends AbstractRecordsDao
 
             localQuery.setMaxItems(query.getMaxItems() - result.getRecords().size());
             RecordsQueryDao recordsDao = this.recordsDao.get(sourceIdx);
-            RecordsQueryResult<RecordRef> daoRecords = recordsDao.queryRecords(localQuery);
+            RecordsQueryResult<EntityRef> daoRecords = recordsDao.queryRecords(localQuery);
 
             result.merge(daoRecords);
 
@@ -71,8 +72,8 @@ public class MultiRecordsDao extends AbstractRecordsDao
     }
 
     @Override
-    public ActionResults<RecordRef> executeAction(List<RecordRef> records, GroupActionConfig config) {
-        ActionResults<RecordRef> results = new ActionResults<>();
+    public ActionResults<EntityRef> executeAction(List<EntityRef> records, GroupActionConfig config) {
+        ActionResults<EntityRef> results = new ActionResults<>();
         RecordsUtils.groupRefBySource(records).forEach((sourceId, sourceRecs) -> {
             RecordsQueryDao recordsDao = daoBySource.get(sourceId);
             if (recordsDao instanceof RecordsActionExecutor) {
@@ -80,7 +81,7 @@ public class MultiRecordsDao extends AbstractRecordsDao
             } else {
                 ActionStatus status = new ActionStatus(ActionStatus.STATUS_SKIPPED);
                 status.setMessage("Source id " + sourceId + " doesn't support actions");
-                for (RecordRef recordRef : sourceRecs) {
+                for (EntityRef recordRef : sourceRecs) {
                     results.getResults().add(new ActionResult<>(recordRef, status));
                 }
             }

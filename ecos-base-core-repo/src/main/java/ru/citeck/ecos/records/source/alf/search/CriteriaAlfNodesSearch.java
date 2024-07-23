@@ -7,11 +7,11 @@ import org.alfresco.service.namespace.NamespaceService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import ru.citeck.ecos.records.source.alf.AlfNodesRecordsDAO;
-import ru.citeck.ecos.records2.RecordRef;
 import ru.citeck.ecos.records2.request.query.RecordsQuery;
 import ru.citeck.ecos.records2.request.query.RecordsQueryResult;
 import ru.citeck.ecos.records2.request.query.SortBy;
 import ru.citeck.ecos.search.*;
+import ru.citeck.ecos.webapp.api.entity.EntityRef;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -39,7 +39,7 @@ public class CriteriaAlfNodesSearch implements AlfNodesSearch {
     }
 
     @Override
-    public RecordsQueryResult<RecordRef> queryRecords(RecordsQuery query, Long afterDbId, Date afterCreated) {
+    public RecordsQueryResult<EntityRef> queryRecords(RecordsQuery query, Long afterDbId, Date afterCreated) {
 
         SearchCriteria criteria = criteriaParser.parse(query.getQuery());
         if (criteria.getTriplets().isEmpty()) {
@@ -72,7 +72,7 @@ public class CriteriaAlfNodesSearch implements AlfNodesSearch {
 
         CriteriaSearchResults criteriaResults = criteriaSearchService.query(criteria, SearchService.LANGUAGE_FTS_ALFRESCO);
 
-        RecordsQueryResult<RecordRef> result = new RecordsQueryResult<>();
+        RecordsQueryResult<EntityRef> result = new RecordsQueryResult<>();
 
         if (query.isDebug()) {
             result.setDebugInfo(getClass(), "query", criteriaResults.getQuery());
@@ -80,7 +80,7 @@ public class CriteriaAlfNodesSearch implements AlfNodesSearch {
 
         result.setRecords(criteriaResults.getResults()
                                          .stream()
-                                         .map(r -> RecordRef.valueOf(r.toString()))
+                                         .map(r -> EntityRef.valueOf(r.toString()))
                                          .collect(Collectors.toList()));
         result.setTotalCount(criteriaResults.getTotalCount());
         result.setHasMore(criteriaResults.hasMore());

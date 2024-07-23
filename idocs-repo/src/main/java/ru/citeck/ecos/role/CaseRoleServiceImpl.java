@@ -44,6 +44,7 @@ import ru.citeck.ecos.role.dao.RoleDAO;
 import ru.citeck.ecos.utils.AuthorityUtils;
 import ru.citeck.ecos.utils.DictionaryUtils;
 import ru.citeck.ecos.utils.RepoUtils;
+import ru.citeck.ecos.webapp.api.entity.EntityRef;
 import ru.citeck.ecos.webapp.lib.model.type.dto.TypeDef;
 
 import java.io.Serializable;
@@ -116,7 +117,7 @@ public class CaseRoleServiceImpl implements CaseRoleService {
 
         Map<String, NodeRef> result = new HashMap<>();
 
-        RecordRef ecosType = ecosTypeService.getEcosType(caseRef);
+        EntityRef ecosType = ecosTypeService.getEcosType(caseRef);
         if (isPrioritizingAlfRolesOptionEnabled(ecosType)) {
             result.putAll(getEcosTypeRolesForCase(ecosType, caseRef));
             result.putAll(getAlfRolesForCase(caseRef));
@@ -128,13 +129,13 @@ public class CaseRoleServiceImpl implements CaseRoleService {
         return Collections.unmodifiableList(new ArrayList<>(result.values()));
     }
 
-    private boolean isPrioritizingAlfRolesOptionEnabled(RecordRef typeRef) {
+    private boolean isPrioritizingAlfRolesOptionEnabled(EntityRef typeRef) {
         ObjectData properties = ecosTypeService.getResolvedProperties(typeRef);
         String priorityUseAlfRoles = properties.get("priorityUseAlfRoles").asText();
         return BooleanUtils.toBoolean(priorityUseAlfRoles);
     }
 
-    private Map<String, NodeRef> getEcosTypeRolesForCase(RecordRef ecosType, NodeRef caseRef) {
+    private Map<String, NodeRef> getEcosTypeRolesForCase(EntityRef ecosType, NodeRef caseRef) {
 
         Map<String, NodeRef> result = new HashMap<>();
         TypeDef typeDef = ecosTypeService.getTypeDef(ecosType);
@@ -232,7 +233,7 @@ public class CaseRoleServiceImpl implements CaseRoleService {
         }
 
         NodeRef caseRef = new NodeRef("workspace://SpacesStore/" + roleRef.getStoreRef().getIdentifier());
-        RecordRef ecosType = ecosTypeService.getEcosType(caseRef);
+        EntityRef ecosType = ecosTypeService.getEcosType(caseRef);
 
         return roleService.getRoleDef(ecosType, roleRef.getId());
     }
@@ -371,7 +372,7 @@ public class CaseRoleServiceImpl implements CaseRoleService {
 
         NodeRef caseRef = getRoleCaseRef(roleRef);
 
-        RecordRef ecosType = ecosTypeService.getEcosType(caseRef);
+        EntityRef ecosType = ecosTypeService.getEcosType(caseRef);
         if (isPrioritizingAlfRolesOptionEnabled(ecosType) && isAlfRole(roleRef)) {
             return roleRef;
         }

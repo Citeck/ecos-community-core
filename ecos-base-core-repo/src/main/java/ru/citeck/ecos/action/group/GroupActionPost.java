@@ -10,8 +10,10 @@ import org.alfresco.service.namespace.QName;
 import org.alfresco.service.transaction.TransactionService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.extensions.webscripts.*;
+import ru.citeck.ecos.utils.json.mixin.EntityRefMixin;
 import ru.citeck.ecos.utils.json.mixin.NodeRefMixIn;
 import ru.citeck.ecos.utils.json.mixin.QNameMixIn;
+import ru.citeck.ecos.webapp.api.entity.EntityRef;
 
 import javax.annotation.PostConstruct;
 import java.io.IOException;
@@ -28,6 +30,7 @@ public class GroupActionPost extends AbstractWebScript {
     public void init() {
         objectMapper.addMixInAnnotations(NodeRef.class, NodeRefMixIn.class);
         objectMapper.addMixInAnnotations(QName.class, QNameMixIn.class);
+        objectMapper.addMixInAnnotations(EntityRef.class, EntityRefMixin.class);
     }
 
     @Override

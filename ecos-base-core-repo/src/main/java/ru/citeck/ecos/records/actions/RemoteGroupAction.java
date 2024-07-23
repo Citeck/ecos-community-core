@@ -6,8 +6,8 @@ import ru.citeck.ecos.action.group.GroupActionConfig;
 import ru.citeck.ecos.action.group.impl.BaseGroupAction;
 import ru.citeck.ecos.records.RecordInfo;
 import ru.citeck.ecos.records.RecordsGroupActionPost;
-import ru.citeck.ecos.records2.RecordRef;
 import ru.citeck.ecos.remote.RestConnection;
+import ru.citeck.ecos.webapp.api.entity.EntityRef;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -35,13 +35,13 @@ public class RemoteGroupAction<T> extends BaseGroupAction<RecordInfo<T>> {
     @Override
     protected void processNodesImpl(List<RecordInfo<T>> nodes) {
 
-        Map<RecordRef, RecordInfo<T>> infoMapping = new HashMap<>();
+        Map<EntityRef, RecordInfo<T>> infoMapping = new HashMap<>();
 
         RecordsGroupActionPost.ActionData data = new RecordsGroupActionPost.ActionData();
         data.config = targetConfig;
 
         data.nodes = nodes.stream().map(info -> {
-            RecordRef id = RecordRef.valueOf(info.getRef().getId());
+            EntityRef id = EntityRef.valueOf(info.getRef().getId());
             infoMapping.put(id, info);
             return id;
         }).collect(Collectors.toList());
@@ -52,7 +52,7 @@ public class RemoteGroupAction<T> extends BaseGroupAction<RecordInfo<T>> {
         List<ActionResult<RecordInfo<T>>> results = new ArrayList<>();
 
         if (response != null) {
-            for (ActionResult<RecordRef> result : response.results.getResults()) {
+            for (ActionResult<EntityRef> result : response.results.getResults()) {
                 RecordInfo<T> info = infoMapping.get(result.getData());
                 results.add(new ActionResult<>(info, result.getStatus()));
             }

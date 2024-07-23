@@ -13,6 +13,7 @@ import ru.citeck.ecos.records2.source.dao.local.LocalRecordsDao;
 import ru.citeck.ecos.records2.source.dao.local.v2.LocalRecordsMetaDao;
 import ru.citeck.ecos.records2.source.dao.local.v2.LocalRecordsQueryWithMetaDao;
 import ru.citeck.ecos.utils.NewUIUtils;
+import ru.citeck.ecos.webapp.api.entity.EntityRef;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -35,8 +36,8 @@ public class SiteRecordsDao extends LocalRecordsDao
     }
 
     @Override
-    public List<SiteRecord> getLocalRecordsMeta(List<RecordRef> records, MetaField metaField) {
-        return records.stream().map(r -> new SiteRecord(r.getId())).collect(Collectors.toList());
+    public List<SiteRecord> getLocalRecordsMeta(List<EntityRef> records, MetaField metaField) {
+        return records.stream().map(r -> new SiteRecord(r.getLocalId())).collect(Collectors.toList());
     }
 
     @Override

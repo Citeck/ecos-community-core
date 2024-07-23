@@ -10,6 +10,7 @@ import ru.citeck.ecos.commands.dto.CommandResult;
 import ru.citeck.ecos.commons.task.schedule.Schedules;
 import ru.citeck.ecos.icase.activity.service.eproc.commands.dto.request.GetProcDefCache;
 import ru.citeck.ecos.icase.activity.service.eproc.commands.dto.response.GetProcDefCacheResp;
+import ru.citeck.ecos.webapp.api.task.scheduler.EcosScheduledTask;
 import ru.citeck.ecos.webapp.api.task.scheduler.EcosTaskSchedulerApi;
 
 import javax.annotation.PostConstruct;
@@ -37,7 +38,7 @@ public class EProcProcDefCacheResetJob {
         );
     }
 
-    private Unit updateCacheIfRequired() {
+    private Unit updateCacheIfRequired(EcosScheduledTask task) {
         GetProcDefCacheResp resp;
         try {
             CommandResult res = commandsService.executeSync(commandsService.buildCommand(b -> {

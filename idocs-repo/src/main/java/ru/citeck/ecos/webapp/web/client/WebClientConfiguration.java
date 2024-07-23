@@ -13,7 +13,7 @@ import ru.citeck.ecos.webapp.lib.web.authenticator.WebAuthenticator;
 import ru.citeck.ecos.webapp.lib.web.authenticator.WebAuthenticatorsManager;
 import ru.citeck.ecos.webapp.lib.web.client.interceptor.EcosHttpRequestInterceptor;
 import ru.citeck.ecos.webapp.lib.web.client.interceptor.WebClientRequestInterceptor;
-import ru.citeck.ecos.webapp.lib.web.client.props.EcosWebClientProps;
+import ru.citeck.ecos.webapp.lib.web.webapi.client.props.EcosWebClientProps;
 
 import java.util.ArrayList;
 import java.util.List;

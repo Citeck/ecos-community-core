@@ -63,7 +63,7 @@ public class EcosTypeConfiguration {
         }
 
         if (StringUtils.isBlank(ecosTypeId)) {
-            ecosTypeId = typesManager.getEcosTypeByAlfType(info.getType()).getId();
+            ecosTypeId = typesManager.getEcosTypeByAlfType(info.getType()).getLocalId();
         }
 
         return RecordRef.create("emodel", "type", ecosTypeId);

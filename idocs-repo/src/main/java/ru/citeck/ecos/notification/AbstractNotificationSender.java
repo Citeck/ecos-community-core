@@ -442,8 +442,8 @@ public abstract class AbstractNotificationSender<ItemType> implements Notificati
                 new SortBy(DmsModel.PROP_ECOS_TYPE.toString(), false)
             )).build();
 
-        RecordRef recordRef = recordsService.queryOne(query);
-        if (EntityRef.isEmpty(recordRef) || StringUtils.isBlank(recordRef.getId())) {
+        EntityRef recordRef = recordsService.queryOne(query);
+        if (EntityRef.isEmpty(recordRef) || StringUtils.isBlank(recordRef.getLocalId())) {
             return Optional.empty();
         }
         return Optional.ofNullable(getEnabledTemplate(RecordsUtils.toNodeRef(recordRef)));

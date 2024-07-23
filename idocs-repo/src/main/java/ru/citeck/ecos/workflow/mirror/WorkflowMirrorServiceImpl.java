@@ -60,6 +60,7 @@ import ru.citeck.ecos.records2.RecordRef;
 import ru.citeck.ecos.utils.NodeUtils;
 import ru.citeck.ecos.utils.TransactionUtils;
 import ru.citeck.ecos.utils.WorkflowUtils;
+import ru.citeck.ecos.webapp.api.entity.EntityRef;
 import ru.citeck.ecos.workflow.tasks.EcosTaskService;
 import ru.citeck.ecos.workflow.tasks.TaskInfo;
 
@@ -340,7 +341,7 @@ public class WorkflowMirrorServiceImpl extends BaseProcessorExtension implements
     }
 
     private String getEcosType(NodeRef document) {
-        RecordRef ecosTypeRef = ecosTypeService.getEcosType(document);
+        EntityRef ecosTypeRef = ecosTypeService.getEcosType(document);
         return ecosTypeRef != null ? ecosTypeRef.toString() : null;
     }
 

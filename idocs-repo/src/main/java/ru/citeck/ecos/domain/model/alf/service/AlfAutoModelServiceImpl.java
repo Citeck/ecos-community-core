@@ -53,7 +53,7 @@ public class AlfAutoModelServiceImpl implements AlfAutoModelService {
     }
 
     @Override
-    public Map<String, String> getPropsMapping(RecordRef typeRef) {
+    public Map<String, String> getPropsMapping(EntityRef typeRef) {
 
         if (EntityRef.isEmpty(typeRef)) {
             return Collections.emptyMap();
@@ -73,14 +73,14 @@ public class AlfAutoModelServiceImpl implements AlfAutoModelService {
     }
 
     @Override
-    public Map<String, String> getPropsMapping(RecordRef typeRef, Collection<String> attributes, boolean isWriteMode) {
+    public Map<String, String> getPropsMapping(EntityRef typeRef, Collection<String> attributes, boolean isWriteMode) {
 
         if (EntityRef.isEmpty(typeRef)) {
             return Collections.emptyMap();
         }
         Set<String> attsSet = new HashSet<>(attributes);
 
-        Map<RecordRef, List<AttributeDef>> attsByType = new HashMap<>();
+        Map<EntityRef, List<AttributeDef>> attsByType = new HashMap<>();
 
         typeRefService.forEachAsc(typeRef, ref -> {
 
@@ -107,7 +107,7 @@ public class AlfAutoModelServiceImpl implements AlfAutoModelService {
             return Collections.emptyMap();
         }
 
-        Map<RecordRef, List<AttributeDef>> attributesToGenerate = new HashMap<>();
+        Map<EntityRef, List<AttributeDef>> attributesToGenerate = new HashMap<>();
         Map<String, String> resultMapping = new HashMap<>();
 
         attsByType.forEach((attsTypeRef, attributeDefs) -> {

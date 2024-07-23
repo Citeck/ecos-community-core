@@ -141,9 +141,9 @@ public class WorkflowTaskRecords extends LocalRecordsDao
 
         result.setRecords(mutation.getRecords()
             .stream()
-            .map(meta -> new RecordMeta(meta, RecordRef.valueOf(meta.getId().getId())))
+            .map(meta -> new RecordMeta(meta, EntityRef.valueOf(meta.getId().getLocalId())))
             .map(this::mutate)
-            .map(meta -> new RecordMeta(meta, RecordRef.create(getId(), meta.getId())))
+            .map(meta -> new RecordMeta(meta, EntityRef.create(getId(), meta.getId().toString())))
             .collect(Collectors.toList()));
 
         return result;
@@ -151,7 +151,7 @@ public class WorkflowTaskRecords extends LocalRecordsDao
 
     private RecordMeta mutate(RecordMeta meta) {
 
-        String taskId = meta.getId().getId();
+        String taskId = meta.getId().getLocalId();
         Optional<TaskInfo> taskInfoOpt = ecosTaskService.getTaskInfo(taskId);
 
         if (!taskInfoOpt.isPresent()) {
@@ -410,13 +410,13 @@ public class WorkflowTaskRecords extends LocalRecordsDao
     }
 
     @Override
-    public RecordsQueryResult<RecordRef> queryLocalRecords(RecordsQuery query) {
+    public RecordsQueryResult<EntityRef> queryLocalRecords(RecordsQuery query) {
 
         WorkflowTaskRecords.TasksQuery tasksQuery = query.getQuery(WorkflowTaskRecords.TasksQuery.class);
         if (tasksQuery.document != null) {
-            RecordRef docRecordRef = RecordRef.valueOf(tasksQuery.document);
+            EntityRef docRecordRef = EntityRef.valueOf(tasksQuery.document);
             if (docRecordRef.getAppName().startsWith(APP_EPROC)) {
-                docRecordRef = RecordRef.valueOf(docRecordRef.getId());
+                docRecordRef = EntityRef.valueOf(docRecordRef.getLocalId());
 
                 if (docRecordRef.getSourceId().isEmpty()) {
                     docRecordRef = docRecordRef.withSourceId(WorkflowRecordsDao.ID);
@@ -424,7 +424,7 @@ public class WorkflowTaskRecords extends LocalRecordsDao
             }
 
             if (docRecordRef.getSourceId().equals(WorkflowRecordsDao.ID)) {
-                tasksQuery.setWorkflowId(docRecordRef.getId());
+                tasksQuery.setWorkflowId(docRecordRef.getLocalId());
                 tasksQuery.setDocument(null);
             }
         }
@@ -434,11 +434,11 @@ public class WorkflowTaskRecords extends LocalRecordsDao
 
         if (tasks != null) {
 
-            List<RecordRef> taskRefs = tasks.stream()
-                .map(t -> RecordRef.valueOf(t.getId()))
+            List<EntityRef> taskRefs = tasks.stream()
+                .map(t -> EntityRef.valueOf(t.getId()))
                 .collect(Collectors.toList());
 
-            RecordsQueryResult<RecordRef> result = new RecordsQueryResult<>();
+            RecordsQueryResult<EntityRef> result = new RecordsQueryResult<>();
             result.setRecords(taskRefs);
             return result;
         }
@@ -450,14 +450,14 @@ public class WorkflowTaskRecords extends LocalRecordsDao
 
         RecordsQueryResult<TaskIdQuery> taskQueryResult = workflowTaskRecordsUtils.queryTasks(predicate, query);
 
-        return new RecordsQueryResult<>(taskQueryResult, task -> RecordRef.valueOf(task.getTaskId()));
+        return new RecordsQueryResult<>(taskQueryResult, task -> EntityRef.valueOf(task.getTaskId()));
     }
 
     @Override
-    public List<MetaValue> getLocalRecordsMeta(List<RecordRef> records, MetaField metaField) {
+    public List<MetaValue> getLocalRecordsMeta(List<EntityRef> records, MetaField metaField) {
         return records.stream().map(r -> {
-            Optional<TaskInfo> info = ecosTaskService.getTaskInfo(r.getId());
-            return info.isPresent() ? new Task(info.get()) : new EmptyTask(r.getId());
+            Optional<TaskInfo> info = ecosTaskService.getTaskInfo(r.getLocalId());
+            return info.isPresent() ? new Task(info.get()) : new EmptyTask(r.getLocalId());
         }).collect(Collectors.toList());
     }
 

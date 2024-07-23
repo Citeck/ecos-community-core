@@ -50,7 +50,7 @@ public class NewUIUtils {
     private final RecordsService recordsService;
     private final EcosTypeService ecosTypeService;
 
-    private final LoadingCache<RecordRef, String> uiTypeByRecord;
+    private final LoadingCache<EntityRef, String> uiTypeByRecord;
     private final LoadingCache<String, Boolean> isNewUIEnabledForUserCache;
 
     @Autowired
@@ -110,7 +110,7 @@ public class NewUIUtils {
         return newUIRedirectUrl;
     }
 
-    public String getUITypeForRecord(RecordRef recordRef) {
+    public String getUITypeForRecord(EntityRef recordRef) {
         try {
             return uiTypeByRecord.getUnchecked(recordRef);
         } catch (Exception e) {
@@ -119,11 +119,11 @@ public class NewUIUtils {
         }
     }
 
-    public String getUITypeForRecordAndUser(RecordRef recordRef) {
+    public String getUITypeForRecordAndUser(EntityRef recordRef) {
         return getUITypeForRecordAndUser(recordRef, authenticationService.getCurrentUserName());
     }
 
-    public String getUITypeForRecordAndUser(RecordRef recordRef, String userName) {
+    public String getUITypeForRecordAndUser(EntityRef recordRef, String userName) {
         String uiType = getUITypeForRecord(recordRef);
 
         String resStr = uiType;
@@ -140,12 +140,12 @@ public class NewUIUtils {
         return isNewUIRedirectEnabled || isNewJournalsGroupMember(username) || isNewJournalsEnabledForUser(username);
     }
 
-    private String getUITypeByRecord(RecordRef recordRef) {
+    private String getUITypeByRecord(EntityRef recordRef) {
 
         String att;
         if (recordRef.getSourceId().equals("site")) {
             att = UI_TYPE_FROM_SECTION_ATT;
-            recordRef = RecordRef.create("emodel", "section", recordRef.getId());
+            recordRef = EntityRef.create("emodel", "section", recordRef.getLocalId());
         } else if (recordRef.getSourceId().equals("type")) {
             att = UI_TYPE_FROM_SECTION_ATT;
         } else {
@@ -155,7 +155,7 @@ public class NewUIUtils {
         DataValue res = recordsService.getAttribute(recordRef, att);
 
         if (res == null || !res.isTextual() || res.asText().equals("null") || StringUtils.isBlank(res.asText())) {
-            if (UI_TYPE_FROM_ETYPE_ATT.equals(att) && NodeRef.isNodeRef(recordRef.getId())) {
+            if (UI_TYPE_FROM_ETYPE_ATT.equals(att) && NodeRef.isNodeRef(recordRef.getLocalId())) {
                 res = getUiTypeFromParent(recordRef);
             } else {
                 res = DataValue.NULL;
@@ -176,8 +176,8 @@ public class NewUIUtils {
         return resStr;
     }
 
-    private DataValue getUiTypeFromParent(RecordRef recordRef) {
-        RecordRef ecosTypeRef = ecosTypeService.getEcosType(new NodeRef(recordRef.getId()));
+    private DataValue getUiTypeFromParent(EntityRef recordRef) {
+        EntityRef ecosTypeRef = ecosTypeService.getEcosType(new NodeRef(recordRef.getLocalId()));
         if (EntityRef.isEmpty(ecosTypeRef)) {
             return DataValue.NULL;
         }

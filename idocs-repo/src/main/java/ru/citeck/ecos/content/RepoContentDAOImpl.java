@@ -24,6 +24,7 @@ import ru.citeck.ecos.search.ftsquery.BinOperator;
 import ru.citeck.ecos.search.ftsquery.FTSQuery;
 import ru.citeck.ecos.search.ftsquery.OperatorExpected;
 import ru.citeck.ecos.utils.LazyNodeRef;
+import ru.citeck.ecos.webapp.api.entity.EntityRef;
 
 import java.io.Serializable;
 import java.util.*;
@@ -151,9 +152,9 @@ public class RepoContentDAOImpl<T> implements RepoContentDAO<T> {
         query.setQuery("PARENT:\"" + rootRef.getNodeRef() + "\"");
         query.setSourceId(AlfNodesRecordsDAO.ID);
 
-        Iterable<RecordRef> records = new IterableRecords(recordsService, query);
-        for (RecordRef ref : records) {
-            NodeRef nodeRef = new NodeRef(ref.getId());
+        Iterable<EntityRef> records = new IterableRecords(recordsService, query);
+        for (EntityRef ref : records) {
+            NodeRef nodeRef = new NodeRef(ref.getLocalId());
             ContentData<T> data = getContentDataImpl(nodeRef);
             data.updateData();
             consumer.accept(data);

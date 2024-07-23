@@ -10,9 +10,9 @@ import org.springframework.stereotype.Component;
 import ru.citeck.ecos.icase.completeness.CaseCompletenessService;
 import ru.citeck.ecos.records.RecordsUtils;
 import ru.citeck.ecos.records2.RecordMeta;
-import ru.citeck.ecos.records2.RecordRef;
 import ru.citeck.ecos.records2.evaluator.RecordEvaluatorService;
 import ru.citeck.ecos.records2.evaluator.details.*;
+import ru.citeck.ecos.webapp.api.entity.EntityRef;
 
 import javax.annotation.PostConstruct;
 import java.util.ArrayList;
@@ -58,7 +58,7 @@ public class CompletenessLevelsEvaluator implements
     @Override
     public EvalDetails evalWithDetails(RecordMeta recordMeta, Config config) {
         Set<NodeRef> alfCompletenessLevels = getAlfCompletenessLevels(config);
-        RecordRef caseRef = recordMeta.getId();
+        EntityRef caseRef = recordMeta.getId();
         return evalWithDetailsImpl(caseRef, alfCompletenessLevels);
     }
 
@@ -73,13 +73,13 @@ public class CompletenessLevelsEvaluator implements
                 .collect(Collectors.toSet());
     }
 
-    private EvalDetails evalWithDetailsImpl(RecordRef caseRef, Set<NodeRef> alfCompletenessLevels) {
+    private EvalDetails evalWithDetailsImpl(EntityRef caseRef, Set<NodeRef> alfCompletenessLevels) {
         List<EvalResultCause> causes = evalCauses(caseRef, alfCompletenessLevels);
         boolean success = CollectionUtils.isEmpty(causes);
         return new EvalDetailsImpl(success, causes);
     }
 
-    private List<EvalResultCause> evalCauses(RecordRef caseRef, Set<NodeRef> alfCompletenessLevels) {
+    private List<EvalResultCause> evalCauses(EntityRef caseRef, Set<NodeRef> alfCompletenessLevels) {
         NodeRef caseNodeRef = RecordsUtils.toNodeRef(caseRef);
         List<EvalResultCause> resultCauses = new ArrayList<>();
         for (NodeRef alfCompletenessLevel : alfCompletenessLevels) {

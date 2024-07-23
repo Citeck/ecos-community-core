@@ -5,7 +5,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import ru.citeck.ecos.commons.data.ObjectData;
 import ru.citeck.ecos.model.lib.num.dto.NumTemplateDef;
-import ru.citeck.ecos.records2.RecordRef;
 import ru.citeck.ecos.webapp.api.entity.EntityRef;
 import ru.citeck.ecos.webapp.lib.model.type.dto.TypeDef;
 
@@ -13,10 +12,10 @@ public interface TypesManager {
 
     TypeDef getType(EntityRef typeRef);
 
-    NumTemplateDef getNumTemplate(RecordRef templateRef);
+    NumTemplateDef getNumTemplate(EntityRef templateRef);
 
-    Long getNextNumber(RecordRef templateRef, ObjectData model);
+    Long getNextNumber(EntityRef templateRef, ObjectData model);
 
     @NotNull
-    RecordRef getEcosTypeByAlfType(@Nullable QName alfType);
+    EntityRef getEcosTypeByAlfType(@Nullable QName alfType);
 }

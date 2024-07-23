@@ -28,6 +28,7 @@ import ru.citeck.ecos.model.EcosAutoModel;
 import ru.citeck.ecos.records2.RecordRef;
 import ru.citeck.ecos.search.ftsquery.FTSQuery;
 import ru.citeck.ecos.utils.NodeUtils;
+import ru.citeck.ecos.webapp.api.entity.EntityRef;
 
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -55,8 +56,8 @@ public class AlfAutoModelsDao {
     private final TransactionService transactionService;
     private final JobLockService jobLockService;
 
-    private final LoadingCache<RecordRef, Optional<QName>> modelQNameByTypeRefCache;
-    private final Map<RecordRef, TypeModelInfo> typeModelInfoByType = new ConcurrentHashMap<>();
+    private final LoadingCache<EntityRef, Optional<QName>> modelQNameByTypeRefCache;
+    private final Map<EntityRef, TypeModelInfo> typeModelInfoByType = new ConcurrentHashMap<>();
 
     @Autowired
     public AlfAutoModelsDao(
@@ -81,11 +82,11 @@ public class AlfAutoModelsDao {
     }
 
     @Nullable
-    public QName getModelQNameByType(RecordRef typeRef) {
+    public QName getModelQNameByType(EntityRef typeRef) {
         return modelQNameByTypeRefCache.getUnchecked(typeRef).orElse(null);
     }
 
-    private Optional<QName> getModelQNameByTypeImpl(RecordRef typeRef) {
+    private Optional<QName> getModelQNameByTypeImpl(EntityRef typeRef) {
         NodeRef nodeRef = getModelRefByTypeRef(typeRef);
         if (nodeRef == null) {
             return Optional.empty();
@@ -143,12 +144,12 @@ public class AlfAutoModelsDao {
     }
 
     @NotNull
-    public synchronized TypeModelInfo getOrCreateModelByTypeRef(@NotNull RecordRef typeRef) {
+    public synchronized TypeModelInfo getOrCreateModelByTypeRef(@NotNull EntityRef typeRef) {
         return typeModelInfoByType.computeIfAbsent(typeRef, this::getOrCreateModelByTypeRefImpl);
     }
 
     @NotNull
-    private TypeModelInfo getOrCreateModelByTypeRefImpl(@NotNull RecordRef typeRef) {
+    private TypeModelInfo getOrCreateModelByTypeRefImpl(@NotNull EntityRef typeRef) {
 
         NodeRef modelRef = getModelRefByTypeRef(typeRef);
 
@@ -201,7 +202,7 @@ public class AlfAutoModelsDao {
         }
     }
 
-    private NodeRef createNewModel(RecordRef typeRef) {
+    private NodeRef createNewModel(EntityRef typeRef) {
 
         log.info("Create new model for typeRef: " + typeRef);
 
@@ -253,7 +254,7 @@ public class AlfAutoModelsDao {
     }
 
     @Nullable
-    private NodeRef getModelRefByTypeRef(RecordRef typeRef) {
+    private NodeRef getModelRefByTypeRef(EntityRef typeRef) {
         return AuthenticationUtil.runAsSystem(() -> FTSQuery.create()
             .type(EcosAutoModel.TYPE_MODEL_DEF).and()
             .exact(EcosAutoModel.PROP_ECOS_TYPE_REF, typeRef.toString())

@@ -33,7 +33,6 @@ public class MessagingConfiguration {
     private static final String RABBIT_MQ_PORT= "rabbitmq.server.port";
     private static final String RABBIT_MQ_USERNAME= "rabbitmq.server.username";
     private static final String RABBIT_MQ_PASSWORD = "rabbitmq.server.password";
-    private static final String RABBIT_MQ_THREAD_POOL_SIZE = "rabbitmq.threadPoolSize";
 
     /**
      * Global properties
@@ -86,17 +85,14 @@ public class MessagingConfiguration {
     @Bean
     public RabbitMqConnProps getConnProperties() {
 
-        /*String threadPoolSizeStr = properties.getProperty(RABBIT_MQ_THREAD_POOL_SIZE);
-        if (StringUtils.isNotBlank(threadPoolSizeStr)) {
-            props.setThreadPoolSize(Integer.parseInt(threadPoolSizeStr));
-        }*/
-
         return new RabbitMqConnProps(
             properties.getProperty(RABBIT_MQ_HOST),
             properties.getProperty(RABBIT_MQ_USERNAME),
             properties.getProperty(RABBIT_MQ_PASSWORD),
             "/",
-            Integer.parseInt(properties.getProperty(RABBIT_MQ_PORT))
+            "",
+            Integer.parseInt(properties.getProperty(RABBIT_MQ_PORT)),
+            null
         );
     }
 

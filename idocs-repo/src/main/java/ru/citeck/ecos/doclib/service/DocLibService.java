@@ -60,11 +60,11 @@ public class DocLibService {
     private static final String PARENT_LOCAL_ID_ATT = "_parent?localId";
 
     private static final DocLibNodeInfo EMPTY_NODE = new DocLibNodeInfo(
-        RecordRef.EMPTY,
+        EntityRef.EMPTY,
         DocLibNodeType.FILE,
         "",
-        RecordRef.EMPTY,
-        RecordRef.EMPTY,
+        EntityRef.EMPTY,
+        EntityRef.EMPTY,
         null,
         null,
         null,
@@ -172,7 +172,7 @@ public class DocLibService {
         return dataCopy;
     }
 
-    public List<DocLibNodeInfo> getPath(RecordRef docLibRef) {
+    public List<DocLibNodeInfo> getPath(EntityRef docLibRef) {
 
         List<DocLibNodeInfo> resultPath = new ArrayList<>();
 
@@ -200,7 +200,7 @@ public class DocLibService {
 
         List<DocLibNodeInfo> invPath = new ArrayList<>();
 
-        RecordRef entityRecordRef = RecordRef.valueOf(entityId.getLocalId());
+        EntityRef entityRecordRef = EntityRef.valueOf(entityId.getLocalId());
         String parentRefStr = recordsService.getAtt(entityRecordRef, PARENT_LOCAL_ID_ATT).asText();
         while (NodeRef.isNodeRef(parentRefStr) && !rootNodeRefStr.equals(parentRefStr)) {
             DocLibNodeInfo nodeInfo = getDocLibNodeInfo(getEntityRef(entityId.getTypeRef(), parentRefStr));
@@ -208,7 +208,7 @@ public class DocLibService {
                 break;
             }
             invPath.add(nodeInfo);
-            entityRecordRef = RecordRef.valueOf(parentRefStr);
+            entityRecordRef = EntityRef.valueOf(parentRefStr);
             parentRefStr = recordsService.getAtt(entityRecordRef, PARENT_LOCAL_ID_ATT).asText();
         }
 
@@ -218,19 +218,19 @@ public class DocLibService {
         return resultPath;
     }
 
-    public boolean hasChildrenDirs(RecordRef docLibRef) {
+    public boolean hasChildrenDirs(EntityRef docLibRef) {
 
         DocLibChildrenQuery query = new DocLibChildrenQuery();
         query.setParentRef(docLibRef);
         query.setRecursive(false);
         query.setNodeType(DocLibNodeType.DIR);
 
-        RecsQueryRes<RecordRef> queryRes = getChildren(query, new QueryPage(1, 0, RecordRef.EMPTY));
+        RecsQueryRes<EntityRef> queryRes = getChildren(query, new QueryPage(1, 0, EntityRef.EMPTY));
         return !queryRes.getRecords().isEmpty();
     }
 
     @NotNull
-    public DocLibNodeInfo getDocLibNodeInfo(@Nullable RecordRef docLibRef) {
+    public DocLibNodeInfo getDocLibNodeInfo(@Nullable EntityRef docLibRef) {
 
         EntityId entityId = getEntityId(docLibRef);
 
@@ -251,7 +251,7 @@ public class DocLibService {
                 docLibRef,
                 DocLibNodeType.DIR,
                 name,
-                RecordRef.EMPTY,
+                EntityRef.EMPTY,
                 entityId.getTypeRef(),
                 null,
                 null,
@@ -309,7 +309,7 @@ public class DocLibService {
         );
     }
 
-    public RecsQueryRes<RecordRef> getChildren(DocLibChildrenQuery query, QueryPage page) {
+    public RecsQueryRes<EntityRef> getChildren(DocLibChildrenQuery query, QueryPage page) {
 
         EntityId entityId = getEntityId(query.getParentRef());
 
@@ -374,14 +374,14 @@ public class DocLibService {
             .withPage(page)
             .build();
 
-        RecsQueryRes<RecordRef> childrenQueryRes = recordsService.query(recordsQuery);
+        RecsQueryRes<EntityRef> childrenQueryRes = recordsService.query(recordsQuery);
 
-        List<RecordRef> children = childrenQueryRes.getRecords()
+        List<EntityRef> children = childrenQueryRes.getRecords()
             .stream()
-            .map(r -> getEntityRef(entityId.getTypeRef(), r.getId()))
+            .map(r -> getEntityRef(entityId.getTypeRef(), r.getLocalId()))
             .collect(Collectors.toList());
 
-        RecsQueryRes<RecordRef> res = new RecsQueryRes<>();
+        RecsQueryRes<EntityRef> res = new RecsQueryRes<>();
         res.setRecords(children);
         res.setHasMore(childrenQueryRes.getHasMore());
         res.setTotalCount(childrenQueryRes.getTotalCount());
@@ -394,8 +394,8 @@ public class DocLibService {
     }
 
     @NotNull
-    private EntityId getEntityId(RecordRef ref) {
-        return getEntityId(ref != null ? ref.getId() : null);
+    private EntityId getEntityId(EntityRef ref) {
+        return getEntityId(ref != null ? ref.getLocalId() : null);
     }
 
     @NotNull

@@ -197,8 +197,8 @@ public class AlfNodesRecordsDAO extends LocalRecordsDao
         }
 
         NodeRef nodeRef = null;
-        if (record.getId().getId().startsWith("workspace://SpacesStore/")) {
-            nodeRef = new NodeRef(record.getId().getId());
+        if (record.getId().getLocalId().startsWith("workspace://SpacesStore/")) {
+            nodeRef = new NodeRef(record.getId().getLocalId());
         }
 
         // if we get "att_add_someAtt" and "someAtt", then ignore "att_add_*"
@@ -221,8 +221,8 @@ public class AlfNodesRecordsDAO extends LocalRecordsDao
         });
 
         handleContentAttribute(attributes);
-        RecordRef ecosTypeRef = handleETypeAttribute(attributes, props);
-        if (EntityRef.isEmpty(ecosTypeRef) && record.getId().getId().startsWith("workspace")) {
+        EntityRef ecosTypeRef = handleETypeAttribute(attributes, props);
+        if (EntityRef.isEmpty(ecosTypeRef) && record.getId().getLocalId().startsWith("workspace")) {
             ecosTypeRef = RecordRef.valueOf(
                 recordsService.getAtt(record.getId(), RecordConstants.ATT_TYPE + "?id").asText());
         }
@@ -498,8 +498,8 @@ public class AlfNodesRecordsDAO extends LocalRecordsDao
 
     public void updateComputedAtts(NodeRef nodeRef, boolean isNewRecord) {
 
-        RecordRef typeRef = ecosTypeService.getEcosType(nodeRef);
-        RecordRef recordRef = RecordRef.create("", nodeRef.toString());
+        EntityRef typeRef = ecosTypeService.getEcosType(nodeRef);
+        EntityRef recordRef = EntityRef.create("", nodeRef.toString());
 
         MetaValue metaValue = createMetaValue(recordRef);
         metaValue.init(AlfGqlContext.getCurrent(), EmptyMetaField.INSTANCE);
@@ -517,9 +517,9 @@ public class AlfNodesRecordsDAO extends LocalRecordsDao
         updateNodeDispName(recordRef);
     }
 
-    private RecordRef handleETypeAttribute(ObjectData attributes, Map<QName, Serializable> props) {
+    private EntityRef handleETypeAttribute(ObjectData attributes, Map<QName, Serializable> props) {
 
-        RecordRef etype = RecordRef.EMPTY;
+        EntityRef etype = RecordRef.EMPTY;
 
         DataValue attributeFieldValue = attributes.get(TYPE_ATTRIBUTE_NAME);
         if (attributeFieldValue.isNull()) {
@@ -532,7 +532,7 @@ public class AlfNodesRecordsDAO extends LocalRecordsDao
             if (!StringUtils.isBlank(attrValue)) {
 
                 etype = RecordRef.valueOf(attrValue);
-                String typeId = etype.getId();
+                String typeId = etype.getLocalId();
 
                 int slashIndex = typeId.indexOf(SLASH_DELIMITER);
 
@@ -594,8 +594,8 @@ public class AlfNodesRecordsDAO extends LocalRecordsDao
             }
         }
 
-        if (RecordRef.isNotEmpty(etype)) {
-            props.put(EcosTypeModel.PROP_TYPE, etype.getId());
+        if (EntityRef.isNotEmpty(etype)) {
+            props.put(EcosTypeModel.PROP_TYPE, etype.getLocalId());
         }
 
         attributes.remove(TYPE_ATTRIBUTE_NAME);
@@ -646,13 +646,13 @@ public class AlfNodesRecordsDAO extends LocalRecordsDao
         }
     }
 
-    public boolean updateNodeDispName(RecordRef recordRef) {
+    public boolean updateNodeDispName(EntityRef recordRef) {
 
-        if (EntityRef.isEmpty(recordRef) || !NodeRef.isNodeRef(recordRef.getId())) {
+        if (EntityRef.isEmpty(recordRef) || !NodeRef.isNodeRef(recordRef.getLocalId())) {
             return false;
         }
-        NodeRef nodeRef = new NodeRef(recordRef.getId());
-        RecordRef ecosType = ecosTypeService.getEcosType(nodeRef);
+        NodeRef nodeRef = new NodeRef(recordRef.getLocalId());
+        EntityRef ecosType = ecosTypeService.getEcosType(nodeRef);
 
         if (EntityRef.isEmpty(ecosType)) {
             return false;
@@ -708,13 +708,13 @@ public class AlfNodesRecordsDAO extends LocalRecordsDao
 
     @Override
     public RecordsDelResult delete(RecordsDeletion deletion) {
-        for (RecordRef recordRef : deletion.getRecords()) {
-            nodeService.deleteNode(new NodeRef(recordRef.getId()));
+        for (EntityRef recordRef : deletion.getRecords()) {
+            nodeService.deleteNode(new NodeRef(recordRef.getLocalId()));
         }
         return new RecordsDelResult();
     }
 
-    private NodeRef getParent(RecordMeta record, QName type, RecordRef ecosType) {
+    private NodeRef getParent(RecordMeta record, QName type, EntityRef ecosType) {
 
         String parent = record.getAttribute(RecordConstants.ATT_PARENT, "");
         if (!parent.isEmpty()) {
@@ -733,7 +733,7 @@ public class AlfNodesRecordsDAO extends LocalRecordsDao
             }
         }
 
-        if (RecordRef.isNotEmpty(ecosType)) {
+        if (EntityRef.isNotEmpty(ecosType)) {
             return ecosTypeRootService.getRootForType(ecosType, true);
         }
 
@@ -772,7 +772,7 @@ public class AlfNodesRecordsDAO extends LocalRecordsDao
     @Override
     public RecordsQueryResult<Object> queryLocalRecords(RecordsQuery recordsQuery, MetaField metaField) {
 
-        RecordsQueryResult<RecordRef> records = queryRecords(recordsQuery);
+        RecordsQueryResult<EntityRef> records = queryRecords(recordsQuery);
 
         RecordsQueryResult<Object> result = new RecordsQueryResult<>();
         result.merge(records);
@@ -789,7 +789,7 @@ public class AlfNodesRecordsDAO extends LocalRecordsDao
     }
 
     @Override
-    public RecordsQueryResult<RecordRef> queryRecords(RecordsQuery query) {
+    public RecordsQueryResult<EntityRef> queryRecords(RecordsQuery query) {
 
         query = new RecordsQuery(query);
 
@@ -813,15 +813,15 @@ public class AlfNodesRecordsDAO extends LocalRecordsDao
         Date afterCreated = null;
         if (query.isAfterIdMode()) {
 
-            RecordRef afterId = query.getAfterId();
+            EntityRef afterId = query.getAfterId();
 
             AlfNodesSearch.AfterIdType afterIdType = alfNodesSearch.getAfterIdType();
 
-            if (afterId != RecordRef.EMPTY) {
+            if (afterId != EntityRef.EMPTY) {
                 if (!ID.equals(afterId.getSourceId())) {
                     return new RecordsQueryResult<>();
                 }
-                NodeRef afterIdNodeRef = new NodeRef(afterId.getId());
+                NodeRef afterIdNodeRef = new NodeRef(afterId.getLocalId());
 
                 if (afterIdType == null) {
                     throw new IllegalArgumentException("Page parameter afterId is not supported " +
@@ -859,24 +859,24 @@ public class AlfNodesRecordsDAO extends LocalRecordsDao
     }
 
     @Override
-    public List<MetaValue> getLocalRecordsMeta(List<RecordRef> list, MetaField metaField) {
+    public List<MetaValue> getLocalRecordsMeta(List<EntityRef> list, MetaField metaField) {
         return list.stream()
             .map(this::createMetaValue)
             .collect(Collectors.toList());
     }
 
-    private MetaValue createMetaValue(RecordRef recordRef) {
-        if (recordRef == RecordRef.EMPTY) {
+    private MetaValue createMetaValue(EntityRef recordRef) {
+        if (recordRef == EntityRef.EMPTY) {
             return new EmptyAlfNode();
         }
-        String id = recordRef.getId();
+        String id = recordRef.getLocalId();
         if (NodeRef.isNodeRef(id) && nodeService.exists(new NodeRef(id))) {
             return new AlfNodeRecord(recordRef);
         }
         return EmptyValue.INSTANCE;
     }
 
-    public ActionResults<RecordRef> executeAction(List<RecordRef> records, GroupActionConfig config) {
+    public ActionResults<EntityRef> executeAction(List<EntityRef> records, GroupActionConfig config) {
         return groupActionService.execute(records, config);
     }
 

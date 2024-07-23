@@ -17,6 +17,7 @@ import ru.citeck.ecos.records2.graphql.meta.value.field.EmptyMetaField;
 import ru.citeck.ecos.records2.source.dao.local.LocalRecordsDao;
 import ru.citeck.ecos.records2.source.dao.local.v2.LocalRecordsMetaDao;
 import ru.citeck.ecos.utils.AuthorityUtils;
+import ru.citeck.ecos.webapp.api.entity.EntityRef;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -36,8 +37,8 @@ public class AuthorityRecordsDao extends LocalRecordsDao implements LocalRecords
 
     @NotNull
     @Override
-    public List<Object> getLocalRecordsMeta(@NotNull List<RecordRef> records, @NotNull MetaField metaField) {
-        return records.stream().map(r -> new AuthorityValue(r.getId())).collect(Collectors.toList());
+    public List<Object> getLocalRecordsMeta(@NotNull List<EntityRef> records, @NotNull MetaField metaField) {
+        return records.stream().map(r -> new AuthorityValue(r.getLocalId())).collect(Collectors.toList());
     }
 
     @RequiredArgsConstructor

@@ -20,10 +20,10 @@ import org.springframework.stereotype.Component;
 import ru.citeck.ecos.action.ActionConditionUtils;
 import ru.citeck.ecos.records.RecordsUtils;
 import ru.citeck.ecos.records2.RecordMeta;
-import ru.citeck.ecos.records2.RecordRef;
 import ru.citeck.ecos.records2.evaluator.RecordEvaluator;
 import ru.citeck.ecos.records2.evaluator.RecordEvaluatorService;
 import ru.citeck.ecos.service.AlfrescoServices;
+import ru.citeck.ecos.webapp.api.entity.EntityRef;
 
 import javax.annotation.PostConstruct;
 import java.util.List;
@@ -77,7 +77,7 @@ public class ScriptEvaluator implements RecordEvaluator<Object, RecordMeta, Scri
 
     @Override
     public boolean evaluate(RecordMeta meta, Config config) {
-        RecordRef recordRef = meta.getId();
+        EntityRef recordRef = meta.getId();
         NodeRef nodeRef = RecordsUtils.toNodeRef(recordRef);
 
         if (!nodeService.exists(nodeRef)) {
