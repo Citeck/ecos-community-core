@@ -19,6 +19,11 @@ import javax.xml.parsers.ParserConfigurationException
 import java.nio.charset.StandardCharsets
 import java.util.stream.Collectors
 
+class Module {
+    String id
+    byte[] xmlData
+}
+
 return new ArtifactController<Module, Unit>() {
 
     private static final Logger log = LoggerFactory.getLogger(ArtifactController.class)
@@ -97,11 +102,6 @@ return new ArtifactController<Module, Unit>() {
         return ArtifactMeta.create()
             .withId(module.id)
             .build()
-    }
-
-    static class Module {
-        String id
-        byte[] xmlData
     }
 }
 
