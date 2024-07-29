@@ -4,7 +4,6 @@ import mu.KotlinLogging
 import org.alfresco.repo.node.NodeServicePolicies.*
 import org.alfresco.repo.policy.Behaviour.NotificationFrequency.EVERY_EVENT
 import org.alfresco.service.cmr.dictionary.AssociationDefinition
-import org.alfresco.service.cmr.repository.AssociationRef
 import org.alfresco.service.cmr.repository.ChildAssociationRef
 import org.alfresco.service.cmr.repository.NodeRef
 import org.alfresco.service.cmr.repository.StoreRef
@@ -32,12 +31,8 @@ import kotlin.collections.HashMap
 import kotlin.collections.LinkedHashSet
 
 @DependsOn("idocs.dictionaryBootstrap")
-class AssocMirroringBehaviour : AbstractBehaviour(),
-    OnCreateNodePolicy,
-    OnUpdatePropertiesPolicy,
-    OnCreateAssociationPolicy,
-    OnDeleteAssociationPolicy
-{
+class AssocMirroringBehaviour : AbstractBehaviour(), OnCreateNodePolicy, OnUpdatePropertiesPolicy {
+
     companion object {
         private const val ATT_SYS_NODE_UUID = "sys:node-uuid"
 
@@ -127,26 +122,6 @@ class AssocMirroringBehaviour : AbstractBehaviour(),
         val newAssocName = getNewAttsToQNamesMapping()[newAssocName]
         if (before[newAssocName] != after[newAssocName]) {
             syncAttributes(nodeRef, null, after[newAssocName] as? String ?: "" )
-        }
-    }
-
-    @PolicyMethod(policy = OnCreateAssociationPolicy::class, frequency = EVERY_EVENT, runAsSystem = true)
-    override fun onCreateAssociation(nodeAssocRef: AssociationRef) {
-        if (!webAppApi.isReady()) {
-            return
-        }
-        if (nodeAssocRef.typeQName == assocName) {
-            syncAttributes(nodeAssocRef.sourceRef, nodeAssocRef.targetRef.toString(), null)
-        }
-    }
-
-    @PolicyMethod(policy = OnDeleteAssociationPolicy::class, frequency = EVERY_EVENT, runAsSystem = true)
-    override fun onDeleteAssociation(nodeAssocRef: AssociationRef) {
-        if (!webAppApi.isReady()) {
-            return
-        }
-        if (nodeAssocRef.typeQName == assocName) {
-            syncAttributes(nodeAssocRef.sourceRef, "", null)
         }
     }
 
