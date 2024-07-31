@@ -107,7 +107,7 @@ class AssocMirroringBehaviour : AbstractBehaviour(), OnCreateNodePolicy, OnUpdat
         if (!webAppApi.isReady()) {
             return
         }
-        syncAttributes(childAssocRef.childRef, null, null)
+        syncAttributes(childAssocRef.childRef, ValueWrapper.unknown(), ValueWrapper.unknown())
     }
 
     @PolicyMethod(policy = OnUpdatePropertiesPolicy::class, frequency = EVERY_EVENT, runAsSystem = true)
@@ -121,27 +121,26 @@ class AssocMirroringBehaviour : AbstractBehaviour(), OnCreateNodePolicy, OnUpdat
         }
         val newAssocName = getNewAttsToQNamesMapping()[newAssocName]
         if (before[newAssocName] != after[newAssocName]) {
-            syncAttributes(nodeRef, null, after[newAssocName] as? String ?: "" )
+            syncAttributes(nodeRef, ValueWrapper.unknown(), ValueWrapper(after[newAssocName] as? String))
         }
     }
 
     private fun syncAttributes(
         nodeRef: NodeRef,
-        // null if assoc is unknown. empty string if assoc is empty
-        assocValue: String?,
-        // null if prop is unknown. empty string if prop is empty
-        propValue: String?
+        assocValue: ValueWrapper<NodeRef>,
+        propValue: ValueWrapper<String>
     ) {
         val newAttsToQNameMapping = getNewAttsToQNamesMapping()
         val newAssocQName = newAttsToQNameMapping[newAssocName] ?: error("QName doesn't found for $newAssocName")
-        val nnPropValue = propValue ?: nodeService.getProperty(nodeRef, newAssocQName) as? String ?: ""
-        val nnAssocValue = assocValue ?: nodeUtils.getAssocTarget(
-            nodeRef,
-            newAssocQName
-        ).map { v -> v.toString() }.orElse("")
+        val nnPropValue = propValue.computeIfUnknown {
+            nodeService.getProperty(nodeRef, newAssocQName) as? String ?: ""
+        }
+        val currentOldAssocNodeRef = assocValue.computeIfUnknown {
+            nodeUtils.getAssocTarget(nodeRef, assocName).orElse(null)
+        }
 
         val propRef = EntityRef.valueOf(nnPropValue)
-        val assocRef = EntityRef.create(AppName.ALFRESCO, "", nnAssocValue)
+        val assocRef = EntityRef.create(AppName.ALFRESCO, "", currentOldAssocNodeRef?.toString())
 
         if (assocRef.getLocalId() == propRef.getLocalId()) {
             return
@@ -186,6 +185,9 @@ class AssocMirroringBehaviour : AbstractBehaviour(), OnCreateNodePolicy, OnUpdat
                 "Mirror assoc $newAssocShortName=$propRef to $oldAssocShortName=$expectedAssocRef for ref $nodeRef"
             }
             AuthContext.runAsSystem {
+                if (currentOldAssocNodeRef != null) {
+                    nodeService.removeAssociation(nodeRef, currentOldAssocNodeRef, assocName)
+                }
                 nodeUtils.createAssoc(nodeRef, expectedAssocRef, assocName)
             }
         }
@@ -240,5 +242,24 @@ class AssocMirroringBehaviour : AbstractBehaviour(), OnCreateNodePolicy, OnUpdat
     @Autowired
     fun setRecordsService(recordsService: RecordsService) {
         this.recordsService = recordsService
+    }
+
+    private class ValueWrapper<T: Any>(
+        private val value: T?
+    ) {
+        companion object {
+            private val UNKNOWN = ValueWrapper(null)
+
+            fun <T: Any> unknown(): ValueWrapper<T> {
+                @Suppress("UNCHECKED_CAST")
+                return UNKNOWN as ValueWrapper<T>
+            }
+        }
+        fun computeIfUnknown(action: () -> T?): T? {
+            if (this === UNKNOWN) {
+                return action.invoke()
+            }
+            return value
+        }
     }
 }
