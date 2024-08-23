@@ -358,7 +358,7 @@ public class CaseRoleServiceImpl implements CaseRoleService {
 
     @Override
     public Set<NodeRef> getAssignees(NodeRef caseRef, String roleName) {
-        return getAssignees(needRole(caseRef, roleName));
+        return getAssignees(getRole(caseRef, roleName));
     }
 
     private NodeRef normalizeRoleRef(NodeRef roleRef) {
