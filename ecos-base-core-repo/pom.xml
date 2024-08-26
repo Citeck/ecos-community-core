@@ -29,6 +29,12 @@
         </dependency>
 
         <dependency>
+            <groupId>ru.citeck.ecos</groupId>
+            <artifactId>ecos-guava</artifactId>
+            <version>30.0.0-jre</version>
+        </dependency>
+
+        <dependency>
             <groupId>com.google.zxing</groupId>
             <artifactId>javase</artifactId>
             <version>3.3.3</version>
@@ -38,12 +44,6 @@
             <groupId>com.itextpdf</groupId>
             <artifactId>itextpdf</artifactId>
             <scope>compile</scope>
-        </dependency>
-
-        <dependency>
-            <groupId>ru.citeck.ecos.eureka</groupId>
-            <artifactId>ecos-eureka-client</artifactId>
-            <version>1.9.12.1</version>
         </dependency>
 
         <dependency>

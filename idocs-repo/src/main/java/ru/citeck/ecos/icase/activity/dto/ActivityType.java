@@ -22,7 +22,6 @@ public enum ActivityType {
     }
 
     @JsonValue
-    @ecos.com.fasterxml.jackson.annotation.JsonValue
     @ecos.com.fasterxml.jackson210.annotation.JsonValue
     public String getValue() {
         return value;
@@ -30,7 +29,6 @@ public enum ActivityType {
 
     @JsonCreator
     @ecos.com.fasterxml.jackson210.annotation.JsonCreator
-    @ecos.com.fasterxml.jackson.annotation.JsonCreator
     public ActivityType getByValue(String value) {
         for (ActivityType activityType : values()) {
             if (StringUtils.equals(activityType.value, value)) {

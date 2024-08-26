@@ -201,7 +201,7 @@ public class CaseTemplateBehavior implements NodeServicePolicies.OnCreateNodePol
             () -> eProcCaseImporter.importCase(caseRef),
             () -> {
                 ActivityRef activityRef = ActivityRef.of(CaseServiceType.EPROC, caseRef, ActivityRef.ROOT_ID);
-                caseActivityEventService.fireEvent(activityRef, ICaseEventModel.CONSTR_CASE_CREATED);
+                caseActivityEventService.fireEvent(activityRef, ICaseEventModel.CONSTR_CASE_CREATED, false);
             }
         );
     }

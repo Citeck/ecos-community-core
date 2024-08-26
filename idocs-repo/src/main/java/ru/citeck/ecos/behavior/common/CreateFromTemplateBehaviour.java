@@ -126,7 +126,7 @@ public class CreateFromTemplateBehaviour implements NodeServicePolicies.OnCreate
             }
             /*end*/
         } else {
-            logger.info("Can't find template for document");
+            logger.info("Can't find template for document " + node);
         }
     }
 

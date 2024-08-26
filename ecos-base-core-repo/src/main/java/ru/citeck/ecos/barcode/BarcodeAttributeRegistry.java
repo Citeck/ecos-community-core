@@ -1,6 +1,5 @@
 package ru.citeck.ecos.barcode;
 
-import com.netflix.servo.util.Strings;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -58,7 +57,7 @@ public class BarcodeAttributeRegistry {
         if (ecosType.contains(SLASH_DELIMITER)) {
             List<String> parts = new ArrayList<>(Arrays.asList(ecosType.split(SLASH_DELIMITER)));
             parts.remove(parts.size() - 1);
-            return Strings.join(SLASH_DELIMITER, parts.iterator());
+            return StringUtils.join(parts.iterator(), SLASH_DELIMITER);
         }
         return ecosType;
     }

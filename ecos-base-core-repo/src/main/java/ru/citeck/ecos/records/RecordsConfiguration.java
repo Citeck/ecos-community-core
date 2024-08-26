@@ -44,7 +44,7 @@ public class RecordsConfiguration extends RecordsServiceFactory {
     @Autowired
     private TransactionService transactionService;
 
-    @Autowired(required = false)
+    @Autowired
     private EcosWebAppApi webAppApi;
 
     @PostConstruct

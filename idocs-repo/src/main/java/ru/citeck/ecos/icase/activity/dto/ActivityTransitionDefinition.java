@@ -10,7 +10,6 @@ import lombok.ToString;
 @EqualsAndHashCode(exclude = {"parentActivityDefinition"})
 @JsonIgnoreProperties(ignoreUnknown = true, value = {"parentActivityDefinition"})
 @ecos.com.fasterxml.jackson210.annotation.JsonIgnoreProperties(ignoreUnknown = true, value = {"parentActivityDefinition"})
-@ecos.com.fasterxml.jackson.annotation.JsonIgnoreProperties(ignoreUnknown = true, value = {"parentActivityDefinition"})
 public class ActivityTransitionDefinition {
     private ActivityState fromState;
     private ActivityState toState;

@@ -17,7 +17,7 @@ import ru.citeck.ecos.webapp.lib.web.client.router.EcosWebRouter
 import javax.annotation.PostConstruct
 
 @Component
-class EcosWebEurekaRouter @Autowired constructor(
+class EcosAlfWebRouter @Autowired constructor(
     val webAppProps: EcosWebAppProps,
     val env: EcosWebAppEnvironment
 ) : EcosWebRouter {
@@ -70,7 +70,7 @@ class EcosWebEurekaRouter @Autowired constructor(
                 )
         }
         try {
-            route = alfDiscoveryService.getInstanceInfo(appName)?.let { getRoute(it) }
+            route = alfDiscoveryService.getInstanceInfoFromRegistry(appName)?.let { getRoute(it) }
         } catch (e: RuntimeException) {
             if (e.message?.startsWith("No matches") != true) {
                 log.error(e) { "Exception in getNextServerFromEureka. AppName: $appName" }
@@ -90,17 +90,7 @@ class EcosWebEurekaRouter @Autowired constructor(
     }
 
     private fun getRouteByInstanceRef(instanceRef: AppInstanceRef): EcosWebRoute? {
-        val eurekaInstance = alfDiscoveryService.getInstanceInfo(instanceRef.toString())
-        return if (eurekaInstance != null) {
-            getRoute(eurekaInstance)
-        } else {
-            val dsAppInstance = discoveryService.getInstance(instanceRef)
-            if (dsAppInstance == null) {
-                null
-            } else {
-                getRoute(dsAppInstance)
-            }
-        }
+        return discoveryService.getInstance(instanceRef)?.let { getRoute(it) }
     }
 
     private fun getRoute(instance: EcosServiceInstanceInfo): EcosWebRoute? {

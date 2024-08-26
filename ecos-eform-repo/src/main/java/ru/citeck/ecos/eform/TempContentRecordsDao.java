@@ -1,7 +1,6 @@
 package ru.citeck.ecos.eform;
 
 import com.glaforge.i18n.io.CharsetToolkit;
-import ecos.com.google.common.io.ByteSource;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.Serializable;
@@ -9,6 +8,8 @@ import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
+
+import ecos.guava30.com.google.common.io.ByteSource;
 import lombok.extern.slf4j.Slf4j;
 import org.alfresco.model.ContentModel;
 import org.alfresco.repo.content.MimetypeMap;

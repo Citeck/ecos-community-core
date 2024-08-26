@@ -1,8 +1,8 @@
 package ru.citeck.ecos.behavior.common;
 
-import ecos.com.google.common.cache.CacheBuilder;
-import ecos.com.google.common.cache.CacheLoader;
-import ecos.com.google.common.cache.LoadingCache;
+import ecos.guava30.com.google.common.cache.CacheBuilder;
+import ecos.guava30.com.google.common.cache.CacheLoader;
+import ecos.guava30.com.google.common.cache.LoadingCache;
 import org.alfresco.model.ContentModel;
 import org.alfresco.repo.node.NodeServicePolicies.OnCreateChildAssociationPolicy;
 import org.alfresco.repo.policy.Behaviour.NotificationFrequency;

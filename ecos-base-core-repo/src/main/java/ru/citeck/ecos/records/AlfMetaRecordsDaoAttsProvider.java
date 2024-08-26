@@ -1,8 +1,8 @@
 package ru.citeck.ecos.records;
 
-import ecos.com.google.common.cache.CacheBuilder;
-import ecos.com.google.common.cache.CacheLoader;
-import ecos.com.google.common.cache.LoadingCache;
+import ecos.guava30.com.google.common.cache.CacheBuilder;
+import ecos.guava30.com.google.common.cache.CacheLoader;
+import ecos.guava30.com.google.common.cache.LoadingCache;
 import org.alfresco.service.cmr.module.ModuleDetails;
 import org.alfresco.service.cmr.module.ModuleService;
 import org.springframework.beans.factory.annotation.Autowired;

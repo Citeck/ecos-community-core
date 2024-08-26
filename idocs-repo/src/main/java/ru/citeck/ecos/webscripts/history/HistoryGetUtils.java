@@ -1,8 +1,8 @@
 package ru.citeck.ecos.webscripts.history;
 
-import ecos.com.google.common.cache.CacheBuilder;
-import ecos.com.google.common.cache.CacheLoader;
-import ecos.com.google.common.cache.LoadingCache;
+import ecos.guava30.com.google.common.cache.CacheBuilder;
+import ecos.guava30.com.google.common.cache.CacheLoader;
+import ecos.guava30.com.google.common.cache.LoadingCache;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;

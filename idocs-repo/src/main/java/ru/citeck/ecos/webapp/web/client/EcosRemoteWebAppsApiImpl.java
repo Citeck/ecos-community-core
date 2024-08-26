@@ -1,24 +1,28 @@
 package ru.citeck.ecos.webapp.web.client;
 
-import lombok.RequiredArgsConstructor;
 import org.jetbrains.annotations.NotNull;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import ru.citeck.ecos.eureka.EcosEurekaClient;
+import ru.citeck.ecos.eureka.EcosAlfServiceDiscovery;
 import ru.citeck.ecos.webapp.api.apps.EcosRemoteWebAppsApi;
 
 @Component
-@RequiredArgsConstructor(onConstructor_={@Autowired})
 public class EcosRemoteWebAppsApiImpl implements EcosRemoteWebAppsApi {
 
-    private final EcosEurekaClient eurekaClient;
+    private EcosAlfServiceDiscovery ecosAlfServiceDiscovery;
 
     @Override
     public boolean isAppAvailable(@NotNull String appName) {
+        if (ecosAlfServiceDiscovery == null) {
+            return false;
+        }
         try {
-            return eurekaClient.getInstanceInfo(appName) != null;
+            return ecosAlfServiceDiscovery.getInstanceInfo(appName) != null;
         } catch (RuntimeException e) {
             return false;
         }
+    }
+
+    public void setEcosAlfServiceDiscovery(EcosAlfServiceDiscovery ecosAlfServiceDiscovery) {
+        this.ecosAlfServiceDiscovery = ecosAlfServiceDiscovery;
     }
 }

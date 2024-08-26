@@ -1,8 +1,8 @@
 package ru.citeck.ecos.node;
 
-import ecos.com.google.common.cache.CacheBuilder;
-import ecos.com.google.common.cache.CacheLoader;
-import ecos.com.google.common.cache.LoadingCache;
+import ecos.guava30.com.google.common.cache.CacheBuilder;
+import ecos.guava30.com.google.common.cache.CacheLoader;
+import ecos.guava30.com.google.common.cache.LoadingCache;
 import org.alfresco.model.ContentModel;
 import org.alfresco.service.cmr.repository.NodeRef;
 import org.alfresco.service.cmr.repository.NodeService;

@@ -1,8 +1,8 @@
 package ru.citeck.ecos.records.type;
 
-import ecos.com.google.common.cache.CacheBuilder;
-import ecos.com.google.common.cache.CacheLoader;
-import ecos.com.google.common.cache.LoadingCache;
+import ecos.guava30.com.google.common.cache.CacheBuilder;
+import ecos.guava30.com.google.common.cache.CacheLoader;
+import ecos.guava30.com.google.common.cache.LoadingCache;
 import lombok.extern.slf4j.Slf4j;
 import org.alfresco.service.namespace.NamespaceService;
 import org.alfresco.service.namespace.QName;
@@ -18,7 +18,6 @@ import ru.citeck.ecos.commons.data.entity.EntityWithMeta;
 import ru.citeck.ecos.model.lib.num.dto.NumTemplateDef;
 import ru.citeck.ecos.model.lib.type.service.utils.TypeUtils;
 import ru.citeck.ecos.node.etype.EcosTypeAlfTypeService;
-import ru.citeck.ecos.records2.RecordRef;
 import ru.citeck.ecos.webapp.api.entity.EntityRef;
 import ru.citeck.ecos.webapp.lib.model.num.registry.NumTemplatesRegistry;
 import ru.citeck.ecos.webapp.lib.model.type.dto.TypeDef;

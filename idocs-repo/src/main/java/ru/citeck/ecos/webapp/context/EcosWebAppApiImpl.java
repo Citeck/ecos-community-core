@@ -7,6 +7,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 import ru.citeck.ecos.audit.lib.EcosAuditService;
 import ru.citeck.ecos.webapp.api.EcosWebAppApi;
@@ -41,16 +42,17 @@ public class EcosWebAppApiImpl implements EcosWebAppApi {
 
     private final EcosAuthoritiesApi ecosAuthoritiesApi;
     private final EcosWebAppProps properties;
-    private final EcosRemoteWebAppsApi ecosRemoteWebAppsApi;
     private final EcosAuditService ecosAuditService;
     private final EcosAppLockService ecosLockService;
-    private final EcosWebClientApi webClient;
     private final EcosTasksApi ecosTasksApi;
     private final EcosWebExecutorsService ecosWebExecutorsService;
 
     private final AtomicBoolean isReadyFlag = new AtomicBoolean(false);
     private final ScheduledExecutorService systemScheduler = Executors.newScheduledThreadPool(1);
     private final Set<OnReadyAction> onReadyActions = Collections.synchronizedSet(new TreeSet<>());
+
+    private EcosWebClientApi webClient;
+    private EcosRemoteWebAppsApi ecosRemoteWebAppsApi;
 
     @Override
     public void doWhenAppReady(float order, @NotNull Function0<Unit> action) {
@@ -175,6 +177,18 @@ public class EcosWebAppApiImpl implements EcosWebAppApi {
     @Override
     public boolean isReady() {
         return isReadyFlag.get();
+    }
+
+    @Lazy
+    @Autowired
+    public void setWebClient(EcosWebClientApi webClient) {
+        this.webClient = webClient;
+    }
+
+    @Lazy
+    @Autowired
+    public void setEcosRemoteWebAppsApi(EcosRemoteWebAppsApi ecosRemoteWebAppsApi) {
+        this.ecosRemoteWebAppsApi = ecosRemoteWebAppsApi;
     }
 
     public void applicationContextWasLoaded() {

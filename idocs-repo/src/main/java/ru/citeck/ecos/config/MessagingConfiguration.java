@@ -1,7 +1,6 @@
 package ru.citeck.ecos.config;
 
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.amqp.rabbit.connection.CachingConnectionFactory;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
@@ -9,10 +8,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import ru.citeck.ecos.commons.bean.BeansRegistry;
 import ru.citeck.ecos.rabbitmq.RabbitMqConn;
 import ru.citeck.ecos.rabbitmq.RabbitMqConnFactory;
 import ru.citeck.ecos.rabbitmq.RabbitMqConnProps;
 import ru.citeck.ecos.rabbitmq.RabbitMqConnProvider;
+import ru.citeck.ecos.webapp.api.EcosWebAppApi;
 
 import javax.annotation.PreDestroy;
 import java.util.ArrayList;
@@ -78,8 +79,8 @@ public class MessagingConfiguration {
     }
 
     @Bean
-    public RabbitMqConnProvider getProvider(RabbitMqConnProps mqProps) {
-        return new Provider(mqProps);
+    public RabbitMqConnProvider getProvider(RabbitMqConnProps mqProps, BeansRegistry beansRegistry) {
+        return new Provider(mqProps, beansRegistry);
     }
 
     @Bean
@@ -106,8 +107,10 @@ public class MessagingConfiguration {
 
         private final RabbitMqConn connection;
 
-        public Provider(RabbitMqConnProps mqProps) {
-            connection = new RabbitMqConnFactory().createConnection(mqProps);
+        public Provider(RabbitMqConnProps mqProps, BeansRegistry beansRegistry) {
+            RabbitMqConnFactory factory = new RabbitMqConnFactory();
+            factory.initialize(beansRegistry);
+            connection = factory.createConnection(mqProps);
         }
 
         @Nullable

@@ -1,6 +1,6 @@
 package ru.citeck.ecos.webapp.env;
 
-import ecos.com.google.common.base.CaseFormat;
+import ecos.guava30.com.google.common.base.CaseFormat;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;

@@ -14,7 +14,6 @@ import java.util.List;
 @EqualsAndHashCode(exclude = {"parentInstance"})
 @JsonIgnoreProperties(ignoreUnknown = true, value = {"definition", "parentInstance"})
 @ecos.com.fasterxml.jackson210.annotation.JsonIgnoreProperties(ignoreUnknown = true, value = {"definition", "parentInstance"})
-@ecos.com.fasterxml.jackson.annotation.JsonIgnoreProperties(ignoreUnknown = true, value = {"definition", "parentInstance"})
 public class ActivityInstance {
     private String id;
     private ActivityDefinition definition;

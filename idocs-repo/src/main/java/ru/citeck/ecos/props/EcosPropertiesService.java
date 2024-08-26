@@ -1,9 +1,9 @@
 package ru.citeck.ecos.props;
 
-import ecos.com.google.common.base.CaseFormat;
-import ecos.com.google.common.cache.CacheBuilder;
-import ecos.com.google.common.cache.CacheLoader;
-import ecos.com.google.common.cache.LoadingCache;
+import ecos.guava30.com.google.common.base.CaseFormat;
+import ecos.guava30.com.google.common.cache.CacheBuilder;
+import ecos.guava30.com.google.common.cache.CacheLoader;
+import ecos.guava30.com.google.common.cache.LoadingCache;
 import lombok.extern.slf4j.Slf4j;
 import org.alfresco.util.Pair;
 import org.apache.commons.lang3.StringUtils;

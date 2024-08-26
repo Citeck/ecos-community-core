@@ -1,15 +1,23 @@
 package ru.citeck.ecos.eureka;
 
-import com.netflix.appinfo.InstanceInfo;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
+import ru.citeck.ecos.webapp.lib.discovery.WebAppDiscoveryService;
+import ru.citeck.ecos.webapp.lib.discovery.instance.AppInstanceInfo;
+import ru.citeck.ecos.webapp.lib.discovery.instance.AppInstanceRef;
+import ru.citeck.ecos.webapp.lib.discovery.instance.PortInfo;
+import ru.citeck.ecos.webapp.lib.discovery.instance.PortType;
 
 import javax.annotation.PostConstruct;
+import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicLong;
 
 @Component
 public class EcosAlfServiceDiscovery {
@@ -19,18 +27,16 @@ public class EcosAlfServiceDiscovery {
     private static final String APP_INFO_HOST = APP_INFO_PREFIX + "%s.host";
     private static final String APP_INFO_IP = APP_INFO_PREFIX + "%s.ip";
 
-    private final EcosEurekaClient eurekaClient;
+    private WebAppDiscoveryService webAppDiscoveryService;
     private final Properties globalProps;
 
     private EcosServiceInstanceInfo infoForAll;
 
+    private final AtomicLong getInstanceCounter = new AtomicLong();
     private final Map<String, EcosServiceInstanceInfo> infoFromConfig = new ConcurrentHashMap<>();
 
     @Autowired
-    public EcosAlfServiceDiscovery(EcosEurekaClient client,
-                                   @Qualifier("global-properties") Properties globalProps) {
-
-        this.eurekaClient = client;
+    public EcosAlfServiceDiscovery(@Qualifier("global-properties") Properties globalProps) {
         this.globalProps = globalProps;
     }
 
@@ -44,47 +50,44 @@ public class EcosAlfServiceDiscovery {
         if (appName.contains(":")) {
             appNameWithoutInstance = appName.substring(0, appName.indexOf(':'));
         }
-        return getInfoFromEureka(appNameWithoutInstance)
+        return getInfoFromRegistry(appNameWithoutInstance)
             .apply(infoForAll)
             .apply(infoFromConfig.computeIfAbsent(appNameWithoutInstance, this::getInfoFromParams));
     }
 
-    private EcosServiceInstanceInfo getInfoFromEureka(String appName) {
+    private EcosServiceInstanceInfo getInfoFromRegistry(String appName) {
 
-        InstanceInfo eurekaInstanceInfo;
-        try {
+        AppInstanceInfo instanceInfo = getInstanceInfoFromRegistry(appName);
 
-            eurekaInstanceInfo = eurekaClient.getInstanceInfo(appName);
-        } catch (Exception e) {
-            eurekaInstanceInfo = null;
+        PortInfo port = instanceInfo.getPort(PortType.HTTPS, PortType.HTTP);
+        if (port == null) {
+            throw new RuntimeException("Application " + appName + " doesn't provide http(s) port");
         }
-
-        if (eurekaInstanceInfo == null) {
-            return new EcosServiceInstanceInfo(
-                appName,
-                "",
-                null,
-                null,
-                null,
-                null,
-                null
-            );
-        }
-
-        String instanceId = eurekaInstanceInfo.getInstanceId();
-        if (instanceId.contains(":")) {
-            instanceId = instanceId.substring(instanceId.indexOf(':') + 1);
-        }
-
         return new EcosServiceInstanceInfo(
-            appName,
-            instanceId,
-            eurekaInstanceInfo.getHostName(),
-            eurekaInstanceInfo.getIPAddr(),
-            eurekaInstanceInfo.getPort(),
-            eurekaInstanceInfo.getMetadata(),
-            eurekaInstanceInfo.isPortEnabled(InstanceInfo.PortType.SECURE)
+            instanceInfo.getRef().getName(),
+            instanceInfo.getRef().getInstanceId(),
+            instanceInfo.getHost(),
+            instanceInfo.getIpAddress(),
+            port.getValue(),
+            Collections.emptyMap(),
+            PortType.HTTPS.equals(port.getType())
         );
+    }
+
+    public AppInstanceInfo getInstanceInfoFromRegistry(String instanceName) {
+        AppInstanceInfo info = null;
+        if (instanceName.contains(AppInstanceRef.INSTANCE_ID_DELIM)) {
+            info = webAppDiscoveryService.getInstance(AppInstanceRef.valueOf(instanceName));
+        } else {
+            List<AppInstanceInfo> instances = webAppDiscoveryService.getInstances(instanceName);
+            if (!instances.isEmpty()) {
+                info = instances.get((int)(getInstanceCounter.incrementAndGet() % instances.size()));
+            }
+        }
+        if (info == null) {
+            throw new RuntimeException("Application doesn't found: '" + instanceName + "'");
+        }
+        return info;
     }
 
     private EcosServiceInstanceInfo getInfoFromParams(String appName) {
@@ -122,5 +125,10 @@ public class EcosAlfServiceDiscovery {
         } catch (Exception e) {
             return null;
         }
+    }
+
+    @Autowired
+    public void setWebAppDiscoveryService(WebAppDiscoveryService service) {
+        this.webAppDiscoveryService = service;
     }
 }
