@@ -95,14 +95,17 @@ class DiscoveryInfoProvider {
     }
 
     private fun getHost(appType: AppType): String {
-
         var host = System.getenv(appType.envHost)
         if (StringUtils.isBlank(host)) {
-            host = getStrParam("host") {
-                getGlobalStrParam("alfresco.host") { "localhost" }
-            }
-            if ("localhost" == host || "127.0.0.1" == host) {
-                host = getIpAddress(appType)
+            if (appType != AppType.ALFRESCO) {
+                host = getHost(AppType.ALFRESCO)
+            } else {
+                host = getStrParam("host") {
+                    getGlobalStrParam("alfresco.host") { "localhost" }
+                }
+                if ("localhost" == host || "127.0.0.1" == host) {
+                    host = getIpAddress(appType)
+                }
             }
         }
         return host
@@ -113,44 +116,41 @@ class DiscoveryInfoProvider {
         if (StringUtils.isNotEmpty(envValue)) {
             return envValue
         }
-        return getStrParam("instance.ip") {
-            val isDev = getGlobalBoolParam("ecos.environment.dev") { false }
-            if (isDev && (EcosEnvUtils.isOsMac() || EcosEnvUtils.isOsWindows())) {
-                "host.docker.internal"
-            } else {
-                inetUtils.findFirstNonLoopbackHostInfo().ipAddress.ifBlank { "127.0.0.1" }
+        return if (appType != AppType.ALFRESCO) {
+            getIpAddress(AppType.ALFRESCO)
+        } else {
+            getStrParam("instance.ip") {
+                val isDev = getGlobalBoolParam("ecos.environment.dev") { false }
+                if (isDev && (EcosEnvUtils.isOsMac() || EcosEnvUtils.isOsWindows())) {
+                    "host.docker.internal"
+                } else {
+                    inetUtils.findFirstNonLoopbackHostInfo().ipAddress.ifBlank { "127.0.0.1" }
+                }
             }
         }
     }
 
     private fun getPort(appType: AppType): PortInfo {
 
-        val protocol = getGlobalStrParam(appType.globalPropProtocol) {
-            if (appType != AppType.ALFRESCO) {
-                getGlobalStrParam(AppType.ALFRESCO.globalPropProtocol) { "" }
-            } else {
-                ""
-            }
-        }.lowercase()
-
-        val portType = if (protocol == "https") {
-            PortType.HTTPS
-        } else {
-            PortType.HTTP
-        }
-
         val portFromEnv = System.getenv(appType.envPort)
+
+        var port = -1
         if (portFromEnv != null) {
             try {
-                return PortInfo(portFromEnv.toInt(), portType)
+                port = portFromEnv.toInt()
             } catch (e: NumberFormatException) {
                 log.warn("Incorrect port in " + appType.envPort + " param. Value: " + portFromEnv)
             }
         }
-        val port = getIntParam("port") {
-            getGlobalIntParam("alfresco.port") { 8080 }
+        if (port == -1 && appType != AppType.ALFRESCO) {
+            return getPort(AppType.ALFRESCO)
         }
-        return PortInfo(port, portType)
+        if (port == -1) {
+            port = getIntParam("port") {
+                getGlobalIntParam("alfresco.port") { 8080 }
+            }
+        }
+        return PortInfo(port, PortType.HTTP)
     }
 
     private fun getBuildInfo(): BuildInfo? {
@@ -201,20 +201,17 @@ class DiscoveryInfoProvider {
     private enum class AppType(
         val envPort: String,
         val envHost: String,
-        val envIp: String,
-        val globalPropProtocol: String
+        val envIp: String
     ) {
         SHARE(
             envPort = "ECOS_EUREKA_INSTANCE_SHARE_PORT",
             envHost = "ECOS_EUREKA_INSTANCE_SHARE_HOST",
-            envIp = "ECOS_EUREKA_INSTANCE_SHARE_IP",
-            globalPropProtocol = "share.protocol"
+            envIp = "ECOS_EUREKA_INSTANCE_SHARE_IP"
         ),
         ALFRESCO(
             envPort = "ECOS_EUREKA_INSTANCE_PORT",
             envHost = "ECOS_EUREKA_INSTANCE_HOST",
-            envIp = "ECOS_EUREKA_INSTANCE_IP",
-            globalPropProtocol = "alfresco.protocol"
+            envIp = "ECOS_EUREKA_INSTANCE_IP"
         )
     }
 }
