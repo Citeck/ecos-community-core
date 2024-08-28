@@ -89,7 +89,7 @@ class DiscoveryInfoProvider {
             buildDate,
             Instant.now(),
             getHost(appType),
-            listOf(PortInfo(getNonSecurePort(appType), PortType.HTTP)),
+            listOf(getPort(appType)),
             getIpAddress(appType)
         )
     }
@@ -123,18 +123,34 @@ class DiscoveryInfoProvider {
         }
     }
 
-    private fun getNonSecurePort(appType: AppType): Int {
+    private fun getPort(appType: AppType): PortInfo {
+
+        val protocol = getGlobalStrParam(appType.globalPropProtocol) {
+            if (appType != AppType.ALFRESCO) {
+                getGlobalStrParam(AppType.ALFRESCO.globalPropProtocol) { "" }
+            } else {
+                ""
+            }
+        }.lowercase()
+
+        val portType = if (protocol == "https") {
+            PortType.HTTPS
+        } else {
+            PortType.HTTP
+        }
+
         val portFromEnv = System.getenv(appType.envPort)
         if (portFromEnv != null) {
             try {
-                return portFromEnv.toInt()
+                return PortInfo(portFromEnv.toInt(), portType)
             } catch (e: NumberFormatException) {
                 log.warn("Incorrect port in " + appType.envPort + " param. Value: " + portFromEnv)
             }
         }
-        return getIntParam("port") {
+        val port = getIntParam("port") {
             getGlobalIntParam("alfresco.port") { 8080 }
         }
+        return PortInfo(port, portType)
     }
 
     private fun getBuildInfo(): BuildInfo? {
@@ -185,17 +201,20 @@ class DiscoveryInfoProvider {
     private enum class AppType(
         val envPort: String,
         val envHost: String,
-        val envIp: String
+        val envIp: String,
+        val globalPropProtocol: String
     ) {
         SHARE(
             envPort = "ECOS_EUREKA_INSTANCE_SHARE_PORT",
             envHost = "ECOS_EUREKA_INSTANCE_SHARE_HOST",
-            envIp = "ECOS_EUREKA_INSTANCE_SHARE_IP"
+            envIp = "ECOS_EUREKA_INSTANCE_SHARE_IP",
+            globalPropProtocol = "share.protocol"
         ),
         ALFRESCO(
             envPort = "ECOS_EUREKA_INSTANCE_PORT",
             envHost = "ECOS_EUREKA_INSTANCE_HOST",
-            envIp = "ECOS_EUREKA_INSTANCE_IP"
+            envIp = "ECOS_EUREKA_INSTANCE_IP",
+            globalPropProtocol = "alfresco.protocol"
         )
     }
 }
