@@ -439,6 +439,10 @@
         <property name="extensionName" value="recordsService" />
     </bean>
 
+    <bean id="ecosNodeServiceJS" class="ru.citeck.ecos.domain.node.EcosNodeServiceJS" parent="baseJavaScriptExtension">
+        <property name="extensionName" value="ecosNodeServiceJS" />
+    </bean>
+
     <bean id="RecordsServiceTemplate"
           class="ru.citeck.ecos.records.RecordsServiceTemplate"
           parent="baseTemplateImplementation">

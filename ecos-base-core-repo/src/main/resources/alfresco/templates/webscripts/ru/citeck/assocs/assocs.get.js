@@ -29,7 +29,9 @@ const ASSOCS_LIMIT = 200; //sometimes assocs count is too high
 
 
     var dictionaryService = services.get("dictionaryService"),
-        messageService = services.get("messageService");
+        messageService = services.get("messageService"),
+        ecosNodeService = services.get("ecosNodeServiceJS");
+
 
     var nodeRef = args['nodeRef'],
         assocTypes = args['assocTypes'],
@@ -43,14 +45,14 @@ const ASSOCS_LIMIT = 200; //sometimes assocs count is too high
         for each(type in assocTypes.split(','))
             if (type != '' && nodeRef != null && nodeRef.length != 0){
                 var node = search.findNode(nodeRef);
+                var typeQName = citeckUtils.createQName(type);
                 if (node !== null) {
-                    var sourceAssocs = node.sourceAssocs[type], sourceNodeRef = [];
+                    var sourceAssocs = ecosNodeService.getSourceAssocsNodeRefsLimited(nodeRef, typeQName, 0, ASSOCS_LIMIT), sourceNodeRef = [];
                     if (sourceAssocs == undefined) {
                         sourceAssocs = "";
                     } else {
-                        assocsCount = Math.min(ASSOCS_LIMIT, sourceAssocs.length);
-                        for (var sourceIdx = 0; sourceIdx < assocsCount; sourceIdx++) {
-                            var source = sourceAssocs[sourceIdx];
+                        for (var sourceIdx = 0; sourceIdx < sourceAssocs.size(); sourceIdx++) {
+                            var source = search.findNode(sourceAssocs.get(sourceIdx));
                             if(source != null && source.length != 0 && source.hasPermission("Read")) {
                                 if (contentTypes.length > 0 && !checkContentType(source, contentTypes))
                                     continue;
@@ -99,14 +101,13 @@ const ASSOCS_LIMIT = 200; //sometimes assocs count is too high
                             }
                         }
                     }
-                    var childAssocs = node.childAssocs[type];
+                    var childAssocs = ecosNodeService.getChildAssocsNodeRefsLimited(nodeRef, typeQName, "", null, ASSOCS_LIMIT, false);
                     var childNodeRef = [];
                     if (childAssocs == undefined) {
                         childAssocs = "";
                     } else {
-                        assocsCount = Math.min(ASSOCS_LIMIT, childAssocs.length);
-                        for (var childIdx = 0; childIdx < assocsCount; childIdx++) {
-                            var child = childAssocs[childIdx];
+                        for (var childIdx = 0; childIdx < childAssocs.size(); childIdx++) {
+                            var child = search.findNode(childAssocs.get(childIdx));
                             if(child != null && child.length != 0 && child.hasPermission("Read")) {
                                 if (contentTypes.length > 0 && !checkContentType(child, contentTypes))
                                     continue;
