@@ -44,21 +44,19 @@ public class EcosNodeServiceJS extends AlfrescoScopableProcessorExtension {
     }
     public List<AssociationRef> getSourceAssocsLimited(Object nodeRef,
                                                 String qName,
-                                                int skipCount,
-                                                int maxItems) {
+                                                int limit) {
 
         NodeRef nRef = JavaScriptImplUtils.getNodeRef(nodeRef);
         QName typeQName = QName.createQName(qName);
 
-        return AuthenticationUtil.runAsSystem(() -> ecosNodeService.getSourceAssocsByType(nRef, typeQName, skipCount, maxItems));
+        return AuthenticationUtil.runAsSystem(() -> ecosNodeService.getSourceAssocsByType(nRef, typeQName, limit));
     }
 
     public List<NodeRef> getSourceAssocsNodeRefsLimited(Object nodeRef,
                                                  String qName,
-                                                 int skipCount,
-                                                 int maxItems) {
+                                                 int limit) {
 
-        List<AssociationRef> assocRefs = getSourceAssocsLimited(nodeRef, qName, skipCount, maxItems);
+        List<AssociationRef> assocRefs = getSourceAssocsLimited(nodeRef, qName, limit);
         List<NodeRef> nodeRefs = assocRefs.stream().map(AssociationRef::getSourceRef).collect(Collectors.toList());
 
         return nodeRefs;

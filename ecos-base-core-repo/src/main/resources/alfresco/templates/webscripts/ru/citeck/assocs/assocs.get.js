@@ -47,7 +47,7 @@ const ASSOCS_LIMIT = 200; //sometimes assocs count is too high
                 var node = search.findNode(nodeRef);
                 var typeQName = citeckUtils.createQName(type);
                 if (node !== null) {
-                    var sourceAssocs = ecosNodeService.getSourceAssocsNodeRefsLimited(nodeRef, typeQName, 0, ASSOCS_LIMIT), sourceNodeRef = [];
+                    var sourceAssocs = ecosNodeService.getSourceAssocsNodeRefsLimited(nodeRef, typeQName, ASSOCS_LIMIT), sourceNodeRef = [];
                     if (sourceAssocs == undefined) {
                         sourceAssocs = "";
                     } else {
