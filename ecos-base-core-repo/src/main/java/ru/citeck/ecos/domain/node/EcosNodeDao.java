@@ -1,6 +1,7 @@
 package ru.citeck.ecos.domain.node;
 
 import org.alfresco.repo.domain.node.ChildAssocEntity;
+import org.alfresco.repo.domain.node.NodeAssocEntity;
 import org.alfresco.repo.domain.node.NodeDAO;
 import org.alfresco.repo.domain.node.NodeEntity;
 import org.alfresco.repo.domain.qname.QNameDAO;
@@ -17,14 +18,17 @@ import org.mybatis.spring.SqlSessionTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
-import ru.citeck.ecos.domain.node.ChildAssocEntityLimit;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Component
 public class EcosNodeDao {
 
     private static final String SELECT_CHILD_ASSOCS_OF_PARENT_LIMITED = "custom.alfresco.node.select.children.select_ChildAssocsOfParent_Limited";
+    private static final String SELECT_NODE_SOURCE_ASSOCS_LIMITED = "custom.alfresco.node.select.assocs.select_NodeAssocsByTarget_Limited";
 
     private QNameDAO qnameDao;
     private SqlSessionTemplate customTemplate;
@@ -114,6 +118,31 @@ public class EcosNodeDao {
         }
 
         resultsCallback.done();
+    }
+
+    public List<?> selectAssocsByTargetLimited(Pair<Long, NodeRef> targetNodePair, QName typeQName, int limit) {
+        List<?> entities = new ArrayList<>();
+
+        Pair<Long, QName> typeQNamePair = qnameDao.getQName(typeQName);
+        if (typeQNamePair == null) {
+            return entities;
+        }
+
+        NodeAssocEntity assocEntity = new NodeAssocEntity();
+        NodeEntity targetNode = new NodeEntity();
+        targetNode.setId(targetNodePair.getFirst());
+        assocEntity.setTargetNode(targetNode);
+
+        Long typeQNameId = typeQNamePair.getFirst();
+        assocEntity.setTypeQNameId(typeQNameId);
+
+        Map<String, Object> params = new HashMap<>();
+        params.put("assocEntity", assocEntity);
+        params.put("limit", limit);
+
+        entities = customTemplate.selectList(SELECT_NODE_SOURCE_ASSOCS_LIMITED, params);
+
+        return entities;
     }
 
 

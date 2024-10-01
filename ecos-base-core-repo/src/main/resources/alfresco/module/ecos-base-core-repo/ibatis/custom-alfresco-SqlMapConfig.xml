@@ -6,6 +6,7 @@
 
     <typeAliases>
         <typeAlias alias="ChildAssocLimit" type="ru.citeck.ecos.domain.node.ChildAssocEntityLimit"/>
+        <typeAlias alias="NodeAssoc" type="org.alfresco.repo.domain.node.NodeAssocEntity"/>
     </typeAliases>
 
     <typeHandlers>
@@ -14,6 +15,7 @@
 
     <mappers>
         <mapper resource="alfresco/module/ecos-base-core-repo/ibatis/#resource.dialect#/custom-node-select-children-SqlMap.xml"/>
+        <mapper resource="alfresco/module/ecos-base-core-repo/ibatis/#resource.dialect#/custom-node-select-assocs-limited-SqlMap.xml"/>
     </mappers>
 
 </configuration>

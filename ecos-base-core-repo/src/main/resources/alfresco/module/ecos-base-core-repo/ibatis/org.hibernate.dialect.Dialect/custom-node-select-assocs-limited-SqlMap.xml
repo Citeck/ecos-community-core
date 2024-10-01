@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="custom.alfresco.node.select.assocs">
+    <resultMap id="result_NodeAssoc" type="NodeAssoc">
+        <result property="id" column="id" jdbcType="BIGINT" javaType="java.lang.Long"/>
+        <result property="sourceNode.id" column="sourceNodeId" jdbcType="BIGINT" javaType="java.lang.Long"/>
+        <result property="sourceNode.store.protocol" column="sourceNodeProtocol" jdbcType="VARCHAR" javaType="java.lang.String"/>
+        <result property="sourceNode.store.identifier" column="sourceNodeIdentifier" jdbcType="VARCHAR" javaType="java.lang.String"/>
+        <result property="sourceNode.uuid" column="sourceNodeUuid" jdbcType="VARCHAR" javaType="java.lang.String"/>
+        <result property="targetNode.id" column="targetNodeId" jdbcType="BIGINT" javaType="java.lang.Long"/>
+        <result property="targetNode.store.protocol" column="targetNodeProtocol" jdbcType="VARCHAR" javaType="java.lang.String"/>
+        <result property="targetNode.store.identifier" column="targetNodeIdentifier" jdbcType="VARCHAR" javaType="java.lang.String"/>
+        <result property="targetNode.uuid" column="targetNodeUuid" jdbcType="VARCHAR" javaType="java.lang.String"/>
+        <result property="typeQNameId" column="type_qname_id" jdbcType="BIGINT" javaType="java.lang.Long"/>
+        <result property="assocIndex" column="assoc_index" jdbcType="INTEGER" javaType="java.lang.Integer"/>
+    </resultMap>
+
+    <sql id="select_NodeAssoc_Results">
+        select
+            assoc.id                as id,
+            sourceNode.id           as sourceNodeId,
+            sourceStore.protocol    as sourceNodeProtocol,
+            sourceStore.identifier  as sourceNodeIdentifier,
+            sourceNode.uuid         as sourceNodeUuid,
+            targetNode.id           as targetNodeId,
+            targetStore.protocol    as targetNodeProtocol,
+            targetStore.identifier  as targetNodeIdentifier,
+            targetNode.uuid         as targetNodeUuid,
+            assoc.type_qname_id     as type_qname_id,
+            assoc.assoc_index       as assoc_index
+        from
+            alf_node_assoc assoc
+                join alf_node sourceNode on (sourceNode.id = assoc.source_node_id)
+                join alf_store sourceStore on (sourceStore.id = sourceNode.store_id)
+                join alf_node targetNode on (targetNode.id = assoc.target_node_id)
+                join alf_store targetStore on (targetStore.id = targetNode.store_id)
+    </sql>
+
+    <select id="select_NodeAssocsByTarget_Limited" parameterType="map" resultMap="result_NodeAssoc">
+        <include refid="custom.alfresco.node.select.assocs.select_NodeAssoc_Results"/>
+        where
+        targetNode.id = #{assocEntity.targetNode.id}
+        <if test="assocEntity.typeQNameId != null">
+            <![CDATA[and assoc.type_qname_id = #{assocEntity.typeQNameId}]]>
+        </if>
+        <if test="limit != null">
+            limit ${limit}
+        </if>
+    </select>
+</mapper>

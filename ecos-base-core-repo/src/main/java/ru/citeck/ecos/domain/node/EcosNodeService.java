@@ -1,6 +1,9 @@
 package ru.citeck.ecos.domain.node;
 
+import org.alfresco.repo.domain.node.NodeAssocEntity;
 import org.alfresco.repo.domain.node.NodeDAO;
+import org.alfresco.repo.domain.qname.QNameDAO;
+import org.alfresco.service.cmr.repository.AssociationRef;
 import org.alfresco.service.cmr.repository.ChildAssociationRef;
 import org.alfresco.service.cmr.repository.InvalidNodeRefException;
 import org.alfresco.service.cmr.repository.NodeRef;
@@ -20,6 +23,7 @@ public class EcosNodeService {
 
     private NodeDAO nodeDao;
     private EcosNodeDao ecosNodeDao;
+    private QNameDAO qnameDao;
 
     public List<ChildAssociationRef> getChildAssocsLimited(NodeRef nodeRef,
                                                            final QNamePattern typeQNamePattern,
@@ -76,6 +80,23 @@ public class EcosNodeService {
         return getChildAssocsLimited(nodeRef, typeQNamePattern, qnamePattern, null, maxResults, preload);
     }
 
+
+    public List<AssociationRef> getSourceAssocsByType(NodeRef nodeRef, QName typeQName, int limit) {
+
+        List<AssociationRef> results = new ArrayList<>();
+
+        Pair<Long, NodeRef> targetNodePair = getNodePairNotNull(nodeRef);
+
+        List<?> entities = ecosNodeDao.selectAssocsByTargetLimited(targetNodePair, typeQName, limit);
+
+        for (Object entity : entities) {
+            NodeAssocEntity assoc = (NodeAssocEntity) entity;
+            results.add(assoc.getAssociationRef(qnameDao));
+        }
+
+        return results;
+    }
+
     private Pair<Long, NodeRef> getNodePairNotNull(NodeRef nodeRef) throws InvalidNodeRefException {
         ParameterCheck.mandatory("nodeRef", nodeRef);
         Pair<Long, NodeRef> unchecked = nodeDao.getNodePair(nodeRef);
@@ -95,5 +116,11 @@ public class EcosNodeService {
     @Autowired
     public void setEcosNodeDao(EcosNodeDao ecosNodeDao) {
         this.ecosNodeDao = ecosNodeDao;
+    }
+
+    @Autowired
+    @Qualifier("qnameDAO")
+    public void setQnameDao(QNameDAO qnameDao) {
+        this.qnameDao = qnameDao;
     }
 }
