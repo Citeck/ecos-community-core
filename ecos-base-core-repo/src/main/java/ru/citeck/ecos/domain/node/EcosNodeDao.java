@@ -19,10 +19,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @Component
 public class EcosNodeDao {
@@ -121,11 +118,14 @@ public class EcosNodeDao {
     }
 
     public List<?> selectAssocsByTargetLimited(Pair<Long, NodeRef> targetNodePair, QName typeQName, int limit) {
-        List<?> entities = new ArrayList<>();
-
-        Pair<Long, QName> typeQNamePair = qnameDao.getQName(typeQName);
-        if (typeQNamePair == null) {
-            return entities;
+        Long typeQNameId = null;
+        if (typeQName != null) {
+            Pair<Long, QName> typeQNamePair = qnameDao.getQName(typeQName);
+            if (typeQNamePair == null) {
+                // No such QName
+                return Collections.emptyList();
+            }
+            typeQNameId = typeQNamePair.getFirst();
         }
 
         NodeAssocEntity assocEntity = new NodeAssocEntity();
@@ -133,16 +133,14 @@ public class EcosNodeDao {
         targetNode.setId(targetNodePair.getFirst());
         assocEntity.setTargetNode(targetNode);
 
-        Long typeQNameId = typeQNamePair.getFirst();
         assocEntity.setTypeQNameId(typeQNameId);
 
         Map<String, Object> params = new HashMap<>();
         params.put("assocEntity", assocEntity);
         params.put("limit", limit);
 
-        entities = customTemplate.selectList(SELECT_NODE_SOURCE_ASSOCS_LIMITED, params);
-
-        return entities;
+        RowBounds rowBounds = new RowBounds(0, limit);
+        return customTemplate.selectList(SELECT_NODE_SOURCE_ASSOCS_LIMITED, params, rowBounds);
     }
 
 
