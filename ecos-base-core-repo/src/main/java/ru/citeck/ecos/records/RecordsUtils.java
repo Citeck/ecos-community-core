@@ -78,7 +78,7 @@ public class RecordsUtils {
 
     public static List<RecordRef> toLocalRecords(Collection<RecordRef> records) {
         return records.stream()
-                      .map(r -> RecordRef.valueOf(r.getId()))
+                      .map(r -> RecordRef.EMPTY.withId(r.getLocalId()))
                       .collect(Collectors.toList());
     }
 
