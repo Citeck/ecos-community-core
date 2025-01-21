@@ -1,0 +1,48 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.0.xsd">
+
+    <!-- RhinoScriptProcessor -->
+
+    <bean id="javaScriptProcessor" class="ru.citeck.ecos.jscript.EcosRhinoScriptProcessor" init-method="register">
+        <property name="name">
+            <value>javascript</value>
+        </property>
+        <property name="extension">
+            <value>js</value>
+        </property>
+        <!-- compile javascript and cache compiled scripts -->
+        <property name="compile">
+            <value>true</value>
+        </property>
+        <property name="stringScriptsCacheEnabled">
+            <value>${ecos.jscript.rhino.stringScriptsCacheEnabled}</value>
+        </property>
+        <property name="stringScriptsCacheMaxSize">
+            <value>${ecos.jscript.rhino.stringScriptsCacheMaxSize}</value>
+        </property>
+        <property name="stringScriptsCacheExpireAfterAccess">
+            <value>${ecos.jscript.rhino.stringScriptsCacheExpireAfterAccess}</value>
+        </property>
+        <!-- allow sharing of sealed scopes for performance -->
+        <!-- disable to give each script it's own new scope which can be extended -->
+        <property name="shareSealedScopes">
+            <value>true</value>
+        </property>
+        <property name="scriptService">
+            <ref bean="scriptService"/>
+        </property>
+        <!-- Creates ScriptNodes which require the ServiceRegistry -->
+        <property name="serviceRegistry">
+            <ref bean="ServiceRegistry"/>
+        </property>
+        <property name="storeUrl">
+            <value>${spaces.store}</value>
+        </property>
+        <property name="storePath">
+            <value>${spaces.company_home.childname}</value>
+        </property>
+    </bean>
+
+</beans>
