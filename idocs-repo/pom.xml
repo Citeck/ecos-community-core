@@ -180,6 +180,12 @@
         </dependency>
 
         <dependency>
+            <groupId>com.rabbitmq</groupId>
+            <artifactId>amqp-client</artifactId>
+            <version>5.4.3</version>
+        </dependency>
+
+        <dependency>
             <groupId>ru.citeck.ecos</groupId>
             <artifactId>ecos-commands-rabbit</artifactId>
             <version>${ecos.commands.version}</version>
@@ -197,6 +203,11 @@
             <scope>compile</scope>
         </dependency>
 
+        <dependency>
+            <groupId>ru.citeck.ecos</groupId>
+            <artifactId>ecos-guava</artifactId>
+            <version>30.0.0-jre</version>
+        </dependency>
     </dependencies>
 
     <build>
