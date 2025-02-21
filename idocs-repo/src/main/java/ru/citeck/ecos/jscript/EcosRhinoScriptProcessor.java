@@ -1,5 +1,7 @@
 package ru.citeck.ecos.jscript;
 
+import ecos.guava30.com.google.common.cache.Cache;
+import ecos.guava30.com.google.common.cache.CacheBuilder;
 import ecos.guava30.com.google.common.cache.CacheStats;
 import lombok.SneakyThrows;
 import org.alfresco.repo.jscript.RhinoScriptProcessor;
@@ -9,14 +11,11 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.mozilla.javascript.Context;
 import org.mozilla.javascript.Script;
-
-import java.time.Duration;
-
-import ecos.guava30.com.google.common.cache.Cache;
-import ecos.guava30.com.google.common.cache.CacheBuilder;
 import ru.citeck.ecos.commons.utils.digest.DigestUtils;
 
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.time.Duration;
 import java.util.Map;
 
 public class EcosRhinoScriptProcessor extends RhinoScriptProcessor {
@@ -25,6 +24,7 @@ public class EcosRhinoScriptProcessor extends RhinoScriptProcessor {
     private static final Log log = LogFactory.getLog(EcosRhinoScriptProcessor.class);
 
     private static final String EXEC_SCRIPT_IMPL_METHOD_NAME = "executeScriptImpl";
+    private static final String MESSAGE_ERROR = "Failed to execute supplied script: ";
     private final Method executeScriptImplMethod;
 
     private boolean stringScriptsCacheEnabled = true;
@@ -79,7 +79,13 @@ public class EcosRhinoScriptProcessor extends RhinoScriptProcessor {
             });
             return executeScriptImplMethod.invoke(this, script, model, true, "string script");
         } catch (Throwable err) {
-            throw new ScriptException("Failed to execute supplied script: " + err.getMessage(), err);
+            if (err instanceof InvocationTargetException) {
+                Throwable t = ((InvocationTargetException) err).getTargetException();
+                if (t != null) {
+                    throw new ScriptException(MESSAGE_ERROR + t.getMessage(), t);
+                }
+            }
+            throw new ScriptException(MESSAGE_ERROR + err.getMessage(), err);
         }
     }
 
